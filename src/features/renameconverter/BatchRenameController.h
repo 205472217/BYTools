@@ -1,0 +1,52 @@
+#pragma once
+
+#include <QObject>
+#include <QString>
+
+#include "RenamePreviewModel.h"
+#include "RenameService.h"
+#include "TextConverter.h"
+
+class BatchRenameController : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY(QString rootPath READ rootPath WRITE setRootPath NOTIFY rootPathChanged)
+    Q_PROPERTY(int targetType READ targetType WRITE setTargetType NOTIFY targetTypeChanged)
+    Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
+    Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
+
+public:
+    explicit BatchRenameController(QObject *parent = nullptr);
+
+    QString rootPath() const;
+    void setRootPath(const QString &rootPath);
+
+    int targetType() const;
+    void setTargetType(int targetType);
+
+    QString statusMessage() const;
+    bool hasRecords() const;
+    RenamePreviewModel *previewModel();
+
+    Q_INVOKABLE void buildPreview();
+    Q_INVOKABLE void executeRename();
+    Q_INVOKABLE void restoreRecord(int row);
+    Q_INVOKABLE void clearRecords();
+
+signals:
+    void rootPathChanged();
+    void targetTypeChanged();
+    void statusMessageChanged();
+    void hasRecordsChanged();
+
+private:
+    RenameService::TargetType currentTargetType() const;
+    void setStatusMessage(const QString &message);
+
+    QString m_rootPath;
+    int m_targetType = 2;
+    QString m_statusMessage;
+    ChineseTextConverter m_converter;
+    RenameService m_service;
+    RenamePreviewModel m_previewModel;
+};
