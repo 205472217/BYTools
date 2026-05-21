@@ -9,6 +9,8 @@ Pane {
 
     signal backRequested()
 
+    property var controller: null
+
     readonly property int tableLeftPadding: 18
     readonly property int tableRightPadding: 20
     readonly property int typeColumnWidth: 74
@@ -37,8 +39,10 @@ Pane {
         id: folderDialog
         title: "选择根文件夹"
         onAccepted: {
-            batchRenameController.rootPath = selectedFolder
-            batchRenameController.clearRecords()
+            if (controller) {
+                controller.rootPath = selectedFolder
+                controller.clearRecords()
+            }
         }
     }
 
@@ -99,7 +103,7 @@ Pane {
                 TextField {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 38
-                    text: batchRenameController.rootPath
+                    text: controller ? controller.rootPath : ""
                     readOnly: true
                     placeholderText: "尚未选择"
                     verticalAlignment: Text.AlignVCenter
@@ -121,8 +125,12 @@ Pane {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 38
                     model: ["仅文件", "仅文件夹", "文件和文件夹"]
-                    currentIndex: batchRenameController.targetType
-                    onActivated: batchRenameController.targetType = currentIndex
+                    currentIndex: controller ? controller.targetType : 2
+                    onActivated: {
+                        if (controller) {
+                            controller.targetType = currentIndex
+                        }
+                    }
                 }
 
                 RowLayout {
@@ -135,7 +143,11 @@ Pane {
                         normalColor: "#2563eb"
                         hoverColor: "#1d4ed8"
                         borderColor: "#1d4ed8"
-                        onClicked: batchRenameController.executeRename()
+                        onClicked: {
+                            if (controller) {
+                                controller.executeRename()
+                            }
+                        }
                     }
 
                     Item {
@@ -146,8 +158,12 @@ Pane {
                             anchors.centerIn: parent
                             iconSource: "../icons/trash.svg"
                             tooltip: "清空记录"
-                            visible: batchRenameController.hasRecords
-                            onClicked: batchRenameController.clearRecords()
+                            visible: controller ? controller.hasRecords : false
+                            onClicked: {
+                                if (controller) {
+                                    controller.clearRecords()
+                                }
+                            }
                         }
                     }
                 }
@@ -156,7 +172,7 @@ Pane {
 
         Label {
             Layout.fillWidth: true
-            text: batchRenameController.statusMessage
+            text: controller ? controller.statusMessage : ""
             color: "#2563eb"
             font.pixelSize: 14
             elide: Text.ElideRight
@@ -231,7 +247,7 @@ Pane {
                     id: previewList
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    model: renamePreviewModel
+                    model: controller ? controller.previewModel() : null
                     clip: true
 
                     delegate: Rectangle {
@@ -292,7 +308,11 @@ Pane {
                             iconSource: "../icons/undo.svg"
                             tooltip: status.indexOf("失败") === 0 ? "失败项无法还原" : "还原"
                             enabled: status === "已转换"
-                            onClicked: batchRenameController.restoreRecord(index)
+                            onClicked: {
+                                if (controller) {
+                                    controller.restoreRecord(index)
+                                }
+                            }
                         }
                     }
 

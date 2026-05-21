@@ -3,11 +3,11 @@
 #include <QObject>
 #include <QString>
 
-#include "RenamePreviewModel.h"
-#include "RenameService.h"
+#include "NamePreviewModel.h"
+#include "NameService.h"
 #include "TextConverter.h"
 
-class BatchRenameController : public QObject
+class BatchNameController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString rootPath READ rootPath WRITE setRootPath NOTIFY rootPathChanged)
@@ -16,7 +16,7 @@ class BatchRenameController : public QObject
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
 
 public:
-    explicit BatchRenameController(QObject *parent = nullptr);
+    explicit BatchNameController(QObject *parent = nullptr);
 
     QString rootPath() const;
     void setRootPath(const QString &rootPath);
@@ -26,7 +26,7 @@ public:
 
     QString statusMessage() const;
     bool hasRecords() const;
-    RenamePreviewModel *previewModel();
+    Q_INVOKABLE QObject* previewModel();
 
     Q_INVOKABLE void buildPreview();
     Q_INVOKABLE void executeRename();
@@ -40,13 +40,13 @@ signals:
     void hasRecordsChanged();
 
 private:
-    RenameService::TargetType currentTargetType() const;
+    NameService::TargetType currentTargetType() const;
     void setStatusMessage(const QString &message);
 
     QString m_rootPath;
     int m_targetType = 2;
     QString m_statusMessage;
     ChineseTextConverter m_converter;
-    RenameService m_service;
-    RenamePreviewModel m_previewModel;
+    NameService m_service;
+    NamePreviewModel m_previewModel;
 };

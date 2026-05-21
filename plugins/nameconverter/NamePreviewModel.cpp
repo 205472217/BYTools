@@ -1,4 +1,4 @@
-#include "RenamePreviewModel.h"
+#include "NamePreviewModel.h"
 
 #include <QDir>
 
@@ -26,12 +26,12 @@ bool replacePrefix(QString &path, const QString &fromPrefix, const QString &toPr
 
 }
 
-RenamePreviewModel::RenamePreviewModel(QObject *parent)
+NamePreviewModel::NamePreviewModel(QObject *parent)
     : QAbstractListModel(parent)
 {
 }
 
-int RenamePreviewModel::rowCount(const QModelIndex &parent) const
+int NamePreviewModel::rowCount(const QModelIndex &parent) const
 {
     if (parent.isValid()) {
         return 0;
@@ -39,7 +39,7 @@ int RenamePreviewModel::rowCount(const QModelIndex &parent) const
     return m_items.count();
 }
 
-QVariant RenamePreviewModel::data(const QModelIndex &index, int role) const
+QVariant NamePreviewModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || index.row() < 0 || index.row() >= m_items.count()) {
         return {};
@@ -66,7 +66,7 @@ QVariant RenamePreviewModel::data(const QModelIndex &index, int role) const
     }
 }
 
-QHash<int, QByteArray> RenamePreviewModel::roleNames() const
+QHash<int, QByteArray> NamePreviewModel::roleNames() const
 {
     return {
         {CurrentPathRole, "currentPath"},
@@ -79,19 +79,19 @@ QHash<int, QByteArray> RenamePreviewModel::roleNames() const
     };
 }
 
-void RenamePreviewModel::setItems(const QList<RenamePreviewItem> &items)
+void NamePreviewModel::setItems(const QList<NamePreviewItem> &items)
 {
     beginResetModel();
     m_items = items;
     endResetModel();
 }
 
-QList<RenamePreviewItem> RenamePreviewModel::items() const
+QList<NamePreviewItem> NamePreviewModel::items() const
 {
     return m_items;
 }
 
-RenamePreviewItem RenamePreviewModel::itemAt(int row) const
+NamePreviewItem NamePreviewModel::itemAt(int row) const
 {
     if (row < 0 || row >= m_items.count()) {
         return {};
@@ -100,7 +100,7 @@ RenamePreviewItem RenamePreviewModel::itemAt(int row) const
     return m_items.at(row);
 }
 
-void RenamePreviewModel::updateStatus(int row, const QString &status)
+void NamePreviewModel::updateStatus(int row, const QString &status)
 {
     if (row < 0 || row >= m_items.count()) {
         return;
@@ -111,7 +111,7 @@ void RenamePreviewModel::updateStatus(int row, const QString &status)
     emit dataChanged(itemIndex, itemIndex, {StatusRole, ActualPathRole});
 }
 
-void RenamePreviewModel::replacePathPrefix(const QString &fromPrefix, const QString &toPrefix)
+void NamePreviewModel::replacePathPrefix(const QString &fromPrefix, const QString &toPrefix)
 {
     if (m_items.isEmpty()) {
         return;
@@ -130,12 +130,12 @@ void RenamePreviewModel::replacePathPrefix(const QString &fromPrefix, const QStr
     emit dataChanged(index(0), index(m_items.count() - 1), {CurrentPathRole, NewPathRole, ActualPathRole});
 }
 
-void RenamePreviewModel::clear()
+void NamePreviewModel::clear()
 {
     setItems({});
 }
 
-QString RenamePreviewModel::actualPath(const RenamePreviewItem &item) const
+QString NamePreviewModel::actualPath(const NamePreviewItem &item) const
 {
     if (item.status == QStringLiteral("已转换")) {
         return item.newPath;

@@ -4,7 +4,7 @@
 #include <QList>
 #include <QString>
 
-struct RenamePreviewItem
+struct NamePreviewItem
 {
     QString currentPath;
     QString newPath;
@@ -14,7 +14,7 @@ struct RenamePreviewItem
     QString status;
 };
 
-class RenamePreviewModel : public QAbstractListModel
+class NamePreviewModel : public QAbstractListModel
 {
     Q_OBJECT
 
@@ -29,21 +29,21 @@ public:
         ActualPathRole
     };
 
-    explicit RenamePreviewModel(QObject *parent = nullptr);
+    explicit NamePreviewModel(QObject *parent = nullptr);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    void setItems(const QList<RenamePreviewItem> &items);
-    QList<RenamePreviewItem> items() const;
-    RenamePreviewItem itemAt(int row) const;
+    void setItems(const QList<NamePreviewItem> &items);
+    QList<NamePreviewItem> items() const;
+    NamePreviewItem itemAt(int row) const;
     void updateStatus(int row, const QString &status);
     void replacePathPrefix(const QString &fromPrefix, const QString &toPrefix);
     void clear();
 
 private:
-    QString actualPath(const RenamePreviewItem &item) const;
+    QString actualPath(const NamePreviewItem &item) const;
 
-    QList<RenamePreviewItem> m_items;
+    QList<NamePreviewItem> m_items;
 };

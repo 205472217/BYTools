@@ -13,6 +13,9 @@ ApplicationWindow {
     title: "BYTools"
     color: "#f6f7f9"
 
+    property var currentController: null
+    property string currentFeatureId: ""
+
     StackView {
         id: stackView
         anchors.fill: parent
@@ -24,18 +27,29 @@ ApplicationWindow {
 
         HomePage {
             onOpenFeature: function(featureId) {
-                if (featureId === "rename-converter") {
-                    stackView.push(renameConverterPage)
+                var controller = pluginManager.getPlugin(featureId)
+                if (controller) {
+                    window.currentController = controller
+                    window.currentFeatureId = featureId
+                }
+
+                if (featureId === "name-converter") {
+                    stackView.push(nameConverterPage)
                 }
             }
         }
     }
 
     Component {
-        id: renameConverterPage
+        id: nameConverterPage
 
-        RenameConverterPage {
-            onBackRequested: stackView.pop()
+        NameConverterPage {
+            controller: window.currentController
+            onBackRequested: {
+                stackView.pop()
+                window.currentController = null
+                window.currentFeatureId = ""
+            }
         }
     }
 }

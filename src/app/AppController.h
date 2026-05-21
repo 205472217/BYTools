@@ -3,8 +3,6 @@
 #include <QObject>
 #include <QVariantList>
 
-#include "../core/FeatureInfo.h"
-
 class AppController : public QObject
 {
     Q_OBJECT
@@ -14,9 +12,4 @@ public:
     explicit AppController(QObject *parent = nullptr);
 
     QVariantList features() const;
-
-private:
-    void registerBuiltInFeatures();
-
-    QList<FeatureInfo> m_features;
 };

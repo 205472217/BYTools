@@ -1,20 +1,20 @@
-#include "BatchRenameController.h"
+#include "BatchNameController.h"
 
 #include <QDir>
 #include <QUrl>
 
-BatchRenameController::BatchRenameController(QObject *parent)
+BatchNameController::BatchNameController(QObject *parent)
     : QObject(parent)
     , m_service(m_converter)
 {
 }
 
-QString BatchRenameController::rootPath() const
+QString BatchNameController::rootPath() const
 {
     return m_rootPath;
 }
 
-void BatchRenameController::setRootPath(const QString &rootPath)
+void BatchNameController::setRootPath(const QString &rootPath)
 {
     QString normalizedPath = rootPath;
     const QUrl url(rootPath);
@@ -30,12 +30,12 @@ void BatchRenameController::setRootPath(const QString &rootPath)
     emit rootPathChanged();
 }
 
-int BatchRenameController::targetType() const
+int BatchNameController::targetType() const
 {
     return m_targetType;
 }
 
-void BatchRenameController::setTargetType(int targetType)
+void BatchNameController::setTargetType(int targetType)
 {
     if (m_targetType == targetType) {
         return;
@@ -45,22 +45,22 @@ void BatchRenameController::setTargetType(int targetType)
     emit targetTypeChanged();
 }
 
-QString BatchRenameController::statusMessage() const
+QString BatchNameController::statusMessage() const
 {
     return m_statusMessage;
 }
 
-bool BatchRenameController::hasRecords() const
+bool BatchNameController::hasRecords() const
 {
     return m_previewModel.rowCount() > 0;
 }
 
-RenamePreviewModel *BatchRenameController::previewModel()
+QObject* BatchNameController::previewModel()
 {
     return &m_previewModel;
 }
 
-void BatchRenameController::buildPreview()
+void BatchNameController::buildPreview()
 {
     if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
         m_previewModel.clear();
@@ -80,7 +80,7 @@ void BatchRenameController::buildPreview()
     }
 }
 
-void BatchRenameController::executeRename()
+void BatchNameController::executeRename()
 {
     if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
         m_previewModel.clear();
@@ -95,7 +95,7 @@ void BatchRenameController::executeRename()
     setStatusMessage(execution.result.message);
 }
 
-void BatchRenameController::restoreRecord(int row)
+void BatchNameController::restoreRecord(int row)
 {
     const auto item = m_previewModel.itemAt(row);
     const auto result = m_service.restore(item);
@@ -106,26 +106,26 @@ void BatchRenameController::restoreRecord(int row)
     setStatusMessage(result.message);
 }
 
-void BatchRenameController::clearRecords()
+void BatchNameController::clearRecords()
 {
     m_previewModel.clear();
     emit hasRecordsChanged();
     setStatusMessage({});
 }
 
-RenameService::TargetType BatchRenameController::currentTargetType() const
+NameService::TargetType BatchNameController::currentTargetType() const
 {
     switch (m_targetType) {
     case 0:
-        return RenameService::TargetType::Files;
+        return NameService::TargetType::Files;
     case 1:
-        return RenameService::TargetType::Directories;
+        return NameService::TargetType::Directories;
     default:
-        return RenameService::TargetType::FilesAndDirectories;
+        return NameService::TargetType::FilesAndDirectories;
     }
 }
 
-void BatchRenameController::setStatusMessage(const QString &message)
+void BatchNameController::setStatusMessage(const QString &message)
 {
     if (m_statusMessage == message) {
         return;

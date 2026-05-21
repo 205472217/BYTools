@@ -56,7 +56,7 @@ Pane {
 
                 FeatureCard {
                     Layout.fillWidth: true
-                    titleText: modelData.title
+                    titleText: modelData.name
                     descriptionText: modelData.description
                     iconText: "文"
                     iconSource: "../icons/languages.svg"

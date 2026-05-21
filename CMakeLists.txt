@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Quick)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick Core)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
@@ -28,7 +28,7 @@ set_source_files_properties(qml/icons/spark.svg PROPERTIES QT_RESOURCE_ALIAS ico
 set_source_files_properties(qml/icons/trash.svg PROPERTIES QT_RESOURCE_ALIAS icons/trash.svg)
 set_source_files_properties(qml/icons/undo.svg PROPERTIES QT_RESOURCE_ALIAS icons/undo.svg)
 set_source_files_properties(qml/pages/HomePage.qml PROPERTIES QT_RESOURCE_ALIAS pages/HomePage.qml)
-set_source_files_properties(qml/pages/RenameConverterPage.qml PROPERTIES QT_RESOURCE_ALIAS pages/RenameConverterPage.qml)
+set_source_files_properties(qml/pages/NameConverterPage.qml PROPERTIES QT_RESOURCE_ALIAS pages/NameConverterPage.qml)
 
 qt_add_executable(BYTools
     src/main.cpp
@@ -36,14 +36,9 @@ qt_add_executable(BYTools
     src/app/AppController.h
     src/core/FeatureInfo.h
     src/core/OperationResult.h
-    src/features/renameconverter/BatchRenameController.cpp
-    src/features/renameconverter/BatchRenameController.h
-    src/features/renameconverter/RenamePreviewModel.cpp
-    src/features/renameconverter/RenamePreviewModel.h
-    src/features/renameconverter/RenameService.cpp
-    src/features/renameconverter/RenameService.h
-    src/features/renameconverter/TextConverter.cpp
-    src/features/renameconverter/TextConverter.h
+    src/core/PluginInterface.h
+    src/core/PluginManager.h
+    src/core/PluginManager.cpp
     ${BYTOOLS_PLATFORM_SOURCES}
 )
 
@@ -55,7 +50,7 @@ qt_add_qml_module(BYTools
         qml/components/FeatureCard.qml
         qml/components/IconButton.qml
         qml/pages/HomePage.qml
-        qml/pages/RenameConverterPage.qml
+        qml/pages/NameConverterPage.qml
     RESOURCES
         qml/icons/arrow-left.svg
         qml/icons/app.svg
@@ -68,10 +63,11 @@ qt_add_qml_module(BYTools
 )
 
 target_link_libraries(BYTools
-    PRIVATE Qt6::Quick
+    PRIVATE Qt6::Quick Qt6::Core
 )
 
 if(WIN32)
-    set_target_properties(BYTools PROPERTIES WIN32_EXECUTABLE TRUE)
     target_compile_definitions(BYTools PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
 endif()
+
+add_subdirectory(plugins/nameconverter)

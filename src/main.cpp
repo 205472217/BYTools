@@ -1,21 +1,28 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QDebug>
 
 #include "app/AppController.h"
-#include "features/renameconverter/BatchRenameController.h"
+#include "core/PluginManager.h"
+#include "core/PluginInterface.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
+    qDebug() << "=== Starting BYTools ===";
+    qDebug() << "Application dir:" << QCoreApplication::applicationDirPath();
+    
+    QStringList loadedPlugins = PluginManager::instance()->loadPlugins();
+    qDebug() << "Loaded plugins count:" << loadedPlugins.count();
+    qDebug() << "Loaded plugins:" << loadedPlugins;
+
     AppController appController;
-    BatchRenameController batchRenameController;
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("appController", &appController);
-    engine.rootContext()->setContextProperty("batchRenameController", &batchRenameController);
-    engine.rootContext()->setContextProperty("renamePreviewModel", batchRenameController.previewModel());
+    engine.rootContext()->setContextProperty("pluginManager", PluginManager::instance());
 
     QObject::connect(
         &engine,

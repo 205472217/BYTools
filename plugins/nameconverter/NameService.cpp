@@ -1,4 +1,4 @@
-#include "RenameService.h"
+#include "NameService.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -26,7 +26,7 @@ bool replacePrefix(QString &path, const QString &fromPrefix, const QString &toPr
     return false;
 }
 
-void replaceRecordPrefixes(QList<RenamePreviewItem> &records, const QString &fromPrefix, const QString &toPrefix)
+void replaceRecordPrefixes(QList<NamePreviewItem> &records, const QString &fromPrefix, const QString &toPrefix)
 {
     for (auto &record : records) {
         replacePrefix(record.currentPath, fromPrefix, toPrefix);
@@ -36,14 +36,14 @@ void replaceRecordPrefixes(QList<RenamePreviewItem> &records, const QString &fro
 
 }
 
-RenameService::RenameService(const ITextConverter &converter)
+NameService::NameService(const ITextConverter &converter)
     : m_converter(converter)
 {
 }
 
-QList<RenamePreviewItem> RenameService::preview(const QString &rootPath, TargetType targetType) const
+QList<NamePreviewItem> NameService::preview(const QString &rootPath, TargetType targetType) const
 {
-    QList<RenamePreviewItem> items;
+    QList<NamePreviewItem> items;
     const QDir root(rootPath);
     if (!root.exists()) {
         return items;
@@ -69,12 +69,12 @@ QList<RenamePreviewItem> RenameService::preview(const QString &rootPath, TargetT
     return items;
 }
 
-RenameExecutionResult RenameService::execute(const QString &rootPath, TargetType targetType) const
+NameExecutionResult NameService::execute(const QString &rootPath, TargetType targetType) const
 {
-    const QList<RenamePreviewItem> items = preview(rootPath, targetType);
+    const QList<NamePreviewItem> items = preview(rootPath, targetType);
     int successCount = 0;
     QStringList failures;
-    QList<RenamePreviewItem> records;
+    QList<NamePreviewItem> records;
 
     for (const auto &item : items) {
         if (item.currentPath == item.newPath) {
@@ -124,7 +124,7 @@ RenameExecutionResult RenameService::execute(const QString &rootPath, TargetType
     };
 }
 
-OperationResult RenameService::restore(const RenamePreviewItem &item) const
+OperationResult NameService::restore(const NamePreviewItem &item) const
 {
     if (item.currentPath.isEmpty() || item.newPath.isEmpty()) {
         return OperationResult::fail(QStringLiteral("记录无效，无法还原"));
@@ -146,7 +146,7 @@ OperationResult RenameService::restore(const RenamePreviewItem &item) const
     return OperationResult::fail(QStringLiteral("还原失败：%1").arg(item.newPath));
 }
 
-bool RenameService::shouldInclude(bool isDirectory, TargetType targetType) const
+bool NameService::shouldInclude(bool isDirectory, TargetType targetType) const
 {
     switch (targetType) {
     case TargetType::Files:
@@ -159,7 +159,7 @@ bool RenameService::shouldInclude(bool isDirectory, TargetType targetType) const
     return false;
 }
 
-RenamePreviewItem RenameService::makeItem(const QString &absolutePath, bool isDirectory) const
+NamePreviewItem NameService::makeItem(const QString &absolutePath, bool isDirectory) const
 {
     const QFileInfo info(absolutePath);
     const QString newName = m_converter.traditionalToSimplified(info.fileName());
