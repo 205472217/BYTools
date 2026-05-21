@@ -9,8 +9,13 @@ Pane {
     signal openFeature(string featureId)
 
     padding: 0
+    focusPolicy: Qt.NoFocus
+
     background: Rectangle {
+        radius: 8
         color: "#f6f7f9"
+        border.color: root.activeFocus ? "#3b82f6" : "#d9dde5"
+        border.width: root.activeFocus ? 2 : 1
     }
 
     ColumnLayout {

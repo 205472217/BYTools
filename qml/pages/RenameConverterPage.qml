@@ -98,9 +98,11 @@ Pane {
 
                 TextField {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: 38
                     text: batchRenameController.rootPath
                     readOnly: true
                     placeholderText: "尚未选择"
+                    verticalAlignment: Text.AlignVCenter
                 }
 
                 IconButton {
@@ -117,6 +119,7 @@ Pane {
 
                 ComboBox {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: 38
                     model: ["仅文件", "仅文件夹", "文件和文件夹"]
                     currentIndex: batchRenameController.targetType
                     onActivated: batchRenameController.targetType = currentIndex
@@ -124,6 +127,7 @@ Pane {
 
                 RowLayout {
                     spacing: 10
+                    Layout.preferredWidth: 86
 
                     IconButton {
                         iconSource: "../icons/play.svg"
@@ -134,11 +138,17 @@ Pane {
                         onClicked: batchRenameController.executeRename()
                     }
 
-                    IconButton {
-                        iconSource: "../icons/trash.svg"
-                        tooltip: "清空记录"
-                        enabled: batchRenameController.hasRecords
-                        onClicked: batchRenameController.clearRecords()
+                    Item {
+                        width: 38
+                        height: 38
+
+                        IconButton {
+                            anchors.centerIn: parent
+                            iconSource: "../icons/trash.svg"
+                            tooltip: "清空记录"
+                            visible: batchRenameController.hasRecords
+                            onClicked: batchRenameController.clearRecords()
+                        }
                     }
                 }
             }
@@ -162,6 +172,7 @@ Pane {
 
             ColumnLayout {
                 anchors.fill: parent
+                anchors.margins: 2
                 spacing: 0
 
                 Rectangle {

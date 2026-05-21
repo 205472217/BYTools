@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-Button {
+Item {
     id: root
 
     property string titleText: ""
@@ -11,20 +11,21 @@ Button {
     property string iconSource: ""
 
     implicitHeight: 132
-    padding: 0
-    hoverEnabled: true
 
-    background: Rectangle {
+    signal clicked()
+
+    Rectangle {
+        anchors.fill: parent
         radius: 8
-        color: root.hovered ? "#ffffff" : "#fbfcfe"
-        border.color: root.hovered ? "#3b82f6" : "#d9dde5"
-        border.width: root.hovered ? 2 : 1
+        color: mouseArea.containsMouse ? "#ffffff" : "#fbfcfe"
+        border.color: mouseArea.containsMouse ? "#3b82f6" : "#d9dde5"
+        border.width: mouseArea.containsMouse ? 2 : 1
     }
 
-    contentItem: RowLayout {
-        spacing: 16
+    RowLayout {
         anchors.fill: parent
         anchors.margins: 18
+        spacing: 16
 
         Rectangle {
             Layout.preferredWidth: 48
@@ -73,5 +74,12 @@ Button {
                 Layout.fillWidth: true
             }
         }
+    }
+
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        onClicked: root.clicked()
+        hoverEnabled: true
     }
 }
