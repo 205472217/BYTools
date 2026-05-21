@@ -4,6 +4,7 @@
 #include <QStringList>
 #include <QVariantList>
 #include <QMap>
+#include <QDir>
 
 class PluginInterface;
 
@@ -29,4 +30,6 @@ private:
 
     QMap<QString, PluginInterface*> m_plugins;
     QStringList m_loadedPluginPaths;
+
+    void loadPluginsFromDir(const QDir &dir, const QStringList &filters, QStringList &loadedPlugins);
 };

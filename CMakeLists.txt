@@ -29,6 +29,7 @@ set_source_files_properties(qml/icons/trash.svg PROPERTIES QT_RESOURCE_ALIAS ico
 set_source_files_properties(qml/icons/undo.svg PROPERTIES QT_RESOURCE_ALIAS icons/undo.svg)
 set_source_files_properties(qml/pages/HomePage.qml PROPERTIES QT_RESOURCE_ALIAS pages/HomePage.qml)
 set_source_files_properties(qml/pages/NameConverterPage.qml PROPERTIES QT_RESOURCE_ALIAS pages/NameConverterPage.qml)
+set_source_files_properties(qml/pages/BatchRenamePage.qml PROPERTIES QT_RESOURCE_ALIAS pages/BatchRenamePage.qml)
 
 qt_add_executable(BYTools
     src/main.cpp
@@ -51,6 +52,7 @@ qt_add_qml_module(BYTools
         qml/components/IconButton.qml
         qml/pages/HomePage.qml
         qml/pages/NameConverterPage.qml
+        qml/pages/BatchRenamePage.qml
     RESOURCES
         qml/icons/arrow-left.svg
         qml/icons/app.svg
@@ -71,3 +73,4 @@ if(WIN32)
 endif()
 
 add_subdirectory(plugins/nameconverter)
+add_subdirectory(plugins/batchrename)

@@ -35,6 +35,8 @@ ApplicationWindow {
 
                 if (featureId === "name-converter") {
                     stackView.push(nameConverterPage)
+                } else if (featureId === "batch-rename") {
+                    stackView.push(batchRenamePage)
                 }
             }
         }
@@ -44,6 +46,19 @@ ApplicationWindow {
         id: nameConverterPage
 
         NameConverterPage {
+            controller: window.currentController
+            onBackRequested: {
+                stackView.pop()
+                window.currentController = null
+                window.currentFeatureId = ""
+            }
+        }
+    }
+
+    Component {
+        id: batchRenamePage
+
+        BatchRenamePage {
             controller: window.currentController
             onBackRequested: {
                 stackView.pop()

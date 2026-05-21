@@ -38,6 +38,35 @@ QVariantList PluginManager::plugins() const
     return result;
 }
 
+void PluginManager::loadPluginsFromDir(const QDir &dir, const QStringList &filters, QStringList &loadedPlugins)
+{
+    QFileInfoList files = dir.entryInfoList(filters, QDir::Files);
+
+    for (const QFileInfo &file : files) {
+        QPluginLoader loader(file.absoluteFilePath());
+        QObject *instance = loader.instance();
+
+        if (instance) {
+            PluginInterface *plugin = qobject_cast<PluginInterface*>(instance);
+            if (plugin) {
+                QString pluginId = plugin->id();
+                if (!m_plugins.contains(pluginId)) {
+                    plugin->initialize();
+                    m_plugins[pluginId] = plugin;
+                    m_loadedPluginPaths.append(file.absoluteFilePath());
+                    loadedPlugins.append(pluginId);
+                }
+            }
+        }
+    }
+
+    QFileInfoList subDirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+    for (const QFileInfo &subDirInfo : subDirs) {
+        QDir subDir(subDirInfo.absoluteFilePath());
+        loadPluginsFromDir(subDir, filters, loadedPlugins);
+    }
+}
+
 QStringList PluginManager::loadPlugins(const QString &pluginPath)
 {
     QStringList loadedPlugins;
@@ -49,22 +78,8 @@ QStringList PluginManager::loadPlugins(const QString &pluginPath)
     }
 
     QStringList filters = {"*.dll", "*.so", "*.dylib"};
-    QFileInfoList files = pluginDir.entryInfoList(filters, QDir::Files);
 
-    for (const QFileInfo &file : files) {
-        QPluginLoader loader(file.absoluteFilePath());
-        QObject *instance = loader.instance();
-
-        if (instance) {
-            PluginInterface *plugin = qobject_cast<PluginInterface*>(instance);
-            if (plugin) {
-                plugin->initialize();
-                m_plugins[plugin->id()] = plugin;
-                m_loadedPluginPaths.append(file.absoluteFilePath());
-                loadedPlugins.append(plugin->id());
-            }
-        }
-    }
+    loadPluginsFromDir(pluginDir, filters, loadedPlugins);
 
     return loadedPlugins;
 }

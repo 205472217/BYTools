@@ -249,6 +249,9 @@ Pane {
                     Layout.fillHeight: true
                     model: controller ? controller.previewModel() : null
                     clip: true
+                    ScrollBar.vertical: ScrollBar {
+                        policy: ScrollBar.AlwaysOn
+                    }
 
                     delegate: Rectangle {
                         width: previewList.width
