@@ -32,7 +32,7 @@ Pane {
 
     padding: 0
     background: Rectangle {
-        color: "#f6f7f9"
+        color: "#f4f6f9"
     }
 
     FolderDialog {
@@ -83,9 +83,20 @@ Pane {
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 136
-            radius: 8
+            radius: 10
             color: "#ffffff"
-            border.color: "#d9dde5"
+            border.color: "#e5e9f0"
+            border.width: 1
+
+            // 面板阴影
+            Rectangle {
+                anchors.fill: parent
+                anchors.margins: -2
+                radius: 12
+                color: "#1e3a5f"
+                opacity: 0.04
+                z: -1
+            }
 
             GridLayout {
                 anchors.fill: parent
@@ -96,17 +107,16 @@ Pane {
 
                 Label {
                     text: "根文件夹"
-                    color: "#334155"
-                    font.pixelSize: 14
+                    color: "#475569"
+                    font.pixelSize: 13
+                    font.bold: true
                 }
 
-                TextField {
+                TextFieldEx {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 38
                     text: controller ? controller.rootPath : ""
                     readOnly: true
                     placeholderText: "尚未选择"
-                    verticalAlignment: Text.AlignVCenter
                 }
 
                 IconButton {
@@ -117,13 +127,13 @@ Pane {
 
                 Label {
                     text: "处理类型"
-                    color: "#334155"
-                    font.pixelSize: 14
+                    color: "#475569"
+                    font.pixelSize: 13
+                    font.bold: true
                 }
 
-                ComboBox {
+                ComboBoxEx {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 38
                     model: ["仅文件", "仅文件夹", "文件和文件夹"]
                     currentIndex: controller ? controller.targetType : 2
                     onActivated: {
@@ -170,21 +180,46 @@ Pane {
             }
         }
 
-        Label {
+        // 状态栏
+        Rectangle {
             Layout.fillWidth: true
-            text: controller ? controller.statusMessage : ""
-            color: "#2563eb"
-            font.pixelSize: 14
-            elide: Text.ElideRight
+            height: statusText.implicitHeight + 12
+            radius: 6
+            color: "#eff6ff"
+            visible: controller ? controller.statusMessage.length > 0 : false
+
+            Label {
+                id: statusText
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
+                anchors.leftMargin: 12
+                anchors.right: parent.right
+                anchors.rightMargin: 12
+                text: controller ? controller.statusMessage : ""
+                color: "#2563eb"
+                font.pixelSize: 13
+                elide: Text.ElideRight
+            }
         }
 
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            radius: 8
+            radius: 10
             color: "#ffffff"
-            border.color: "#d9dde5"
+            border.color: "#e5e9f0"
+            border.width: 1
             clip: true
+
+            // 面板阴影
+            Rectangle {
+                anchors.fill: parent
+                anchors.margins: -2
+                radius: 12
+                color: "#1e3a5f"
+                opacity: 0.04
+                z: -1
+            }
 
             ColumnLayout {
                 anchors.fill: parent
@@ -193,15 +228,24 @@ Pane {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 42
+                    Layout.preferredHeight: 40
                     color: "#f8fafc"
+
+                    // 底部分隔线
+                    Rectangle {
+                        anchors.bottom: parent.bottom
+                        width: parent.width
+                        height: 1
+                        color: "#e8ecf2"
+                    }
 
                     Label {
                         x: root.typeColumnX
                         width: root.typeColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "类型"
-                        color: "#475569"
+                        color: "#64748b"
+                        font.pixelSize: 12
                         font.bold: true
                     }
 
@@ -210,7 +254,8 @@ Pane {
                         width: root.textColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "原名称"
-                        color: "#475569"
+                        color: "#64748b"
+                        font.pixelSize: 12
                         font.bold: true
                     }
 
@@ -219,7 +264,8 @@ Pane {
                         width: root.textColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "新名称"
-                        color: "#475569"
+                        color: "#64748b"
+                        font.pixelSize: 12
                         font.bold: true
                     }
 
@@ -228,7 +274,8 @@ Pane {
                         width: root.statusColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "状态"
-                        color: "#475569"
+                        color: "#64748b"
+                        font.pixelSize: 12
                         font.bold: true
                     }
 
@@ -237,7 +284,8 @@ Pane {
                         width: root.actionColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "操作"
-                        color: "#475569"
+                        color: "#64748b"
+                        font.pixelSize: 12
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
                     }
@@ -254,53 +302,87 @@ Pane {
                     }
 
                     delegate: Rectangle {
+                        id: rowDelegate
                         width: previewList.width
                         height: 74
-                        color: index % 2 === 0 ? "#ffffff" : "#fbfcfe"
+                        color: rowMouseArea.containsMouse ? "#f0f7ff" :
+                               index % 2 === 0 ? "#ffffff" : "#fafbfc"
 
-                        Label {
+                        // 底部分隔线
+                        Rectangle {
+                            anchors.bottom: parent.bottom
+                            width: parent.width
+                            height: 1
+                            color: "#f1f5f9"
+                        }
+
+                        // 类型标签（彩色标签）
+                        Rectangle {
                             x: root.typeColumnX
                             width: root.typeColumnWidth
-                            y: 12
-                            text: directory ? "文件夹" : "文件"
-                            color: directory ? "#7c3aed" : "#0f766e"
+                            y: 14
+                            height: 22
+                            radius: 4
+                            color: directory ? "#f3e8ff" : "#d1fae5"
+
+                            Label {
+                                anchors.centerIn: parent
+                                text: directory ? "文件夹" : "文件"
+                                font.pixelSize: 11
+                                font.bold: true
+                                color: directory ? "#7c3aed" : "#0f766e"
+                            }
                         }
 
                         Label {
                             x: root.currentNameColumnX
                             width: root.textColumnWidth
-                            y: 12
+                            y: 14
                             text: currentName
-                            color: "#1f2937"
+                            color: "#334155"
+                            font.pixelSize: 13
                             elide: Text.ElideMiddle
                         }
 
                         Label {
                             x: root.newNameColumnX
                             width: root.textColumnWidth
-                            y: 12
+                            y: 14
                             text: newName
-                            color: "#1f2937"
-                            elide: Text.ElideMiddle
+                            color: "#059669"
                             font.bold: true
+                            font.pixelSize: 13
+                            elide: Text.ElideMiddle
                         }
 
-                        Label {
+                        // 状态标签（彩色标签）
+                        Rectangle {
                             x: root.statusColumnX
                             width: root.statusColumnWidth
-                            y: 12
-                            text: status
-                            color: status.indexOf("失败") === 0 ? "#dc2626" : status === "已还原" ? "#64748b" : "#2563eb"
-                            elide: Text.ElideRight
+                            y: 14
+                            height: 22
+                            radius: 4
+                            color: status.indexOf("失败") === 0 ? "#fef2f2" :
+                                   status === "已还原" ? "#f1f5f9" : "#dbeafe"
+
+                            Label {
+                                anchors.centerIn: parent
+                                text: status
+                                font.pixelSize: 11
+                                font.bold: true
+                                color: status.indexOf("失败") === 0 ? "#dc2626" :
+                                       status === "已还原" ? "#64748b" : "#2563eb"
+                                elide: Text.ElideRight
+                            }
                         }
 
                         Label {
                             x: root.currentNameColumnX
-                            y: 42
+                            y: 40
                             width: root.statusColumnX - root.currentNameColumnX - root.columnGap
-                            text: "路径：" + actualPath
-                            color: "#64748b"
-                            font.pixelSize: 12
+                            text: actualPath
+                            color: "#94a3b8"
+                            font.pixelSize: 11
                             elide: Text.ElideMiddle
                         }
 
@@ -317,14 +399,33 @@ Pane {
                                 }
                             }
                         }
+
+                        MouseArea {
+                            id: rowMouseArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            acceptedButtons: Qt.NoButton
+                        }
                     }
 
-                    Label {
+                    // 空状态
+                    Column {
                         anchors.centerIn: parent
+                        spacing: 8
                         visible: previewList.count === 0
-                        text: "暂无转换记录"
-                        color: "#94a3b8"
-                        font.pixelSize: 16
+
+                        Label {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: "暂无转换记录"
+                            color: "#94a3b8"
+                            font.pixelSize: 15
+                        }
+                        Label {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: "选择文件夹后点击执行按钮开始"
+                            color: "#c7d2e0"
+                            font.pixelSize: 12
+                        }
                     }
                 }
             }

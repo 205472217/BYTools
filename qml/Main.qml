@@ -11,7 +11,7 @@ ApplicationWindow {
     minimumHeight: 560
     visible: true
     title: "BYTools"
-    color: "#f6f7f9"
+    color: "#f4f6f9"
 
     property var currentController: null
     property string currentFeatureId: ""
@@ -20,6 +20,57 @@ ApplicationWindow {
         id: stackView
         anchors.fill: parent
         initialItem: homePage
+
+        pushEnter: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: 200
+                easing.type: Easing.OutCubic
+            }
+            PropertyAnimation {
+                property: "x"
+                from: stackView.width * 0.08
+                to: 0
+                duration: 250
+                easing.type: Easing.OutCubic
+            }
+        }
+        pushExit: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 1
+                to: 0
+                duration: 150
+                easing.type: Easing.InCubic
+            }
+        }
+        popEnter: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: 200
+                easing.type: Easing.OutCubic
+            }
+        }
+        popExit: Transition {
+            PropertyAnimation {
+                property: "opacity"
+                from: 1
+                to: 0
+                duration: 150
+                easing.type: Easing.InCubic
+            }
+            PropertyAnimation {
+                property: "x"
+                from: 0
+                to: stackView.width * 0.08
+                duration: 200
+                easing.type: Easing.InCubic
+            }
+        }
     }
 
     Component {

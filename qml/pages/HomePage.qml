@@ -12,35 +12,43 @@ Pane {
     focusPolicy: Qt.NoFocus
 
     background: Rectangle {
-        radius: 8
-        color: "#f6f7f9"
-        border.color: root.activeFocus ? "#3b82f6" : "#d9dde5"
-        border.width: root.activeFocus ? 2 : 1
+        color: "#f4f6f9"
     }
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 32
-        spacing: 24
+        anchors.margins: 36
+        spacing: 28
 
-        RowLayout {
+        // 头部区域
+        ColumnLayout {
             Layout.fillWidth: true
+            spacing: 4
 
-            ColumnLayout {
+            Label {
+                text: "功能集合"
+                color: "#111827"
+                font.pixelSize: 32
+                font.bold: true
+                font.letterSpacing: -0.5
+            }
+
+            Label {
+                text: "选择一个工具开始处理任务"
+                color: "#8492a6"
+                font.pixelSize: 15
+            }
+
+            // 分隔线
+            Rectangle {
                 Layout.fillWidth: true
-                spacing: 6
-
-                Label {
-                    text: "功能集合"
-                    color: "#111827"
-                    font.pixelSize: 30
-                    font.bold: true
-                }
-
-                Label {
-                    text: "选择一个工具开始处理任务"
-                    color: "#64748b"
-                    font.pixelSize: 15
+                Layout.topMargin: 12
+                height: 1
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0; color: "#3b82f6" }
+                    GradientStop { position: 0.3; color: "#8b5cf6" }
+                    GradientStop { position: 1.0; color: "transparent" }
                 }
             }
         }
@@ -48,8 +56,8 @@ Pane {
         GridLayout {
             Layout.fillWidth: true
             columns: width > 900 ? 3 : 2
-            columnSpacing: 16
-            rowSpacing: 16
+            columnSpacing: 18
+            rowSpacing: 18
 
             Repeater {
                 model: appController.features

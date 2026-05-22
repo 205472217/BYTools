@@ -19,6 +19,8 @@ endif()
 set_source_files_properties(qml/Main.qml PROPERTIES QT_RESOURCE_ALIAS Main.qml)
 set_source_files_properties(qml/components/FeatureCard.qml PROPERTIES QT_RESOURCE_ALIAS components/FeatureCard.qml)
 set_source_files_properties(qml/components/IconButton.qml PROPERTIES QT_RESOURCE_ALIAS components/IconButton.qml)
+set_source_files_properties(qml/components/TextFieldEx.qml PROPERTIES QT_RESOURCE_ALIAS components/TextFieldEx.qml)
+set_source_files_properties(qml/components/ComboBoxEx.qml PROPERTIES QT_RESOURCE_ALIAS components/ComboBoxEx.qml)
 set_source_files_properties(qml/icons/arrow-left.svg PROPERTIES QT_RESOURCE_ALIAS icons/arrow-left.svg)
 set_source_files_properties(qml/icons/app.svg PROPERTIES QT_RESOURCE_ALIAS icons/app.svg)
 set_source_files_properties(qml/icons/folder-open.svg PROPERTIES QT_RESOURCE_ALIAS icons/folder-open.svg)
@@ -50,6 +52,8 @@ qt_add_qml_module(BYTools
         qml/Main.qml
         qml/components/FeatureCard.qml
         qml/components/IconButton.qml
+        qml/components/TextFieldEx.qml
+        qml/components/ComboBoxEx.qml
         qml/pages/HomePage.qml
         qml/pages/NameConverterPage.qml
         qml/pages/BatchRenamePage.qml
