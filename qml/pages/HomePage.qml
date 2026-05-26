@@ -53,28 +53,44 @@ Pane {
             }
         }
 
-        GridLayout {
+        Flickable {
+            id: pluginFlick
             Layout.fillWidth: true
-            columns: width > 900 ? 3 : 2
-            columnSpacing: 18
-            rowSpacing: 18
+            Layout.fillHeight: true
+            clip: true
+            contentWidth: gridLayout.implicitWidth
+            contentHeight: gridLayout.implicitHeight
+            flickableDirection: Flickable.VerticalFlick
+            // Reserve space for scrollbar by reducing content width
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AlwaysOn
+                interactive: true
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+            }
 
-            Repeater {
-                model: appController.features
+            GridLayout {
+                id: gridLayout
+                width: pluginFlick.width - 12 // space for scrollbar
+                columns: 2
+                columnSpacing: 18
+                rowSpacing: 18
 
-                FeatureCard {
-                    Layout.fillWidth: true
-                    titleText: modelData.name
-                    descriptionText: modelData.description
-                    iconText: "文"
-                    iconSource: "../icons/languages.svg"
-                    onClicked: root.openFeature(modelData.id)
+                Repeater {
+                    model: appController.features
+
+                    FeatureCard {
+                        Layout.fillWidth: true
+                        titleText: modelData.name
+                        descriptionText: modelData.description
+                        // Assign different icons based on index
+                        iconSource: index === 0 ? "qrc:/icons/rename.svg" : index === 1 ? "qrc:/icons/convert.svg" : "qrc:/icons/batch.svg"
+                        onClicked: root.openFeature(modelData.id)
+                    }
                 }
             }
         }
 
-        Item {
-            Layout.fillHeight: true
-        }
     }
 }

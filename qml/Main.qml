@@ -13,7 +13,6 @@ ApplicationWindow {
     title: "BYTools"
     color: "#f4f6f9"
 
-    property var currentController: null
     property string currentFeatureId: ""
 
     StackView {
@@ -63,13 +62,6 @@ ApplicationWindow {
                 duration: 150
                 easing.type: Easing.InCubic
             }
-            PropertyAnimation {
-                property: "x"
-                from: 0
-                to: stackView.width * 0.08
-                duration: 200
-                easing.type: Easing.InCubic
-            }
         }
     }
 
@@ -79,41 +71,49 @@ ApplicationWindow {
         HomePage {
             onOpenFeature: function(featureId) {
                 var controller = pluginManager.getPlugin(featureId)
-                if (controller) {
-                    window.currentController = controller
-                    window.currentFeatureId = featureId
-                }
+                if (!controller) return
+
+                window.currentFeatureId = featureId
 
                 if (featureId === "name-converter") {
-                    stackView.push(nameConverterPage)
+                    stackView.push(nameConverterPageComponent, {controller: controller})
                 } else if (featureId === "batch-rename") {
-                    stackView.push(batchRenamePage)
+                    stackView.push(batchRenamePageComponent, {controller: controller})
+                } else if (featureId === "image-converter") {
+                    stackView.push(imageConverterPageComponent, {controller: controller})
                 }
             }
         }
     }
 
     Component {
-        id: nameConverterPage
+        id: nameConverterPageComponent
 
         NameConverterPage {
-            controller: window.currentController
             onBackRequested: {
                 stackView.pop()
-                window.currentController = null
                 window.currentFeatureId = ""
             }
         }
     }
 
     Component {
-        id: batchRenamePage
+        id: batchRenamePageComponent
 
         BatchRenamePage {
-            controller: window.currentController
             onBackRequested: {
                 stackView.pop()
-                window.currentController = null
+                window.currentFeatureId = ""
+            }
+        }
+    }
+
+    Component {
+        id: imageConverterPageComponent
+
+        ImageConverterPage {
+            onBackRequested: {
+                stackView.pop()
                 window.currentFeatureId = ""
             }
         }

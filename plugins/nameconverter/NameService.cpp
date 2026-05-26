@@ -41,7 +41,7 @@ NameService::NameService(const ITextConverter &converter)
 {
 }
 
-QList<NamePreviewItem> NameService::preview(const QString &rootPath, TargetType targetType) const
+QList<NamePreviewItem> NameService::preview(const QString &rootPath, TargetType targetType, bool recursive) const
 {
     QList<NamePreviewItem> items;
     const QDir root(rootPath);
@@ -54,8 +54,8 @@ QList<NamePreviewItem> NameService::preview(const QString &rootPath, TargetType 
         QDir::DirsFirst | QDir::Name);
 
     for (const QFileInfo &entry : entries) {
-        if (entry.isDir()) {
-            items.append(preview(entry.absoluteFilePath(), targetType));
+        if (recursive && entry.isDir()) {
+            items.append(preview(entry.absoluteFilePath(), targetType, recursive));
         }
 
         if (shouldInclude(entry.isDir(), targetType)) {
@@ -69,9 +69,9 @@ QList<NamePreviewItem> NameService::preview(const QString &rootPath, TargetType 
     return items;
 }
 
-NameExecutionResult NameService::execute(const QString &rootPath, TargetType targetType) const
+NameExecutionResult NameService::execute(const QString &rootPath, TargetType targetType, bool recursive) const
 {
-    const QList<NamePreviewItem> items = preview(rootPath, targetType);
+    const QList<NamePreviewItem> items = preview(rootPath, targetType, recursive);
     int successCount = 0;
     QStringList failures;
     QList<NamePreviewItem> records;

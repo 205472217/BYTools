@@ -24,8 +24,8 @@ public:
 
     explicit NameService(const ITextConverter &converter);
 
-    QList<NamePreviewItem> preview(const QString &rootPath, TargetType targetType) const;
-    NameExecutionResult execute(const QString &rootPath, TargetType targetType) const;
+    QList<NamePreviewItem> preview(const QString &rootPath, TargetType targetType, bool recursive = false) const;
+    NameExecutionResult execute(const QString &rootPath, TargetType targetType, bool recursive = false) const;
     OperationResult restore(const NamePreviewItem &item) const;
 
 private:

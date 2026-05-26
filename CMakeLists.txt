@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Quick Core)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Core)
 
 qt_standard_project_setup(REQUIRES 6.5)
 
@@ -16,22 +16,6 @@ if(WIN32)
     list(APPEND BYTOOLS_PLATFORM_SOURCES resources/app.rc)
 endif()
 
-set_source_files_properties(qml/Main.qml PROPERTIES QT_RESOURCE_ALIAS Main.qml)
-set_source_files_properties(qml/components/FeatureCard.qml PROPERTIES QT_RESOURCE_ALIAS components/FeatureCard.qml)
-set_source_files_properties(qml/components/IconButton.qml PROPERTIES QT_RESOURCE_ALIAS components/IconButton.qml)
-set_source_files_properties(qml/components/TextFieldEx.qml PROPERTIES QT_RESOURCE_ALIAS components/TextFieldEx.qml)
-set_source_files_properties(qml/components/ComboBoxEx.qml PROPERTIES QT_RESOURCE_ALIAS components/ComboBoxEx.qml)
-set_source_files_properties(qml/icons/arrow-left.svg PROPERTIES QT_RESOURCE_ALIAS icons/arrow-left.svg)
-set_source_files_properties(qml/icons/app.svg PROPERTIES QT_RESOURCE_ALIAS icons/app.svg)
-set_source_files_properties(qml/icons/folder-open.svg PROPERTIES QT_RESOURCE_ALIAS icons/folder-open.svg)
-set_source_files_properties(qml/icons/languages.svg PROPERTIES QT_RESOURCE_ALIAS icons/languages.svg)
-set_source_files_properties(qml/icons/play.svg PROPERTIES QT_RESOURCE_ALIAS icons/play.svg)
-set_source_files_properties(qml/icons/spark.svg PROPERTIES QT_RESOURCE_ALIAS icons/spark.svg)
-set_source_files_properties(qml/icons/trash.svg PROPERTIES QT_RESOURCE_ALIAS icons/trash.svg)
-set_source_files_properties(qml/icons/undo.svg PROPERTIES QT_RESOURCE_ALIAS icons/undo.svg)
-set_source_files_properties(qml/pages/HomePage.qml PROPERTIES QT_RESOURCE_ALIAS pages/HomePage.qml)
-set_source_files_properties(qml/pages/NameConverterPage.qml PROPERTIES QT_RESOURCE_ALIAS pages/NameConverterPage.qml)
-set_source_files_properties(qml/pages/BatchRenamePage.qml PROPERTIES QT_RESOURCE_ALIAS pages/BatchRenamePage.qml)
 
 qt_add_executable(BYTools
     src/main.cpp
@@ -57,19 +41,14 @@ qt_add_qml_module(BYTools
         qml/pages/HomePage.qml
         qml/pages/NameConverterPage.qml
         qml/pages/BatchRenamePage.qml
+        qml/pages/ImageConverterPage.qml
+    # 资源文件
     RESOURCES
-        qml/icons/arrow-left.svg
-        qml/icons/app.svg
-        qml/icons/folder-open.svg
-        qml/icons/languages.svg
-        qml/icons/play.svg
-        qml/icons/spark.svg
-        qml/icons/trash.svg
-        qml/icons/undo.svg
+        qml/resources.qrc
 )
 
 target_link_libraries(BYTools
-    PRIVATE Qt6::Quick Qt6::Core
+    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Core
 )
 
 if(WIN32)
@@ -78,3 +57,4 @@ endif()
 
 add_subdirectory(plugins/nameconverter)
 add_subdirectory(plugins/batchrename)
+add_subdirectory(plugins/imageconverter)

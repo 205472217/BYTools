@@ -12,6 +12,7 @@ class BatchNameController : public QObject
     Q_OBJECT
     Q_PROPERTY(QString rootPath READ rootPath WRITE setRootPath NOTIFY rootPathChanged)
     Q_PROPERTY(int targetType READ targetType WRITE setTargetType NOTIFY targetTypeChanged)
+    Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
 
@@ -24,6 +25,9 @@ public:
     int targetType() const;
     void setTargetType(int targetType);
 
+    bool recursive() const;
+    void setRecursive(bool recursive);
+
     QString statusMessage() const;
     bool hasRecords() const;
     Q_INVOKABLE QObject* previewModel();
@@ -32,10 +36,12 @@ public:
     Q_INVOKABLE void executeRename();
     Q_INVOKABLE void restoreRecord(int row);
     Q_INVOKABLE void clearRecords();
+    Q_INVOKABLE void reset();
 
 signals:
     void rootPathChanged();
     void targetTypeChanged();
+    void recursiveChanged();
     void statusMessageChanged();
     void hasRecordsChanged();
 
@@ -45,6 +51,7 @@ private:
 
     QString m_rootPath;
     int m_targetType = 2;
+    bool m_recursive = false;
     QString m_statusMessage;
     ChineseTextConverter m_converter;
     NameService m_service;

@@ -1,6 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickStyle>
 #include <QDebug>
 
 #include "app/AppController.h"
@@ -10,6 +11,8 @@
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
+    QQuickStyle::setStyle("Fusion");
 
     qDebug() << "=== Starting BYTools ===";
     qDebug() << "Application dir:" << QCoreApplication::applicationDirPath();

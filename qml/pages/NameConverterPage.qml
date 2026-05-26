@@ -30,6 +30,12 @@ Pane {
     readonly property int statusColumnX: newNameColumnX + textColumnWidth + columnGap
     readonly property int actionColumnX: statusColumnX + statusColumnWidth + columnGap
 
+    Component.onDestruction: {
+        if (controller && typeof controller.reset === 'function') {
+            controller.reset()
+        }
+    }
+
     padding: 0
     background: Rectangle {
         color: "#f4f6f9"
@@ -37,7 +43,7 @@ Pane {
 
     FolderDialog {
         id: folderDialog
-        title: "选择根文件夹"
+        title: "选择源文件夹"
         onAccepted: {
             if (controller) {
                 controller.rootPath = selectedFolder
@@ -56,7 +62,7 @@ Pane {
             spacing: 12
 
             IconButton {
-                iconSource: "../icons/arrow-left.svg"
+                iconSource: "qrc:/icons/arrow-left.svg"
                 tooltip: "返回"
                 onClicked: root.backRequested()
             }
@@ -73,7 +79,7 @@ Pane {
                 }
 
                 Label {
-                    text: "选择根文件夹后直接执行转换，完成后可按记录逐条还原"
+                    text: "选择源文件夹后直接执行转换，完成后可按记录逐条还原"
                     color: "#64748b"
                     font.pixelSize: 14
                 }
@@ -82,7 +88,7 @@ Pane {
 
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 136
+            Layout.preferredHeight: 174
             radius: 10
             color: "#ffffff"
             border.color: "#e5e9f0"
@@ -98,80 +104,109 @@ Pane {
                 z: -1
             }
 
-            GridLayout {
+            ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 18
-                columns: 3
-                columnSpacing: 14
-                rowSpacing: 12
+                spacing: 12
 
-                Label {
-                    text: "根文件夹"
-                    color: "#475569"
-                    font.pixelSize: 13
-                    font.bold: true
-                }
-
-                TextFieldEx {
+                RowLayout {
+                    spacing: 12
                     Layout.fillWidth: true
-                    text: controller ? controller.rootPath : ""
-                    readOnly: true
-                    placeholderText: "尚未选择"
+
+                    Label {
+                        text: "源文件夹"
+                        color: "#475569"
+                        font.pixelSize: 13
+                        font.bold: true
+                        Layout.preferredWidth: 80
+                    }
+
+                    TextFieldEx {
+                        Layout.fillWidth: true
+                        text: controller ? controller.rootPath : ""
+                        readOnly: true
+                        placeholderText: "尚未选择"
+                    }
+
+                    IconButton {
+                        iconSource: "qrc:/icons/folder-open.svg"
+                        tooltip: "选择源文件夹"
+                        onClicked: folderDialog.open()
+                    }
                 }
 
-                IconButton {
-                    iconSource: "../icons/folder-open.svg"
-                    tooltip: "选择根文件夹"
-                    onClicked: folderDialog.open()
-                }
-
-                Label {
-                    text: "处理类型"
-                    color: "#475569"
-                    font.pixelSize: 13
-                    font.bold: true
-                }
-
-                ComboBoxEx {
+                RowLayout {
+                    spacing: 12
                     Layout.fillWidth: true
-                    model: ["仅文件", "仅文件夹", "文件和文件夹"]
-                    currentIndex: controller ? controller.targetType : 2
-                    onActivated: {
-                        if (controller) {
-                            controller.targetType = currentIndex
+
+                    Label {
+                        text: "处理类型"
+                        color: "#475569"
+                        font.pixelSize: 13
+                        font.bold: true
+                        Layout.preferredWidth: 80
+                    }
+
+                    ComboBoxEx {
+                        Layout.fillWidth: true
+                        model: ["仅文件", "仅文件夹", "文件和文件夹"]
+                        currentIndex: controller ? controller.targetType : 2
+                        onActivated: {
+                            if (controller) {
+                                controller.targetType = currentIndex
+                            }
                         }
                     }
                 }
 
                 RowLayout {
-                    spacing: 10
-                    Layout.preferredWidth: 86
+                    spacing: 12
+                    Layout.fillWidth: true
 
-                    IconButton {
-                        iconSource: "../icons/play.svg"
-                        tooltip: "执行转换"
-                        normalColor: "#2563eb"
-                        hoverColor: "#1d4ed8"
-                        borderColor: "#1d4ed8"
-                        onClicked: {
+                    Label {
+                        text: "高级选项"
+                        color: "#475569"
+                        font.pixelSize: 13
+                        font.bold: true
+                        Layout.preferredWidth: 80
+                    }
+
+                    CheckBox {
+                        text: "递归处理子文件夹"
+                        checked: controller ? controller.recursive : false
+                        onCheckedChanged: {
                             if (controller) {
-                                controller.executeRename()
+                                controller.recursive = checked
                             }
                         }
                     }
 
-                    Item {
-                        width: 38
-                        height: 38
+                    Item { Layout.fillWidth: true }
+
+                    RowLayout {
+                        spacing: 8
 
                         IconButton {
-                            anchors.centerIn: parent
-                            iconSource: "../icons/trash.svg"
+                            iconSource: "qrc:/icons/trash.svg"
                             tooltip: "清空记录"
                             visible: controller ? controller.hasRecords : false
                             onClicked: {
                                 if (controller) {
                                     controller.clearRecords()
+                                }
+                            }
+                        }
+
+                        IconButton {
+                            text: "执行"
+                            iconSource: "qrc:/icons/play.svg"
+                            tooltip: "执行转换"
+                            normalColor: "#2563eb"
+                            hoverColor: "#1d4ed8"
+                            borderColor: "#1d4ed8"
+                            onClicked: {
+                                if (controller) {
+                                    controller.executeRename()
                                 }
                             }
                         }
@@ -390,7 +425,7 @@ Pane {
                             x: root.actionColumnX
                             width: root.actionColumnWidth
                             anchors.verticalCenter: parent.verticalCenter
-                            iconSource: "../icons/undo.svg"
+                            iconSource: "qrc:/icons/undo.svg"
                             tooltip: status.indexOf("失败") === 0 ? "失败项无法还原" : "还原"
                             enabled: status === "已转换"
                             onClicked: {

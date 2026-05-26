@@ -5,6 +5,8 @@ Item {
     id: root
 
     property string iconSource: ""
+    property string text: ""
+    property color textColor: "#ffffff"
     property string tooltip: text
     property color normalColor: "#ffffff"
     property color hoverColor: "#eef4ff"
@@ -13,7 +15,7 @@ Item {
     property color disabledColor: "#f1f5f9"
     property bool enabled: true
 
-    implicitWidth: 38
+    implicitWidth: text.length > 0 ? 76 : 38
     implicitHeight: 38
 
     signal clicked()
@@ -57,23 +59,37 @@ Item {
         }
     }
 
-    Image {
-        id: iconImg
+    Row {
+        id: contentRow
         anchors.centerIn: parent
-        width: 18
-        height: 18
-        source: root.iconSource
-        visible: root.enabled
-        opacity: root.enabled ? 1.0 : 0.4
-
-        Behavior on opacity {
-            NumberAnimation { duration: 150 }
-        }
-
-        // 按压缩放效果
+        spacing: 6
         scale: mouseArea.pressed ? 0.9 : 1.0
         Behavior on scale {
             NumberAnimation { duration: 100; easing.type: Easing.OutCubic }
+        }
+
+        Image {
+            id: iconImg
+            width: 18
+            height: 18
+            source: root.iconSource
+            visible: root.enabled && root.iconSource.length > 0
+            opacity: root.enabled ? 1.0 : 0.4
+            anchors.verticalCenter: parent.verticalCenter
+
+            Behavior on opacity {
+                NumberAnimation { duration: 150 }
+            }
+        }
+
+        Label {
+            id: labelText
+            text: root.text
+            visible: root.text.length > 0
+            color: root.textColor
+            font.pixelSize: 13
+            font.bold: true
+            anchors.verticalCenter: parent.verticalCenter
         }
     }
 

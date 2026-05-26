@@ -45,6 +45,18 @@ void BatchNameController::setTargetType(int targetType)
     emit targetTypeChanged();
 }
 
+bool BatchNameController::recursive() const
+{
+    return m_recursive;
+}
+
+void BatchNameController::setRecursive(bool recursive)
+{
+    if (m_recursive == recursive) return;
+    m_recursive = recursive;
+    emit recursiveChanged();
+}
+
 QString BatchNameController::statusMessage() const
 {
     return m_statusMessage;
@@ -69,7 +81,7 @@ void BatchNameController::buildPreview()
         return;
     }
 
-    const auto items = m_service.preview(m_rootPath, currentTargetType());
+    const auto items = m_service.preview(m_rootPath, currentTargetType(), m_recursive);
     m_previewModel.setItems(items);
     emit hasRecordsChanged();
 
@@ -89,7 +101,7 @@ void BatchNameController::executeRename()
         return;
     }
 
-    const auto execution = m_service.execute(m_rootPath, currentTargetType());
+    const auto execution = m_service.execute(m_rootPath, currentTargetType(), m_recursive);
     m_previewModel.setItems(execution.records);
     emit hasRecordsChanged();
     setStatusMessage(execution.result.message);
@@ -111,6 +123,18 @@ void BatchNameController::clearRecords()
     m_previewModel.clear();
     emit hasRecordsChanged();
     setStatusMessage({});
+}
+
+void BatchNameController::reset()
+{
+    clearRecords();
+    m_rootPath.clear();
+    m_targetType = 2;
+    m_recursive = false;
+    setStatusMessage({});
+    emit rootPathChanged();
+    emit targetTypeChanged();
+    emit recursiveChanged();
 }
 
 NameService::TargetType BatchNameController::currentTargetType() const
