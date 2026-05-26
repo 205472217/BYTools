@@ -29,6 +29,13 @@ qt_add_executable(BYTools
     ${BYTOOLS_PLATFORM_SOURCES}
 )
 
+# In Debug build, show console window; in Release build, hide it (GUI mode)
+if (WIN32)
+    set_target_properties(BYTools PROPERTIES
+        WIN32_EXECUTABLE $<CONFIG:Release>
+    )
+endif()
+
 qt_add_qml_module(BYTools
     URI BYTools
     VERSION 1.0

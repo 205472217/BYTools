@@ -21,7 +21,7 @@ set(PLUGIN_SOURCES
     TextConverter.h
 )
 
-qt_add_library(NameConverterPlugin MODULE
+add_library(NameConverterPlugin MODULE
     ${PLUGIN_SOURCES}
 )
 
