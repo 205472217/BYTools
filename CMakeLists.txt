@@ -49,6 +49,7 @@ qt_add_qml_module(BYTools
         qml/pages/NameConverterPage.qml
         qml/pages/BatchRenamePage.qml
         qml/pages/ImageConverterPage.qml
+        qml/pages/ImageCropPage.qml
     # 资源文件
     RESOURCES
         qml/resources.qrc
@@ -65,3 +66,4 @@ endif()
 add_subdirectory(plugins/nameconverter)
 add_subdirectory(plugins/batchrename)
 add_subdirectory(plugins/imageconverter)
+add_subdirectory(plugins/imagecrop)

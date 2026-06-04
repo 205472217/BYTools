@@ -81,11 +81,15 @@ Pane {
                     model: appController.features
 
                     FeatureCard {
+                        property var iconList: [
+                            "qrc:/icons/card-name-converter.svg", 
+                            "qrc:/icons/card-batch-rename.svg", 
+                            "qrc:/icons/card-image-converter.svg", 
+                            "qrc:/icons/card-image-crop.svg"]
                         Layout.fillWidth: true
                         titleText: modelData.name
                         descriptionText: modelData.description
-                        // Assign different icons based on index
-                        iconSource: index === 0 ? "qrc:/icons/rename.svg" : index === 1 ? "qrc:/icons/convert.svg" : "qrc:/icons/batch.svg"
+                        iconSource: index < iconList.length ? iconList[index] : ""
                         onClicked: root.openFeature(modelData.id)
                     }
                 }

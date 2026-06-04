@@ -81,6 +81,8 @@ ApplicationWindow {
                     stackView.push(batchRenamePageComponent, {controller: controller})
                 } else if (featureId === "image-converter") {
                     stackView.push(imageConverterPageComponent, {controller: controller})
+                } else if (featureId === "image-crop") {
+                    stackView.push(imageCropPageComponent, {controller: controller})
                 }
             }
         }
@@ -112,6 +114,17 @@ ApplicationWindow {
         id: imageConverterPageComponent
 
         ImageConverterPage {
+            onBackRequested: {
+                stackView.pop()
+                window.currentFeatureId = ""
+            }
+        }
+    }
+
+    Component {
+        id: imageCropPageComponent
+
+        ImageCropPage {
             onBackRequested: {
                 stackView.pop()
                 window.currentFeatureId = ""

@@ -148,7 +148,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder-open.svg"
+                        iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择源文件夹"
                         onClicked: sourceFolderDialog.open()
                     }
@@ -354,7 +354,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder-open.svg"
+                        iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择输出目录"
                         enabled: newDirRadio.checked
                         onClicked: outputFolderDialog.open()

@@ -128,7 +128,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder-open.svg"
+                        iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择根文件夹"
                         onClicked: folderDialog.open()
                     }
