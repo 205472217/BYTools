@@ -1,9 +1,11 @@
-﻿#pragma once
+#pragma once
 
 #include <QObject>
+#include <QTimer>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QJsonArray>
+#include "SubtitleService.h"
 
 class TranslateService : public QObject
 {
@@ -17,8 +19,7 @@ public:
                         const QString &apiKey,
                         const QString &apiUrl,
                         const QString &targetLang,
-                        const QString &baiduAppId = QString(),
-                        bool bilingual = true);
+                        const QString &baiduAppId = QString());
 
     void cancel();
 
@@ -28,12 +29,11 @@ signals:
 
 private slots:
     void onReplyFinished(QNetworkReply *reply);
+    void onRequestTimeout();
 
 private:
-    void translateBatch(const QJsonArray &texts, int engine,
-                        const QString &apiKey, const QString &apiUrl,
-                        const QString &targetLang, int batchIndex, int totalBatches,
-                        const QString &baiduAppId = QString());
+    void translateNext();
+    void writeOutputSrt();
 
     QString buildBaiduUrl(const QJsonArray &texts, const QString &targetLang,
                           const QString &secretKey, const QString &appId);
@@ -41,20 +41,24 @@ private:
     QNetworkAccessManager *m_networkManager;
     QNetworkReply *m_currentReply;
 
-    // Translation state
-    QList<int> m_pendingBatchIndices;
-    QJsonArray m_translatedTexts;
-    int m_totalBatches = 0;
-    int m_completedBatches = 0;
+    // Per-request timeout (30s) with retry
+    QTimer *m_requestTimer;
+    int m_retryCount = 0;
+    static constexpr int MAX_RETRIES = 2;
+    static constexpr int TIMEOUT_MS = 30000;
+
+    // Translation state — per-sentence
+    QList<SubtitleService::SubtitleEntry> m_entries;
+    int m_currentEntryIndex = 0;
+    int m_totalEntries = 0;
+    int m_translatedCount = 0;
     bool m_cancelled = false;
 
-    // Current batch info
-    int m_currentBatchIndex = 0;
     QString m_inputSrtPath;
     QString m_outputSrtPath;
     int m_currentEngine = 0;
     QString m_currentApiKey;
     QString m_currentApiUrl;
     QString m_currentTargetLang;
-    bool m_bilingual = true;
+    QString m_baiduAppId;
 };

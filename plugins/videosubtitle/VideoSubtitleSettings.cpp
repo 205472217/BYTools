@@ -1,9 +1,11 @@
 ﻿#include "VideoSubtitleSettings.h"
 #include "PluginLogger.h"
 #include "FFmpegService.h"
+#include "WhisperService.h"
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QDir>
+#include <QDirIterator>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -27,7 +29,7 @@ VideoSubtitleSettings::VideoSubtitleSettings(QObject *parent)
     , m_testReply(nullptr)
 {
     m_settings.beginGroup("VideoSubtitle");
-    m_whisperModelDir = QCoreApplication::applicationDirPath() + "/../plugins/videosubtitle/models";
+    m_whisperModelDir = QCoreApplication::applicationDirPath() + "/plugins/videosubtitle";
     loadSettings();
     PluginLogger::info("插件设置已加载");
 }
@@ -40,6 +42,11 @@ QString VideoSubtitleSettings::whisperStatus() const { return m_whisperStatus; }
 int VideoSubtitleSettings::whisperModel() const { return m_whisperModel; }
 QString VideoSubtitleSettings::whisperModelDir() const { return m_whisperModelDir; }
 QString VideoSubtitleSettings::localModelPath() const { return m_localModelPath; }
+int VideoSubtitleSettings::audioSegmentDuration() const { return m_audioSegmentDuration; }
+int VideoSubtitleSettings::subtitleStyle() const { return m_subtitleStyle; }
+bool VideoSubtitleSettings::keepWav() const { return m_keepWav; }
+bool VideoSubtitleSettings::keepOriginalSrt() const { return m_keepOriginalSrt; }
+bool VideoSubtitleSettings::keepTranslatedSrt() const { return m_keepTranslatedSrt; }
 
 QVariantList VideoSubtitleSettings::availableModels() const
 {
@@ -122,6 +129,14 @@ void VideoSubtitleSettings::setLocalModelPath(const QString &path)
     }
 }
 
+void VideoSubtitleSettings::setAudioSegmentDuration(int seconds)
+{
+    if (m_audioSegmentDuration != seconds) {
+        m_audioSegmentDuration = seconds;
+        emit audioSegmentDurationChanged();
+    }
+}
+
 void VideoSubtitleSettings::setTranslateEngine(int engine)
 {
     if (m_translateEngine != engine) {
@@ -153,6 +168,38 @@ void VideoSubtitleSettings::setApiUrl(const QString &url)
     if (m_apiUrl != url) {
         m_apiUrl = url;
         emit apiUrlChanged();
+    }
+}
+
+void VideoSubtitleSettings::setSubtitleStyle(int style)
+{
+    if (m_subtitleStyle != style) {
+        m_subtitleStyle = style;
+        emit subtitleStyleChanged();
+    }
+}
+
+void VideoSubtitleSettings::setKeepWav(bool keep)
+{
+    if (m_keepWav != keep) {
+        m_keepWav = keep;
+        emit keepWavChanged();
+    }
+}
+
+void VideoSubtitleSettings::setKeepOriginalSrt(bool keep)
+{
+    if (m_keepOriginalSrt != keep) {
+        m_keepOriginalSrt = keep;
+        emit keepOriginalSrtChanged();
+    }
+}
+
+void VideoSubtitleSettings::setKeepTranslatedSrt(bool keep)
+{
+    if (m_keepTranslatedSrt != keep) {
+        m_keepTranslatedSrt = keep;
+        emit keepTranslatedSrtChanged();
     }
 }
 
@@ -198,10 +245,15 @@ void VideoSubtitleSettings::loadSettings()
     m_whisperModel = m_settings.value("whisperModel", 3).toInt();
     m_whisperModelDir = m_settings.value("whisperModelDir", m_whisperModelDir).toString();
     m_localModelPath = m_settings.value("localModelPath").toString();
+    m_audioSegmentDuration = m_settings.value("audioSegmentDuration", 10).toInt();
     m_translateEngine = m_settings.value("translateEngine", 0).toInt();
     m_apiKey = QByteArray::fromBase64(m_settings.value("apiKey").toByteArray());
     m_baiduAppId = m_settings.value("baiduAppId").toString();
     m_apiUrl = m_settings.value("apiUrl").toString();
+    m_subtitleStyle = m_settings.value("subtitleStyle", 0).toInt();
+    m_keepWav = m_settings.value("keepWav", true).toBool();
+    m_keepOriginalSrt = m_settings.value("keepOriginalSrt", true).toBool();
+    m_keepTranslatedSrt = m_settings.value("keepTranslatedSrt", true).toBool();
     m_defaultFontSize = m_settings.value("defaultFontSize", 20).toInt();
     m_defaultFontColor = m_settings.value("defaultFontColor", "#FFFFFF").toString();
     m_defaultBorderColor = m_settings.value("defaultBorderColor", "#000000").toString();
@@ -218,10 +270,15 @@ void VideoSubtitleSettings::loadSettings()
     emit whisperModelChanged();
     emit whisperModelDirChanged();
     emit localModelPathChanged();
+    emit audioSegmentDurationChanged();
     emit translateEngineChanged();
     emit apiKeyChanged();
     emit baiduAppIdChanged();
     emit apiUrlChanged();
+    emit subtitleStyleChanged();
+    emit keepWavChanged();
+    emit keepOriginalSrtChanged();
+    emit keepTranslatedSrtChanged();
     emit defaultFontSizeChanged();
     emit defaultFontColorChanged();
     emit defaultBorderColorChanged();
@@ -235,10 +292,15 @@ void VideoSubtitleSettings::saveSettings()
     m_settings.setValue("whisperModel", m_whisperModel);
     m_settings.setValue("localModelPath", m_localModelPath);
     m_settings.setValue("whisperModelDir", m_whisperModelDir);
+    m_settings.setValue("audioSegmentDuration", m_audioSegmentDuration);
     m_settings.setValue("translateEngine", m_translateEngine);
     m_settings.setValue("apiKey", QString(m_apiKey.toUtf8().toBase64()));
     m_settings.setValue("baiduAppId", m_baiduAppId);
     m_settings.setValue("apiUrl", m_apiUrl);
+    m_settings.setValue("subtitleStyle", m_subtitleStyle);
+    m_settings.setValue("keepWav", m_keepWav);
+    m_settings.setValue("keepOriginalSrt", m_keepOriginalSrt);
+    m_settings.setValue("keepTranslatedSrt", m_keepTranslatedSrt);
     m_settings.setValue("defaultFontSize", m_defaultFontSize);
     m_settings.setValue("defaultFontColor", m_defaultFontColor);
     m_settings.setValue("defaultBorderColor", m_defaultBorderColor);
@@ -255,12 +317,17 @@ void VideoSubtitleSettings::resetDefaults()
     m_whisperPath.clear();
     m_whisperStatus.clear();
     m_whisperModel = 3;
-    m_whisperModelDir = QCoreApplication::applicationDirPath() + "/../plugins/videosubtitle/models";
+    m_whisperModelDir = QCoreApplication::applicationDirPath() + "/plugins/videosubtitle";
     m_localModelPath.clear();
+    m_audioSegmentDuration = 10;
     m_translateEngine = 0;
     m_apiKey.clear();
     m_baiduAppId.clear();
     m_apiUrl = defaultApiUrl(0);
+    m_subtitleStyle = 0;
+    m_keepWav = true;
+    m_keepOriginalSrt = true;
+    m_keepTranslatedSrt = true;
     m_defaultFontSize = 20;
     m_defaultFontColor = "#FFFFFF";
     m_defaultBorderColor = "#000000";
@@ -275,10 +342,15 @@ void VideoSubtitleSettings::resetDefaults()
     emit whisperModelChanged();
     emit whisperModelDirChanged();
     emit localModelPathChanged();
+    emit audioSegmentDurationChanged();
     emit translateEngineChanged();
     emit apiKeyChanged();
     emit baiduAppIdChanged();
     emit apiUrlChanged();
+    emit subtitleStyleChanged();
+    emit keepWavChanged();
+    emit keepOriginalSrtChanged();
+    emit keepTranslatedSrtChanged();
     emit defaultFontSizeChanged();
     emit defaultFontColorChanged();
     emit defaultBorderColorChanged();
@@ -298,24 +370,47 @@ void VideoSubtitleSettings::testFfmpeg()
 
 void VideoSubtitleSettings::testWhisper()
 {
-    if (!m_whisperPath.isEmpty() && QFileInfo::exists(m_whisperPath)) {
+    if (!m_whisperPath.isEmpty() && WhisperService::isWhisperAvailable(m_whisperPath)) {
         m_whisperStatus = "已检测到 whisper.cpp";
     } else {
-        m_whisperStatus = "无法找到 whisper.cpp";
+        m_whisperStatus = m_whisperPath.isEmpty() ? "未配置" : "无法找到 whisper.cpp（请检查运行时 DLL）";
     }
     emit whisperStatusChanged();
 }
 
 void VideoSubtitleSettings::testApiConnection()
 {
+    switch (m_translateEngine) {
+    case 0:
+        testBaiduConnection();
+        break;
+    default:
+        m_apiTestResult = "不支持的翻译引擎";
+        emit apiTestResultChanged();
+        break;
+    }
+}
+
+QStringList VideoSubtitleSettings::translateEngineNames() const
+{
+    // [extension]: 后续新增翻译引擎只需在此追加名称, 如 << "DeepL 翻译", "Google 翻译"
+    return {"百度翻译"};
+}
+
+// --- Engine-specific test methods ---
+// [extension]: 新增翻译引擎时在此下方添加对应的 testXxxConnection() 方法,
+//              并在 testApiConnection() 的 switch 中注册分发。
+
+void VideoSubtitleSettings::testBaiduConnection()
+{
     if (m_apiKey.isEmpty()) {
-        m_apiTestResult = "请先输入 API Key";
+        m_apiTestResult = "请先输入百度 Secret Key";
         emit apiTestResultChanged();
         return;
     }
 
     if (m_baiduAppId.isEmpty()) {
-        m_apiTestResult = "请先输入 App ID";
+        m_apiTestResult = "请先输入百度 App ID";
         emit apiTestResultChanged();
         return;
     }
@@ -414,76 +509,66 @@ void VideoSubtitleSettings::detectTools()
 {
     bool changed = false;
 
-    // ---------- Helper: try to find bundled tool by walking up parent dirs ----------
-    auto findBundled = [](const QString &relativePath) -> QString {
-        QString appDir = QCoreApplication::applicationDirPath();
-        QDir dir(appDir);
-        // 从 exe 所在目录开始，最多向上查找 4 层父目录
-        for (int i = 0; i <= 4; ++i) {
-            QString candidate = dir.absoluteFilePath(relativePath);
-            if (QFileInfo::exists(candidate)) {
-                return QFileInfo(candidate).absoluteFilePath();
-            }
-            if (!dir.cdUp()) break;
+    // ---------- Helper: recursively find a bundled tool under exe同级/plugins/videosubtitle/ ----------
+    auto findBundled = [](const QString &fileName) -> QString {
+        QString basePath = QCoreApplication::applicationDirPath() + "/plugins/videosubtitle";
+        QDirIterator it(basePath, QStringList() << fileName, QDir::Files, QDirIterator::Subdirectories);
+        if (it.hasNext()) {
+            it.next();
+            return it.filePath();
         }
         return QString();
     };
 
     // ---------- FFmpeg ----------
     if (!m_ffmpegPath.isEmpty()) {
-        if (!FFmpegService::isFFmpegAvailable(m_ffmpegPath)) {
-            PluginLogger::warn("配置的 FFmpeg 路径无效，尝试自动检测: " + m_ffmpegPath);
-            m_ffmpegPath.clear();
-        }
-    }
-
-    if (m_ffmpegPath.isEmpty()) {
-        QString found = findBundled("plugins/videosubtitle/ffmpeg/ffmpeg.exe");
-        if (found.isEmpty()) {
-            found = findBundled("ffmpeg/ffmpeg.exe");
-        }
-        if (!found.isEmpty()) {
-            m_ffmpegPath = found;
-            changed = true;
-            PluginLogger::info("自动检测到自带的 FFmpeg: " + m_ffmpegPath);
-        }
-    }
-
-    if (!m_ffmpegPath.isEmpty()) {
+        // ini 有路径，以 ini 为准，验证可用性但不回退到自动检测
         if (FFmpegService::isFFmpegAvailable(m_ffmpegPath)) {
             QString ver = FFmpegService::ffmpegVersion(m_ffmpegPath);
             m_ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
         } else {
-            m_ffmpegStatus = "无法找到 FFmpeg2";
+            m_ffmpegStatus = "无法找到 FFmpeg";
+            PluginLogger::warn("ini 配置的 FFmpeg 路径不可用: " + m_ffmpegPath);
+        }
+        emit ffmpegStatusChanged();
+    } else {
+        // ini 无路径，exe同级/plugins/videosubtitle/ 下递归查找 ffmpeg.exe
+        QString found = findBundled("ffmpeg.exe");
+        if (!found.isEmpty()) {
+            m_ffmpegPath = found;
+            if (FFmpegService::isFFmpegAvailable(m_ffmpegPath)) {
+                QString ver = FFmpegService::ffmpegVersion(m_ffmpegPath);
+                m_ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
+            } else {
+                m_ffmpegStatus = "无法找到 FFmpeg";
+            }
+            changed = true;
+            PluginLogger::info("自动检测到自带的 FFmpeg: " + m_ffmpegPath);
         }
         emit ffmpegStatusChanged();
     }
 
     // ---------- Whisper ----------
+    // 注意: 只检查文件是否存在，不启动进程验证。
+    // whisper-cli.exe 依赖 whisper.dll / ggml.dll，启动时会触发 Windows DLL 加载，
+    // BYTools 不应因外部工具的运行时环境而报错。
     if (!m_whisperPath.isEmpty()) {
-        if (!QFileInfo::exists(m_whisperPath)) {
-            PluginLogger::warn("配置的 Whisper 路径无效，尝试自动检测: " + m_whisperPath);
-            m_whisperPath.clear();
-        }
-    }
-
-    if (m_whisperPath.isEmpty()) {
-        QString found = findBundled("plugins/videosubtitle/whisper/whisper-cli.exe");
-        if (found.isEmpty()) {
-            found = findBundled("whisper/whisper-cli.exe");
-        }
-        if (!found.isEmpty()) {
-            m_whisperPath = found;
-            changed = true;
-            PluginLogger::info("自动检测到自带的 Whisper: " + m_whisperPath);
-        }
-    }
-
-    if (!m_whisperPath.isEmpty()) {
+        // ini 有路径，以 ini 为准
         if (QFileInfo::exists(m_whisperPath)) {
-            m_whisperStatus = "已检测到 whisper.cpp";
+            m_whisperStatus = "已找到 whisper.cpp";
         } else {
             m_whisperStatus = "无法找到 whisper.cpp";
+            PluginLogger::warn("ini 配置的 Whisper 路径不可用: " + m_whisperPath);
+        }
+        emit whisperStatusChanged();
+    } else {
+        // ini 无路径，exe同级/plugins/videosubtitle/ 下递归查找 whisper-cli.exe
+        QString found = findBundled("whisper-cli.exe");
+        if (!found.isEmpty()) {
+            m_whisperPath = found;
+            m_whisperStatus = "已找到 whisper.cpp";
+            changed = true;
+            PluginLogger::info("自动检测到自带的 Whisper: " + m_whisperPath);
         }
         emit whisperStatusChanged();
     }

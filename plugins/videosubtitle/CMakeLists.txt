@@ -48,23 +48,3 @@ configure_file(
     ${CMAKE_BINARY_DIR}/plugins/videosubtitle/plugin.json
     COPYONLY
 )
-
-# 部署自带 ffmpeg
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/ffmpeg.exe")
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/videosubtitle/ffmpeg")
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/ffmpeg/ffmpeg.exe
-        ${CMAKE_BINARY_DIR}/plugins/videosubtitle/ffmpeg/ffmpeg.exe
-        COPYONLY
-    )
-endif()
-
-# 部署自带 whisper (如果有)
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/whisper/whisper-cli.exe")
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/videosubtitle/whisper")
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/whisper/whisper-cli.exe
-        ${CMAKE_BINARY_DIR}/plugins/videosubtitle/whisper/whisper-cli.exe
-        COPYONLY
-    )
-endif()

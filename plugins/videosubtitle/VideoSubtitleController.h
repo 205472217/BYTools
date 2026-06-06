@@ -22,12 +22,19 @@ class VideoSubtitleController : public QObject
 
     // === Subtitle style ===
     Q_PROPERTY(int subtitleStyle READ subtitleStyle WRITE setSubtitleStyle NOTIFY subtitleStyleChanged)
-    Q_PROPERTY(bool bilingual READ bilingual WRITE setBilingual NOTIFY bilingualChanged)
 
     // === Output settings ===
     Q_PROPERTY(int outputMode READ outputMode WRITE setOutputMode NOTIFY outputModeChanged)
     Q_PROPERTY(QString outputDir READ outputDir WRITE setOutputDir NOTIFY outputDirChanged)
+    Q_PROPERTY(bool keepWav READ keepWav WRITE setKeepWav NOTIFY keepWavChanged)
     Q_PROPERTY(bool keepOriginalSrt READ keepOriginalSrt WRITE setKeepOriginalSrt NOTIFY keepOriginalSrtChanged)
+    Q_PROPERTY(bool keepTranslatedSrt READ keepTranslatedSrt WRITE setKeepTranslatedSrt NOTIFY keepTranslatedSrtChanged)
+
+    // === Step control ===
+    Q_PROPERTY(bool enableAudioExtraction READ enableAudioExtraction WRITE setEnableAudioExtraction NOTIFY enableAudioExtractionChanged)
+    Q_PROPERTY(bool enableTranscribe READ enableTranscribe WRITE setEnableTranscribe NOTIFY enableTranscribeChanged)
+    Q_PROPERTY(bool enableTranslate READ enableTranslate WRITE setEnableTranslate NOTIFY enableTranslateChanged)
+    Q_PROPERTY(bool enableBurnSubtitle READ enableBurnSubtitle WRITE setEnableBurnSubtitle NOTIFY enableBurnSubtitleChanged)
 
     // === Status ===
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
@@ -47,10 +54,11 @@ public:
     QString sourceLanguage() const;
     QString targetLanguage() const;
     int subtitleStyle() const;
-    bool bilingual() const;
     int outputMode() const;
     QString outputDir() const;
+    bool keepWav() const;
     bool keepOriginalSrt() const;
+    bool keepTranslatedSrt() const;
     QString statusMessage() const;
     double progress() const;
     bool isProcessing() const;
@@ -65,10 +73,23 @@ public:
     void setSourceLanguage(const QString &lang);
     void setTargetLanguage(const QString &lang);
     void setSubtitleStyle(int style);
-    void setBilingual(bool bilingual);
     void setOutputMode(int mode);
     void setOutputDir(const QString &dir);
+    void setKeepWav(bool keep);
     void setKeepOriginalSrt(bool keep);
+    void setKeepTranslatedSrt(bool keep);
+
+    // Step control getters
+    bool enableAudioExtraction() const;
+    bool enableTranscribe() const;
+    bool enableTranslate() const;
+    bool enableBurnSubtitle() const;
+
+    // Step control setters
+    void setEnableAudioExtraction(bool enabled);
+    void setEnableTranscribe(bool enabled);
+    void setEnableTranslate(bool enabled);
+    void setEnableBurnSubtitle(bool enabled);
 
     Q_INVOKABLE void execute();
     Q_INVOKABLE void cancel();
@@ -82,10 +103,15 @@ signals:
     void sourceLanguageChanged();
     void targetLanguageChanged();
     void subtitleStyleChanged();
-    void bilingualChanged();
     void outputModeChanged();
     void outputDirChanged();
+    void keepWavChanged();
     void keepOriginalSrtChanged();
+    void keepTranslatedSrtChanged();
+    void enableAudioExtractionChanged();
+    void enableTranscribeChanged();
+    void enableTranslateChanged();
+    void enableBurnSubtitleChanged();
     void statusMessageChanged();
     void progressChanged();
     void isProcessingChanged();
@@ -93,6 +119,7 @@ signals:
     void recordsChanged();
     void currentStepChanged();
     void settingsRequired();  // Emitted when tools are not configured
+    void logMessage(const QString &message);
 
 private slots:
     void onAudioExtracted(bool success, const QString &audioPath, const QString &error);
@@ -106,6 +133,7 @@ private slots:
 private:
     void processNextFile();
     void processSingleFile(const QString &videoPath);
+    void finalizeCurrentFile();
     void setStatusMessage(const QString &message);
     void setCurrentStep(const QString &step);
     void setProgress(double value);
@@ -126,22 +154,26 @@ private:
     QString defaultFontColor() const;
     QString defaultBorderColor() const;
     int defaultBorderWidth() const;
+    int audioSegmentDuration() const;
 
     QString m_inputPath;
     int m_inputMode = 0;
     bool m_recursive = false;
     QString m_sourceLanguage = "auto";
     QString m_targetLanguage = "zh";
-    int m_subtitleStyle = 0;
-    bool m_bilingual = true;
     int m_outputMode = 0;
     QString m_outputDir;
-    bool m_keepOriginalSrt = true;
     QString m_statusMessage;
     QString m_currentStep;
     double m_progress = 0.0;
     bool m_isProcessing = false;
     QList<QVariantMap> m_records;
+
+    // Step control flags
+    bool m_enableAudioExtraction = true;
+    bool m_enableTranscribe = true;
+    bool m_enableTranslate = true;
+    bool m_enableBurnSubtitle = true;
 
     QStringList m_pendingFiles;
     int m_currentFileIndex = -1;

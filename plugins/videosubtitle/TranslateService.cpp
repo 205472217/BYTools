@@ -1,4 +1,4 @@
-﻿#include "TranslateService.h"
+#include "TranslateService.h"
 #include "SubtitleService.h"
 #include "PluginLogger.h"
 #include <QJsonDocument>
@@ -8,17 +8,54 @@
 #include <QUrlQuery>
 #include <QCryptographicHash>
 #include <QRandomGenerator>
+#include <QRegularExpression>
 
-static const int BATCH_SIZE = 50;
+// Strip HTML tags and unescape HTML entities from subtitle text before translation
+static QString sanitizeSubtitleText(const QString &raw)
+{
+    QString text = raw;
+
+    // 1. Strip HTML tags: <b>, <i>, <u>, <font ...>, </b>, etc.
+    text.remove(QRegularExpression("<[^>]*>"));
+
+    // 2. Unescape common HTML entities
+    text.replace("&amp;",  "&");
+    text.replace("&lt;",   "<");
+    text.replace("&gt;",   ">");
+    text.replace("&quot;", "\"");
+    text.replace("&#39;",  "'");
+    text.replace("&#039;", "'");
+    text.replace("&#34;",  "\"");
+
+    // 3. Strip zero-width / control characters (keep normal spaces, tabs, newlines)
+    text.remove(QRegularExpression("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]"));
+
+    // 4. Trim each line and collapse excessive blank lines
+    QStringList lines = text.split('\n');
+    for (QString &line : lines) {
+        line = line.trimmed();
+    }
+    // Remove trailing empty lines but keep internal spacing
+    while (!lines.isEmpty() && lines.last().isEmpty())
+        lines.removeLast();
+    while (!lines.isEmpty() && lines.first().isEmpty())
+        lines.removeFirst();
+
+    return lines.join('\n').trimmed();
+}
 
 TranslateService::TranslateService(QObject *parent)
     : QObject(parent)
     , m_networkManager(new QNetworkAccessManager(this))
     , m_currentReply(nullptr)
+    , m_requestTimer(new QTimer(this))
     , m_cancelled(false)
 {
     connect(m_networkManager, &QNetworkAccessManager::finished,
             this, &TranslateService::onReplyFinished);
+    m_requestTimer->setSingleShot(true);
+    connect(m_requestTimer, &QTimer::timeout,
+            this, &TranslateService::onRequestTimeout);
 }
 
 void TranslateService::startTranslate(const QString &inputSrtPath,
@@ -27,8 +64,7 @@ void TranslateService::startTranslate(const QString &inputSrtPath,
                                        const QString &apiKey,
                                        const QString &apiUrl,
                                        const QString &targetLang,
-                                       const QString &baiduAppId,
-                                       bool bilingual)
+                                       const QString &baiduAppId)
 {
     if (m_cancelled) return;
 
@@ -39,60 +75,73 @@ void TranslateService::startTranslate(const QString &inputSrtPath,
     m_currentApiKey = apiKey;
     m_currentApiUrl = apiUrl;
     m_currentTargetLang = targetLang;
-    m_bilingual = bilingual;
+    m_baiduAppId = baiduAppId;
 
-    // Parse SRT
-    QList<SubtitleService::SubtitleEntry> entries = SubtitleService::parseSrt(inputSrtPath);
-    if (entries.isEmpty()) {
+    // Parse SRT — preserve timing, only extract subtitle text
+    m_entries = SubtitleService::parseSrt(inputSrtPath);
+    if (m_entries.isEmpty()) {
         emit finished(false, outputSrtPath, "Failed to parse SRT file or file is empty");
         return;
     }
 
-    // Split into batches
-    m_totalBatches = (entries.size() + BATCH_SIZE - 1) / BATCH_SIZE;
-    m_completedBatches = 0;
-    m_translatedTexts = QJsonArray();
+    m_totalEntries = m_entries.size();
+    m_currentEntryIndex = 0;
+    m_translatedCount = 0;
 
-    // Pre-allocate result array
-    for (int i = 0; i < entries.size(); ++i) {
-        m_translatedTexts.append("");
-    }
+    PluginLogger::info(QString("逐句翻译开始: %1 条字幕, 引擎: %2")
+        .arg(m_totalEntries).arg(engine == 0 ? "百度翻译" : "未知"));
 
-    // Start translating first batch
-    if (m_totalBatches > 0) {
-        QJsonArray batchTexts;
-        int end = qMin(BATCH_SIZE, entries.size());
-        for (int i = 0; i < end; ++i) {
-            batchTexts.append(entries.at(i).originalText);
-        }
-        translateBatch(batchTexts, engine, apiKey, apiUrl, targetLang, 0, m_totalBatches, baiduAppId);
-    }
+    // Start translating the first sentence
+    translateNext();
 }
 
 void TranslateService::cancel()
 {
     m_cancelled = true;
+    m_requestTimer->stop();
     if (m_currentReply) {
         m_currentReply->abort();
         m_currentReply = nullptr;
     }
 }
 
-void TranslateService::translateBatch(const QJsonArray &texts, int engine,
-                                       const QString &apiKey, const QString &apiUrl,
-                                       const QString &targetLang, int batchIndex, int totalBatches,
-                                       const QString &baiduAppId)
+void TranslateService::translateNext()
 {
-    switch (engine) {
+    if (m_cancelled) {
+        emit finished(false, m_outputSrtPath, "翻译已取消");
+        return;
+    }
+
+    if (m_currentEntryIndex >= m_totalEntries) {
+        // All sentences translated — write output SRT
+        writeOutputSrt();
+        return;
+    }
+
+    const SubtitleService::SubtitleEntry &entry = m_entries.at(m_currentEntryIndex);
+    QString textToTranslate = sanitizeSubtitleText(entry.originalText);
+    if (textToTranslate.isEmpty()) {
+        // Skip empty entries
+        m_currentEntryIndex++;
+        m_translatedCount++;
+        emit progress(static_cast<double>(m_translatedCount) / m_totalEntries);
+        translateNext();
+        return;
+    }
+
+    switch (m_currentEngine) {
     case 0: { // Baidu Translate
-        // 参数全部放入 URL（匹配已验证可用的 MFC 代码方式）
-        QString fullUrl = buildBaiduUrl(texts, targetLang, apiKey, baiduAppId);
-        m_currentBatchIndex = batchIndex;
+        QJsonArray singleText;
+        singleText.append(textToTranslate);
+        QString fullUrl = buildBaiduUrl(singleText, m_currentTargetLang,
+                                         m_currentApiKey, m_baiduAppId);
 
         PluginLogger::restRequest("GET", fullUrl);
 
         QNetworkRequest request{QUrl(fullUrl)};
+        request.setTransferTimeout(TIMEOUT_MS);  // auto-abort if no data for 30s
         m_currentReply = m_networkManager->get(request);
+        m_requestTimer->start(TIMEOUT_MS + 5000);  // safety net: 5s after transfer timeout
         break;
     }
     default:
@@ -108,14 +157,28 @@ void TranslateService::onReplyFinished(QNetworkReply *reply)
         return;
     }
 
+    m_requestTimer->stop();
     m_currentReply = nullptr;
     int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
     if (reply->error() != QNetworkReply::NoError) {
         QString errStr = reply->errorString();
+        QString srtEntryInfo = QString("（第 %1 条: \"%2\"）")
+            .arg(m_currentEntryIndex + 1)
+            .arg(m_entries.at(m_currentEntryIndex).originalText.left(40));
         reply->deleteLater();
-        PluginLogger::restResponse(httpStatus, "网络错误: " + errStr);
-        emit finished(false, m_outputSrtPath, "Network error: " + errStr);
+        PluginLogger::restResponse(httpStatus, "网络错误: " + errStr + srtEntryInfo);
+
+        m_retryCount++;
+        if (m_retryCount <= MAX_RETRIES) {
+            PluginLogger::warn(QString("第 %1 条翻译请求失败（第 %2 次重试）: %3")
+                .arg(m_currentEntryIndex + 1).arg(m_retryCount).arg(errStr));
+            translateNext();
+            return;
+        }
+
+        emit finished(false, m_outputSrtPath,
+                      QString("翻译失败（第 %1 条）: %2").arg(m_currentEntryIndex + 1).arg(errStr));
         return;
     }
 
@@ -126,12 +189,17 @@ void TranslateService::onReplyFinished(QNetworkReply *reply)
     PluginLogger::restResponse(httpStatus, QString::fromUtf8(responseData));
     QJsonObject root = doc.object();
 
-    // 检查 API 错误（百度返回 error_code 时为失败响应）
+    // Check API error
     if (root.contains("error_code")) {
         QString errCode = root["error_code"].toString();
         QString errMsg  = root["error_msg"].toString();
-        PluginLogger::error(QString("百度翻译 API 错误 [%1]: %2").arg(errCode, errMsg));
-        emit finished(false, m_outputSrtPath, QString("百度翻译错误 [%1]: %2").arg(errCode, errMsg));
+        QString srtEntryInfo = QString("（第 %1 条: \"%2\"）")
+            .arg(m_currentEntryIndex + 1)
+            .arg(m_entries.at(m_currentEntryIndex).originalText.left(40));
+        PluginLogger::error(QString("翻译 API 错误 [%1]: %2 %3").arg(errCode, errMsg, srtEntryInfo));
+        emit finished(false, m_outputSrtPath,
+                      QString("翻译失败（第 %1 条）: [%2] %3")
+                          .arg(m_currentEntryIndex + 1).arg(errCode, errMsg));
         return;
     }
 
@@ -152,48 +220,65 @@ void TranslateService::onReplyFinished(QNetworkReply *reply)
     }
 
     if (translatedTexts.isEmpty()) {
-        PluginLogger::error("翻译返回结果为空");
-        emit finished(false, m_outputSrtPath, "No translation result returned");
+        PluginLogger::error(QString("第 %1 条返回结果为空: \"%2\"")
+            .arg(m_currentEntryIndex + 1)
+            .arg(m_entries.at(m_currentEntryIndex).originalText.left(40)));
+        emit finished(false, m_outputSrtPath,
+                      QString("第 %1 条翻译结果为空").arg(m_currentEntryIndex + 1));
         return;
     }
 
-    // Store results in correct positions
-    int offset = m_currentBatchIndex * BATCH_SIZE;
-    for (int i = 0; i < translatedTexts.size(); ++i) {
-        if (offset + i < m_translatedTexts.size()) {
-            m_translatedTexts[offset + i] = translatedTexts.at(i);
-        }
+    // Save translated text into the entry
+    m_entries[m_currentEntryIndex].translatedText = translatedTexts.first();
+
+    m_currentEntryIndex++;
+    m_translatedCount++;
+    m_retryCount = 0;  // reset retry counter on success
+    emit progress(static_cast<double>(m_translatedCount) / m_totalEntries);
+
+    // Translate next sentence
+    translateNext();
+}
+
+void TranslateService::onRequestTimeout()
+{
+    if (m_cancelled) return;
+
+    PluginLogger::warn(QString("第 %1 条翻译请求超时").arg(m_currentEntryIndex + 1));
+
+    // Clean up the hung reply
+    if (m_currentReply) {
+        m_currentReply->disconnect();
+        m_currentReply->abort();
+        m_currentReply->deleteLater();
+        m_currentReply = nullptr;
     }
 
-    m_completedBatches++;
-    emit progress(static_cast<double>(m_completedBatches) / m_totalBatches);
-
-    // Check if all batches done
-    if (m_completedBatches >= m_totalBatches) {
-        // Re-parse original SRT to preserve timing info
-        QList<SubtitleService::SubtitleEntry> originalEntries =
-            SubtitleService::parseSrt(m_inputSrtPath);
-
-        // Merge translated texts with original timing
-        QList<SubtitleService::SubtitleEntry> outputEntries;
-        int count = qMin(originalEntries.size(), m_translatedTexts.size());
-        for (int i = 0; i < count; ++i) {
-            SubtitleService::SubtitleEntry entry = originalEntries.at(i);
-            entry.translatedText = m_translatedTexts.at(i).toString();
-            outputEntries.append(entry);
-        }
-
-        // Write SRT respecting the bilingual setting
-        bool ok = SubtitleService::writeSrt(m_outputSrtPath, outputEntries, m_bilingual);
-        emit finished(ok, m_outputSrtPath, ok ? "" : "Failed to write SRT file");
+    m_retryCount++;
+    if (m_retryCount <= MAX_RETRIES) {
+        PluginLogger::warn(QString("第 %1 条翻译超时重试 (%2/%3)…")
+            .arg(m_currentEntryIndex + 1).arg(m_retryCount).arg(MAX_RETRIES));
+        translateNext();
+        return;
     }
+
+    PluginLogger::error(QString("第 %1 条翻译超时 %2 次，放弃").arg(m_currentEntryIndex + 1).arg(m_retryCount));
+    emit finished(false, m_outputSrtPath,
+                  QString("翻译超时（第 %1 条）").arg(m_currentEntryIndex + 1));
+}
+
+void TranslateService::writeOutputSrt()
+{
+    bool ok = SubtitleService::writeSrt(m_outputSrtPath, m_entries);
+    PluginLogger::info(QString("翻译完成: %1 条字幕 → %2")
+        .arg(m_totalEntries).arg(m_outputSrtPath));
+    emit finished(ok, m_outputSrtPath, ok ? "" : "Failed to write SRT file");
 }
 
 QString TranslateService::buildBaiduUrl(const QJsonArray &texts, const QString &targetLang,
                                          const QString &secretKey, const QString &appId)
 {
-    // Baidu Translate 签名规则: appid + q + salt + 密钥
-    // 参数全部放入 URL（匹配已验证可用的 MFC 代码方式）
+    // Baidu Translate signing: appid + q + salt + secretKey
     QStringList textList;
     for (const QJsonValue &v : texts) {
         textList.append(v.toString());
@@ -204,7 +289,7 @@ QString TranslateService::buildBaiduUrl(const QJsonArray &texts, const QString &
     QString signStr = appId + query + salt + secretKey;
     QString sign = QCryptographicHash::hash(signStr.toUtf8(), QCryptographicHash::Md5).toHex().toLower();
 
-    // 对 q 做 URL encode（拼接 sign 时用的是原始 q）
+    // URL-encode q (sign uses raw q)
     QString encodedQ = QString::fromUtf8(QUrl::toPercentEncoding(query));
     QString url = QString("http://api.fanyi.baidu.com/api/trans/vip/translate"
                           "?q=%1&from=auto&to=%2&appid=%3&salt=%4&sign=%5")

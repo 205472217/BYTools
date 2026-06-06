@@ -55,16 +55,6 @@ Pane {
         }
     }
 
-    FolderDialog {
-        id: modelDirDialog
-        title: "选择模型下载目录"
-        onAccepted: {
-            if (settings) {
-                settings.whisperModelDir = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
-            }
-        }
-    }
-
     ColorDialog {
         id: fontColorDialog
         selectedColor: settings ? settings.defaultFontColor : "#ffffff"
@@ -137,181 +127,66 @@ Pane {
             }
 
             ScrollView {
+                id: contentScrollView
                 anchors.fill: parent
                 anchors.margins: 18
                 clip: true
-                ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 
                 ColumnLayout {
-                    width: parent.width
+                    width: contentScrollView.availableWidth-15
                     spacing: 12
 
-                // FFmpeg path
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        text: "FFmpeg"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    TextFieldEx {
+                    // FFmpeg path
+                    RowLayout {
+                        spacing: 12
                         Layout.fillWidth: true
-                        text: settings ? settings.ffmpegPath : ""
-                        placeholderText: "FFmpeg 可执行文件路径"
-                        readOnly: true
-                    }
 
-                    IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
-                        tooltip: "浏览"
-                        onClicked: ffmpegFileDialog.open()
-                    }
-                }
+                        Label {
+                            text: "FFmpeg"
+                            color: "#475569"
+                            font.pixelSize: 13
+                            font.bold: true
+                            Layout.preferredWidth: 80
+                        }
 
-                Label {
-                    text: settings ? settings.ffmpegStatus : ""
-                    color: settings && settings.ffmpegStatus.indexOf("检测到") >= 0 ? "#059669" : "#dc2626"
-                    font.pixelSize: 12
-                    leftPadding: 92
-                }
+                        TextFieldEx {
+                            Layout.fillWidth: true
+                            text: settings ? settings.ffmpegPath : ""
+                            placeholderText: "FFmpeg 可执行文件路径"
+                            readOnly: true
+                        }
 
-                // Whisper path
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        text: "Whisper"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    TextFieldEx {
-                        Layout.fillWidth: true
-                        text: settings ? settings.whisperPath : ""
-                        placeholderText: "whisper-cli.exe 路径"
-                        readOnly: true
-                    }
-
-                    IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
-                        tooltip: "浏览"
-                        onClicked: whisperFileDialog.open()
-                    }
-                }
-
-                Label {
-                    text: settings ? settings.whisperStatus : ""
-                    color: settings && settings.whisperStatus.indexOf("检测到") >= 0 ? "#059669" : "#dc2626"
-                    font.pixelSize: 12
-                    leftPadding: 92
-                }
-
-                // Local model file
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        text: "本地模型"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    TextFieldEx {
-                        Layout.fillWidth: true
-                        text: settings ? settings.localModelPath : ""
-                        placeholderText: "选择本地 .bin / .ggml 模型文件"
-                        readOnly: true
-                    }
-
-                    IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
-                        tooltip: "浏览"
-                        onClicked: modelFileDialog.open()
-                    }
-                }
-
-                // Download model
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        text: "下载模型"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    ComboBoxEx {
-                        Layout.preferredWidth: 120
-                        model: ["tiny", "base", "small", "medium", "large"]
-                        currentIndex: settings ? settings.whisperModel : 3
-                        onActivated: {
-                            if (settings)
-                                settings.whisperModel = currentIndex;
+                        IconButton {
+                            iconSource: "qrc:/icons/folder.svg"
+                            tooltip: "浏览"
+                            onClicked: ffmpegFileDialog.open()
                         }
                     }
 
-                    Label {
-                        text: settings && settings.availableModels && settings.whisperModel < settings.availableModels.length ? (settings.availableModels[settings.whisperModel].downloaded ? "✅ 已下载" : "未下载") : ""
-                        color: "#64748b"
-                        font.pixelSize: 12
-                    }
-                }
+                    // FFmpeg status + download link
+                    RowLayout {
+                        spacing: 12
+                        Layout.fillWidth: true
 
-                ListView {
-                    id: modelListView
-                    Layout.fillWidth: true
-                    implicitHeight: contentHeight
-                    interactive: false
-                    spacing: 4
-                    model: settings ? settings.availableModels : null
-
-                    delegate: RowLayout {
-                        width: modelListView.width
-                        spacing: 8
+                        Item {
+                            Layout.preferredWidth: 80
+                        }
 
                         Label {
-                            Layout.preferredWidth: 56
-                            text: modelData.name
-                            color: "#334155"
+                            text: {
+                                if (!settings) return "";
+                                if (settings.ffmpegPath && settings.ffmpegPath.length > 0) {
+                                    var parts = settings.ffmpegPath.replace(/\\/g, '/').split('/');
+                                    var ok = settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0;
+                                    return "已选择 FFmpeg: " + parts[parts.length - 1] + (ok ? " — 可用" : " — 不可用");
+                                }
+                                return "请点击下载地址进行 FFmpeg 下载";
+                            }
+                            color: settings && settings.ffmpegPath && settings.ffmpegPath.length > 0 && (settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0) ? "#059669" : "#dc2626"
                             font.pixelSize: 12
-                            font.bold: true
-                        }
-
-                        Label {
-                            Layout.preferredWidth: 64
-                            text: Math.round(modelData.fileSize / 1048576) + " MB"
-                            color: "#94a3b8"
-                            font.pixelSize: 11
-                        }
-
-                        Rectangle {
-                            Layout.preferredWidth: 8
-                            Layout.preferredHeight: 8
-                            radius: 4
-                            Layout.alignment: Qt.AlignVCenter
-                            color: modelData.downloaded ? "#22c55e" : "#cbd5e1"
-                        }
-
-                        Label {
-                            visible: index === 3
-                            text: "推荐"
-                            color: "#2563eb"
-                            font.pixelSize: 11
-                            font.bold: true
+                            elide: Text.ElideRight
+                            verticalAlignment: Text.AlignVCenter
                         }
 
                         Item {
@@ -319,331 +194,562 @@ Pane {
                         }
 
                         Label {
-                            text: modelData.downloaded ? "删除" : "下载"
-                            color: modelData.downloaded ? "#dc2626" : "#2563eb"
+                            text: "下载地址 →"
+                            color: "#2563eb"
                             font.pixelSize: 12
-                            font.bold: true
+                            font.underline: true
 
                             MouseArea {
                                 anchors.fill: parent
-                                anchors.margins: -6
+                                anchors.margins: -4
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    if (modelData.downloaded) {
-                                        settings.deleteModel(index);
-                                    } else {
-                                        Qt.openUrlExternally("https://huggingface.co/ggerganov/whisper.cpp/tree/main");
-                                    }
+                                    Qt.openUrlExternally("https://ffmpeg.org/download.html");
                                 }
                             }
                         }
                     }
-                }
 
-                Label {
-                    text: settings ? "模型目录: " + settings.whisperModelDir : ""
-                    color: "#c7d2e0"
-                    font.pixelSize: 11
-                }
-
-                // Model download directory
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        text: "下载目录"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    Label {
+                    // Whisper path
+                    RowLayout {
+                        spacing: 12
                         Layout.fillWidth: true
-                        text: settings ? settings.whisperModelDir : ""
-                        color: "#64748b"
-                        font.pixelSize: 12
-                        elide: Text.ElideMiddle
-                        clip: true
+
+                        Label {
+                            text: "Whisper"
+                            color: "#475569"
+                            font.pixelSize: 13
+                            font.bold: true
+                            Layout.preferredWidth: 80
+                        }
+
+                        TextFieldEx {
+                            Layout.fillWidth: true
+                            text: settings ? settings.whisperPath : ""
+                            placeholderText: "whisper-cli.exe 路径"
+                            readOnly: true
+                        }
+
+                        IconButton {
+                            iconSource: "qrc:/icons/folder.svg"
+                            tooltip: "浏览"
+                            onClicked: whisperFileDialog.open()
+                        }
                     }
 
-                    IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
-                        tooltip: "更改目录"
-                        onClicked: modelDirDialog.open()
-                    }
-                }
+                    // Whisper status + download link
+                    RowLayout {
+                        spacing: 12
+                        Layout.fillWidth: true
 
-                // Translation engine
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
+                        Item {
+                            Layout.preferredWidth: 80
+                        }
 
-                    Label {
-                        text: "翻译引擎"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
+                        Label {
+                            text: {
+                                if (!settings) return "";
+                                if (settings.whisperPath && settings.whisperPath.length > 0) {
+                                    var parts = settings.whisperPath.replace(/\\/g, '/').split('/');
+                                    var ok = settings.whisperStatus.indexOf("已找到") >= 0 || settings.whisperStatus.indexOf("已检测到") >= 0;
+                                    return "已选择 Whisper: " + parts[parts.length - 1] + (ok ? " — 可用" : " — 不可用");
+                                }
+                                return "请点击下载地址进行 Whisper 下载";
+                            }
+                            color: settings && settings.whisperPath && settings.whisperPath.length > 0 && (settings.whisperStatus.indexOf("已找到") >= 0 || settings.whisperStatus.indexOf("已检测到") >= 0) ? "#059669" : "#dc2626"
+                            font.pixelSize: 12
+                            elide: Text.ElideRight
+                            verticalAlignment: Text.AlignVCenter
+                        }
 
-                    ComboBoxEx {
-                        Layout.preferredWidth: 180
-                        model: ["百度翻译", "不翻译"]
-                        currentIndex: settings ? (settings.translateEngine === 3 ? 1 : 0) : 0
-                        onActivated: {
-                            if (settings) {
-                                // Map: index 0 → engine 0 (百度), index 1 → engine 3 (不翻译)
-                                settings.translateEngine = currentIndex === 0 ? 0 : 3;
+                        Item {
+                            Layout.fillWidth: true
+                        }
+
+                        Label {
+                            text: "下载地址 →"
+                            color: "#2563eb"
+                            font.pixelSize: 12
+                            font.underline: true
+
+                            MouseArea {
+                                anchors.fill: parent
+                                anchors.margins: -4
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    Qt.openUrlExternally("https://github.com/ggerganov/whisper.cpp/releases");
+                                }
                             }
                         }
                     }
-                }
 
-                // API Key
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-                    visible: settings ? settings.translateEngine === 0 : false
-
-                    Label {
-                        text: "API Key"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    TextFieldEx {
-                        id: apiKeyField
+                    // Local model file
+                    RowLayout {
+                        spacing: 12
                         Layout.fillWidth: true
-                        text: settings ? settings.apiKey : ""
-                        echoMode: TextInput.Password
-                        placeholderText: "输入 API Key"
-                        onTextChanged: {
-                            if (settings)
-                                settings.apiKey = text;
+
+                        Label {
+                            text: "Whisper模型"
+                            color: "#475569"
+                            font.pixelSize: 13
+                            font.bold: true
+                            Layout.preferredWidth: 80
+                        }
+
+                        TextFieldEx {
+                            Layout.fillWidth: true
+                            text: settings ? settings.localModelPath : ""
+                            placeholderText: "选择本地 .bin / .ggml 模型文件"
+                            readOnly: true
+                        }
+
+                        IconButton {
+                            iconSource: "qrc:/icons/folder.svg"
+                            tooltip: "浏览"
+                            onClicked: modelFileDialog.open()
                         }
                     }
 
-                    IconButton {
-                        iconSource: "qrc:/icons/eye.svg"
-                        tooltip: apiKeyField.echoMode === TextInput.Password ? "显示" : "隐藏"
-                        onClicked: {
-                            apiKeyField.echoMode = apiKeyField.echoMode === TextInput.Password ? TextInput.Normal : TextInput.Password;
-                        }
-                    }
-                }
-
-                // Baidu App ID
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-                    visible: settings ? settings.translateEngine === 0 : false
-
-                    Label {
-                        text: "App ID"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    TextFieldEx {
+                    // Model status hint & download link (always visible)
+                    RowLayout {
+                        spacing: 12
                         Layout.fillWidth: true
-                        text: settings ? settings.baiduAppId : ""
-                        placeholderText: "百度翻译 API 的 App ID"
-                        onTextChanged: {
-                            if (settings)
-                                settings.baiduAppId = text;
+
+                        Item {
+                            Layout.preferredWidth: 80
                         }
-                    }
-                }
 
-                // API URL
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-                    visible: settings ? settings.translateEngine === 0 : false
-
-                    Label {
-                        text: "API 地址"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    TextFieldEx {
-                        Layout.fillWidth: true
-                        text: settings ? settings.apiUrl : ""
-                        placeholderText: "API 地址"
-                        onTextChanged: {
-                            if (settings)
-                                settings.apiUrl = text;
+                        Label {
+                            id: modelStatusLabel
+                            text: {
+                                if (!settings) return "";
+                                var path = settings.localModelPath;
+                                if (path && path.length > 0) {
+                                    var parts = path.replace(/\\/g, '/').split('/');
+                                    return "已选择模型: " + parts[parts.length - 1];
+                                }
+                                return "请点击下载地址进行模型下载";
+                            }
+                            color: settings && settings.localModelPath && settings.localModelPath.length > 0 ? "#059669" : "#dc2626"
+                            font.pixelSize: 12
+                            elide: Text.ElideRight
+                            verticalAlignment: Text.AlignVCenter
                         }
-                    }
-                }
 
-                // Test connection
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-                    visible: settings ? settings.translateEngine === 0 : false
+                        Item {
+                            Layout.fillWidth: true
+                        }
 
-                    Item {
-                        Layout.preferredWidth: 80
-                    }
+                        // Download hyperlink (right-aligned with browse button above)
+                        Label {
+                            text: "下载地址 →"
+                            color: "#2563eb"
+                            font.pixelSize: 12
+                            font.underline: true
 
-                    IconButton {
-                        text: "测试连接"
-                        enabled: settings ? !settings.apiTesting : false
-                        onClicked: {
-                            if (settings)
-                                settings.testApiConnection();
+                            MouseArea {
+                                anchors.fill: parent
+                                anchors.margins: -4
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    Qt.openUrlExternally("https://huggingface.co/ggerganov/whisper.cpp/tree/main");
+                                }
+                            }
                         }
                     }
 
-                    Label {
-                        text: settings ? settings.apiTestResult : ""
-                        color: settings && settings.apiTestResult.indexOf("正常") >= 0 ? "#059669" : "#dc2626"
-                        font.pixelSize: 12
-                    }
-                }
-
-                // Font size + border width
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        text: "字号"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    ComboBoxEx {
-                        Layout.preferredWidth: 100
-                        model: ["14px", "16px", "18px", "20px", "24px", "28px", "32px"]
-                        currentIndex: settings ? (settings.defaultFontSize - 14) / 2 : 3
-                        onActivated: {
-                            if (settings)
-                                settings.defaultFontSize = 14 + currentIndex * 2;
-                        }
-                    }
-
+                    // 分割线
                     Rectangle {
-                        width: 1
-                        height: 24
+                        Layout.fillWidth: true
+                        height: 1
                         color: "#e2e8f0"
                     }
 
-                    Label {
-                        text: "描边宽度"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                    }
+                    // Engine selector — 选择翻译引擎（后端: translateEngine 属性）
+                    RowLayout {
+                        spacing: 12
+                        Layout.fillWidth: true
+                        Layout.bottomMargin: 4
 
-                    ComboBoxEx {
-                        Layout.preferredWidth: 72
-                        model: ["0px", "1px", "2px", "3px", "4px"]
-                        currentIndex: settings ? settings.defaultBorderWidth : 2
-                        onActivated: {
-                            if (settings)
-                                settings.defaultBorderWidth = currentIndex;
+                        Label {
+                            text: "翻译引擎"
+                            color: "#475569"
+                            font.pixelSize: 13
+                            font.bold: true
+                            Layout.preferredWidth: 80
                         }
-                    }
-                }
 
-                // Font color + border color
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        text: "字体颜色"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    Rectangle {
-                        width: 28
-                        height: 28
-                        radius: 6
-                        color: settings ? settings.defaultFontColor : "#ffffff"
-                        border.width: 2
-                        border.color: "#e2e8f0"
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: fontColorDialog.open()
+                        ComboBoxEx {
+                            Layout.preferredWidth: 200
+                            model: ["百度翻译"]
+                            currentIndex: 0
+                            onActivated: {
+                                if (settings)
+                                    settings.translateEngine = currentIndex;
+                            }
                         }
                     }
 
-                    Label {
-                        text: settings ? settings.defaultFontColor : "#FFFFFF"
-                        color: "#64748b"
-                        font.pixelSize: 12
+                    // ---------- 百度翻译配置 (engine === 0) ----------
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 12
+
+                        // Baidu App ID (后端: baiduAppId 属性)
+                        RowLayout {
+                            spacing: 12
+                            Layout.fillWidth: true
+
+                            Label {
+                                text: "百度 App ID"
+                                color: "#475569"
+                                font.pixelSize: 13
+                                font.bold: true
+                                Layout.preferredWidth: 80
+                            }
+
+                            TextFieldEx {
+                                Layout.fillWidth: true
+                                text: settings ? settings.baiduAppId : ""
+                                placeholderText: "百度翻译 API 的 App ID"
+                                onTextChanged: {
+                                    if (settings)
+                                        settings.baiduAppId = text;
+                                }
+                            }
+                        }
+
+                        // Baidu Secret Key (后端: apiKey 属性)
+                        RowLayout {
+                            spacing: 12
+                            Layout.fillWidth: true
+
+                            Label {
+                                text: "百度 API Key"
+                                color: "#475569"
+                                font.pixelSize: 13
+                                font.bold: true
+                                Layout.preferredWidth: 80
+                            }
+
+                            TextFieldEx {
+                                id: baiduApiKeyField
+                                Layout.fillWidth: true
+                                text: settings ? settings.apiKey : ""
+                                echoMode: TextInput.Password
+                                placeholderText: "输入百度翻译 Secret Key"
+                                onTextChanged: {
+                                    if (settings)
+                                        settings.apiKey = text;
+                                }
+                            }
+
+                            IconButton {
+                                iconSource: "qrc:/icons/eye.svg"
+                                tooltip: baiduApiKeyField.echoMode === TextInput.Password ? "显示" : "隐藏"
+                                onClicked: {
+                                    baiduApiKeyField.echoMode = baiduApiKeyField.echoMode === TextInput.Password ? TextInput.Normal : TextInput.Password;
+                                }
+                            }
+                        }
+
+                        // Baidu API URL (后端: apiUrl 属性)
+                        RowLayout {
+                            spacing: 12
+                            Layout.fillWidth: true
+
+                            Label {
+                                text: "百度 API 地址"
+                                color: "#475569"
+                                font.pixelSize: 13
+                                font.bold: true
+                                Layout.preferredWidth: 80
+                            }
+
+                            TextFieldEx {
+                                Layout.fillWidth: true
+                                text: settings ? settings.apiUrl : ""
+                                placeholderText: "API 地址"
+                                onTextChanged: {
+                                    if (settings)
+                                        settings.apiUrl = text;
+                                }
+                            }
+
+                            IconButton {
+                                text: "测试连接"
+                                normalColor: "#2563eb"
+                                hoverColor: "#1d4ed8"
+                                borderColor: "#1d4ed8"
+                                enabled: settings ? !settings.apiTesting : false
+                                onClicked: {
+                                    if (settings)
+                                        settings.testApiConnection();
+                                }
+                            }
+                        }
+
+                        // Test result
+                        RowLayout {
+                            spacing: 12
+                            Layout.fillWidth: true
+
+                            Item {
+                                Layout.preferredWidth: 80
+                            }
+
+                            Label {
+                                text: settings ? settings.apiTestResult : ""
+                                color: settings && settings.apiTestResult.indexOf("正常") >= 0 ? "#059669" : "#dc2626"
+                                font.pixelSize: 12
+                            }
+                        }
                     }
 
+                    // 分割线
                     Rectangle {
-                        width: 1
-                        height: 24
+                        Layout.fillWidth: true
+                        height: 1
                         color: "#e2e8f0"
                     }
 
-                    Label {
-                        text: "描边颜色"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                    }
+                    // Font size + border width
+                    RowLayout {
+                        spacing: 12
+                        Layout.fillWidth: true
 
-                    Rectangle {
-                        width: 28
-                        height: 28
-                        radius: 6
-                        color: settings ? settings.defaultBorderColor : "#000000"
-                        border.width: 2
-                        border.color: "#e2e8f0"
+                        Label {
+                            text: "字号"
+                            color: "#475569"
+                            font.pixelSize: 13
+                            font.bold: true
+                            Layout.preferredWidth: 80
+                        }
 
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: borderColorDialog.open()
+                        ComboBoxEx {
+                            Layout.preferredWidth: 100
+                            model: ["14px", "16px", "18px", "20px", "24px", "28px", "32px"]
+                            currentIndex: settings ? (settings.defaultFontSize - 14) / 2 : 3
+                            onActivated: {
+                                if (settings)
+                                    settings.defaultFontSize = 14 + currentIndex * 2;
+                            }
+                        }
+
+                        Rectangle {
+                            width: 1
+                            height: 24
+                            color: "#e2e8f0"
+                        }
+
+                        Label {
+                            text: "描边宽度"
+                            color: "#475569"
+                            font.pixelSize: 13
+                            font.bold: true
+                        }
+
+                        ComboBoxEx {
+                            Layout.preferredWidth: 72
+                            model: ["0px", "1px", "2px", "3px", "4px"]
+                            currentIndex: settings ? settings.defaultBorderWidth : 2
+                            onActivated: {
+                                if (settings)
+                                    settings.defaultBorderWidth = currentIndex;
+                            }
                         }
                     }
 
-                    Label {
-                        text: settings ? settings.defaultBorderColor : "#000000"
-                        color: "#64748b"
-                        font.pixelSize: 12
-                    }
-                }
+                    // Font color + border color
+                    RowLayout {
+                        spacing: 12
+                        Layout.fillWidth: true
 
-                // Preview
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 56
-                    radius: 6
-                    color: "#1a000000"
+                        Label {
+                            text: "字幕样式"
+                            color: "#475569"
+                            font.pixelSize: 13
+                            font.bold: true
+                            Layout.preferredWidth: 80
+                        }
 
-                    Label {
-                        anchors.centerIn: parent
-                        text: "这是一行字幕文字预览"
-                        color: settings ? settings.defaultFontColor : "#ffffff"
-                        font.pixelSize: settings ? settings.defaultFontSize : 20
-                        style: Text.Outline
-                        styleColor: settings ? settings.defaultBorderColor : "#000000"
+                        ComboBoxEx {
+                            Layout.preferredWidth: 120
+                            model: ["白色", "蓝色", "红色"]
+                            currentIndex: settings ? settings.subtitleStyle : 0
+                            onActivated: {
+                                if (!settings) return;
+                                settings.subtitleStyle = currentIndex;
+                                if (currentIndex === 0) {
+                                    // 白色样式：白字黑边
+                                    settings.defaultFontColor = "#FFFFFF";
+                                    settings.defaultBorderColor = "#000000";
+                                } else if (currentIndex === 1) {
+                                    // 蓝色样式：蓝字白边
+                                    settings.defaultFontColor = "#2196F3";
+                                    settings.defaultBorderColor = "#FFFFFF";
+                                } else if (currentIndex === 2) {
+                                    // 红色样式：红字白边
+                                    settings.defaultFontColor = "#F44336";
+                                    settings.defaultBorderColor = "#FFFFFF";
+                                }
+                            }
+                        }
+
+                        Label {
+                            text: "字体颜色"
+                            color: "#475569"
+                            font.pixelSize: 13
+                            font.bold: true
+                            Layout.preferredWidth: 80
+                        }
+
+                        Rectangle {
+                            width: 28
+                            height: 28
+                            radius: 6
+                            color: settings ? settings.defaultFontColor : "#ffffff"
+                            border.width: 2
+                            border.color: "#e2e8f0"
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: fontColorDialog.open()
+                            }
+                        }
+
+                        Label {
+                            text: settings ? settings.defaultFontColor : "#FFFFFF"
+                            color: "#64748b"
+                            font.pixelSize: 12
+                        }
+
+                        Rectangle {
+                            width: 1
+                            height: 24
+                            color: "#e2e8f0"
+                        }
+
+                        Label {
+                            text: "描边颜色"
+                            color: "#475569"
+                            font.pixelSize: 13
+                            font.bold: true
+                        }
+
+                        Rectangle {
+                            width: 28
+                            height: 28
+                            radius: 6
+                            color: settings ? settings.defaultBorderColor : "#000000"
+                            border.width: 2
+                            border.color: "#e2e8f0"
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: borderColorDialog.open()
+                            }
+                        }
+
+                        Label {
+                            text: settings ? settings.defaultBorderColor : "#000000"
+                            color: "#64748b"
+                            font.pixelSize: 12
+                        }
                     }
-                }
+
+                    // Preview
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 56
+                        radius: 6
+                        color: "#1a000000"
+
+                        Label {
+                            anchors.centerIn: parent
+                            text: "这是一行字幕文字预览"
+                            color: settings ? settings.defaultFontColor : "#ffffff"
+                            font.pixelSize: settings ? settings.defaultFontSize : 20
+                            style: Text.Outline
+                            styleColor: settings ? settings.defaultBorderColor : "#000000"
+                        }
+                    }
+
+                    // 分割线
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 1
+                        color: "#e2e8f0"
+                    }
+
+                    // Output file retention
+                    RowLayout {
+                        spacing: 12
+                        Layout.fillWidth: true
+
+                        Label {
+                            text: "保留输出文件"
+                            color: "#475569"
+                            font.pixelSize: 13
+                            font.bold: true
+                            topPadding: 8
+                            bottomPadding: 4
+                        }
+
+                        CheckBox {
+                            text: "保留 WAV 音频文件"
+                            checked: settings ? settings.keepWav : true
+                            onCheckedChanged: {
+                                if (settings)
+                                    settings.keepWav = checked;
+                            }
+                        }
+
+                        CheckBox {
+                            text: "保留原始 SRT 字幕"
+                            checked: settings ? settings.keepOriginalSrt : true
+                            onCheckedChanged: {
+                                if (settings)
+                                    settings.keepOriginalSrt = checked;
+                            }
+                        }
+
+                        CheckBox {
+                            text: "保留翻译后 SRT"
+                            checked: settings ? settings.keepTranslatedSrt : true
+                            onCheckedChanged: {
+                                if (settings)
+                                    settings.keepTranslatedSrt = checked;
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        IconButton {
+                            property bool allKept: true
+                            Binding on allKept {
+                                value: settings ? (settings.keepWav && settings.keepOriginalSrt && settings.keepTranslatedSrt) : true
+                            }
+                            text: allKept ? "全部取消" : "全部保留"
+                            tooltip: allKept ? "取消勾选所有保留选项" : "勾选所有保留选项"
+                            normalColor: allKept ? "#fef2f2" : "#f0fdf4"
+                            hoverColor: allKept ? "#fee2e2" : "#dcfce7"
+                            borderColor: "#e2e8f0"
+                            textColor: allKept ? "#dc2626" : "#059669"
+                            implicitWidth: 100
+                            implicitHeight: 32
+                            onClicked: {
+                                if (settings) {
+                                    var newVal = !allKept;
+                                    settings.keepWav = newVal;
+                                    settings.keepOriginalSrt = newVal;
+                                    settings.keepTranslatedSrt = newVal;
+                                }
+                            }
+                        }
+                    }
                 }
 
             }
@@ -655,16 +761,6 @@ Pane {
             Layout.fillWidth: true
             spacing: 12
 
-            IconButton {
-                implicitWidth: 120
-                implicitHeight: 40
-                text: "恢复默认"
-                onClicked: {
-                    if (settings)
-                        settings.resetDefaults();
-                }
-            }
-
             Item {
                 Layout.fillWidth: true
             }
@@ -673,7 +769,6 @@ Pane {
                 implicitWidth: 120
                 implicitHeight: 40
                 text: "保存设置"
-                iconSource: "qrc:/icons/play.svg"
                 normalColor: "#2563eb"
                 hoverColor: "#1d4ed8"
                 borderColor: "#1d4ed8"

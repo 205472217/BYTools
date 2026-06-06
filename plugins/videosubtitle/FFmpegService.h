@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <QObject>
+#include <QTimer>
 #include <QProcess>
 
 class FFmpegService : public QObject
@@ -35,9 +36,11 @@ signals:
 private slots:
     void onProcessReadyRead();
     void onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void onProcessTimeout();
 
 private:
     QProcess *m_process;
+    QTimer *m_timer;
     QString m_outputPath;
     bool m_isExtracting = false;
     qint64 m_totalDuration = 0;

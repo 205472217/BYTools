@@ -12,11 +12,12 @@ Item {
     property color hoverColor: "#eef4ff"
     property color pressColor: "#dce7fa"
     property color borderColor: "#d8dee9"
-    property color disabledColor: "#f1f5f9"
     property bool enabled: true
 
     implicitWidth: text.length > 0 ? 76 : 38
     implicitHeight: 38
+    opacity: root.enabled ? 1.0 : 0
+    Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
     signal clicked()
 
@@ -24,12 +25,10 @@ Item {
         id: bg
         anchors.fill: parent
         radius: 8
-        color: !root.enabled ? root.disabledColor :
-               mouseArea.pressed ? root.pressColor :
+        color: mouseArea.pressed ? root.pressColor :
                mouseArea.containsMouse ? root.hoverColor : root.normalColor
         border.width: 1
-        border.color: !root.enabled ? "#e2e8f0" :
-                      mouseArea.pressed ? root.borderColor :
+        border.color: mouseArea.pressed ? root.borderColor :
                       mouseArea.containsMouse ? root.borderColor : "#e2e8f0"
 
         // 悬浮时的微妙阴影
@@ -73,13 +72,8 @@ Item {
             width: 18
             height: 18
             source: root.iconSource
-            visible: root.enabled && root.iconSource.length > 0
-            opacity: root.enabled ? 1.0 : 0.4
+            visible: root.iconSource.length > 0
             anchors.verticalCenter: parent.verticalCenter
-
-            Behavior on opacity {
-                NumberAnimation { duration: 150 }
-            }
         }
 
         Label {

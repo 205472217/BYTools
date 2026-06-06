@@ -17,10 +17,9 @@ public:
     // Parse SRT file
     static QList<SubtitleEntry> parseSrt(const QString &filePath);
 
-    // Write SRT file (supports bilingual subtitles)
+    // Write SRT file
     static bool writeSrt(const QString &filePath,
-                         const QList<SubtitleEntry> &entries,
-                         bool bilingual = true);
+                         const QList<SubtitleEntry> &entries);
 
     // Write ASS subtitle file (supports custom styles)
     static bool writeAss(const QString &filePath,
@@ -28,8 +27,7 @@ public:
                          int fontSize = 20,
                          const QString &fontColor = "&H00FFFFFF",
                          const QString &borderColor = "&H00000000",
-                         int borderWidth = 2,
-                         bool bilingual = true);
+                         int borderWidth = 2);
 
     // Format milliseconds to SRT time format "00:01:23,456"
     static QString formatSrtTime(qint64 ms);

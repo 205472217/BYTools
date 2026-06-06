@@ -23,9 +23,12 @@ static QString htmlColorToAss(const QString &htmlColor)
 FFmpegService::FFmpegService(QObject *parent)
     : QObject(parent)
     , m_process(nullptr)
+    , m_timer(new QTimer(this))
     , m_isExtracting(false)
     , m_totalDuration(0)
 {
+    m_timer->setSingleShot(true);
+    connect(m_timer, &QTimer::timeout, this, &FFmpegService::onProcessTimeout);
 }
 
 void FFmpegService::startExtractAudio(const QString &ffmpegPath,
@@ -58,6 +61,10 @@ void FFmpegService::startExtractAudio(const QString &ffmpegPath,
          << outputWav;
 
     m_process->start(ffmpegPath, args);
+
+    // 空闲超时: 只要 ffmpeg 还在输出进度就是活着的，计时器不断重置
+    m_timer->start(120000);
+    PluginLogger::info("FFmpeg 音频提取空闲超时: 120 秒（有进度输出自动续期）");
 }
 
 void FFmpegService::startBurnSubtitles(const QString &ffmpegPath,
@@ -106,10 +113,15 @@ void FFmpegService::startBurnSubtitles(const QString &ffmpegPath,
          << outputPath;
 
     m_process->start(ffmpegPath, args);
+
+    // 空闲超时: 只要 ffmpeg 还在输出进度就是活着的，计时器不断重置
+    m_timer->start(120000);
+    PluginLogger::info("FFmpeg 烧录空闲超时: 120 秒（有进度输出自动续期）");
 }
 
 void FFmpegService::cancel()
 {
+    m_timer->stop();
     if (m_process && m_process->state() != QProcess::NotRunning) {
         m_process->kill();
         m_process->waitForFinished(3000);
@@ -204,6 +216,9 @@ void FFmpegService::onProcessReadyRead()
 {
     if (!m_process) return;
 
+    // 收到进程输出 → 重置空闲超时（ffmpeg 还在工作）
+    m_timer->start(120000);
+
     QString output = QString::fromUtf8(m_process->readAllStandardError());
 
     // Parse progress from FFmpeg output
@@ -224,6 +239,7 @@ void FFmpegService::onProcessReadyRead()
 
 void FFmpegService::onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
+    m_timer->stop();
     bool success = (exitCode == 0 && exitStatus == QProcess::NormalExit);
     QString error;
 
@@ -236,4 +252,22 @@ void FFmpegService::onProcessFinished(int exitCode, QProcess::ExitStatus exitSta
 
     emit progress(1.0);
     emit finished(success, m_outputPath, error);
+}
+
+void FFmpegService::onProcessTimeout()
+{
+    PluginLogger::error(QString("FFmpeg 进程超时，强制终止: %1").arg(m_outputPath));
+
+    if (m_process) {
+        if (m_process->state() != QProcess::NotRunning) {
+            m_process->kill();
+            m_process->waitForFinished(3000);
+        }
+        m_process->deleteLater();
+        m_process = nullptr;
+    }
+
+    emit progress(1.0);
+    emit finished(false, m_outputPath, QString("%1 超时，进程已终止")
+        .arg(m_isExtracting ? "音频提取" : "烧录字幕"));
 }

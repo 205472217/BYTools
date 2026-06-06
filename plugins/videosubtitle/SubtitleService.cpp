@@ -81,8 +81,7 @@ QList<SubtitleService::SubtitleEntry> SubtitleService::parseSrt(const QString &f
 }
 
 bool SubtitleService::writeSrt(const QString &filePath,
-                                const QList<SubtitleEntry> &entries,
-                                bool bilingual)
+                                const QList<SubtitleEntry> &entries)
 {
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -97,10 +96,7 @@ bool SubtitleService::writeSrt(const QString &filePath,
         stream << (i + 1) << "\n";
         stream << formatSrtTime(entry.startTime) << " --> " << formatSrtTime(entry.endTime) << "\n";
 
-        if (bilingual && !entry.translatedText.isEmpty()) {
-            stream << entry.originalText << "\n";
-            stream << entry.translatedText << "\n";
-        } else if (!entry.translatedText.isEmpty()) {
+        if (!entry.translatedText.isEmpty()) {
             stream << entry.translatedText << "\n";
         } else {
             stream << entry.originalText << "\n";
@@ -118,8 +114,7 @@ bool SubtitleService::writeAss(const QString &filePath,
                                 int fontSize,
                                 const QString &fontColor,
                                 const QString &borderColor,
-                                int borderWidth,
-                                bool bilingual)
+                                int borderWidth)
 {
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -148,14 +143,6 @@ bool SubtitleService::writeAss(const QString &filePath,
            << ",&H000000FF," << assBorderColor << ",&H80000000,"
            << "0,0,0,0,100,100,0,0,1," << borderWidth << ",1,2,10,10,40,1\n";
 
-    // Translated style (if bilingual)
-    if (bilingual) {
-        int translatedFontSize = qMax(fontSize - 4, 12);
-        stream << "Style: Translated,Arial," << translatedFontSize << "," << assFontColor
-               << ",&H000000FF," << assBorderColor << ",&H80000000,"
-               << "0,0,0,0,100,100,0,0,1," << borderWidth << ",1,2,10,10,10,1\n";
-    }
-
     stream << "\n";
     stream << "[Events]\n";
     stream << "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n";
@@ -164,16 +151,8 @@ bool SubtitleService::writeAss(const QString &filePath,
     for (const SubtitleEntry &entry : entries) {
         QString startStr = formatAssTime(entry.startTime);
         QString endStr = formatAssTime(entry.endTime);
-
-        // Original text
         stream << "Dialogue: 0," << startStr << "," << endStr
                << ",Default,,0,0,0,," << entry.originalText << "\n";
-
-        // Translated text
-        if (bilingual && !entry.translatedText.isEmpty()) {
-            stream << "Dialogue: 0," << startStr << "," << endStr
-                   << ",Translated,,0,0,0,," << entry.translatedText << "\n";
-        }
     }
 
     file.close();

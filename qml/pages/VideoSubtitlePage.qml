@@ -12,17 +12,112 @@ Pane {
 
     property var controller: null
 
-    Component.onDestruction: {
-        if (controller && typeof controller.reset === 'function') {
-            controller.reset();
+    // Real-time log model — auto-scrolls to end when new items arrive
+    ListModel {
+        id: logModel
+        onCountChanged: {
+            Qt.callLater(function() {
+                logListView.positionViewAtEnd();
+            });
         }
     }
 
-    // Navigate to settings when controller detects missing configuration
+    // Elapsed time tracker — updates last log entry with step + running time
+    Timer {
+        id: elapsedTimer
+        interval: 1000
+        running: controller ? controller.isProcessing : false
+        repeat: true
+
+        property int seconds: 0
+        property int elapsedIndex: -1
+        property string lastStep: ""
+        property string elapsedString: "00:00:00"
+        property string finalElapsedString: ""
+
+        function pad(n) {
+            return n < 10 ? "0" + n : "" + n;
+        }
+
+        function formatTime(s) {
+            return pad(Math.floor(s / 3600)) + ":"
+                 + pad(Math.floor((s % 3600) / 60)) + ":"
+                 + pad(s % 60);
+        }
+
+        function reset() {
+            seconds = 0;
+            elapsedIndex = -1;
+            elapsedString = "00:00:00";
+            lastStep = controller ? controller.currentStep : "";
+            if (controller && controller.isProcessing && lastStep.length > 0) {
+                logModel.append({ "text": lastStep + "...(已耗时 00:00:00)" });
+                elapsedIndex = logModel.count - 1;
+            }
+        }
+
+        onTriggered: {
+            if (!controller || !controller.isProcessing) {
+                reset();
+                return;
+            }
+
+            // If step changed, start fresh counter
+            var step = controller.currentStep;
+            if (step.length === 0) return;  // not in a step yet
+            if (step !== lastStep) {
+                reset();
+                return;
+            }
+
+            seconds++;
+            elapsedString = formatTime(seconds);
+            var text = step + "...(已耗时 " + elapsedString + ")";
+
+            if (elapsedIndex >= 0 && elapsedIndex < logModel.count) {
+                logModel.setProperty(elapsedIndex, "text", text);
+            } else {
+                logModel.append({ "text": text });
+                elapsedIndex = logModel.count - 1;
+            }
+        }
+    }
+
     Connections {
         target: controller
-        function onSettingsRequired() {
-            root.openSettings();
+        function onLogMessage(message) {
+            // Keep only: ✓ ✗ = - 开头的重要消息，其余中间消息由计时器处理
+            if (message.length === 0) return;
+            var c = message.charAt(0);
+            if (c === '→' || c === '跳' || c === '生') return;  // 跳过进度/跳过/生成
+            if (c !== '✓' && c !== '✗' && c !== '=' && c !== '-') return;
+            logModel.append({ "text": message });
+        }
+    }
+
+    // 处理结束 → 记录最终耗时
+    Connections {
+        target: controller
+        function onIsProcessingChanged() {
+            if (controller && !controller.isProcessing && elapsedTimer.seconds > 0) {
+                elapsedTimer.finalElapsedString = elapsedTimer.formatTime(elapsedTimer.seconds);
+            }
+        }
+    }
+
+    // Step 变更 → 立即开始新步骤计时（在 completion 消息之后）
+    Connections {
+        target: controller
+        function onCurrentStepChanged() {
+            if (controller && controller.isProcessing) {
+                elapsedTimer.reset();
+            }
+        }
+    }
+
+    Component.onDestruction: {
+        if (controller && typeof controller.reset === 'function') {
+            controller.reset();
         }
     }
 
@@ -90,7 +185,7 @@ Pane {
                 }
 
                 Label {
-                    text: "提取音频 → 语音识别 → 翻译 → 烧录字幕"
+                    text: "可自定义处理步骤：分离音频 → 语音识别 → 翻译 → 烧录字幕"
                     color: "#64748b"
                     font.pixelSize: 14
                 }
@@ -110,7 +205,8 @@ Pane {
         // Settings card
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 330
+            Layout.fillHeight: false
+            implicitHeight: settingsColumn.implicitHeight + 36
             radius: 10
             color: "#ffffff"
             border.color: "#e5e9f0"
@@ -127,6 +223,7 @@ Pane {
             }
 
             ColumnLayout {
+                id: settingsColumn
                 anchors.fill: parent
                 anchors.margins: 18
                 spacing: 12
@@ -148,8 +245,10 @@ Pane {
                         text: "单个视频"
                         checked: controller ? controller.inputMode === 0 : true
                         onCheckedChanged: {
-                            if (checked && controller)
+                            if (checked && controller) {
                                 controller.inputMode = 0;
+                                controller.inputPath = "";
+                            }
                         }
                     }
 
@@ -157,8 +256,10 @@ Pane {
                         text: "文件夹批量"
                         checked: controller ? controller.inputMode === 1 : false
                         onCheckedChanged: {
-                            if (checked && controller)
+                            if (checked && controller) {
                                 controller.inputMode = 1;
+                                controller.inputPath = "";
+                            }
                         }
                     }
 
@@ -210,10 +311,108 @@ Pane {
                     }
                 }
 
-                // Row 3: Source language → Target language
+                // Row 3: Step selection
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
+
+                    Label {
+                        text: "处理步骤"
+                        color: "#475569"
+                        font.pixelSize: 13
+                        font.bold: true
+                        Layout.preferredWidth: 80
+                    }
+
+                    Flow {
+                        Layout.fillWidth: true
+                        spacing: 4
+
+                        CheckBox {
+                            id: stepAudio
+                            text: "1. 分离音频"
+                            checked: controller ? controller.enableAudioExtraction : true
+                            opacity: 1.0
+                            onCheckedChanged: {
+                                if (controller)
+                                    controller.enableAudioExtraction = checked;
+                                if (!checked && controller) {
+                                    controller.enableTranscribe = false;
+                                    controller.enableTranslate = false;
+                                    controller.enableBurnSubtitle = false;
+                                }
+                            }
+                        }
+
+                        CheckBox {
+                            id: stepTranscribe
+                            text: "2. 语音识别(音频→SRT)"
+                            checked: controller ? controller.enableTranscribe : true
+                            enabled: stepAudio.checked
+                            opacity: 1.0
+                            onCheckedChanged: {
+                                if (controller)
+                                    controller.enableTranscribe = checked;
+                                if (!checked && controller) {
+                                    controller.enableTranslate = false;
+                                    controller.enableBurnSubtitle = false;
+                                }
+                            }
+                            ToolTip {
+                                text: "请先勾选「1. 分离音频」"
+                                visible: parent.hovered && !parent.enabled
+                                delay: 400
+                            }
+                        }
+
+                        CheckBox {
+                            id: stepTranslate
+                            text: "3. 翻译字幕"
+                            checked: controller ? controller.enableTranslate : true
+                            enabled: stepAudio.checked && stepTranscribe.checked
+                            opacity: 1.0
+                            onCheckedChanged: {
+                                if (controller)
+                                    controller.enableTranslate = checked;
+                            }
+                            ToolTip {
+                                text: "请先勾选「1. 分离音频」和「2. 语音识别」"
+                                visible: parent.hovered && !parent.enabled
+                                delay: 400
+                            }
+                        }
+
+                        CheckBox {
+                            id: stepBurn
+                            text: "4. 烧录字幕"
+                            checked: controller ? controller.enableBurnSubtitle : true
+                            enabled: stepAudio.checked && stepTranscribe.checked
+                            opacity: 1.0
+                            onCheckedChanged: {
+                                if (controller)
+                                    controller.enableBurnSubtitle = checked;
+                            }
+                            ToolTip {
+                                text: "请先勾选「1. 分离音频」和「2. 语音识别」"
+                                visible: parent.hovered && !parent.enabled
+                                delay: 400
+                            }
+                        }
+                    }
+                }
+
+                // Row 4: Language settings (only relevant when translate is enabled)
+                RowLayout {
+                    spacing: 12
+                    Layout.fillWidth: true
+
+                    Label {
+                        text: "翻译选项"
+                        color: "#475569"
+                        font.pixelSize: 13
+                        font.bold: true
+                        Layout.preferredWidth: 80
+                    }
 
                     Label {
                         text: "源语言"
@@ -224,38 +423,26 @@ Pane {
                     }
 
                     ComboBoxEx {
+                        enabled: stepTranslate.checked
                         Layout.preferredWidth: 120
                         model: ["自动检测", "英文", "中文", "日文", "韩文"]
                         currentIndex: {
                             if (!controller)
                                 return 0;
                             switch (controller.sourceLanguage) {
-                            case "auto":
-                                return 0;
-                            case "en":
-                                return 1;
-                            case "zh":
-                                return 2;
-                            case "ja":
-                                return 3;
-                            case "ko":
-                                return 4;
-                            default:
-                                return 0;
+                            case "auto": return 0;
+                            case "en":   return 1;
+                            case "zh":   return 2;
+                            case "ja":   return 3;
+                            case "ko":   return 4;
+                            default:     return 0;
                             }
                         }
                         onActivated: {
-                            if (!controller)
-                                return;
+                            if (!controller) return;
                             var langs = ["auto", "en", "zh", "ja", "ko"];
                             controller.sourceLanguage = langs[currentIndex];
                         }
-                    }
-
-                    Rectangle {
-                        width: 1
-                        height: 24
-                        color: "#e2e8f0"
                     }
 
                     Label {
@@ -266,62 +453,23 @@ Pane {
                     }
 
                     ComboBoxEx {
+                        enabled: stepTranslate.checked
                         Layout.preferredWidth: 100
                         model: ["中文", "英文", "日文", "韩文"]
                         currentIndex: {
-                            if (!controller)
-                                return 0;
+                            if (!controller) return 0;
                             switch (controller.targetLanguage) {
-                            case "zh":
-                                return 0;
-                            case "en":
-                                return 1;
-                            case "ja":
-                                return 2;
-                            case "ko":
-                                return 3;
-                            default:
-                                return 0;
+                            case "zh": return 0;
+                            case "en": return 1;
+                            case "ja": return 2;
+                            case "ko": return 3;
+                            default:   return 0;
                             }
                         }
                         onActivated: {
-                            if (!controller)
-                                return;
+                            if (!controller) return;
                             var langs = ["zh", "en", "ja", "ko"];
                             controller.targetLanguage = langs[currentIndex];
-                        }
-                    }
-                }
-
-                // Row 4: Subtitle style
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        text: "字幕样式"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    ComboBoxEx {
-                        Layout.preferredWidth: 120
-                        model: ["默认白色", "黄色描边", "自定义"]
-                        currentIndex: controller ? controller.subtitleStyle : 0
-                        onActivated: {
-                            if (controller)
-                                controller.subtitleStyle = currentIndex;
-                        }
-                    }
-
-                    CheckBox {
-                        text: "双语字幕"
-                        checked: controller ? controller.bilingual : true
-                        onCheckedChanged: {
-                            if (controller)
-                                controller.bilingual = checked;
                         }
                     }
 
@@ -375,60 +523,25 @@ Pane {
                         enabled: controller ? controller.outputMode === 1 : false
                         onClicked: outputFolderDialog.open()
                     }
-                }
 
-                // Row 6: Other options + action buttons
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        text: "其他"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    CheckBox {
-                        text: "保留 SRT 文件"
-                        checked: controller ? controller.keepOriginalSrt : true
-                        onCheckedChanged: {
-                            if (controller)
-                                controller.keepOriginalSrt = checked;
-                        }
-                    }
-
-                    Item {
-                        Layout.fillWidth: true
-                    }
-
-                    RowLayout {
-                        spacing: 8
-
-                        IconButton {
-                            iconSource: "qrc:/icons/trash.svg"
-                            tooltip: "清空记录"
-                            visible: controller ? controller.hasRecords : false
-                            onClicked: {
-                                if (controller)
-                                    controller.clearRecords();
-                            }
-                        }
-
-                        IconButton {
-                            implicitWidth: 120
-                            implicitHeight: 40
-                            text: "开始处理"
-                            iconSource: "qrc:/icons/play.svg"
-                            tooltip: "开始处理"
-                            normalColor: "#2563eb"
-                            hoverColor: "#1d4ed8"
-                            borderColor: "#1d4ed8"
-                            enabled: controller ? !controller.isProcessing : false
-                            onClicked: {
-                                if (controller)
+                    IconButton {
+                        implicitWidth: 130
+                        implicitHeight: 40
+                        text: controller && controller.isProcessing ? "中止处理" : "开始处理"
+                        iconSource: controller && controller.isProcessing ? "" : "qrc:/icons/play.svg"
+                        tooltip: controller && controller.isProcessing ? "中止处理" : "开始处理"
+                        normalColor: controller && controller.isProcessing ? "#dc2626" : "#2563eb"
+                        hoverColor: controller && controller.isProcessing ? "#b91c1c" : "#1d4ed8"
+                        borderColor: controller && controller.isProcessing ? "#b91c1c" : "#1d4ed8"
+                        textColor: "#ffffff"
+                        enabled: true
+                        onClicked: {
+                            if (controller) {
+                                if (controller.isProcessing) {
+                                    controller.cancel();
+                                } else {
                                     controller.execute();
+                                }
                             }
                         }
                     }
@@ -436,65 +549,61 @@ Pane {
             }
         }
 
-        // Status bar
+        // Merged status + progress bar (compact)
         Rectangle {
             Layout.fillWidth: true
-            height: statusText.implicitHeight + 12
+            Layout.preferredHeight: controller && controller.isProcessing ? 34 : 26
             radius: 6
             color: controller && controller.statusMessage ? "#eff6ff" : "transparent"
-            visible: controller ? controller.statusMessage.length > 0 : false
-
-            Label {
-                id: statusText
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
-                anchors.leftMargin: 12
-                anchors.right: parent.right
-                anchors.rightMargin: 12
-                text: controller ? controller.statusMessage : ""
-                color: "#2563eb"
-                font.pixelSize: 13
-                elide: Text.ElideRight
-            }
-        }
-
-        // Progress bar (visible when processing)
-        Rectangle {
-            Layout.fillWidth: true
-            height: 40
-            radius: 6
-            color: "#eff6ff"
-            visible: controller ? controller.isProcessing : false
+            visible: controller ? (controller.isProcessing || controller.statusMessage.length > 0) : false
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 8
-                spacing: 4
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
+                anchors.topMargin: 4
+                anchors.bottomMargin: 4
+                spacing: 2
 
                 Label {
-                    text: controller ? controller.currentStep + "..." : ""
-                    color: "#2563eb"
-                    font.pixelSize: 12
-                    font.bold: true
+                    Layout.fillWidth: true
+                    text: controller ? controller.statusMessage : ""
+                    color: "#475569"
+                    font.pixelSize: 11
+                    elide: Text.ElideRight
                 }
 
-                Rectangle {
+                RowLayout {
                     Layout.fillWidth: true
-                    height: 4
-                    radius: 2
-                    color: "#e2e8f0"
+                    spacing: 6
+                    visible: controller ? controller.isProcessing : false
 
                     Rectangle {
-                        width: parent.width * (controller ? controller.progress : 0)
-                        height: parent.height
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 4
+                        Layout.alignment: Qt.AlignVCenter
                         radius: 2
+                        color: "#e2e8f0"
+
+                        Rectangle {
+                            width: parent.width * (controller ? controller.progress : 0)
+                            height: parent.height
+                            radius: 2
+                            color: "#2563eb"
+                        }
+                    }
+
+                    Label {
+                        text: controller ? Math.round(controller.progress * 100) + "%" : ""
                         color: "#2563eb"
+                        font.pixelSize: 11
+                        font.bold: true
                     }
                 }
             }
         }
 
-        // Results table
+        // Real-time log output
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -504,7 +613,6 @@ Pane {
             border.width: 1
             clip: true
 
-            // 面板阴影
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: -2
@@ -516,9 +624,9 @@ Pane {
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 2
                 spacing: 0
 
+                // Header row
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 40
@@ -532,63 +640,50 @@ Pane {
                         color: "#e8ecf2"
                     }
 
-                    Row {
-                        anchors.fill: parent
+                    Label {
+                        anchors.left: parent.left
                         anchors.leftMargin: 18
-                        anchors.rightMargin: 20
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: controller && controller.isProcessing
+                              ? "任务执行中（已耗时 " + elapsedTimer.elapsedString + "）"
+                              : (elapsedTimer.finalElapsedString.length > 0 && logModel.count > 0
+                                 ? "任务耗时（" + elapsedTimer.finalElapsedString + "）"
+                                 : "")
+                        color: controller && controller.isProcessing ? "#2563eb" : "#64748b"
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
 
-                        Label {
-                            width: 60
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "状态"
-                            color: "#64748b"
-                            font.pixelSize: 12
-                            font.bold: true
-                        }
-
-                        Label {
-                            width: (parent.width - 60 - 220) / 2
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "原文件名"
-                            color: "#64748b"
-                            font.pixelSize: 12
-                            font.bold: true
-                        }
-
-                        Label {
-                            width: (parent.width - 60 - 220) / 2
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "输出文件名"
-                            color: "#64748b"
-                            font.pixelSize: 12
-                            font.bold: true
-                        }
-
-                        Label {
-                            width: 220
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "状态信息"
-                            color: "#64748b"
-                            font.pixelSize: 12
-                            font.bold: true
+                    IconButton {
+                        anchors.right: parent.right
+                        iconSource: "qrc:/icons/trash.svg"
+                        tooltip: "清空日志"
+                        visible: logModel.count > 0 || elapsedTimer.finalElapsedString.length > 0
+                        onClicked: {
+                            logModel.clear();
+                            elapsedTimer.finalElapsedString = "";
+                            if (controller)
+                                controller.clearRecords();
                         }
                     }
                 }
 
+                // Log entries
                 ListView {
-                    id: recordsListView
+                    id: logListView
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.minimumHeight: 200
-                    model: controller ? controller.records : null
+                    model: logModel
                     clip: true
                     ScrollBar.vertical: ScrollBar {
                         policy: ScrollBar.AlwaysOn
                     }
+                    spacing: 0
 
                     delegate: Rectangle {
-                        width: recordsListView.width
-                        height: 56
+                        width: logListView.width
+                        height: Math.max(28, logText.implicitHeight + 10)
                         color: index % 2 === 0 ? "#ffffff" : "#fafbfc"
 
                         Rectangle {
@@ -598,44 +693,30 @@ Pane {
                             color: "#f1f5f9"
                         }
 
-                        Row {
-                            anchors.fill: parent
+                        Label {
+                            id: logText
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
                             anchors.leftMargin: 18
-                            anchors.rightMargin: 20
-
-                            Label {
-                                width: 60
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: modelData.success ? "✅" : "❌"
-                                font.pixelSize: 16
+                            anchors.rightMargin: 18
+                            text: model.text
+                            font.pixelSize: 12
+                            font.family: "Consolas, 'Courier New', monospace"
+                            font.bold: {
+                                var c = model.text.charAt(0);
+                                return c === '=' || c === '✗';
                             }
-
-                            Label {
-                                width: (parent.width - 60 - 220) / 2
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: modelData.originalName
-                                color: "#334155"
-                                font.pixelSize: 13
-                                elide: Text.ElideMiddle
+                            color: {
+                                var c = model.text.charAt(0);
+                                if (c === '✗') return "#dc2626";
+                                if (c === '✓') return "#059669";
+                                if (c === '→') return "#2563eb";
+                                if (c === '=') return "#1e293b";
+                                return "#475569";
                             }
-
-                            Label {
-                                width: (parent.width - 60 - 220) / 2
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: modelData.outputName
-                                color: modelData.success ? "#059669" : "#dc2626"
-                                font.pixelSize: 13
-                                elide: Text.ElideMiddle
-                            }
-
-                            Label {
-                                width: 220
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: modelData.status
-                                color: modelData.success ? "#059669" : "#dc2626"
-                                font.pixelSize: 12
-                                elide: Text.ElideRight
-                            }
+                            wrapMode: Text.Wrap
+                            verticalAlignment: Text.AlignVCenter
                         }
                     }
 
@@ -643,17 +724,17 @@ Pane {
                     Column {
                         anchors.centerIn: parent
                         spacing: 8
-                        visible: controller ? recordsListView.count === 0 : true
+                        visible: logModel.count === 0
 
                         Label {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: "暂无处理记录"
+                            text: "暂无输出"
                             color: "#94a3b8"
                             font.pixelSize: 15
                         }
                         Label {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            text: "设置参数后点击开始处理"
+                            text: "开始处理后这里将显示实时日志"
                             color: "#c7d2e0"
                             font.pixelSize: 12
                         }
