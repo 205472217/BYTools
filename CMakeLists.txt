@@ -50,6 +50,8 @@ qt_add_qml_module(BYTools
         qml/pages/BatchRenamePage.qml
         qml/pages/ImageConverterPage.qml
         qml/pages/ImageCropPage.qml
+        qml/pages/VideoSubtitlePage.qml
+        qml/pages/VideoSubtitleSettingsPage.qml
     # 资源文件
     RESOURCES
         qml/resources.qrc
@@ -67,3 +69,4 @@ add_subdirectory(plugins/nameconverter)
 add_subdirectory(plugins/batchrename)
 add_subdirectory(plugins/imageconverter)
 add_subdirectory(plugins/imagecrop)
+add_subdirectory(plugins/videosubtitle)

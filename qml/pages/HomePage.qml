@@ -82,10 +82,11 @@ Pane {
 
                     FeatureCard {
                         property var iconList: [
-                            "qrc:/icons/card-name-converter.svg", 
-                            "qrc:/icons/card-batch-rename.svg", 
-                            "qrc:/icons/card-image-converter.svg", 
-                            "qrc:/icons/card-image-crop.svg"]
+                            "qrc:/icons/card-name-converter.svg",
+                            "qrc:/icons/card-batch-rename.svg",
+                            "qrc:/icons/card-image-converter.svg",
+                            "qrc:/icons/card-image-crop.svg",
+                            "qrc:/icons/card-video-subtitle.svg"]
                         Layout.fillWidth: true
                         titleText: modelData.name
                         descriptionText: modelData.description

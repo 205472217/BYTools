@@ -83,6 +83,8 @@ ApplicationWindow {
                     stackView.push(imageConverterPageComponent, {controller: controller})
                 } else if (featureId === "image-crop") {
                     stackView.push(imageCropPageComponent, {controller: controller})
+                } else if (featureId === "video-subtitle") {
+                    stackView.push(videoSubtitlePageComponent, {controller: controller})
                 }
             }
         }
@@ -128,6 +130,31 @@ ApplicationWindow {
             onBackRequested: {
                 stackView.pop()
                 window.currentFeatureId = ""
+            }
+        }
+    }
+
+    Component {
+        id: videoSubtitlePageComponent
+
+        VideoSubtitlePage {
+            onBackRequested: {
+                stackView.pop()
+                window.currentFeatureId = ""
+            }
+            onOpenSettings: {
+                stackView.push(videoSubtitleSettingsPageComponent)
+            }
+        }
+    }
+
+    Component {
+        id: videoSubtitleSettingsPageComponent
+
+        VideoSubtitleSettingsPage {
+            settings: pluginManager.getPluginSettings("video-subtitle")
+            onBackRequested: {
+                stackView.pop()
             }
         }
     }

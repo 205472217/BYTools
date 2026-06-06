@@ -19,6 +19,7 @@ public:
     QVariantList plugins() const;
     QStringList loadPlugins(const QString &pluginPath = QString());
     Q_INVOKABLE QObject* getPlugin(const QString &id);
+    Q_INVOKABLE QObject* getPluginSettings(const QString &id);
     void registerPlugin(PluginInterface *plugin);
 
 signals:

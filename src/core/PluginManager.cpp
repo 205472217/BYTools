@@ -90,6 +90,12 @@ QObject* PluginManager::getPlugin(const QString &id)
     return plugin ? plugin->getController() : nullptr;
 }
 
+QObject* PluginManager::getPluginSettings(const QString &id)
+{
+    PluginInterface* plugin = m_plugins.value(id, nullptr);
+    return plugin ? plugin->getSettings() : nullptr;
+}
+
 void PluginManager::registerPlugin(PluginInterface *plugin)
 {
     if (plugin && !m_plugins.contains(plugin->id())) {

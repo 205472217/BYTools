@@ -18,6 +18,7 @@ public:
     virtual void cleanup() = 0;
 
     virtual QObject* getController() = 0;
+    virtual QObject* getSettings() { return nullptr; }
 };
 
 #define PluginInterface_iid "com.bytools.PluginInterface"
