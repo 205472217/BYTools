@@ -25,10 +25,175 @@ FFmpegService::FFmpegService(QObject *parent)
     , m_process(nullptr)
     , m_timer(new QTimer(this))
     , m_isExtracting(false)
+    , m_useHardwareAccel(false)
     , m_totalDuration(0)
 {
     m_timer->setSingleShot(true);
     connect(m_timer, &QTimer::timeout, this, &FFmpegService::onProcessTimeout);
+}
+
+void FFmpegService::setUseHardwareAccel(bool enable)
+{
+    m_useHardwareAccel = enable;
+}
+
+QString FFmpegService::detectInputCodec(const QString &ffmpegPath, const QString &videoPath)
+{
+    if (ffmpegPath.isEmpty() || videoPath.isEmpty())
+        return "h264";
+
+    QProcess proc;
+    proc.start(ffmpegPath, {"-i", videoPath});
+    if (!proc.waitForFinished(10000))
+        return "h264";
+
+    QString output = QString::fromUtf8(proc.readAllStandardError());
+    // Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), ...
+    // Stream #0:0: Video: hevc (Main), ...
+    QRegularExpression re(R"(Stream\s+#0:0.*Video:\s*(\w+))");
+    QRegularExpressionMatch m = re.match(output);
+    if (m.hasMatch()) {
+        QString codec = m.captured(1).toLower();
+        if (codec == "h264" || codec == "avc" || codec == "avc1")
+            return "h264";
+        if (codec == "hevc" || codec == "h265" || codec == "hevc1")
+            return "hevc";
+        if (codec == "av1")
+            return "av1";
+    }
+    return "h264";  // default fallback
+}
+
+int FFmpegService::detectHardwareAccel(const QString &ffmpegPath)
+{
+    if (ffmpegPath.isEmpty())
+        return 0;
+
+    // 1) 先查 FFmpeg 编译了哪些 GPU 编码器
+    QProcess proc;
+    proc.start(ffmpegPath, {"-encoders"});
+    if (!proc.waitForFinished(15000))
+        return 0;
+
+    QString output = QString::fromLocal8Bit(proc.readAllStandardOutput());
+    QString outputUpper = output.toUpper();
+
+    bool hasNVENC = outputUpper.contains("NVENC");
+    bool hasQSV   = outputUpper.contains("QSV");
+    bool hasAMF   = outputUpper.contains("AMF");
+
+    // 2) 按优先级逐一验证硬件是否真实存在
+    auto probeDevice = [&](const QStringList &args) -> bool {
+        QProcess p;
+        p.start(ffmpegPath, args);
+        p.waitForFinished(5000);
+        return (p.exitCode() == 0);
+    };
+
+    // NVIDIA — 尝试初始化 CUDA 设备（检查 nvcuda.dll 是否存在）
+    if (hasNVENC && probeDevice({"-init_hw_device", "cuda=probe", "-f", "null", "-"}))
+        return 1;
+
+    // AMD AMF — 尝试用 h264_amf 编码一帧黑屏（确认驱动正常）
+    if (hasAMF) {
+        QProcess p;
+        p.start(ffmpegPath, {"-f", "lavfi", "-i", "color=c=black:s=64x64:d=0.1",
+                             "-c:v", "h264_amf", "-f", "null", "-"});
+        p.waitForFinished(5000);
+        if (p.exitCode() == 0)
+            return 3;
+    }
+
+    // Intel QSV — 尝试初始化 QSV 设备
+    if (hasQSV && probeDevice({"-init_hw_device", "qsv=probe", "-f", "null", "-"}))
+        return 2;
+
+    return 0;  // 没有任何 GPU 编码器可用
+}
+
+QString FFmpegService::hardwareAccelName(const QString &ffmpegPath)
+{
+    switch (detectHardwareAccel(ffmpegPath)) {
+    case 1: return "NVIDIA NVENC";
+    case 2: return "Intel QSV";
+    case 3: return "AMD AMF";
+    default: return "未检测到 GPU 编码器";
+    }
+}
+
+QStringList FFmpegService::buildGpuArgs(const QString &ffmpegPath,
+                                         const QString &videoPath,
+                                         const QString &styleFilter,
+                                         const QString &outputPath)
+{
+    QStringList args;
+    // 确保检测到 GPU 类型后才调用此函数
+    int gpuType = detectHardwareAccel(ffmpegPath);
+    QString codec = detectInputCodec(ffmpegPath, videoPath);
+
+    // 根据输入编码选对应的 GPU 编码器
+    auto gpuEncoder = [&](const QString &nvidia, const QString &intel, const QString &amd) -> QString {
+        if (codec == "hevc") {
+            switch (gpuType) {
+            case 1: return "hevc_" + nvidia;
+            case 2: return "hevc_" + intel;
+            case 3: return "hevc_" + amd;
+            }
+        }
+        switch (gpuType) {
+        case 1: return "h264_" + nvidia;
+        case 2: return "h264_" + intel;
+        case 3: return "h264_" + amd;
+        }
+        return QString();
+    };
+
+    switch (gpuType) {
+    case 1: {
+        // NVIDIA CUDA / NVENC
+        QString encoder = gpuEncoder("nvenc", "qsv", "amf");
+        args << "-hwaccel" << "cuda"
+             << "-hwaccel_output_format" << "cuda"
+             << "-i" << videoPath
+             << "-vf" << ("hwdownload,format=nv12," + styleFilter + ",hwupload_cuda")
+             << "-c:v" << encoder
+             << "-preset" << "p7"
+             << "-cq" << "23"
+             << "-c:a" << "copy"
+             << "-y"
+             << outputPath;
+        break;
+    }
+    case 2: {
+        // Intel QSV
+        QString encoder = gpuEncoder("nvenc", "qsv", "amf");
+        args << "-hwaccel" << "qsv"
+             << "-hwaccel_output_format" << "qsv"
+             << "-i" << videoPath
+             << "-vf" << ("hwdownload=format=nv12," + styleFilter + ",hwupload=format=nv12")
+             << "-c:v" << encoder
+             << "-preset" << "veryfast"
+             << "-global_quality" << "23"
+             << "-c:a" << "copy"
+             << "-y"
+             << outputPath;
+        break;
+    }
+    case 3: {
+        // AMD AMF
+        QString encoder = gpuEncoder("nvenc", "qsv", "amf");
+        args << "-hwaccel" << "dxva2"
+             << "-i" << videoPath
+             << "-vf" << styleFilter
+             << "-c:v" << encoder
+             << "-quality" << "quality"
+             << "-c:a" << "copy"
+             << "-y"
+             << outputPath;
+        break;
+    }
+    }
+    return args;
 }
 
 void FFmpegService::startExtractAudio(const QString &ffmpegPath,
@@ -106,11 +271,26 @@ void FFmpegService::startBurnSubtitles(const QString &ffmpegPath,
                  QString::number(borderWidth));
 
     QStringList args;
-    args << "-i" << videoPath
-         << "-vf" << styleFilter
-         << "-c:a" << "copy"
-         << "-y"
-         << outputPath;
+    if (m_useHardwareAccel) {
+        args = buildGpuArgs(ffmpegPath, videoPath, styleFilter, outputPath);
+        if (args.isEmpty()) {
+            PluginLogger::warn("GPU 加速不可用（未检测到 GPU 编码器），回退到软件编码");
+        }
+    }
+    if (args.isEmpty()) {
+        // 软件编码（原始行为）
+        args << "-i" << videoPath
+             << "-vf" << styleFilter
+             << "-c:a" << "copy"
+             << "-y"
+             << outputPath;
+    } else {
+        PluginLogger::info("使用 GPU 硬件加速烧录字幕");
+    }
+
+    // 缓存参数供 GPU 失败回退使用
+    m_burnParams = {ffmpegPath, videoPath, srtPath, outputPath, fontSize, fontColor, borderColor, borderWidth};
+    m_burnFallbackTried = false;
 
     m_process->start(ffmpegPath, args);
 
@@ -219,7 +399,9 @@ void FFmpegService::onProcessReadyRead()
     // 收到进程输出 → 重置空闲超时（ffmpeg 还在工作）
     m_timer->start(120000);
 
-    QString output = QString::fromUtf8(m_process->readAllStandardError());
+    // 保存 stderr 缓冲区副本（onProcessFinished 也用它来获取错误信息）
+    m_lastStderrBuffer = m_process->readAllStandardError();
+    QString output = QString::fromLocal8Bit(m_lastStderrBuffer);
 
     // Parse progress from FFmpeg output
     // Look for "time=HH:MM:SS.ss" or "size=xxxkB"
@@ -244,11 +426,25 @@ void FFmpegService::onProcessFinished(int exitCode, QProcess::ExitStatus exitSta
     QString error;
 
     if (!success) {
-        error = QString::fromUtf8(m_process->readAllStandardError());
+        // 用 onProcessReadyRead 缓存的 stderr 数据（避免 readyRead 先消费完的错误信息）
+        error = QString::fromLocal8Bit(m_lastStderrBuffer);
     }
 
     m_process->deleteLater();
     m_process = nullptr;
+
+    // GPU 加速失败 → 自动回退到软件编码重试
+    if (!success && m_useHardwareAccel && !m_burnFallbackTried) {
+        m_burnFallbackTried = true;
+        m_useHardwareAccel = false;  // 禁用 GPU，下次用软件
+        PluginLogger::warn(QString("GPU 加速烧录失败，回退到软件编码重试。错误: %1").arg(error));
+
+        const auto &p = m_burnParams;
+        // 重新调用 startBurnSubtitles（会重建 m_process，不会递归）
+        startBurnSubtitles(p.ffmpegPath, p.videoPath, p.srtPath, p.outputPath,
+                           p.fontSize, p.fontColor, p.borderColor, p.borderWidth);
+        return;
+    }
 
     emit progress(1.0);
     emit finished(success, m_outputPath, error);

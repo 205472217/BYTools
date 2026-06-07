@@ -52,6 +52,10 @@ class VideoSubtitleSettings : public QObject
     Q_PROPERTY(QString defaultBorderColor READ defaultBorderColor WRITE setDefaultBorderColor NOTIFY defaultBorderColorChanged)
     Q_PROPERTY(int defaultBorderWidth READ defaultBorderWidth WRITE setDefaultBorderWidth NOTIFY defaultBorderWidthChanged)
 
+    // === GPU acceleration ===
+    Q_PROPERTY(bool useGpuAccel READ useGpuAccel WRITE setUseGpuAccel NOTIFY useGpuAccelChanged)
+    Q_PROPERTY(QString gpuAccelInfo READ gpuAccelInfo NOTIFY gpuAccelInfoChanged)
+
 public:
     explicit VideoSubtitleSettings(QObject *parent = nullptr);
 
@@ -79,6 +83,8 @@ public:
     QString defaultFontColor() const;
     QString defaultBorderColor() const;
     int defaultBorderWidth() const;
+    bool useGpuAccel() const;
+    QString gpuAccelInfo() const;
 
     // Setters
     void setFfmpegPath(const QString &path);
@@ -99,6 +105,7 @@ public:
     void setDefaultFontColor(const QString &color);
     void setDefaultBorderColor(const QString &color);
     void setDefaultBorderWidth(int width);
+    void setUseGpuAccel(bool enable);
 
     Q_INVOKABLE void loadSettings();
     Q_INVOKABLE void saveSettings();
@@ -137,6 +144,8 @@ signals:
     void defaultBorderColorChanged();
     void defaultBorderWidthChanged();
     void settingsChanged();
+    void useGpuAccelChanged();
+    void gpuAccelInfoChanged();
 
 private:
     void detectTools();
@@ -168,6 +177,8 @@ private:
     QString m_defaultFontColor = "#FFFFFF";
     QString m_defaultBorderColor = "#000000";
     int m_defaultBorderWidth = 2;
+    bool m_useGpuAccel = false;
+    QString m_gpuAccelInfo;
 
     QNetworkAccessManager *m_networkManager;
     QNetworkReply *m_testReply;

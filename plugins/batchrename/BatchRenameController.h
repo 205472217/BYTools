@@ -19,6 +19,7 @@ class BatchRenameController : public QObject
     Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
+    Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
     Q_PROPERTY(QVariantList records READ records NOTIFY recordsChanged)
 
 public:
@@ -52,9 +53,11 @@ public:
 
     QString statusMessage() const;
     bool hasRecords() const;
+    bool isProcessing() const;
     QVariantList records() const;
 
     Q_INVOKABLE void executeRename();
+    Q_INVOKABLE void cancel();
     Q_INVOKABLE void clearRecords();
     Q_INVOKABLE void restoreRecord(int index);
     Q_INVOKABLE void restoreAllRecords();
@@ -76,6 +79,7 @@ signals:
     void statusMessageChanged();
     void hasRecordsChanged();
     void recordsChanged();
+    void isProcessingChanged();
 
 private:
     struct RenameRecord {
@@ -90,6 +94,7 @@ private:
 
     void updateFileTips();
     void setStatusMessage(const QString &message);
+    void setIsProcessing(bool processing);
     void addRecord(const QString &originalPath, const QString &newPath, bool success, const QString &status);
     bool matchesFileType(const QString &fileName) const;
     QString generateNewName(int index, const QString &originalName, const QString &extension) const;
@@ -104,6 +109,7 @@ private:
     QString m_searchText;
     QString m_replaceText;
     bool m_recursive = false;
+    bool m_isProcessing = false;
     QString m_statusMessage;
     QList<RenameRecord> m_records;
 

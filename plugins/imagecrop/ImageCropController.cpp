@@ -323,11 +323,14 @@ bool ImageCropController::executeCrop(int cropX, int cropY, int cropW, int cropH
         return false;
     }
 
+    setIsProcessing(true);
+
     QString srcPath = m_imageFiles.at(m_currentIndex);
     QImage image(srcPath);
     if (image.isNull()) {
         setStatusMessage(QStringLiteral("无法读取图片"));
         addRecord(srcPath, {}, cropW, cropH, false, QStringLiteral("失败：无法读取"));
+        setIsProcessing(false);
         return false;
     }
 
@@ -341,6 +344,7 @@ bool ImageCropController::executeCrop(int cropX, int cropY, int cropW, int cropH
 
     if (clampedW <= 0 || clampedH <= 0) {
         setStatusMessage(QStringLiteral("裁剪区域超出图片范围"));
+        setIsProcessing(false);
         return false;
     }
 
@@ -377,6 +381,7 @@ bool ImageCropController::executeCrop(int cropX, int cropY, int cropW, int cropH
 
     emit recordsChanged();
     emit hasRecordsChanged();
+    setIsProcessing(false);
     return ok;
 }
 
@@ -437,6 +442,26 @@ void ImageCropController::reset()
 }
 
 // ── Private Helpers ────────────────────────────────────────────────────
+
+bool ImageCropController::isProcessing() const
+{
+    return m_isProcessing;
+}
+
+void ImageCropController::cancel()
+{
+    if (m_isProcessing) {
+        setIsProcessing(false);
+        setStatusMessage("已取消");
+    }
+}
+
+void ImageCropController::setIsProcessing(bool processing)
+{
+    if (m_isProcessing == processing) return;
+    m_isProcessing = processing;
+    emit isProcessingChanged();
+}
 
 void ImageCropController::setStatusMessage(const QString &message)
 {

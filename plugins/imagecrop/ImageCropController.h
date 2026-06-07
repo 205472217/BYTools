@@ -28,6 +28,7 @@ class ImageCropController : public QObject
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
     Q_PROPERTY(QVariantList records READ records NOTIFY recordsChanged)
     Q_PROPERTY(int currentIndex READ currentIndex NOTIFY currentIndexChanged)
+    Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
     Q_PROPERTY(int currentFileCount READ currentFileCount NOTIFY currentFileCountChanged)
     Q_PROPERTY(QString currentFilePath READ currentFilePath NOTIFY currentFilePathChanged)
 
@@ -89,8 +90,10 @@ public:
     int currentIndex() const;
     int currentFileCount() const;
     QString currentFilePath() const;
+    bool isProcessing() const;
 
     Q_INVOKABLE void scanImages();
+    Q_INVOKABLE void cancel();
     Q_INVOKABLE bool navigateNext();
     Q_INVOKABLE bool navigatePrev();
     Q_INVOKABLE QVariantMap getCurrentImageInfo() const;
@@ -123,6 +126,7 @@ signals:
     void currentIndexChanged();
     void currentFileCountChanged();
     void currentFilePathChanged();
+    void isProcessingChanged();
 
 private:
     struct CropRecord {
@@ -137,6 +141,7 @@ private:
     };
 
     void setStatusMessage(const QString &message);
+    void setIsProcessing(bool processing);
     bool isImageFile(const QString &fileName) const;
     void addRecord(const QString &originalPath, const QString &newPath,
                    int cropW, int cropH, bool success, const QString &status);
@@ -144,6 +149,7 @@ private:
 
     QString m_rootPath;
     bool m_recursive = false;
+    bool m_isProcessing = false;
     int m_cropMode = 0;            // 0=ratio, 1=pixel
     int m_presetRatioIndex = 0;    // 0=1:1, 1=4:3, 2=3:2, 3=16:9, 4=9:16, 5=21:9
     bool m_usePresetRatio = true;

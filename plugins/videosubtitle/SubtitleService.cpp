@@ -200,6 +200,22 @@ QStringList SubtitleService::extractTexts(const QList<SubtitleEntry> &entries)
     return texts;
 }
 
+QList<SubtitleService::SubtitleEntry> SubtitleService::deduplicate(const QList<SubtitleEntry> &entries)
+{
+    QList<SubtitleEntry> result;
+    QString lastText;
+    for (const auto &entry : entries) {
+        QString currentText = entry.originalText.trimmed();
+        // Skip if same text as previous entry (consecutive duplicate)
+        if (!result.isEmpty() && currentText == lastText) {
+            continue;
+        }
+        result.append(entry);
+        lastText = currentText;
+    }
+    return result;
+}
+
 qint64 SubtitleService::parseSrtTime(const QString &timeStr)
 {
     // Parse "00:01:23,456" to milliseconds

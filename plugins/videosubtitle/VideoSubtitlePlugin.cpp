@@ -54,7 +54,10 @@ void VideoSubtitlePlugin::cleanup()
 QObject* VideoSubtitlePlugin::getController()
 {
     if (m_controller) {
-        m_controller->reset();
+        // 如果任务正在执行中（用户选择了后台继续运行），不 reset 以免杀死后台进程
+        if (!m_controller->isProcessing()) {
+            m_controller->reset();
+        }
     }
     return m_controller;
 }

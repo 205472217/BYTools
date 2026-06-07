@@ -71,6 +71,8 @@ int VideoSubtitleSettings::defaultFontSize() const { return m_defaultFontSize; }
 QString VideoSubtitleSettings::defaultFontColor() const { return m_defaultFontColor; }
 QString VideoSubtitleSettings::defaultBorderColor() const { return m_defaultBorderColor; }
 int VideoSubtitleSettings::defaultBorderWidth() const { return m_defaultBorderWidth; }
+bool VideoSubtitleSettings::useGpuAccel() const { return m_useGpuAccel; }
+QString VideoSubtitleSettings::gpuAccelInfo() const { return m_gpuAccelInfo; }
 
 // Setters
 void VideoSubtitleSettings::setFfmpegPath(const QString &path)
@@ -86,6 +88,14 @@ void VideoSubtitleSettings::setFfmpegPath(const QString &path)
             m_ffmpegStatus = path.isEmpty() ? "未配置" : "无法找到 FFmpeg";
         }
         emit ffmpegStatusChanged();
+
+        // 刷新 GPU 加速检测信息
+        if (FFmpegService::isFFmpegAvailable(path)) {
+            m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(path);
+        } else {
+            m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
+        }
+        emit gpuAccelInfoChanged();
     }
 }
 
@@ -235,6 +245,14 @@ void VideoSubtitleSettings::setDefaultBorderWidth(int width)
     }
 }
 
+void VideoSubtitleSettings::setUseGpuAccel(bool enable)
+{
+    if (m_useGpuAccel != enable) {
+        m_useGpuAccel = enable;
+        emit useGpuAccelChanged();
+    }
+}
+
 // Actions
 void VideoSubtitleSettings::loadSettings()
 {
@@ -258,6 +276,14 @@ void VideoSubtitleSettings::loadSettings()
     m_defaultFontColor = m_settings.value("defaultFontColor", "#FFFFFF").toString();
     m_defaultBorderColor = m_settings.value("defaultBorderColor", "#000000").toString();
     m_defaultBorderWidth = m_settings.value("defaultBorderWidth", 2).toInt();
+    m_useGpuAccel = m_settings.value("useGpuAccel", false).toBool();
+
+    // 检测 GPU 加速能力（基于当前 ffmpegPath）
+    if (!m_ffmpegPath.isEmpty() && FFmpegService::isFFmpegAvailable(m_ffmpegPath)) {
+        m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(m_ffmpegPath);
+    } else {
+        m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
+    }
 
     if (m_apiUrl.isEmpty()) {
         updateApiUrlForEngine(m_translateEngine);
@@ -283,6 +309,8 @@ void VideoSubtitleSettings::loadSettings()
     emit defaultFontColorChanged();
     emit defaultBorderColorChanged();
     emit defaultBorderWidthChanged();
+    emit useGpuAccelChanged();
+    emit gpuAccelInfoChanged();
 }
 
 void VideoSubtitleSettings::saveSettings()
@@ -305,6 +333,7 @@ void VideoSubtitleSettings::saveSettings()
     m_settings.setValue("defaultFontColor", m_defaultFontColor);
     m_settings.setValue("defaultBorderColor", m_defaultBorderColor);
     m_settings.setValue("defaultBorderWidth", m_defaultBorderWidth);
+    m_settings.setValue("useGpuAccel", m_useGpuAccel);
     m_settings.sync();
 
     emit settingsChanged();
@@ -332,6 +361,8 @@ void VideoSubtitleSettings::resetDefaults()
     m_defaultFontColor = "#FFFFFF";
     m_defaultBorderColor = "#000000";
     m_defaultBorderWidth = 2;
+    m_useGpuAccel = false;  // 默认关闭 GPU 加速
+    m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
 
     detectTools();
 
@@ -355,6 +386,8 @@ void VideoSubtitleSettings::resetDefaults()
     emit defaultFontColorChanged();
     emit defaultBorderColorChanged();
     emit defaultBorderWidthChanged();
+    emit useGpuAccelChanged();
+    emit gpuAccelInfoChanged();
 }
 
 void VideoSubtitleSettings::testFfmpeg()
@@ -546,6 +579,13 @@ void VideoSubtitleSettings::detectTools()
             PluginLogger::info("自动检测到自带的 FFmpeg: " + m_ffmpegPath);
         }
         emit ffmpegStatusChanged();
+    }
+
+    // 更新 GPU 加速检测信息
+    if (!m_ffmpegPath.isEmpty() && FFmpegService::isFFmpegAvailable(m_ffmpegPath)) {
+        m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(m_ffmpegPath);
+    } else {
+        m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
     }
 
     // ---------- Whisper ----------

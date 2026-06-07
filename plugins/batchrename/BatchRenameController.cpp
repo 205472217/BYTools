@@ -180,6 +180,8 @@ void BatchRenameController::executeRename()
     emit recordsChanged();
     emit hasRecordsChanged();
 
+    setIsProcessing(true);
+
     int successCount = 0;
     int failCount = 0;
 
@@ -195,6 +197,8 @@ void BatchRenameController::executeRename()
 
     emit recordsChanged();
     emit hasRecordsChanged();
+
+    setIsProcessing(false);
 }
 
 void BatchRenameController::processDirectory(const QDir &currentDir, int &successCount, int &failCount)
@@ -439,6 +443,26 @@ void BatchRenameController::setStatusMessage(const QString &message)
 
     m_statusMessage = message;
     emit statusMessageChanged();
+}
+
+bool BatchRenameController::isProcessing() const
+{
+    return m_isProcessing;
+}
+
+void BatchRenameController::cancel()
+{
+    if (m_isProcessing) {
+        setIsProcessing(false);
+        setStatusMessage("已取消");
+    }
+}
+
+void BatchRenameController::setIsProcessing(bool processing)
+{
+    if (m_isProcessing == processing) return;
+    m_isProcessing = processing;
+    emit isProcessingChanged();
 }
 
 void BatchRenameController::addRecord(const QString &originalPath, const QString &newPath, bool success, const QString &status)

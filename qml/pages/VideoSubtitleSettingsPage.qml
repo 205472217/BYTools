@@ -684,6 +684,50 @@ Pane {
                         color: "#e2e8f0"
                     }
 
+                    // GPU 加速
+                    RowLayout {
+                        spacing: 12
+                        Layout.fillWidth: true
+
+                        Label {
+                            text: "GPU 加速"
+                            color: "#475569"
+                            font.pixelSize: 13
+                            font.bold: true
+                            Layout.preferredWidth: 80
+                        }
+
+                        CheckBox {
+                            text: "启用硬件加速（NVENC / QSV / AMF）"
+                            checked: settings ? settings.useGpuAccel : false
+                            enabled: settings ? (settings.ffmpegPath.length > 0 && (settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0)) : false
+                            onCheckedChanged: {
+                                if (settings)
+                                    settings.useGpuAccel = checked;
+                            }
+                            ToolTip {
+                                text: "使用 GPU 编解码加速字幕烧录，大幅降低 CPU 占用，需要 FFmpeg 支持对应编码器"
+                                visible: parent.hovered
+                                delay: 400
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Label {
+                            text: settings ? settings.gpuAccelInfo : ""
+                            color: {
+                                if (!settings) return "#94a3b8";
+                                if (settings.gpuAccelInfo.indexOf("NVENC") >= 0
+                                    || settings.gpuAccelInfo.indexOf("QSV") >= 0
+                                    || settings.gpuAccelInfo.indexOf("AMF") >= 0)
+                                    return "#059669";
+                                return "#94a3b8";
+                            }
+                            font.pixelSize: 12
+                        }
+                    }
+
                     // Output file retention
                     RowLayout {
                         spacing: 12

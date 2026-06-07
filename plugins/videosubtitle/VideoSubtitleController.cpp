@@ -43,6 +43,20 @@ VideoSubtitleController::VideoSubtitleController(QObject *parent)
     // NOTE: FFmpegService::finished is NOT connected here permanently.
     // It is dynamically connected to onAudioExtracted or onBurnFinished
     // depending on the current step (see processSingleFile / onTranslateFinished).
+
+    // 加载持久化的输出目录设置
+    QSettings &s = pluginSettings();
+    m_outputDir = s.value("outputDir").toString();
+    m_outputMode = s.value("outputMode", 0).toInt();
+    if (m_outputMode == 1 && !m_outputDir.isEmpty()) {
+        // 如果保存的目录不存在，回退到同目录模式
+        if (!QDir(m_outputDir).exists()) {
+            m_outputMode = 0;
+            m_outputDir.clear();
+        }
+    } else {
+        m_outputDir.clear();
+    }
 }
 
 // Getters
@@ -121,6 +135,7 @@ void VideoSubtitleController::setOutputMode(int mode)
 {
     if (m_outputMode != mode) {
         m_outputMode = mode;
+        pluginSettings().setValue("outputMode", mode);
         emit outputModeChanged();
     }
 }
@@ -129,6 +144,7 @@ void VideoSubtitleController::setOutputDir(const QString &dir)
 {
     if (m_outputDir != dir) {
         m_outputDir = dir;
+        pluginSettings().setValue("outputDir", dir);
         emit outputDirChanged();
     }
 }
@@ -284,6 +300,14 @@ void VideoSubtitleController::execute()
 
     setIsProcessing(true);
     setProgress(0.0);
+
+    // GPU 加速设置
+    {
+        bool useGpu = pluginSettings().value("useGpuAccel", false).toBool();
+        m_ffmpegService->setUseHardwareAccel(useGpu);
+        PluginLogger::info(QString("FFmpeg GPU 加速: %1").arg(useGpu ? "开启" : "关闭"));
+    }
+
     processNextFile();
 }
 
@@ -382,58 +406,46 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
         return;
     }
 
-    // [优化] 如果翻译字幕文件已存在，校验有效时长后决定是否直接跳转到烧录
+    // [优化] 如果翻译字幕文件已存在，校验格式和结束时间后决定是否直接跳转到烧录
+    // （去重后字幕总时长可能不足视频一半，所以不再要求 ≥50% 覆盖）
     if (m_enableBurnSubtitle && QFileInfo::exists(m_currentTranslatedSrtPath)) {
-        bool useExistingSrt = false;
         QList<SubtitleService::SubtitleEntry> existingEntries =
             SubtitleService::parseSrt(m_currentTranslatedSrtPath);
         if (!existingEntries.isEmpty()) {
-            qint64 srtFirstStart = existingEntries.first().startTime;
-            qint64 srtLastEnd   = existingEntries.last().endTime;
-            qint64 srtSpan      = srtLastEnd - srtFirstStart;   // 字幕覆盖时长
+            qint64 srtLastEnd = existingEntries.last().endTime;
             qint64 videoDuration = FFmpegService::getVideoDuration(ffmpegPath(),
                                                                     m_currentVideoPath);
-            if (videoDuration > 0
-                && srtSpan >= videoDuration * 0.5
-                && srtLastEnd <= videoDuration + 2000) {  // 字幕结束时间不超出视频时长2秒以上
-                useExistingSrt = true;
+            bool timeValid = (videoDuration <= 0)
+                          || (srtLastEnd <= videoDuration + 2000); // 结束时间不超出视频2秒以上
+            if (timeValid) {
                 PluginLogger::info(
-                    QString("检测到已有翻译字幕，覆盖时长 %1 ms / 视频时长 %2 ms (>=50%)，直接烧录")
-                        .arg(srtSpan).arg(videoDuration));
-                emit logMessage("✓ 检测到已有翻译字幕（有效时长 "
-                                + QString::number(srtSpan * 100 / videoDuration)
-                                + "%），跳过前置步骤，直接烧录");
+                    QString("检测到已有翻译字幕 (%1 条字幕)，校验通过，直接烧录")
+                        .arg(existingEntries.size()));
+                emit logMessage("✓ 检测到已有翻译字幕，跳过前置步骤，直接烧录");
+
+                setCurrentStep("烧录字幕");
+                setProgress(0.0);
+                disconnect(m_ffmpegService, &FFmpegService::finished, nullptr, nullptr);
+                connect(m_ffmpegService, &FFmpegService::finished,
+                        this, &VideoSubtitleController::onBurnFinished);
+                m_ffmpegService->startBurnSubtitles(ffmpegPath(), m_currentVideoPath,
+                                                     m_currentTranslatedSrtPath,
+                                                     m_currentOutputVideoPath,
+                                                     defaultFontSize(),
+                                                     defaultFontColor(),
+                                                     defaultBorderColor(),
+                                                     defaultBorderWidth());
+                return;
             } else {
-                QString failReason;
-                if (srtSpan < videoDuration * 0.5)
-                    failReason = "字幕覆盖时长不足 50%";
-                else
-                    failReason = "字幕结束时间超出视频范围";
                 PluginLogger::info(
-                    QString("已有翻译字幕无效 (%1): 覆盖 %2 ms / 视频 %3 ms，重新处理")
-                        .arg(failReason).arg(srtSpan).arg(videoDuration));
-                emit logMessage("⚠ 已有翻译字幕无效 (" + failReason + ")，重新提取/识别/翻译");
+                    QString("已有翻译字幕结束时间(%1 ms)超出视频时长(%2 ms)，重新处理")
+                        .arg(srtLastEnd).arg(videoDuration));
+                emit logMessage("⚠ 已有翻译字幕结束时间超出视频范围，重新处理");
             }
         } else {
             PluginLogger::info("已有翻译字幕文件为空或格式错误，重新处理: "
                                + m_currentTranslatedSrtPath);
             emit logMessage("⚠ 已有翻译字幕无效，重新处理");
-        }
-
-        if (useExistingSrt) {
-            setCurrentStep("烧录字幕");
-            setProgress(0.0);
-            disconnect(m_ffmpegService, &FFmpegService::finished, nullptr, nullptr);
-            connect(m_ffmpegService, &FFmpegService::finished,
-                    this, &VideoSubtitleController::onBurnFinished);
-            m_ffmpegService->startBurnSubtitles(ffmpegPath(), m_currentVideoPath,
-                                                 m_currentTranslatedSrtPath,
-                                                 m_currentOutputVideoPath,
-                                                 defaultFontSize(),
-                                                 defaultFontColor(),
-                                                 defaultBorderColor(),
-                                                 defaultBorderWidth());
-            return;
         }
     }
 
@@ -535,6 +547,28 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
     m_currentOriginalSrtPath = srtPath;
     PluginLogger::info("语音识别完成，SRT: " + srtPath);
     emit logMessage("✓ 语音识别完成");
+
+    // [优化] 去重处理：移除连续重复的字幕文本后再发起翻译
+    {
+        QList<SubtitleService::SubtitleEntry> entries =
+            SubtitleService::parseSrt(m_currentOriginalSrtPath);
+        if (!entries.isEmpty()) {
+            int beforeCount = entries.size();
+            QList<SubtitleService::SubtitleEntry> deduped =
+                SubtitleService::deduplicate(entries);
+            int removedCount = beforeCount - deduped.size();
+            if (removedCount > 0) {
+                PluginLogger::info(
+                    QString("去重: 移除 %1 条连续重复字幕（共 %2 → %3 条）")
+                        .arg(removedCount).arg(beforeCount).arg(deduped.size()));
+                emit logMessage(QString("✓ 去重完成: 移除 %1 条重复字幕（%2 → %3）")
+                    .arg(removedCount).arg(beforeCount).arg(deduped.size()));
+                SubtitleService::writeSrt(m_currentOriginalSrtPath, deduped);
+            } else {
+                PluginLogger::info("字幕无连续重复，无需去重");
+            }
+        }
+    }
 
     // Step 3: Translate
     if (m_enableTranslate) {

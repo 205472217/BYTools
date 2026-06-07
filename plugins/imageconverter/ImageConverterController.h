@@ -17,6 +17,7 @@ class ImageConverterController : public QObject
     Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
+    Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
     Q_PROPERTY(QVariantList records READ records NOTIFY recordsChanged)
 
 public:
@@ -45,9 +46,11 @@ public:
 
     QString statusMessage() const;
     bool hasRecords() const;
+    bool isProcessing() const;
     QVariantList records() const;
 
     Q_INVOKABLE void executeConvert();
+    Q_INVOKABLE void cancel();
     Q_INVOKABLE void clearRecords();
     Q_INVOKABLE void reset();
 
@@ -62,6 +65,7 @@ signals:
     void statusMessageChanged();
     void hasRecordsChanged();
     void recordsChanged();
+    void isProcessingChanged();
 
 private:
     struct ConvertRecord {
@@ -79,6 +83,7 @@ private:
     void addRecord(const QString &originalPath, const QString &newPath,
                    const QString &formatTag, bool success, const QString &status);
     void setStatusMessage(const QString &message);
+    void setIsProcessing(bool processing);
 
     bool isImageFile(const QString &fileName) const;
     static QString formatExtension(int formatIndex);
@@ -92,6 +97,7 @@ private:
     int m_outputMode = 0;   // 0=替换原文件, 1=输出到新目录
     QString m_outputDir;
     bool m_recursive = false;
+    bool m_isProcessing = false;
     QString m_statusMessage;
     QList<ConvertRecord> m_records;
 

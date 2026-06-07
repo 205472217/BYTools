@@ -38,6 +38,9 @@ public:
     // Extract plain text (remove index and time axis)
     static QStringList extractTexts(const QList<SubtitleEntry> &entries);
 
+    // Deduplicate consecutive duplicate text entries (keep first occurrence)
+    static QList<SubtitleEntry> deduplicate(const QList<SubtitleEntry> &entries);
+
 private:
     // Parse SRT time string "00:01:23,456" to milliseconds
     static qint64 parseSrtTime(const QString &timeStr);

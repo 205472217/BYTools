@@ -52,6 +52,65 @@ Pane {
         }
     }
 
+    // ── 任务执行中返回确认对话框 ─────────────────────────────────────
+    Dialog {
+        id: backConfirmDialog
+        title: "确认返回"
+        modal: true
+        anchors.centerIn: parent
+        width: 400
+        standardButtons: Dialog.NoButton
+        closePolicy: Dialog.CloseOnEscape
+
+        contentItem: ColumnLayout {
+            spacing: 8
+            Layout.margins: 4
+
+            Label {
+                text: "当前有繁转简任务正在处理中，返回首页将中断执行，是否继续？"
+                color: "#334155"
+                font.pixelSize: 14
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+                Layout.bottomMargin: 8
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                Item { Layout.fillWidth: true }
+
+                IconButton {
+                    text: "取消"
+                    tooltip: "不返回，继续当前任务"
+                    normalColor: "#e2e8f0"
+                    hoverColor: "#cbd5e1"
+                    borderColor: "#cbd5e1"
+                    textColor: "#475569"
+                    implicitWidth: 100
+                    implicitHeight: 38
+                    onClicked: backConfirmDialog.close()
+                }
+
+                IconButton {
+                    text: "返回首页"
+                    tooltip: "中断任务并返回首页"
+                    normalColor: "#dc2626"
+                    hoverColor: "#b91c1c"
+                    borderColor: "#b91c1c"
+                    textColor: "#ffffff"
+                    implicitWidth: 120
+                    implicitHeight: 38
+                    onClicked: {
+                        if (controller) { controller.cancel(); }
+                        backConfirmDialog.close();
+                        root.backRequested();
+                    }
+                }
+            }
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 28
@@ -64,7 +123,13 @@ Pane {
             IconButton {
                 iconSource: "qrc:/icons/arrow-left.svg"
                 tooltip: "返回"
-                onClicked: root.backRequested()
+                onClicked: {
+                    if (controller && controller.isProcessing) {
+                        backConfirmDialog.open();
+                    } else {
+                        root.backRequested();
+                    }
+                }
             }
 
             ColumnLayout {

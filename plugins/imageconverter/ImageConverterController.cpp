@@ -103,6 +103,8 @@ void ImageConverterController::executeConvert()
     emit recordsChanged();
     emit hasRecordsChanged();
 
+    setIsProcessing(true);
+
     int successCount = 0;
     int failCount = 0;
     int skipCount = 0;
@@ -122,6 +124,8 @@ void ImageConverterController::executeConvert()
 
     emit recordsChanged();
     emit hasRecordsChanged();
+
+    setIsProcessing(false);
 }
 
 void ImageConverterController::processDirectory(const QDir &currentDir, const QString &relativePath,
@@ -217,6 +221,26 @@ void ImageConverterController::clearRecords()
     emit recordsChanged();
     emit hasRecordsChanged();
     setStatusMessage(QString());
+}
+
+bool ImageConverterController::isProcessing() const
+{
+    return m_isProcessing;
+}
+
+void ImageConverterController::cancel()
+{
+    if (m_isProcessing) {
+        setIsProcessing(false);
+        setStatusMessage("已取消");
+    }
+}
+
+void ImageConverterController::setIsProcessing(bool processing)
+{
+    if (m_isProcessing == processing) return;
+    m_isProcessing = processing;
+    emit isProcessingChanged();
 }
 
 void ImageConverterController::reset()

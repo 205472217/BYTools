@@ -67,6 +67,20 @@ bool BatchNameController::hasRecords() const
     return m_previewModel.rowCount() > 0;
 }
 
+bool BatchNameController::isProcessing() const
+{
+    return m_isProcessing;
+}
+
+void BatchNameController::cancel()
+{
+    // 繁转简任务同步执行，执行时间短，cancel 仅用于状态同步
+    if (m_isProcessing) {
+        setIsProcessing(false);
+        setStatusMessage("已取消");
+    }
+}
+
 QObject* BatchNameController::previewModel()
 {
     return &m_previewModel;
@@ -101,10 +115,12 @@ void BatchNameController::executeRename()
         return;
     }
 
+    setIsProcessing(true);
     const auto execution = m_service.execute(m_rootPath, currentTargetType(), m_recursive);
     m_previewModel.setItems(execution.records);
     emit hasRecordsChanged();
     setStatusMessage(execution.result.message);
+    setIsProcessing(false);
 }
 
 void BatchNameController::restoreRecord(int row)
@@ -157,4 +173,11 @@ void BatchNameController::setStatusMessage(const QString &message)
 
     m_statusMessage = message;
     emit statusMessageChanged();
+}
+
+void BatchNameController::setIsProcessing(bool processing)
+{
+    if (m_isProcessing == processing) return;
+    m_isProcessing = processing;
+    emit isProcessingChanged();
 }

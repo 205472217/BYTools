@@ -29,10 +29,12 @@ Pane {
         running: controller ? controller.isProcessing : false
         repeat: true
 
-        property int seconds: 0
+        property int seconds: 0            // per-step seconds
+        property int totalSeconds: 0       // total seconds across all steps
         property int elapsedIndex: -1
         property string lastStep: ""
-        property string elapsedString: "00:00:00"
+        property string elapsedString: "00:00:00"           // per-step display
+        property string totalElapsedString: "00:00:00"      // total display
         property string finalElapsedString: ""
 
         function pad(n) {
@@ -45,7 +47,7 @@ Pane {
                  + pad(s % 60);
         }
 
-        function reset() {
+        function resetStep() {
             seconds = 0;
             elapsedIndex = -1;
             elapsedString = "00:00:00";
@@ -56,22 +58,34 @@ Pane {
             }
         }
 
+        function resetAll() {
+            seconds = 0;
+            totalSeconds = 0;
+            elapsedIndex = -1;
+            elapsedString = "00:00:00";
+            totalElapsedString = "00:00:00";
+            lastStep = "";
+            finalElapsedString = "";
+        }
+
         onTriggered: {
             if (!controller || !controller.isProcessing) {
-                reset();
+                resetAll();
                 return;
             }
 
-            // If step changed, start fresh counter
+            // If step changed, start fresh per-step counter, keep total
             var step = controller.currentStep;
             if (step.length === 0) return;  // not in a step yet
             if (step !== lastStep) {
-                reset();
+                resetStep();
                 return;
             }
 
             seconds++;
+            totalSeconds++;
             elapsedString = formatTime(seconds);
+            totalElapsedString = formatTime(totalSeconds);
             var text = step + "...(已耗时 " + elapsedString + ")";
 
             if (elapsedIndex >= 0 && elapsedIndex < logModel.count) {
@@ -95,12 +109,17 @@ Pane {
         }
     }
 
-    // 处理结束 → 记录最终耗时
+    // 处理开始 → 重置计时 | 处理结束 → 记录最终耗时
     Connections {
         target: controller
         function onIsProcessingChanged() {
-            if (controller && !controller.isProcessing && elapsedTimer.seconds > 0) {
-                elapsedTimer.finalElapsedString = elapsedTimer.formatTime(elapsedTimer.seconds);
+            if (!controller) return;
+            if (controller.isProcessing) {
+                // 新任务开始 → 重置所有计时（清除上次的 totalSeconds，重新累积）
+                elapsedTimer.resetAll();
+            } else if (elapsedTimer.totalSeconds > 0) {
+                // 任务结束（完成/中止）→ 记录最终总耗时，供 header 显示
+                elapsedTimer.finalElapsedString = elapsedTimer.formatTime(elapsedTimer.totalSeconds);
             }
         }
     }
@@ -110,7 +129,7 @@ Pane {
         target: controller
         function onCurrentStepChanged() {
             if (controller && controller.isProcessing) {
-                elapsedTimer.reset();
+                elapsedTimer.resetStep();
             }
         }
     }
@@ -157,6 +176,67 @@ Pane {
         }
     }
 
+    // ── 任务执行中返回确认对话框 ─────────────────────────────────────
+    Dialog {
+        id: backConfirmDialog
+        title: "确认返回"
+        modal: true
+        anchors.centerIn: parent
+        width: 400
+        standardButtons: Dialog.NoButton
+        closePolicy: Dialog.CloseOnEscape
+
+        contentItem: ColumnLayout {
+            spacing: 8
+            Layout.margins: 4
+
+            Label {
+                text: "当前有任务正在处理中，返回首页将中断执行，是否继续？"
+                color: "#334155"
+                font.pixelSize: 14
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+                Layout.bottomMargin: 8
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                Item { Layout.fillWidth: true }
+
+                IconButton {
+                    text: "取消"
+                    tooltip: "不返回，继续当前任务"
+                    normalColor: "#e2e8f0"
+                    hoverColor: "#cbd5e1"
+                    borderColor: "#cbd5e1"
+                    textColor: "#475569"
+                    implicitWidth: 100
+                    implicitHeight: 38
+                    onClicked: {
+                        backConfirmDialog.close();
+                    }
+                }
+
+                IconButton {
+                    text: "返回首页"
+                    tooltip: "中断任务并返回首页"
+                    normalColor: "#dc2626"
+                    hoverColor: "#b91c1c"
+                    borderColor: "#b91c1c"
+                    textColor: "#ffffff"
+                    implicitWidth: 120
+                    implicitHeight: 38
+                    onClicked: {
+                        if (controller) { controller.cancel(); }
+                        backConfirmDialog.close();
+                        root.backRequested();
+                    }
+                }
+            }
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 28
@@ -170,7 +250,13 @@ Pane {
             IconButton {
                 iconSource: "qrc:/icons/arrow-left.svg"
                 tooltip: "返回"
-                onClicked: root.backRequested()
+                onClicked: {
+                    if (controller && controller.isProcessing) {
+                        backConfirmDialog.open();
+                    } else {
+                        root.backRequested();
+                    }
+                }
             }
 
             ColumnLayout {
@@ -645,7 +731,7 @@ Pane {
                         anchors.leftMargin: 18
                         anchors.verticalCenter: parent.verticalCenter
                         text: controller && controller.isProcessing
-                              ? "任务执行中（已耗时 " + elapsedTimer.elapsedString + "）"
+                              ? "任务执行中（已耗时 " + elapsedTimer.totalElapsedString + "）"
                               : (elapsedTimer.finalElapsedString.length > 0 && logModel.count > 0
                                  ? "任务耗时（" + elapsedTimer.finalElapsedString + "）"
                                  : "")
