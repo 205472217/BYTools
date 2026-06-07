@@ -252,12 +252,14 @@ void VideoSubtitleController::execute()
         }
     }
 
-    if (m_enableTranslate && translateEngine() == 0) {
-        if (apiKey().isEmpty() || baiduAppId().isEmpty()) {
+    if (m_enableTranslate) {
+        int engine = translateEngine();
+        if (engine == 0 && (apiKey().isEmpty() || baiduAppId().isEmpty())) {
             emit settingsRequired();
             setStatusMessage("请先在设置中配置百度翻译 APP ID 和密钥");
             return;
         }
+        // LibreTranslate (engine == 1) needs no API key, just a local server URL
     }
 
     PluginLogger::info(QString("===== 开始批量处理 ====="));
@@ -913,7 +915,14 @@ QString VideoSubtitleController::apiKey() const
 
 QString VideoSubtitleController::apiUrl() const
 {
-    return pluginSettings().value("apiUrl").toString();
+    QSettings &s = pluginSettings();
+    s.sync();
+    // Return the correct URL based on current translation engine:
+    // engine 0 (Baidu) → apiUrl, engine 1 (LibreTranslate) → libreTranslateUrl
+    int engine = s.value("translateEngine", 0).toInt();
+    if (engine == 1)
+        return s.value("libreTranslateUrl", "http://localhost:5000").toString();
+    return s.value("apiUrl").toString();
 }
 
 QString VideoSubtitleController::baiduAppId() const

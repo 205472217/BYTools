@@ -381,8 +381,8 @@ Pane {
 
                         ComboBoxEx {
                             Layout.preferredWidth: 200
-                            model: ["百度翻译"]
-                            currentIndex: 0
+                            model: settings ? settings.translateEngineNames : ["百度翻译"]
+                            currentIndex: settings ? settings.translateEngine : 0
                             onActivated: {
                                 if (settings)
                                     settings.translateEngine = currentIndex;
@@ -392,6 +392,7 @@ Pane {
 
                     // ---------- 百度翻译配置 (engine === 0) ----------
                     ColumnLayout {
+                        visible: settings ? settings.translateEngine === 0 : true
                         Layout.fillWidth: true
                         spacing: 12
 
@@ -505,7 +506,225 @@ Pane {
                             }
                         }
                     }
+                    // ---------- LibreTranslate 配置 (engine === 1) ----------
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 12
+                        visible: settings ? settings.translateEngine === 1 : false
 
+                        // LibreTranslate Service URL
+                        RowLayout {
+                            spacing: 12
+                            Layout.fillWidth: true
+
+                            Label {
+                                text: "服务地址"
+                                color: "#475569"
+                                font.pixelSize: 13
+                                font.bold: true
+                                Layout.preferredWidth: 80
+                            }
+
+                            TextFieldEx {
+                                Layout.fillWidth: true
+                                text: settings ? settings.libreTranslateUrl : ""
+                                placeholderText: "http://localhost:5000"
+                                onTextChanged: {
+                                    if (settings)
+                                        settings.libreTranslateUrl = text;
+                                }
+                            }
+
+                            IconButton {
+                                text: "测试连接"
+                                normalColor: "#2563eb"
+                                hoverColor: "#1d4ed8"
+                                borderColor: "#1d4ed8"
+                                enabled: settings ? !settings.apiTesting : false
+                                onClicked: {
+                                    if (settings)
+                                        settings.testApiConnection();
+                                }
+                            }
+                        }
+
+                        // LibreTranslate status
+                        RowLayout {
+                            spacing: 12
+                            Layout.fillWidth: true
+
+                            Item {
+                                Layout.preferredWidth: 80
+                            }
+
+                            Label {
+                                text: settings ? settings.libreTranslateStatus : ""
+                                color: settings && settings.libreTranslateStatus.indexOf("正常") >= 0 ? "#059669" : "#dc2626"
+                                font.pixelSize: 12
+                            }
+                        }
+
+                        // Separator
+                        Rectangle {
+                            Layout.fillWidth: true
+                            height: 1
+                            color: "#e2e8f0"
+                        }
+
+                        // --- LibreTranslate 安装引导 ---
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
+                            Layout.topMargin: 4
+                            Layout.bottomMargin: 4
+
+                            Label {
+                                text: "LibreTranslate 配置说明（离线翻译）"
+                                color: "#1e293b"
+                                font.pixelSize: 14
+                                font.bold: true
+                            }
+
+                            Label {
+                                text: "LibreTranslate 是一款开源的离线神经机器翻译引擎，翻译质量高，无需联网。"
+                                color: "#64748b"
+                                font.pixelSize: 12
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                            }
+
+                            Item { Layout.preferredHeight: 4 }
+
+                            // 环境要求
+                            RowLayout {
+                                spacing: 8
+                                Layout.fillWidth: true
+
+                                Label {
+                                    text: "•"
+                                    color: "#94a3b8"
+                                    font.pixelSize: 12
+                                }
+
+                                Label {
+                                    text: "需要 Python 3.8+ 环境"
+                                    color: "#334155"
+                                    font.pixelSize: 12
+                                    font.bold: true
+                                }
+
+                                Item { Layout.fillWidth: true }
+
+                                Label {
+                                    text: "Python 下载 →"
+                                    color: "#2563eb"
+                                    font.pixelSize: 12
+                                    font.underline: true
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        anchors.margins: -4
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            Qt.openUrlExternally("https://www.python.org/downloads/");
+                                        }
+                                    }
+                                }
+                            }
+
+                            // 安装步骤
+                            ColumnLayout {
+                                spacing: 4
+                                Layout.fillWidth: true
+                                Layout.leftMargin: 16
+
+                                Label {
+                                    text: "步骤 1: 打开终端（cmd），执行："
+                                    color: "#475569"
+                                    font.pixelSize: 12
+                                }
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 32
+                                    radius: 4
+                                    color: "#f1f5f9"
+
+                                    Label {
+                                        anchors.left: parent.left
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors.leftMargin: 10
+                                        text: "pip install libretranslate"
+                                        font.family: "Consolas, 'Courier New', monospace"
+                                        font.pixelSize: 12
+                                        color: "#1e293b"
+                                    }
+                                }
+
+                                Item { Layout.preferredHeight: 2 }
+
+                                Label {
+                                    text: "步骤 2: 启动服务（仅加载需要的语言对）："
+                                    color: "#475569"
+                                    font.pixelSize: 12
+                                }
+
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 32
+                                    radius: 4
+                                    color: "#f1f5f9"
+
+                                    Label {
+                                        anchors.left: parent.left
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors.leftMargin: 10
+                                        text: "libretranslate --load-only en,zh,ja,ko"
+                                        font.family: "Consolas, 'Courier New', monospace"
+                                        font.pixelSize: 12
+                                        color: "#1e293b"
+                                    }
+                                }
+                            }
+
+                            Item { Layout.preferredHeight: 4 }
+
+                            // 说明文字
+                            Label {
+                                text: "首次启动会自动下载翻译模型（约 500MB-2GB），下载完成后即可离线使用。<br>服务默认监听 <b>http://localhost:5000</b>，可在上方修改地址。"
+                                color: "#64748b"
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                                textFormat: Text.RichText
+                            }
+
+                            // GitHub 链接
+                            RowLayout {
+                                spacing: 8
+                                Layout.fillWidth: true
+                                Layout.topMargin: 4
+
+                                Item { Layout.fillWidth: true }
+
+                                Label {
+                                    text: "LibreTranslate GitHub →"
+                                    color: "#2563eb"
+                                    font.pixelSize: 12
+                                    font.underline: true
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        anchors.margins: -4
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            Qt.openUrlExternally("https://github.com/LibreTranslate/LibreTranslate");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                     // 分割线
                     Rectangle {
                         Layout.fillWidth: true

@@ -35,6 +35,10 @@ class VideoSubtitleSettings : public QObject
     Q_PROPERTY(bool apiTesting READ apiTesting NOTIFY apiTestingChanged)
     Q_PROPERTY(QStringList translateEngineNames READ translateEngineNames CONSTANT)
 
+    // === LibreTranslate ===
+    Q_PROPERTY(QString libreTranslateUrl READ libreTranslateUrl WRITE setLibreTranslateUrl NOTIFY libreTranslateUrlChanged)
+    Q_PROPERTY(QString libreTranslateStatus READ libreTranslateStatus NOTIFY libreTranslateStatusChanged)
+
     // === Segment duration for transcription ===
     Q_PROPERTY(int audioSegmentDuration READ audioSegmentDuration WRITE setAudioSegmentDuration NOTIFY audioSegmentDurationChanged)
 
@@ -61,6 +65,8 @@ public:
 
     // Getters
     QString ffmpegPath() const;
+    QString libreTranslateUrl() const;
+    QString libreTranslateStatus() const;
     QString ffmpegStatus() const;
     QString whisperPath() const;
     QString whisperStatus() const;
@@ -106,6 +112,7 @@ public:
     void setDefaultBorderColor(const QString &color);
     void setDefaultBorderWidth(int width);
     void setUseGpuAccel(bool enable);
+    void setLibreTranslateUrl(const QString &url);
 
     Q_INVOKABLE void loadSettings();
     Q_INVOKABLE void saveSettings();
@@ -146,6 +153,8 @@ signals:
     void settingsChanged();
     void useGpuAccelChanged();
     void gpuAccelInfoChanged();
+    void libreTranslateUrlChanged();
+    void libreTranslateStatusChanged();
 
 private:
     void detectTools();
@@ -153,6 +162,7 @@ private:
     QString defaultApiUrl(int engine) const;
     // [extension]: 新增翻译引擎时在此添加对应的 testXxxConnection() 声明
     void testBaiduConnection();
+    void testLibreTranslateConnection();
 
     QSettings m_settings;
     QString m_ffmpegPath;
@@ -179,6 +189,9 @@ private:
     int m_defaultBorderWidth = 2;
     bool m_useGpuAccel = false;
     QString m_gpuAccelInfo;
+
+    QString m_libreTranslateUrl;
+    QString m_libreTranslateStatus;
 
     QNetworkAccessManager *m_networkManager;
     QNetworkReply *m_testReply;

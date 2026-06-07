@@ -27,6 +27,7 @@ VideoSubtitleSettings::VideoSubtitleSettings(QObject *parent)
     , m_settings(configPath(), QSettings::IniFormat)
     , m_networkManager(new QNetworkAccessManager(this))
     , m_testReply(nullptr)
+    , m_libreTranslateUrl("http://localhost:5000")
 {
     m_settings.beginGroup("VideoSubtitle");
     m_whisperModelDir = QCoreApplication::applicationDirPath() + "/plugins/videosubtitle";
@@ -73,6 +74,8 @@ QString VideoSubtitleSettings::defaultBorderColor() const { return m_defaultBord
 int VideoSubtitleSettings::defaultBorderWidth() const { return m_defaultBorderWidth; }
 bool VideoSubtitleSettings::useGpuAccel() const { return m_useGpuAccel; }
 QString VideoSubtitleSettings::gpuAccelInfo() const { return m_gpuAccelInfo; }
+QString VideoSubtitleSettings::libreTranslateUrl() const { return m_libreTranslateUrl; }
+QString VideoSubtitleSettings::libreTranslateStatus() const { return m_libreTranslateStatus; }
 
 // Setters
 void VideoSubtitleSettings::setFfmpegPath(const QString &path)
@@ -253,6 +256,14 @@ void VideoSubtitleSettings::setUseGpuAccel(bool enable)
     }
 }
 
+void VideoSubtitleSettings::setLibreTranslateUrl(const QString &url)
+{
+    if (m_libreTranslateUrl != url) {
+        m_libreTranslateUrl = url;
+        emit libreTranslateUrlChanged();
+    }
+}
+
 // Actions
 void VideoSubtitleSettings::loadSettings()
 {
@@ -277,6 +288,7 @@ void VideoSubtitleSettings::loadSettings()
     m_defaultBorderColor = m_settings.value("defaultBorderColor", "#000000").toString();
     m_defaultBorderWidth = m_settings.value("defaultBorderWidth", 2).toInt();
     m_useGpuAccel = m_settings.value("useGpuAccel", false).toBool();
+    m_libreTranslateUrl = m_settings.value("libreTranslateUrl", "http://localhost:5000").toString();
 
     // 检测 GPU 加速能力（基于当前 ffmpegPath）
     if (!m_ffmpegPath.isEmpty() && FFmpegService::isFFmpegAvailable(m_ffmpegPath)) {
@@ -311,6 +323,8 @@ void VideoSubtitleSettings::loadSettings()
     emit defaultBorderWidthChanged();
     emit useGpuAccelChanged();
     emit gpuAccelInfoChanged();
+    emit libreTranslateUrlChanged();
+    emit libreTranslateStatusChanged();
 }
 
 void VideoSubtitleSettings::saveSettings()
@@ -334,6 +348,7 @@ void VideoSubtitleSettings::saveSettings()
     m_settings.setValue("defaultBorderColor", m_defaultBorderColor);
     m_settings.setValue("defaultBorderWidth", m_defaultBorderWidth);
     m_settings.setValue("useGpuAccel", m_useGpuAccel);
+    m_settings.setValue("libreTranslateUrl", m_libreTranslateUrl);
     m_settings.sync();
 
     emit settingsChanged();
@@ -363,6 +378,8 @@ void VideoSubtitleSettings::resetDefaults()
     m_defaultBorderWidth = 2;
     m_useGpuAccel = false;  // 默认关闭 GPU 加速
     m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
+    m_libreTranslateUrl = "http://localhost:5000";
+    m_libreTranslateStatus.clear();
 
     detectTools();
 
@@ -388,6 +405,8 @@ void VideoSubtitleSettings::resetDefaults()
     emit defaultBorderWidthChanged();
     emit useGpuAccelChanged();
     emit gpuAccelInfoChanged();
+    emit libreTranslateUrlChanged();
+    emit libreTranslateStatusChanged();
 }
 
 void VideoSubtitleSettings::testFfmpeg()
@@ -417,6 +436,9 @@ void VideoSubtitleSettings::testApiConnection()
     case 0:
         testBaiduConnection();
         break;
+    case 1:
+        testLibreTranslateConnection();
+        break;
     default:
         m_apiTestResult = "不支持的翻译引擎";
         emit apiTestResultChanged();
@@ -427,7 +449,7 @@ void VideoSubtitleSettings::testApiConnection()
 QStringList VideoSubtitleSettings::translateEngineNames() const
 {
     // [extension]: 后续新增翻译引擎只需在此追加名称, 如 << "DeepL 翻译", "Google 翻译"
-    return {"百度翻译"};
+    return {"百度翻译", "LibreTranslate"};
 }
 
 // --- Engine-specific test methods ---
@@ -506,6 +528,57 @@ void VideoSubtitleSettings::testBaiduConnection()
         }
         m_testReply->deleteLater();
         m_testReply = nullptr;
+        emit apiTestResultChanged();
+    });
+}
+
+void VideoSubtitleSettings::testLibreTranslateConnection()
+{
+    if (m_libreTranslateUrl.isEmpty()) {
+        m_libreTranslateStatus = "请先输入服务地址";
+        emit libreTranslateStatusChanged();
+        return;
+    }
+
+    m_apiTesting = true;
+    emit apiTestingChanged();
+
+    QString baseUrl = m_libreTranslateUrl;
+    // Remove trailing slash if present
+    if (baseUrl.endsWith('/'))
+        baseUrl.chop(1);
+
+    QString fullUrl = baseUrl + "/spec";
+
+    PluginLogger::info(QString("测试 LibreTranslate 连接: %1").arg(fullUrl));
+
+    QNetworkRequest request{QUrl(fullUrl)};
+    request.setTransferTimeout(5000);
+    m_testReply = m_networkManager->get(request);
+    connect(m_testReply, &QNetworkReply::finished, this, [this]() {
+        m_apiTesting = false;
+        emit apiTestingChanged();
+
+        if (m_testReply->error() == QNetworkReply::NoError) {
+            int httpStatus = m_testReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            if (httpStatus == 200) {
+                m_libreTranslateStatus = "连接正常";
+                m_apiTestResult = "连接正常";
+                PluginLogger::info("LibreTranslate 连接测试成功");
+            } else {
+                m_libreTranslateStatus = QString("服务返回 HTTP %1").arg(httpStatus);
+                m_apiTestResult = m_libreTranslateStatus;
+                PluginLogger::error("LibreTranslate 返回异常: HTTP " + QString::number(httpStatus));
+            }
+        } else {
+            QString errStr = m_testReply->errorString();
+            m_libreTranslateStatus = "连接失败: " + errStr;
+            m_apiTestResult = m_libreTranslateStatus;
+            PluginLogger::error("LibreTranslate 连接失败: " + errStr);
+        }
+        m_testReply->deleteLater();
+        m_testReply = nullptr;
+        emit libreTranslateStatusChanged();
         emit apiTestResultChanged();
     });
 }
@@ -628,6 +701,7 @@ QString VideoSubtitleSettings::defaultApiUrl(int engine) const
 {
     switch (engine) {
     case 0: return "http://api.fanyi.baidu.com/api/trans/vip/translate";
+    case 1: return "http://localhost:5000";
     default: return QString();
     }
 }

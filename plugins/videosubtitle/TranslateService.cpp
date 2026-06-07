@@ -161,6 +161,28 @@ void TranslateService::translateNext()
         m_requestTimer->start(TIMEOUT_MS + 5000);  // safety net: 5s after transfer timeout
         break;
     }
+    case 1: { // LibreTranslate (self-hosted, offline NMT)
+        QString baseUrl = m_currentApiUrl;
+        if (baseUrl.endsWith('/'))
+            baseUrl.chop(1);
+        QString fullUrl = baseUrl + "/translate";
+
+        QJsonObject body;
+        body["q"] = textToTranslate;
+        body["source"] = m_currentSourceLang.isEmpty() ? "auto" : m_currentSourceLang;
+        body["target"] = m_currentTargetLang;
+        body["format"] = "text";
+        QByteArray jsonData = QJsonDocument(body).toJson(QJsonDocument::Compact);
+
+        QNetworkRequest request{QUrl(fullUrl)};
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        request.setTransferTimeout(TIMEOUT_MS);
+        m_currentReply = m_networkManager->post(request, jsonData);
+        m_requestTimer->start(TIMEOUT_MS + 5000);
+
+        PluginLogger::restRequest("POST", fullUrl);
+        break;
+    }
     default:
         emit finished(false, m_outputSrtPath, "Unknown translation engine");
         return;
@@ -212,7 +234,7 @@ void TranslateService::onReplyFinished(QNetworkReply *reply)
     PluginLogger::restResponse(httpStatus, QString::fromUtf8(responseData));
     QJsonObject root = doc.object();
 
-    // Check API error
+    // Check API error (Baidu: error_code/error_msg; LibreTranslate: error)
     if (root.contains("error_code")) {
         QString errCode = root["error_code"].toString();
         QString errMsg  = root["error_msg"].toString();
@@ -225,6 +247,16 @@ void TranslateService::onReplyFinished(QNetworkReply *reply)
                           .arg(m_currentEntryIndex + 1).arg(errCode, errMsg));
         return;
     }
+    if (root.contains("error")) {
+        QString errMsg = root["error"].toString();
+        QString srtEntryInfo = QString("（第 %1 条: \"%2\"）")
+            .arg(m_currentEntryIndex + 1)
+            .arg(m_entries.at(m_currentEntryIndex).originalText.left(40));
+        PluginLogger::error(QString("翻译 API 错误: %1 %2").arg(errMsg, srtEntryInfo));
+        emit finished(false, m_outputSrtPath,
+                      QString("翻译失败（第 %1 条）: %2").arg(m_currentEntryIndex + 1).arg(errMsg));
+        return;
+    }
 
     QStringList translatedTexts;
 
@@ -234,6 +266,12 @@ void TranslateService::onReplyFinished(QNetworkReply *reply)
         for (const QJsonValue &v : transResult) {
             translatedTexts.append(v.toObject()["dst"].toString());
         }
+        break;
+    }
+    case 1: { // LibreTranslate
+        QString translated = root["translatedText"].toString();
+        if (!translated.isEmpty())
+            translatedTexts.append(translated);
         break;
     }
     default: {
