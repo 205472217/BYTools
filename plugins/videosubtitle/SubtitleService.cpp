@@ -216,6 +216,62 @@ QList<SubtitleService::SubtitleEntry> SubtitleService::deduplicate(const QList<S
     return result;
 }
 
+QList<SubtitleService::SubtitleEntry> SubtitleService::filterEnvironmentSounds(const QList<SubtitleEntry> &entries)
+{
+    QList<SubtitleEntry> result;
+    const QChar fullwidthLeftParen  = QChar(0xFF08); // （
+    const QChar fullwidthRightParen = QChar(0xFF09); // ）
+    for (const auto &entry : entries) {
+        QString text = entry.originalText.trimmed();
+        // If the entire text is wrapped in parentheses/brackets, it's an environment
+        // sound description (e.g., "(music)", "[Applause]", "（掌声）") — skip entirely.
+        bool isEnvSound = false;
+        if (!text.isEmpty()) {
+            isEnvSound = (text.startsWith('(') && text.endsWith(')')) ||
+                         (text.startsWith('[') && text.endsWith(']')) ||
+                         (text.startsWith(fullwidthLeftParen) && text.endsWith(fullwidthRightParen));
+        }
+        if (!isEnvSound) {
+            result.append(entry);
+        }
+    }
+    return result;
+}
+
+QString SubtitleService::detectLanguage(const QList<SubtitleEntry> &entries)
+{
+    // Sample text from the first entries (enough for reliable detection)
+    QString sample;
+    for (int i = 0; i < entries.size() && i < 30; ++i) {
+        sample += entries.at(i).originalText;
+    }
+    if (sample.isEmpty()) return "auto";
+
+    // Priority: Japanese > Korean > Chinese > English/default
+    bool hasCJK = false;
+    for (const QChar &c : sample) {
+        uint32_t cp = c.unicode();
+        // Hiragana (3040-309F) or Katakana (30A0-30FF) → Japanese
+        if ((cp >= 0x3040 && cp <= 0x309F) || (cp >= 0x30A0 && cp <= 0x30FF)) {
+            return "ja";
+        }
+        // Hangul (AC00-D7AF) or Hangul Jamo (1100-11FF) → Korean
+        if ((cp >= 0xAC00 && cp <= 0xD7AF) || (cp >= 0x1100 && cp <= 0x11FF)) {
+            return "ko";
+        }
+        // CJK Unified Ideographs (4E00-9FFF) — may be Chinese or Japanese Kanji
+        if (cp >= 0x4E00 && cp <= 0x9FFF) {
+            hasCJK = true;
+        }
+    }
+
+    // If CJK chars were found but no Hiragana/Katakana/Hangul, it's Chinese
+    if (hasCJK) return "zh";
+
+    // Default: let Baidu auto-detect
+    return "auto";
+}
+
 qint64 SubtitleService::parseSrtTime(const QString &timeStr)
 {
     // Parse "00:01:23,456" to milliseconds

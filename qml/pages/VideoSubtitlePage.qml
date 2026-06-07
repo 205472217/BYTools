@@ -493,7 +493,7 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
-                        text: "翻译选项"
+                        text: "语种转换"
                         color: "#475569"
                         font.pixelSize: 13
                         font.bold: true
@@ -505,7 +505,6 @@ Pane {
                         color: "#475569"
                         font.pixelSize: 13
                         font.bold: true
-                        Layout.preferredWidth: 80
                     }
 
                     ComboBoxEx {

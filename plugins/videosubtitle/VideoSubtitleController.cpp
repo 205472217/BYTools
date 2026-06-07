@@ -46,6 +46,7 @@ VideoSubtitleController::VideoSubtitleController(QObject *parent)
 
     // 加载持久化的输出目录设置
     QSettings &s = pluginSettings();
+    s.sync();  // 刷新，确保读取到其他 QSettings 实例（如设置页）写入的 INI 值
     m_outputDir = s.value("outputDir").toString();
     m_outputMode = s.value("outputMode", 0).toInt();
     if (m_outputMode == 1 && !m_outputDir.isEmpty()) {
@@ -57,6 +58,10 @@ VideoSubtitleController::VideoSubtitleController(QObject *parent)
     } else {
         m_outputDir.clear();
     }
+
+    // 加载持久化的语言设置
+    m_sourceLanguage = s.value("sourceLanguage", "auto").toString();
+    m_targetLanguage = s.value("targetLanguage", "zh").toString();
 }
 
 // Getters
@@ -113,6 +118,8 @@ void VideoSubtitleController::setSourceLanguage(const QString &lang)
 {
     if (m_sourceLanguage != lang) {
         m_sourceLanguage = lang;
+        pluginSettings().setValue("sourceLanguage", lang);
+        pluginSettings().sync();
         emit sourceLanguageChanged();
     }
 }
@@ -121,6 +128,8 @@ void VideoSubtitleController::setTargetLanguage(const QString &lang)
 {
     if (m_targetLanguage != lang) {
         m_targetLanguage = lang;
+        pluginSettings().setValue("targetLanguage", lang);
+        pluginSettings().sync();
         emit targetLanguageChanged();
     }
 }
@@ -135,7 +144,9 @@ void VideoSubtitleController::setOutputMode(int mode)
 {
     if (m_outputMode != mode) {
         m_outputMode = mode;
-        pluginSettings().setValue("outputMode", mode);
+        QSettings &s = pluginSettings();
+        s.setValue("outputMode", mode);
+        s.sync();  // 立即写入 INI，防止应用异常退出时丢失
         emit outputModeChanged();
     }
 }
@@ -144,7 +155,9 @@ void VideoSubtitleController::setOutputDir(const QString &dir)
 {
     if (m_outputDir != dir) {
         m_outputDir = dir;
-        pluginSettings().setValue("outputDir", dir);
+        QSettings &s = pluginSettings();
+        s.setValue("outputDir", dir);
+        s.sync();  // 立即写入 INI，防止应用异常退出时丢失
         emit outputDirChanged();
     }
 }
@@ -548,24 +561,42 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
     PluginLogger::info("语音识别完成，SRT: " + srtPath);
     emit logMessage("✓ 语音识别完成");
 
-    // [优化] 去重处理：移除连续重复的字幕文本后再发起翻译
+    // [优化] 去重 + 过滤环境音：移除连续重复字幕和 (xxx) 类环境音后再翻译
     {
         QList<SubtitleService::SubtitleEntry> entries =
             SubtitleService::parseSrt(m_currentOriginalSrtPath);
         if (!entries.isEmpty()) {
             int beforeCount = entries.size();
+
+            // Step 1: 去重 — 移除连续重复的字幕文本
             QList<SubtitleService::SubtitleEntry> deduped =
                 SubtitleService::deduplicate(entries);
-            int removedCount = beforeCount - deduped.size();
-            if (removedCount > 0) {
+            int dedupRemoved = beforeCount - deduped.size();
+            if (dedupRemoved > 0) {
                 PluginLogger::info(
                     QString("去重: 移除 %1 条连续重复字幕（共 %2 → %3 条）")
-                        .arg(removedCount).arg(beforeCount).arg(deduped.size()));
+                        .arg(dedupRemoved).arg(beforeCount).arg(deduped.size()));
                 emit logMessage(QString("✓ 去重完成: 移除 %1 条重复字幕（%2 → %3）")
-                    .arg(removedCount).arg(beforeCount).arg(deduped.size()));
-                SubtitleService::writeSrt(m_currentOriginalSrtPath, deduped);
+                    .arg(dedupRemoved).arg(beforeCount).arg(deduped.size()));
+            }
+
+            // Step 2: 过滤环境音 — 移除 (xxx) / [xxx] / （xxx） 类环境音字幕
+            QList<SubtitleService::SubtitleEntry> filtered =
+                SubtitleService::filterEnvironmentSounds(deduped);
+            int envRemoved = deduped.size() - filtered.size();
+            if (envRemoved > 0) {
+                PluginLogger::info(
+                    QString("环境音过滤: 移除 %1 条环境音字幕（%2 → %3 条）")
+                        .arg(envRemoved).arg(deduped.size()).arg(filtered.size()));
+                emit logMessage(QString("✓ 环境音过滤: 移除 %1 条环境音字幕（%2 → %3）")
+                    .arg(envRemoved).arg(deduped.size()).arg(filtered.size()));
+            }
+
+            // 若有变更则写回文件
+            if (dedupRemoved > 0 || envRemoved > 0) {
+                SubtitleService::writeSrt(m_currentOriginalSrtPath, filtered);
             } else {
-                PluginLogger::info("字幕无连续重复，无需去重");
+                PluginLogger::info("字幕无需去重或过滤，保持不变");
             }
         }
     }
@@ -574,12 +605,20 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
     if (m_enableTranslate) {
         setCurrentStep("翻译字幕");
         setProgress(0.0);
+
+        // Detect SRT language from content (not from UI setting, which only controls Whisper)
+        QList<SubtitleService::SubtitleEntry> entries =
+            SubtitleService::parseSrt(m_currentOriginalSrtPath);
+        QString detectedLang = SubtitleService::detectLanguage(entries);
+        PluginLogger::info(QString("SRT 语种检测结果: %1").arg(detectedLang));
+        emit logMessage(QString("→ 检测到字幕语种: %1").arg(detectedLang));
+
         emit logMessage("翻译字幕...");
         PluginLogger::info("步骤 3/4: 翻译字幕中...");
         m_translateService->startTranslate(m_currentOriginalSrtPath,
                                             m_currentTranslatedSrtPath,
                                             translateEngine(), apiKey(),
-                                            apiUrl(), m_targetLanguage,
+                                            apiUrl(), detectedLang, m_targetLanguage,
                                             baiduAppId());
     } else {
         PluginLogger::info("步骤 3/4: 跳过翻译");

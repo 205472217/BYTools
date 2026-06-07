@@ -18,6 +18,7 @@ public:
                         int engine,
                         const QString &apiKey,
                         const QString &apiUrl,
+                        const QString &sourceLang,
                         const QString &targetLang,
                         const QString &baiduAppId = QString());
 
@@ -59,6 +60,7 @@ private:
     int m_currentEngine = 0;
     QString m_currentApiKey;
     QString m_currentApiUrl;
+    QString m_currentSourceLang;   // detected from SRT content
     QString m_currentTargetLang;
     QString m_baiduAppId;
 };

@@ -41,6 +41,14 @@ public:
     // Deduplicate consecutive duplicate text entries (keep first occurrence)
     static QList<SubtitleEntry> deduplicate(const QList<SubtitleEntry> &entries);
 
+    // Filter out environment sound entries (e.g., "(music)", "[Applause]", "（掌声）")
+    // These non-dialog entries are removed completely (text + timestamps)
+    static QList<SubtitleEntry> filterEnvironmentSounds(const QList<SubtitleEntry> &entries);
+
+    // Detect language of subtitle entries by analyzing character ranges
+    // Returns "en", "ja", "zh", "ko", or "auto" (for mixed/unrecognized)
+    static QString detectLanguage(const QList<SubtitleEntry> &entries);
+
 private:
     // Parse SRT time string "00:01:23,456" to milliseconds
     static qint64 parseSrtTime(const QString &timeStr);

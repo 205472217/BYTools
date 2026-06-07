@@ -10,6 +10,19 @@
 #include <QRandomGenerator>
 #include <QRegularExpression>
 
+// Map ISO 639-1 language codes to Baidu Translate API codes
+// Baidu uses non-standard codes for some languages (e.g. jp for ja, kor for ko)
+static QString toBaiduLangCode(const QString &isoCode)
+{
+    static const QHash<QString, QString> map = {
+        // Japanese
+        {"ja", "jp"},
+        // Korean
+        {"ko", "kor"},
+    };
+    return map.value(isoCode, isoCode);  // pass through if not in map
+}
+
 // Strip HTML tags and unescape HTML entities from subtitle text before translation
 static QString sanitizeSubtitleText(const QString &raw)
 {
@@ -63,17 +76,21 @@ void TranslateService::startTranslate(const QString &inputSrtPath,
                                        int engine,
                                        const QString &apiKey,
                                        const QString &apiUrl,
+                                       const QString &sourceLang,
                                        const QString &targetLang,
                                        const QString &baiduAppId)
 {
-    if (m_cancelled) return;
-
+    // MUST reset before checking: cancel() sets this =true, and
+    // without resetting first, every subsequent startTranslate
+    // silently returns without emitting finished() → the caller
+    // (VideoSubtitleController) waits forever → stuck.
     m_cancelled = false;
     m_inputSrtPath = inputSrtPath;
     m_outputSrtPath = outputSrtPath;
     m_currentEngine = engine;
     m_currentApiKey = apiKey;
     m_currentApiUrl = apiUrl;
+    m_currentSourceLang = sourceLang;
     m_currentTargetLang = targetLang;
     m_baiduAppId = baiduAppId;
 
@@ -153,6 +170,12 @@ void TranslateService::translateNext()
 void TranslateService::onReplyFinished(QNetworkReply *reply)
 {
     if (m_cancelled) {
+        reply->deleteLater();
+        return;
+    }
+
+    // Ignore stale replies from aborted previous retries
+    if (reply != m_currentReply) {
         reply->deleteLater();
         return;
     }
@@ -291,8 +314,13 @@ QString TranslateService::buildBaiduUrl(const QJsonArray &texts, const QString &
 
     // URL-encode q (sign uses raw q)
     QString encodedQ = QString::fromUtf8(QUrl::toPercentEncoding(query));
+    // Use detected source language (from SRT content analysis) instead of "auto"
+    // so Baidu API gets a reliable `from` hint (e.g., jp → zh, en → zh)
+    // Map ISO 639-1 codes to Baidu-specific codes (e.g. ja→jp, ko→kor)
+    QString fromLang = m_currentSourceLang.isEmpty() ? "auto" : toBaiduLangCode(m_currentSourceLang);
+    QString toLang = toBaiduLangCode(targetLang);
     QString url = QString("http://api.fanyi.baidu.com/api/trans/vip/translate"
-                          "?q=%1&from=auto&to=%2&appid=%3&salt=%4&sign=%5")
-                      .arg(encodedQ, targetLang, appId, salt, sign);
+                          "?q=%1&from=%2&to=%3&appid=%4&salt=%5&sign=%6")
+                      .arg(encodedQ, fromLang, toLang, appId, salt, sign);
     return url;
 }
