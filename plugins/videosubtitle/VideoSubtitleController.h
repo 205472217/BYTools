@@ -120,6 +120,7 @@ signals:
     void currentStepChanged();
     void settingsRequired();  // Emitted when tools are not configured
     void logMessage(const QString &message);
+    void logDetail(const QString &message);
 
 private slots:
     void onAudioExtracted(bool success, const QString &audioPath, const QString &error);

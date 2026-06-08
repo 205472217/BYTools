@@ -100,11 +100,7 @@ Pane {
     Connections {
         target: controller
         function onLogMessage(message) {
-            // Keep only: ✓ ✗ = - 开头的重要消息，其余中间消息由计时器处理
             if (message.length === 0) return;
-            var c = message.charAt(0);
-            if (c === '→' || c === '跳' || c === '生') return;  // 跳过进度/跳过/生成
-            if (c !== '✓' && c !== '✗' && c !== '=' && c !== '-') return;
             logModel.append({ "text": message });
         }
     }

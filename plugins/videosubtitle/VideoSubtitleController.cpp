@@ -264,7 +264,7 @@ void VideoSubtitleController::execute()
 
     PluginLogger::info(QString("===== 开始批量处理 ====="));
     PluginLogger::info(QString("翻译引擎: %1, 源语言: %2, 目标语言: %3")
-        .arg(translateEngine() == 0 ? "百度翻译" : "不翻译")
+        .arg((translateEngine() == 0) ? "百度翻译" : (translateEngine() == 1) ? "libretranslate" : "未知选项")
         .arg(m_sourceLanguage, m_targetLanguage));
     PluginLogger::info(QString("步骤: 提取音频=%1, 语音识别=%2, 翻译=%3, 烧录=%4")
         .arg(m_enableAudioExtraction ? "开" : "关")
@@ -409,13 +409,14 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
 
     PluginLogger::info(QString("开始处理视频: %1").arg(fi.fileName()));
 
-    emit logMessage(QString("========== 开始处理: %1 ==========").arg(fi.fileName()));
+    emit logMessage(QString("========== 开始处理: %1 ").arg(fi.fileName()));
 
     // [优化] 如果输出视频已存在，跳过整个文件
     if (m_enableBurnSubtitle && QFileInfo::exists(m_currentOutputVideoPath)) {
         QString reason = QString("输出文件已存在，跳过: %1").arg(m_currentOutputVideoPath);
         PluginLogger::info(reason);
         emit logMessage("⏭ " + fi.fileName() + " 输出已存在，跳过");
+        emit logMessage(QString("========== 处理完成: %1 ").arg(fi.fileName()));
         addRecord(m_currentVideoPath, m_currentOutputVideoPath, true, "跳过（输出已存在）");
         processNextFile();
         return;
@@ -490,7 +491,7 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
         connect(m_ffmpegService, &FFmpegService::finished,
                 this, &VideoSubtitleController::onAudioExtracted);
         m_ffmpegService->startExtractAudio(ffmpegPath(), videoPath, m_currentAudioPath);
-        emit logMessage("音频提取...");
+        emit logDetail("音频提取...");
     } else {
         PluginLogger::info("步骤 1/4: 跳过提取音频");
         emit logMessage("跳过音频提取");
@@ -504,9 +505,10 @@ void VideoSubtitleController::onAudioExtracted(bool success, const QString &audi
     if (!success) {
         // 日志记录完整错误详情
         PluginLogger::error("音频提取失败——原始错误: " + error);
-        // 界面显示简明提示（error 已由 FFmpegService 翻译为中文）
-        emit logMessage("✗ 音频提取失败");
-        addRecord(m_currentVideoPath, "", false, "音频提取失败");
+        // 界面显示错误原因（error 已由 FFmpegService 翻译为中文）
+        emit logMessage("✗ 音频提取失败: " + error);
+        addRecord(m_currentVideoPath, "", false, "音频提取失败: " + error);
+        emit logMessage(QString("========== 处理完成: %1 ").arg(QFileInfo(m_currentVideoPath).fileName()));
         processNextFile();
         return;
     }
@@ -535,7 +537,7 @@ void VideoSubtitleController::onAudioExtracted(bool success, const QString &audi
         // Step 2: Transcribe
         setCurrentStep("语音识别");
         setProgress(0.0);
-        emit logMessage("语音识别开始...");
+        emit logDetail("语音识别开始...");
         PluginLogger::info("步骤 2/4: 语音识别中...");
         QFileInfo audioInfo(m_currentAudioPath);
         QString outputDir = audioInfo.absolutePath();
@@ -556,9 +558,10 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
     if (!success) {
         // 日志记录完整错误详情
         PluginLogger::error("语音识别失败——原始错误: " + error);
-        // 界面显示简明提示
-        emit logMessage("✗ 语音识别失败");
-        addRecord(m_currentVideoPath, "", false, "语音识别失败");
+        // 界面显示错误原因
+        emit logMessage("✗ 语音识别失败: " + error);
+        addRecord(m_currentVideoPath, "", false, "语音识别失败: " + error);
+        emit logMessage(QString("========== 处理完成: %1 ").arg(QFileInfo(m_currentVideoPath).fileName()));
         processNextFile();
         return;
     }
@@ -619,7 +622,7 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
         PluginLogger::info(QString("SRT 语种检测结果: %1").arg(detectedLang));
         emit logMessage(QString("→ 检测到字幕语种: %1").arg(detectedLang));
 
-        emit logMessage("翻译字幕...");
+        emit logDetail("翻译字幕...");
         PluginLogger::info("步骤 3/4: 翻译字幕中...");
         m_translateService->startTranslate(m_currentOriginalSrtPath,
                                             m_currentTranslatedSrtPath,
@@ -640,9 +643,10 @@ void VideoSubtitleController::onTranslateFinished(bool success, const QString &s
     if (!success) {
         // 日志记录完整错误详情
         PluginLogger::error("翻译失败——原始错误: " + error);
-        // 界面显示简明提示
-        emit logMessage("✗ 翻译失败");
-        addRecord(m_currentVideoPath, "", false, "翻译失败");
+        // 界面显示错误原因
+        emit logMessage("✗ 翻译失败: " + error);
+        addRecord(m_currentVideoPath, "", false, "翻译失败: " + error);
+        emit logMessage(QString("========== 处理完成: %1 ").arg(QFileInfo(m_currentVideoPath).fileName()));
         processNextFile();
         return;
     }
@@ -655,7 +659,7 @@ void VideoSubtitleController::onTranslateFinished(bool success, const QString &s
     if (m_enableBurnSubtitle) {
         setCurrentStep("烧录字幕");
         setProgress(0.0);
-        emit logMessage("烧录字幕...");
+        emit logDetail("烧录字幕...");
         PluginLogger::info("步骤 4/4: 烧录字幕中...");
         disconnect(m_ffmpegService, &FFmpegService::finished, nullptr, nullptr);
         connect(m_ffmpegService, &FFmpegService::finished,
@@ -684,9 +688,10 @@ void VideoSubtitleController::onBurnFinished(bool success, const QString &output
     } else {
         // 日志记录完整错误详情
         PluginLogger::error("烧录字幕失败——原始错误: " + error);
-        // 界面显示简明提示
-        emit logMessage("✗ 烧录字幕失败");
-        addRecord(m_currentVideoPath, "", false, "烧录字幕失败");
+        // 界面显示错误原因
+        emit logMessage("✗ 烧录字幕失败: " + error);
+        addRecord(m_currentVideoPath, "", false, "烧录字幕失败: " + error);
+        emit logMessage(QString("========== 处理完成: %1 ").arg(QFileInfo(m_currentVideoPath).fileName()));
         processNextFile();
     }
 }
@@ -754,10 +759,10 @@ void VideoSubtitleController::finalizeCurrentFile()
     // Record result
     if (hasAnyOutput && QFileInfo::exists(outputPath)) {
         addRecord(m_currentVideoPath, outputPath, true, "已完成");
-        emit logMessage(QString("========== 处理完成: %1 ==========").arg(outputPath));
+        emit logMessage(QString("========== 处理完成: %1 ").arg(outputPath));
     } else if (hasAnyOutput) {
         addRecord(m_currentVideoPath, outputPath, true, "已完成（中间文件）");
-        emit logMessage(QString("========== 处理完成: %1 ==========").arg(outputPath));
+        emit logMessage(QString("========== 处理完成: %1 ").arg(outputPath));
     } else {
         addRecord(m_currentVideoPath, "", false, "没有文件产出");
         emit logMessage("✗ 没有文件产出");

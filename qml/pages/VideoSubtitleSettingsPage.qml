@@ -10,6 +10,13 @@ Pane {
     signal backRequested
 
     property var settings: null
+    property string copyFeedback: ""
+
+    Timer {
+        id: copyTimer
+        interval: 3000
+        onTriggered: root.copyFeedback = ""
+    }
 
     Component.onCompleted: {
         if (settings && typeof settings.loadSettings === 'function') {
@@ -564,13 +571,6 @@ Pane {
                             }
                         }
 
-                        // Separator
-                        Rectangle {
-                            Layout.fillWidth: true
-                            height: 1
-                            color: "#e2e8f0"
-                        }
-
                         // --- LibreTranslate 安装引导 ---
                         ColumnLayout {
                             Layout.fillWidth: true
@@ -644,66 +644,135 @@ Pane {
                                     font.pixelSize: 12
                                 }
 
-                                Rectangle {
+                                RowLayout {
+                                    spacing: 0
                                     Layout.fillWidth: true
-                                    Layout.preferredHeight: 32
-                                    radius: 4
-                                    color: "#f1f5f9"
+
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 32
+                                        radius: 4
+                                        color: "#f1f5f9"
+
+                                        TextInput {
+                                            id: pipCmdText
+                                            anchors.left: parent.left
+                                            anchors.right: parent.right
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            anchors.leftMargin: 10
+                                            anchors.rightMargin: 10
+                                            text: "python -m pip install libretranslate"
+                                            font.family: "Consolas, 'Courier New', monospace"
+                                            font.pixelSize: 12
+                                            color: "#1e293b"
+                                            readOnly: true
+                                            selectByMouse: true
+                                            cursorVisible: false
+                                            clip: true
+                                        }
+                                    }
+
+                                    Item { Layout.preferredWidth: 8 }
 
                                     Label {
-                                        anchors.left: parent.left
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        anchors.leftMargin: 10
-                                        text: "pip install libretranslate"
-                                        font.family: "Consolas, 'Courier New', monospace"
+                                        id: pipCopyLabel
+                                        text: root.copyFeedback === "pip" ? "已复制" : "复制"
+                                        color: root.copyFeedback === "pip" ? "#059669" : "#2563eb"
                                         font.pixelSize: 12
-                                        color: "#1e293b"
+                                        font.bold: true
+                                        verticalAlignment: Text.AlignVCenter
+                                        Layout.preferredHeight: 32
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            anchors.margins: -4
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                pipCmdText.selectAll();
+                                                pipCmdText.copy();
+                                                root.copyFeedback = "pip";
+                                                copyTimer.start();
+                                            }
+                                        }
                                     }
                                 }
 
                                 Item { Layout.preferredHeight: 2 }
 
                                 Label {
-                                    text: "步骤 2: 启动服务（仅加载需要的语言对）："
+                                    text: "步骤 2: 启动服务（仅加载需要的语言: en=英语,zh=中文,ja=日语,ja=日语,ko=韩语）："
                                     color: "#475569"
                                     font.pixelSize: 12
                                 }
 
-                                Rectangle {
+                                RowLayout {
+                                    spacing: 0
                                     Layout.fillWidth: true
-                                    Layout.preferredHeight: 32
-                                    radius: 4
-                                    color: "#f1f5f9"
+
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 32
+                                        radius: 4
+                                        color: "#f1f5f9"
+
+                                        TextInput {
+                                            id: ltCmdText
+                                            anchors.left: parent.left
+                                            anchors.right: parent.right
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            anchors.leftMargin: 10
+                                            anchors.rightMargin: 10
+                                            text: "py -m libretranslate.main --load-only en,zh,ja,ko"
+                                            font.family: "Consolas, 'Courier New', monospace"
+                                            font.pixelSize: 12
+                                            color: "#1e293b"
+                                            readOnly: true
+                                            selectByMouse: true
+                                            cursorVisible: false
+                                            clip: true
+                                        }
+                                    }
+
+                                    Item { Layout.preferredWidth: 8 }
 
                                     Label {
-                                        anchors.left: parent.left
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        anchors.leftMargin: 10
-                                        text: "libretranslate --load-only en,zh,ja,ko"
-                                        font.family: "Consolas, 'Courier New', monospace"
+                                        id: ltCopyLabel
+                                        text: root.copyFeedback === "lt" ? "已复制" : "复制"
+                                        color: root.copyFeedback === "lt" ? "#059669" : "#2563eb"
                                         font.pixelSize: 12
-                                        color: "#1e293b"
+                                        font.bold: true
+                                        verticalAlignment: Text.AlignVCenter
+                                        Layout.preferredHeight: 32
+
+                                        MouseArea {
+                                            anchors.fill: parent
+                                            anchors.margins: -4
+                                            cursorShape: Qt.PointingHandCursor
+                                            onClicked: {
+                                                ltCmdText.selectAll();
+                                                ltCmdText.copy();
+                                                root.copyFeedback = "lt";
+                                                copyTimer.start();
+                                            }
+                                        }
                                     }
                                 }
                             }
 
-                            Item { Layout.preferredHeight: 4 }
-
                             // 说明文字
-                            Label {
-                                text: "首次启动会自动下载翻译模型（约 500MB-2GB），下载完成后即可离线使用。<br>服务默认监听 <b>http://localhost:5000</b>，可在上方修改地址。"
-                                color: "#64748b"
-                                font.pixelSize: 11
-                                wrapMode: Text.WordWrap
-                                Layout.fillWidth: true
-                                textFormat: Text.RichText
-                            }
-
-                            // GitHub 链接
                             RowLayout {
                                 spacing: 8
                                 Layout.fillWidth: true
                                 Layout.topMargin: 4
+
+                                Label {
+                                    text: "首次启动会自动下载翻译模型（约 500MB-2GB），下载完成后即可离线使用。<br>出现Running on http://127.0.0.1:5000即为成功，不要关闭窗口。<br>服务默认监听 <b>http://localhost:5000</b>，可在上方修改地址。"
+                                    color: "#64748b"
+                                    font.pixelSize: 11
+                                    wrapMode: Text.WordWrap
+                                    Layout.fillWidth: true
+                                    textFormat: Text.RichText
+                                }
 
                                 Item { Layout.fillWidth: true }
 
