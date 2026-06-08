@@ -502,9 +502,11 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
 void VideoSubtitleController::onAudioExtracted(bool success, const QString &audioPath, const QString &error)
 {
     if (!success) {
-        PluginLogger::error("提取音频失败: " + error);
-        emit logMessage("✗ 音频提取失败: " + error);
-        addRecord(m_currentVideoPath, "", false, "提取音频失败: " + error);
+        // 日志记录完整错误详情
+        PluginLogger::error("音频提取失败——原始错误: " + error);
+        // 界面显示简明提示（error 已由 FFmpegService 翻译为中文）
+        emit logMessage("✗ 音频提取失败");
+        addRecord(m_currentVideoPath, "", false, "音频提取失败");
         processNextFile();
         return;
     }
@@ -552,9 +554,11 @@ void VideoSubtitleController::onAudioExtracted(bool success, const QString &audi
 void VideoSubtitleController::onTranscribeFinished(bool success, const QString &srtPath, const QString &error)
 {
     if (!success) {
-        PluginLogger::error("语音识别失败: " + error);
-        emit logMessage("✗ 语音识别失败: " + error);
-        addRecord(m_currentVideoPath, "", false, "语音识别失败: " + error);
+        // 日志记录完整错误详情
+        PluginLogger::error("语音识别失败——原始错误: " + error);
+        // 界面显示简明提示
+        emit logMessage("✗ 语音识别失败");
+        addRecord(m_currentVideoPath, "", false, "语音识别失败");
         processNextFile();
         return;
     }
@@ -634,9 +638,11 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
 void VideoSubtitleController::onTranslateFinished(bool success, const QString &srtPath, const QString &error)
 {
     if (!success) {
-        PluginLogger::error("翻译失败: " + error);
-        emit logMessage("✗ 翻译失败: " + error);
-        addRecord(m_currentVideoPath, "", false, "翻译失败: " + error);
+        // 日志记录完整错误详情
+        PluginLogger::error("翻译失败——原始错误: " + error);
+        // 界面显示简明提示
+        emit logMessage("✗ 翻译失败");
+        addRecord(m_currentVideoPath, "", false, "翻译失败");
         processNextFile();
         return;
     }
@@ -674,11 +680,15 @@ void VideoSubtitleController::onBurnFinished(bool success, const QString &output
     if (success) {
         PluginLogger::info(QString("烧录完成: %1 → %2").arg(m_currentVideoPath, outputPath));
         emit logMessage("✓ 烧录完成");
+        finalizeCurrentFile();
     } else {
-        PluginLogger::error("烧录字幕失败: " + error);
-        emit logMessage("✗ 烧录字幕失败: " + error);
+        // 日志记录完整错误详情
+        PluginLogger::error("烧录字幕失败——原始错误: " + error);
+        // 界面显示简明提示
+        emit logMessage("✗ 烧录字幕失败");
+        addRecord(m_currentVideoPath, "", false, "烧录字幕失败");
+        processNextFile();
     }
-    finalizeCurrentFile();
 }
 
 void VideoSubtitleController::finalizeCurrentFile()

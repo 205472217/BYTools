@@ -1,4 +1,4 @@
-#include "WhisperService.h"
+﻿#include "WhisperService.h"
 #include "PluginLogger.h"
 #include <QFileInfo>
 #include <QDir>
@@ -154,9 +154,30 @@ void WhisperService::onProcessFinished(int exitCode, QProcess::ExitStatus exitSt
 
     QString error;
     if (!success) {
-        error = QString::fromUtf8(m_process->readAllStandardError());
-        if (error.isEmpty())
-            error = QString("Whisper 退出，代码 %1").arg(exitCode);
+        QString rawError = QString::fromUtf8(m_process->readAllStandardError());
+        // 日志记录完整原始错误
+        if (!rawError.isEmpty())
+            PluginLogger::error("Whisper 原始错误: " + rawError);
+        // 界面展示简明中文提示
+        if (rawError.isEmpty()) {
+            error = QString("语音识别工具无响应（退出码 %1）").arg(exitCode);
+        } else if (rawError.contains("failed to load model") || rawError.contains("error loading model")) {
+            error = "模型文件加载失败，请检查模型路径和格式";
+        } else if (rawError.contains("cannot open")) {
+            error = "无法打开音频文件，文件可能不存在或已被删除";
+        } else if (rawError.contains("KEG") || rawError.contains("out of memory")) {
+            error = "语音识别内存不足，请关闭其他程序后重试";
+        } else if (rawError.contains("error: ")) {
+            // 取 error: 后面的内容作为提示
+            int idx = rawError.indexOf("error: ");
+            QString detail = rawError.mid(idx + 7, 80).trimmed();
+            error = "语音识别出错: " + detail;
+        } else {
+            QString cleaned = rawError.trimmed();
+            if (cleaned.length() > 100)
+                cleaned = cleaned.left(100) + "...";
+            error = "语音识别失败: " + cleaned;
+        }
     }
 
     m_process->deleteLater();
@@ -169,7 +190,7 @@ void WhisperService::onProcessFinished(int exitCode, QProcess::ExitStatus exitSt
 void WhisperService::onProcessTimeout()
 {
     PluginLogger::error("Whisper 进程超时，强制终止");
-    emit statusUpdate("✗ 语音识别超时");
+    emit statusUpdate("✗ 语音识别超时，进程已终止");
 
     if (m_process) {
         if (m_process->state() != QProcess::NotRunning) {

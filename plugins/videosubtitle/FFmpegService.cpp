@@ -426,8 +426,46 @@ void FFmpegService::onProcessFinished(int exitCode, QProcess::ExitStatus exitSta
     QString error;
 
     if (!success) {
-        // 用 onProcessReadyRead 缓存的 stderr 数据（避免 readyRead 先消费完的错误信息）
-        error = QString::fromLocal8Bit(m_lastStderrBuffer);
+        // 原始 stderr（含完整技术细节，写入日志）
+        QString rawError = QString::fromLocal8Bit(m_lastStderrBuffer);
+
+        // 日志记录完整的原始错误
+        PluginLogger::error(QString("FFmpeg %1 失败——原始错误: %2")
+            .arg(m_isExtracting ? "音频提取" : "烧录字幕", rawError));
+
+        // 界面展示简明的中文提示
+        if (rawError.contains("Output file does not contain any stream")) {
+            error = "视频中没有音频轨道，无法提取音频";
+        } else if (rawError.contains("Invalid data found when processing input")) {
+            error = "无法读取视频文件，文件可能已损坏或格式不支持";
+        } else if (rawError.contains("No such file or directory")) {
+            error = "视频文件不存在或路径错误";
+        } else if (rawError.contains("Permission denied")) {
+            error = "没有权限访问视频文件";
+        } else if (rawError.contains("Invalid argument")) {
+            error = "FFmpeg 参数错误，可能是视频编码格式不支持";
+        } else {
+            // 截取有意义的部分，去掉内存地址等杂乱信息
+            QString cleaned = rawError;
+            cleaned.replace(QRegularExpression("\[.*? @ [0-9a-fA-F]+\]"), "");
+            cleaned.replace(QRegularExpression("\[.*? @ 0x[0-9a-fA-F]+\]"), "");
+            cleaned = cleaned.trimmed();
+            if (!cleaned.isEmpty()) {
+                // 取最后一行有意义的信息（通常是核心错误描述）
+                QStringList lines = cleaned.split('\n', Qt::SkipEmptyParts);
+                for (const auto &l : lines) {
+                    QString t = l.trimmed();
+                    if (!t.startsWith('[') && !t.startsWith("Error ")) {
+                        error = t;
+                        break;
+                    }
+                }
+                if (error.isEmpty())
+                    error = lines.last().trimmed();
+            }
+            if (error.isEmpty())
+                error = "处理视频时发生未知错误";
+        }
     }
 
     m_process->deleteLater();
@@ -437,7 +475,7 @@ void FFmpegService::onProcessFinished(int exitCode, QProcess::ExitStatus exitSta
     if (!success && m_useHardwareAccel && !m_burnFallbackTried) {
         m_burnFallbackTried = true;
         m_useHardwareAccel = false;  // 禁用 GPU，下次用软件
-        PluginLogger::warn(QString("GPU 加速烧录失败，回退到软件编码重试。错误: %1").arg(error));
+        // GPU 回退：日志已在上方记录了原始 stderr，这里不再重复
 
         const auto &p = m_burnParams;
         // 重新调用 startBurnSubtitles（会重建 m_process，不会递归）
