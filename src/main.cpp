@@ -1,6 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQmlError>
 #include <QQuickStyle>
 #include <QDebug>
 
@@ -16,7 +17,7 @@ int main(int argc, char *argv[])
 
     qDebug() << "=== Starting BYTools ===";
     qDebug() << "Application dir:" << QCoreApplication::applicationDirPath();
-    
+
     QStringList loadedPlugins = PluginManager::instance()->loadPlugins();
     qDebug() << "Loaded plugins count:" << loadedPlugins.count();
     qDebug() << "Loaded plugins:" << loadedPlugins;
@@ -26,6 +27,14 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("appController", &appController);
     engine.rootContext()->setContextProperty("pluginManager", PluginManager::instance());
+
+    QObject::connect(
+        &engine,
+        &QQmlEngine::warnings,
+        [](const QList<QQmlError> &warnings) {
+            for (const auto &w : warnings)
+                qDebug() << "QML:" << w.toString();
+        });
 
     QObject::connect(
         &engine,

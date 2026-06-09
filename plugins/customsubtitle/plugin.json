@@ -1,0 +1,6 @@
+{
+    "id": "custom-subtitle",
+    "name": "自定义视频字幕",
+    "description": "从网站下载字幕，匹配视频并合成，替换原视频",
+    "version": "1.0.0"
+}

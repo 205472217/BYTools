@@ -36,22 +36,39 @@ if (WIN32)
     )
 endif()
 
+# Optional Qt6 WebEngine for embedded browser
+find_package(Qt6 QUIET COMPONENTS WebEngineQuick WebEngineCore)
+if(Qt6WebEngineQuick_FOUND)
+    message(STATUS "BYTools: Qt6 WebEngine found - embedded browser enabled")
+    add_definitions(-DHAS_QTWEBENGINE)
+else()
+    message(STATUS "BYTools: Qt6 WebEngine not found - browser features disabled")
+endif()
+
+# Build QML files list (WebEnginePage is conditional on Qt6 WebEngine)
+set(BYTOOLS_QML_FILES
+    qml/Main.qml
+    qml/components/FeatureCard.qml
+    qml/components/IconButton.qml
+    qml/components/TextFieldEx.qml
+    qml/components/ComboBoxEx.qml
+    qml/pages/HomePage.qml
+    qml/pages/NameConverterPage.qml
+    qml/pages/BatchRenamePage.qml
+    qml/pages/ImageConverterPage.qml
+    qml/pages/ImageCropPage.qml
+    qml/pages/VideoSubtitlePage.qml
+    qml/pages/VideoSubtitleSettingsPage.qml
+    qml/pages/CustomSubtitlePage.qml
+)
+if(Qt6WebEngineQuick_FOUND)
+    list(APPEND BYTOOLS_QML_FILES qml/components/WebEnginePage.qml)
+endif()
+
 qt_add_qml_module(BYTools
     URI BYTools
     VERSION 1.0
-    QML_FILES
-        qml/Main.qml
-        qml/components/FeatureCard.qml
-        qml/components/IconButton.qml
-        qml/components/TextFieldEx.qml
-        qml/components/ComboBoxEx.qml
-        qml/pages/HomePage.qml
-        qml/pages/NameConverterPage.qml
-        qml/pages/BatchRenamePage.qml
-        qml/pages/ImageConverterPage.qml
-        qml/pages/ImageCropPage.qml
-        qml/pages/VideoSubtitlePage.qml
-        qml/pages/VideoSubtitleSettingsPage.qml
+    QML_FILES ${BYTOOLS_QML_FILES}
     # 资源文件
     RESOURCES
         qml/resources.qrc
@@ -60,6 +77,10 @@ qt_add_qml_module(BYTools
 target_link_libraries(BYTools
     PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Core
 )
+
+if(Qt6WebEngineQuick_FOUND)
+    target_link_libraries(BYTools PRIVATE Qt6::WebEngineQuick)
+endif()
 
 if(WIN32)
     target_compile_definitions(BYTools PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
@@ -70,3 +91,4 @@ add_subdirectory(plugins/batchrename)
 add_subdirectory(plugins/imageconverter)
 add_subdirectory(plugins/imagecrop)
 add_subdirectory(plugins/videosubtitle)
+add_subdirectory(plugins/customsubtitle)

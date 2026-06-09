@@ -85,6 +85,8 @@ ApplicationWindow {
                     stackView.push(imageCropPageComponent, {controller: controller})
                 } else if (featureId === "video-subtitle") {
                     stackView.push(videoSubtitlePageComponent, {controller: controller})
+                } else if (featureId === "custom-subtitle") {
+                    stackView.push(customSubtitlePageComponent, {controller: controller})
                 }
             }
         }
@@ -155,6 +157,17 @@ ApplicationWindow {
             settings: pluginManager.getPluginSettings("video-subtitle")
             onBackRequested: {
                 stackView.pop()
+            }
+        }
+    }
+
+    Component {
+        id: customSubtitlePageComponent
+
+        CustomSubtitlePage {
+            onBackRequested: {
+                stackView.pop()
+                window.currentFeatureId = ""
             }
         }
     }

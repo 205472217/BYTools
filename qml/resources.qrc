@@ -6,12 +6,13 @@
         <file>icons/play.svg</file>
         <file>icons/trash.svg</file>
         <file>icons/undo.svg</file>
-		<file>icons/card-batch-rename.svg</file>
-		<file>icons/card-image-converter.svg</file>
-		<file>icons/card-image-crop.svg</file>
-		<file>icons/card-name-converter.svg</file>
-		<file>icons/card-video-subtitle.svg</file>
-		<file>icons/settings.svg</file>
-		<file>icons/eye.svg</file>
+	<file>icons/card-batch-rename.svg</file>
+	<file>icons/card-image-converter.svg</file>
+	<file>icons/card-image-crop.svg</file>
+	<file>icons/card-name-converter.svg</file>
+	<file>icons/card-video-subtitle.svg</file>
+	<file>icons/settings.svg</file>
+	<file>icons/eye.svg</file>
+	<file>icons/card-custom-subtitle.svg</file>
     </qresource>
 </RCC>
