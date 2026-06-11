@@ -10,7 +10,6 @@ Pane {
     signal backRequested
 
     property var controller: null
-    property var _logEntries: [] // full log kept internally
 
     padding: 0
     background: Rectangle {
@@ -45,6 +44,16 @@ Pane {
         }
     }
 
+    FileDialog {
+        id: ffmpegFileDialog
+        title: "选择 ffmpeg.exe"
+        nameFilters: ["ffmpeg (ffmpeg.exe)", "All Files (*)"]
+        onAccepted: {
+            if (controller)
+                controller.ffmpegPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
+        }
+    }
+
     // ── Log state ──
     property string _lastLogLine: ""
 
@@ -53,7 +62,6 @@ Pane {
         function onLogMessage(message) {
             if (message.length === 0)
                 return;
-            _logEntries.push(message);
             _lastLogLine = message;
         }
     }
@@ -237,6 +245,120 @@ Pane {
                         onClicked: mergedOutputFolderDialog.open()
                     }
                 }
+
+                // Row 4: FFmpeg 路径
+                RowLayout {
+                    spacing: 12
+                    Layout.fillWidth: true
+
+                    Label {
+                        text: "FFmpeg"
+                        color: "#475569"
+                        font.pixelSize: 12
+                        font.bold: true
+                        Layout.preferredWidth: 72
+                    }
+
+                    TextFieldEx {
+                        Layout.fillWidth: true
+                        implicitHeight: 26
+                        text: controller ? controller.ffmpegPath : ""
+                        readOnly: true
+                        placeholderText: "选择 ffmpeg.exe 路径（用于合成视频+字幕）"
+                        font.pixelSize: 11
+                    }
+
+                    IconButton {
+                        implicitWidth: 26
+                        implicitHeight: 26
+                        iconSource: "qrc:/icons/folder.svg"
+                        tooltip: "选择 ffmpeg.exe"
+                        onClicked: ffmpegFileDialog.open()
+                    }
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════
+        // Merged status + progress bar (compact)
+        // ═══════════════════════════════════════
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 36
+            radius: 6
+            color: (controller && controller.statusMessage) ? "#eff6ff" : "transparent"
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
+                anchors.topMargin: 4
+                anchors.bottomMargin: 4
+                spacing: 2
+
+                // Row 1: real-time log + current file
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Label {
+                        Layout.fillWidth: true
+                        text: controller && controller.isProcessing
+                              ? (_lastLogLine.length > 0 ? _lastLogLine : "")
+                        : (_lastLogLine.length > 0
+                                 ? _lastLogLine
+                                 : (controller && controller.statusMessage.length > 0
+                                    ? controller.statusMessage : ""))
+                        color: "#475569"
+                        font.pixelSize: 11
+                        font.family: "Consolas, 'Courier New', monospace"
+                        elide: Text.ElideRight
+                    }
+
+                    Label {
+                        visible: controller && controller.isProcessing
+                                 && controller.currentFile.length > 0
+                        text: "[" + controller.currentFile + "]"
+                        color: "#2563EB"
+                        font.pixelSize: 11
+                        font.family: "Consolas, 'Courier New', monospace"
+                        font.bold: true
+                    }
+                }
+
+                // Row 2: progress（步骤3耗时→走进度条，步骤2/4→走总进度）
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+                    visible: controller ? controller.isProcessing : false
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 4
+                        Layout.alignment: Qt.AlignVCenter
+                        radius: 2
+                        color: "#e2e8f0"
+                        visible: controller && controller.currentStep === "合成视频+字幕"
+
+                        Rectangle {
+                            width: parent.width * (controller ? controller.progress : 0)
+                            height: parent.height
+                            radius: 2
+                            color: "#2563eb"
+                        }
+                    }
+
+                    Label {
+                        text: controller && controller.currentStep === "合成视频+字幕"
+                              ? Math.round(controller.progress * 100) + "%"
+                              : (controller.totalCount > 0
+                                 ? controller.processedCount + "/" + controller.totalCount
+                                 : "")
+                        color: "#2563eb"
+                        font.pixelSize: 11
+                        font.bold: true
+                    }
+                }
             }
         }
 
@@ -246,44 +368,28 @@ Pane {
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: 16
+            spacing: 10
 
             // ── Left Panel: Web Browser ─────────────────
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                radius: 10
-                color: "#ffffff"
-                border.color: "#e5e9f0"
+                radius: 8
+                color: "#f8fafc"
+                border.color: "#e2e8f0"
                 border.width: 1
                 clip: true
 
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: -2
-                    radius: 12
-                    color: "#1e3a5f"
-                    opacity: 0.04
-                    z: -1
-                }
-
                 ColumnLayout {
                     anchors.fill: parent
+                    anchors.margins: 2
                     spacing: 0
 
                     // Step 1 header
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 40
-                        color: "#f8fafc"
-
-                        Rectangle {
-                            anchors.bottom: parent.bottom
-                            width: parent.width
-                            height: 1
-                            color: "#e8ecf2"
-                        }
-
+                        
                         RowLayout {
                             anchors.fill: parent
                             anchors.leftMargin: 14
@@ -307,6 +413,13 @@ Pane {
                                 font.pixelSize: 10
                             }
                         }
+                    }
+
+                    // separator 
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                        color: "#e2e8f0"
                     }
 
                     // Browser area: Loader for WebEnginePage + fallback
@@ -338,9 +451,6 @@ Pane {
                             anchors.fill: parent
                             visible: browserLoader.status !== Loader.Ready
                             color: "#f8fafc"
-                            border.color: "#e2e8f0"
-                            border.width: 1
-                            radius: 6
 
                             Column {
                                 anchors.centerIn: parent
@@ -430,36 +540,18 @@ Pane {
             Rectangle {
                 Layout.preferredWidth: 280
                 Layout.fillHeight: true
-                radius: 10
-                color: "#ffffff"
-                border.color: "#e5e9f0"
-                border.width: 1
-
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: -2
-                    radius: 12
-                    color: "#1e3a5f"
-                    opacity: 0.04
-                    z: -1
-                }
+                color: "transparent"
+                clip: true
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 16
-                    spacing: 12
-
-                    Label {
-                        text: "后续步骤"
-                        color: "#64748b"
-                        font.pixelSize: 11
-                        font.bold: true
-                    }
+                    anchors.margins: 0
+                    spacing: 10
 
                     // ── Step 2 ──
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 100
+                        Layout.preferredHeight: 110
                         radius: 8
                         color: "#f8fafc"
                         border.color: "#e2e8f0"
@@ -468,13 +560,27 @@ Pane {
                         ColumnLayout {
                             anchors.fill: parent
                             anchors.margins: 10
-                            spacing: 6
+                            spacing: 5
 
-                            Label {
-                                text: "步骤2：匹配并移动字幕"
-                                color: "#111827"
-                                font.pixelSize: 13
-                                font.bold: true
+                            RowLayout {
+                                spacing: 5
+
+                                Label {
+                                    text: "步骤2：匹配并移动字幕"
+                                    color: "#111827"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    Layout.fillWidth: true
+                                }
+
+                                BusyIndicator {
+                                    width: 40
+                                    height: 40
+                                    implicitWidth: 20
+                                    implicitHeight: 20
+                                    running: controller && controller.currentStep === "匹配并移动字幕"
+                                    visible: running
+                                }
                             }
 
                             Label {
@@ -506,7 +612,7 @@ Pane {
                     // ── Step 3 ──
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 100
+                        Layout.preferredHeight: 110
                         radius: 8
                         color: "#f8fafc"
                         border.color: "#e2e8f0"
@@ -515,13 +621,27 @@ Pane {
                         ColumnLayout {
                             anchors.fill: parent
                             anchors.margins: 10
-                            spacing: 6
+                            spacing: 5
 
-                            Label {
-                                text: "步骤3：合成视频+字幕"
-                                color: "#111827"
-                                font.pixelSize: 13
-                                font.bold: true
+                            RowLayout {
+                                spacing: 5
+
+                                Label {
+                                    text: "步骤3：合成视频+字幕"
+                                    color: "#111827"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    Layout.fillWidth: true
+                                }
+
+                                BusyIndicator {
+                                    width: 40
+                                    height: 40
+                                    implicitWidth: 20
+                                    implicitHeight: 20
+                                    running: controller && controller.currentStep === "合成视频+字幕"
+                                    visible: running
+                                }
                             }
 
                             Label {
@@ -534,8 +654,9 @@ Pane {
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                spacing: 6
+                                spacing: 5
 
+                                // 空闲状态：执行按钮
                                 CheckBox {
                                     text: "GPU加速"
                                     checked: controller ? controller.gpuAccel : false
@@ -546,6 +667,7 @@ Pane {
                                         if (controller)
                                             controller.gpuAccel = checked;
                                     }
+                                    visible: !controller || !controller.isProcessing
                                 }
 
                                 IconButton {
@@ -553,14 +675,50 @@ Pane {
                                     implicitHeight: 28
                                     text: "执行"
                                     tooltip: "合成视频+字幕"
-                                    normalColor: controller && controller.isProcessing ? "#94a3b8" : "#8b5cf6"
+                                    normalColor: "#8b5cf6"
                                     hoverColor: "#7c3aed"
                                     borderColor: "#7c3aed"
                                     textColor: "#ffffff"
                                     enabled: !controller || !controller.isProcessing
+                                    visible: !controller || !controller.isProcessing
                                     onClicked: {
                                         if (controller)
                                             controller.mergeSubtitleToVideo();
+                                    }
+                                }
+
+                                // 运行状态：停止控制
+                                IconButton {
+                                    Layout.preferredWidth: 84
+                                    implicitHeight: 28
+                                    text: "当前完成停止"
+                                    tooltip: "处理完当前视频后停止，不再继续下一个"
+                                    normalColor: "#f59e0b"
+                                    hoverColor: "#d97706"
+                                    borderColor: "#d97706"
+                                    textColor: "#ffffff"
+                                    enabled: controller ? controller.isProcessing : false
+                                    visible: controller ? controller.isProcessing : false
+                                    onClicked: {
+                                        if (controller)
+                                            controller.requestStopAfterCurrent();
+                                    }
+                                }
+
+                                IconButton {
+                                    Layout.preferredWidth: 72
+                                    implicitHeight: 28
+                                    text: "立即停止"
+                                    tooltip: "强制终止当前合成任务"
+                                    normalColor: "#dc2626"
+                                    hoverColor: "#b91c1c"
+                                    borderColor: "#b91c1c"
+                                    textColor: "#ffffff"
+                                    enabled: controller ? controller.isProcessing : false
+                                    visible: controller ? controller.isProcessing : false
+                                    onClicked: {
+                                        if (controller)
+                                            controller.cancel();
                                     }
                                 }
                             }
@@ -570,7 +728,7 @@ Pane {
                     // ── Step 4 ──
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 100
+                        Layout.preferredHeight: 110
                         radius: 8
                         color: "#f8fafc"
                         border.color: "#e2e8f0"
@@ -579,13 +737,27 @@ Pane {
                         ColumnLayout {
                             anchors.fill: parent
                             anchors.margins: 10
-                            spacing: 6
+                            spacing: 5
 
-                            Label {
-                                text: "步骤4：匹配+替换原视频"
-                                color: "#111827"
-                                font.pixelSize: 13
-                                font.bold: true
+                            RowLayout {
+                                spacing: 5
+
+                                Label {
+                                    text: "步骤4：匹配+替换原视频"
+                                    color: "#111827"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    Layout.fillWidth: true
+                                }
+
+                                BusyIndicator {
+                                    width: 40
+                                    height: 40
+                                    implicitWidth: 20
+                                    implicitHeight: 20
+                                    running: controller && controller.currentStep === "替换原视频"
+                                    visible: running
+                                }
                             }
 
                             Label {
@@ -617,7 +789,7 @@ Pane {
                                     implicitHeight: 28
                                     text: "执行"
                                     tooltip: "替换原视频"
-                                    normalColor: controller && controller.isProcessing ? "#94a3b8" : "#dc2626"
+                                    normalColor: "#dc2626"
                                     hoverColor: "#b91c1c"
                                     borderColor: "#b91c1c"
                                     textColor: "#ffffff"
@@ -627,117 +799,29 @@ Pane {
                                             controller.replaceOriginalVideo();
                                     }
                                 }
+
+                                IconButton {
+                                    Layout.preferredWidth: 72
+                                    implicitHeight: 28
+                                    text: "取消替换"
+                                    tooltip: "强制终止替换操作"
+                                    normalColor: "#dc2626"
+                                    hoverColor: "#b91c1c"
+                                    borderColor: "#b91c1c"
+                                    textColor: "#ffffff"
+                                    enabled: controller ? controller.isProcessing : false
+                                    visible: controller ? controller.isProcessing : false
+                                    onClicked: {
+                                        if (controller)
+                                            controller.cancel();
+                                    }
+                                }
                             }
                         }
                     }
 
                     Item {
                         Layout.fillHeight: true
-                    }
-
-                    // ── Status / Progress ──
-                    Rectangle {
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: progressRow.implicitHeight + 12
-                        radius: 6
-                        color: controller && controller.statusMessage ? "#eff6ff" : "transparent"
-                        visible: controller ? (controller.isProcessing || controller.statusMessage.length > 0) : false
-
-                        ColumnLayout {
-                            id: progressRow
-                            anchors.fill: parent
-                            anchors.margins: 6
-                            spacing: 3
-
-                            Label {
-                                Layout.fillWidth: true
-                                text: controller ? controller.statusMessage : ""
-                                color: "#475569"
-                                font.pixelSize: 10
-                                elide: Text.ElideRight
-                            }
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 4
-                                visible: controller ? controller.isProcessing : false
-
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    Layout.preferredHeight: 3
-                                    radius: 2
-                                    color: "#e2e8f0"
-
-                                    Rectangle {
-                                        width: parent.width * (controller ? controller.progress : 0)
-                                        height: parent.height
-                                        radius: 2
-                                        color: "#2563eb"
-                                    }
-                                }
-
-                                Label {
-                                    text: controller ? Math.round(controller.progress * 100) + "%" : ""
-                                    color: "#2563eb"
-                                    font.pixelSize: 10
-                                    font.bold: true
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // ═══════════════════════════════════════
-        // Bottom: One-line real-time log
-        // ═══════════════════════════════════════
-        Rectangle {
-            Layout.fillWidth: true
-            implicitHeight: 32
-            radius: 6
-            color: _lastLogLine.length > 0 ? "#f1f5f9" : "transparent"
-
-            RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: 12
-                anchors.rightMargin: 12
-                spacing: 8
-
-                Rectangle {
-                    width: 6
-                    height: 6
-                    radius: 3
-                    color: {
-                        if (_lastLogLine.charAt(0) === '✗')
-                            return "#dc2626";
-                        if (_lastLogLine.charAt(0) === '✓')
-                            return "#059669";
-                        return "#3b82f6";
-                    }
-                }
-
-                Label {
-                    Layout.fillWidth: true
-                    text: _lastLogLine
-                    color: "#475569"
-                    font.pixelSize: 11
-                    font.family: "Consolas, 'Courier New', monospace"
-                    elide: Text.ElideRight
-                }
-
-                IconButton {
-                    implicitWidth: 24
-                    implicitHeight: 24
-                    iconSource: "qrc:/icons/trash.svg"
-                    tooltip: "清空日志"
-                    visible: _lastLogLine.length > 0
-                    normalColor: "transparent"
-                    hoverColor: "#e2e8f0"
-                    borderColor: "transparent"
-                    onClicked: {
-                        _logEntries = [];
-                        _lastLogLine = "";
                     }
                 }
             }

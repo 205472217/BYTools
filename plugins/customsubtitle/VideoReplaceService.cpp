@@ -3,11 +3,43 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
+#include <QCollator>
+#include <algorithm>
 #include <QFile>
+#include <QAtomicInt>
+
+// ── 辅助函数（定义在使用前） ──
+
+/// 在 rootDir 下递归搜索同名文件（同 Python 的 Path.rglob）
+static QString findFileRecursive(const QString &rootDir, const QString &fileName)
+{
+    QDirIterator it(rootDir, QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        it.next();
+        if (it.fileName() == fileName) {
+            return it.filePath();
+        }
+    }
+    return {};
+}
+
+// ── VideoReplaceService ──
 
 VideoReplaceService::VideoReplaceService(QObject *parent)
     : QObject(parent)
 {
+    // Worker 线程启动后执行 doWork
+    connect(&m_workerThread, &QThread::started, this, &VideoReplaceService::doWork);
+    connect(&m_workerThread, &QThread::finished, this, [this]() {
+        m_workerRunning = false;
+    });
+}
+
+VideoReplaceService::~VideoReplaceService()
+{
+    cancel();
+    m_workerThread.quit();
+    m_workerThread.wait(5000);
 }
 
 void VideoReplaceService::startReplace(const QString &videoDir,
@@ -16,122 +48,283 @@ void VideoReplaceService::startReplace(const QString &videoDir,
                                         bool removeSrt,
                                         bool backupOriginal)
 {
+    if (m_workerRunning) {
+        emit logMessage("✗ 已有替换任务正在执行");
+        return;
+    }
+
     m_videoDir = videoDir;
     m_mergedDir = mergedDir;
     m_recursive = recursive;
     m_removeSrt = removeSrt;
     m_backupOriginal = backupOriginal;
-    m_cancelled = false;
-    m_currentIndex = -1;
+    m_cancelled.storeRelaxed(0);
+    m_totalVideoCount = 0;
     m_successCount = 0;
     m_failCount = 0;
     m_items.clear();
 
+    PluginLogger::info(QString("========== 步骤4：替换原视频 =========="));
+
+    // === 扫描匹配（在主线程完成，同 Python 的 scan_videos_recursive + rglob）===
     QDir mDir(mergedDir);
     if (!mDir.exists()) {
-        emit logMessage("✗ 合成视频目录不存在: " + mergedDir);
+        QString err = "✗ 合成视频目录不存在: " + mergedDir;
+        emit logMessage(err);
+        PluginLogger::error(err);
         emit finished(false, "合成视频目录不存在");
         return;
     }
 
-    // Scan original video directory
-    emit logMessage("步骤4：扫描原视频目录...");
-    QDirIterator::IteratorFlags flags = QDirIterator::NoIteratorFlags;
-    if (recursive) flags = QDirIterator::Subdirectories;
+    emit logMessage(QString("步骤4：扫描原视频目录..."));
+    PluginLogger::info(QString("原视频目录: %1 (递归=%2)").arg(videoDir).arg(recursive));
+    PluginLogger::info(QString("合成视频目录: %1").arg(mergedDir));
 
-    QDirIterator it(videoDir, QDir::Files, flags);
-    while (it.hasNext()) {
-        it.next();
-        QFileInfo fi = it.fileInfo();
-        QString lower = fi.suffix().toLower();
-        if (!m_videoExts.contains("." + lower)) continue;
+    // 统计：原视频总数（不考虑是否有合成文件）
+    m_totalVideoCount = 0;
+    int srtCount = 0;
 
-        // Look for matching merged file in mergedDir (by filename)
-        QString mergedPath = mergedDir + "/" + fi.fileName();
-        if (!QFileInfo::exists(mergedPath)) continue;
+    // 递归扫描原视频目录，按文件夹名称+文件名称排序
+    int matchedCount = 0;
+    std::function<void(const QString &)> collectDir;
+    collectDir = [&](const QString &dirPath) {
+        QDir dir(dirPath);
+        QFileInfoList files = dir.entryInfoList(QDir::Files, QDir::NoSort);
+        { QCollator c; c.setNumericMode(true);
+        std::sort(files.begin(), files.end(), [&](const QFileInfo &a, const QFileInfo &b) {
+            return c.compare(a.fileName(), b.fileName()) < 0; }); }
+        for (const QFileInfo &fi : files) {
+            QString lower = fi.suffix().toLower();
+            if (!m_videoExts.contains("." + lower)) continue;
 
-        ReplaceItem item;
-        item.originalPath = fi.absoluteFilePath();
-        item.mergedPath = mergedPath;
+            m_totalVideoCount++;
 
-        // Look for matching .srt next to original
-        QString srtCandidate = fi.absolutePath() + "/" + fi.completeBaseName() + ".srt";
-        if (QFileInfo::exists(srtCandidate)) {
-            item.srtPath = srtCandidate;
+            // 在 mergedDir 中递归搜索同名文件
+            QString mergedPath = findFileRecursive(mergedDir, fi.fileName());
+            if (mergedPath.isEmpty()) {
+                PluginLogger::info(QString("  [无合成] %1 (%2 MB) — FFOutput 中未找到同名文件")
+                    .arg(fi.absoluteFilePath())
+                    .arg(fi.size() / 1024.0 / 1024.0, 0, 'f', 2));
+                continue;
+            }
+
+            QFileInfo mergedFi(mergedPath);
+
+            ReplaceItem item;
+            item.originalPath = fi.absoluteFilePath();
+            item.mergedPath = mergedPath;
+
+            // 检查原文件所在目录是否有关联的 .srt
+            QString srtCandidate = fi.absolutePath() + "/" + fi.completeBaseName() + ".srt";
+            if (QFileInfo::exists(srtCandidate)) {
+                item.srtPath = srtCandidate;
+                srtCount++;
+            }
+
+            m_items.append(item);
+            matchedCount++;
+
+            QString log = QString("  [匹配] %1\n"
+                                  "         原视频: %2 (%3 MB)\n"
+                                  "         合成后: %4 (%5 MB)")
+                .arg(fi.fileName(),
+                     fi.absoluteFilePath(),
+                     QString::number(fi.size() / 1024.0 / 1024.0, 'f', 2),
+                     mergedPath,
+                     QString::number(mergedFi.size() / 1024.0 / 1024.0, 'f', 2));
+            if (!item.srtPath.isEmpty()) {
+                log += QString("\n         字幕: %1").arg(item.srtPath);
+            }
+            emit logMessage(log);
+            PluginLogger::info(log.replace('\n', " | "));
         }
 
-        m_items.append(item);
-        emit logMessage(QString("  [匹配] %1 ← %2").arg(fi.fileName(), mergedPath));
-    }
+        if (!recursive) return;
+
+        // 子目录按自然名称排序后递归
+        QFileInfoList subdirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
+        { QCollator c; c.setNumericMode(true);
+        std::sort(subdirs.begin(), subdirs.end(), [&](const QFileInfo &a, const QFileInfo &b) {
+            return c.compare(a.fileName(), b.fileName()) < 0; }); }
+        for (const QFileInfo &subdir : subdirs) {
+            collectDir(subdir.absoluteFilePath());
+        }
+    };
+
+    collectDir(videoDir);
 
     if (m_items.isEmpty()) {
-        emit logMessage("✗ 未找到可替换的视频文件（合成目录中无匹配文件）");
+        QString msg = QString("✗ 未找到可替换的视频文件（原视频 %1 个，但合成目录中无匹配文件）")
+            .arg(m_totalVideoCount);
+        emit logMessage(msg);
+        PluginLogger::error(msg);
         emit finished(false, "未找到可替换的视频");
         return;
     }
 
-    emit logMessage(QString("找到 %1 个可替换的视频文件，开始替换...").arg(m_items.size()));
-    processNextFile();
+    emit logMessage(QString("找到 %1 个可替换的视频文件，开始替换...")
+        .arg(matchedCount));
+    PluginLogger::info(QString("扫描完成: 原视频共 %1 个, 有合成文件 %2 个, 有关联字幕 %3 个")
+        .arg(m_totalVideoCount).arg(matchedCount).arg(srtCount));
+
+    emit scanFinished(matchedCount);
+
+    // 后台线程执行替换操作，不阻塞 UI
+    m_workerRunning = true;
+    m_workerThread.start();
 }
 
 void VideoReplaceService::cancel()
 {
-    m_cancelled = true;
+    m_cancelled.storeRelaxed(1);
+    if (m_workerRunning) {
+        m_workerThread.quit();
+        m_workerThread.wait(3000);
+    }
 }
 
-void VideoReplaceService::processNextFile()
+void VideoReplaceService::doWork()
 {
-    if (m_cancelled || m_currentIndex >= m_items.size()) {
-        QString msg = QString("替换完成: 成功 %1, 失败 %2").arg(m_successCount).arg(m_failCount);
-        emit logMessage(msg);
-        emit finished(true, msg);
-        return;
-    }
+    PluginLogger::info(QString("========== 开始替换 %1 个文件 ==========").arg(m_items.size()));
 
-    m_currentIndex++;
-    if (m_currentIndex >= m_items.size()) {
-        processNextFile();
-        return;
-    }
+    // 在线程中迭代处理（非递归！），同 Python 的 for 循环
+    for (int i = 0; i < m_items.size(); ++i) {
+        if (m_cancelled.loadRelaxed())
+            break;
 
-    const auto &item = m_items[m_currentIndex];
-    QFileInfo origFi(item.originalPath);
-    QFileInfo mergedFi(item.mergedPath);
+        const auto &item = m_items[i];
+        QFileInfo origFi(item.originalPath);
+        QFileInfo mergedFi(item.mergedPath);
 
-    emit logMessage(QString("[%1/%2] 替换: %3")
-        .arg(m_currentIndex + 1).arg(m_items.size()).arg(origFi.fileName()));
+        qint64 origSize = origFi.size();
+        qint64 mergedSize = mergedFi.size();
 
-    // Backup original if requested
-    if (m_backupOriginal) {
-        QString backupPath = origFi.absolutePath() + "/" + origFi.completeBaseName() + "_backup." + origFi.suffix();
-        if (QFile::copy(item.originalPath, backupPath)) {
-            emit logMessage("  [备份] 已备份原文件: " + backupPath);
+        emit currentFileChanged(item.originalPath);
+        emit logMessage(QString("[%1/%2] 替换: %3")
+            .arg(i + 1).arg(m_items.size()).arg(origFi.fileName()));
+
+        // 备份（如果需要）
+        if (m_backupOriginal) {
+            QString backupPath = origFi.absolutePath() + "/" + origFi.completeBaseName() + "_backup." + origFi.suffix();
+            if (QFile::copy(item.originalPath, backupPath)) {
+                emit logMessage("  [备份] 已备份原文件: " + backupPath);
+                PluginLogger::info(QString("  [备份] %1 → %2").arg(item.originalPath, backupPath));
+            } else {
+                emit logMessage("  [警告] 备份失败（跳过）");
+                PluginLogger::warn(QString("  [备份] 失败: %1").arg(item.originalPath));
+            }
+        }
+
+        // === 替换逻辑：同 Python 的 os.replace(burned, original) ===
+        // 策略：优先尝试 rename（同盘原子操作，瞬间完成），失败则降级为 copy
+        bool replaced = false;
+        bool usedCopy = false;
+
+        // Qt 的 QFile::rename 不覆盖已存在文件，所以先删原文件
+        QFile::remove(item.originalPath);
+        if (QFile::rename(item.mergedPath, item.originalPath)) {
+            // ✓ rename 成功 — 同盘原子操作，瞬间完成，已自动删除 merged 文件
+            replaced = true;
+            usedCopy = false;
+        } else if (QFile::copy(item.mergedPath, item.originalPath)) {
+            // rename 失败（跨盘等）→ 降级为 copy + 删 merged
+            QFile::remove(item.mergedPath);
+            replaced = true;
+            usedCopy = true;
+        }
+
+        if (replaced) {
+            if (usedCopy) {
+                emit logMessage(QString("  ✓ 已替换 (跨盘拷贝): %1 (%2 MB → %3 MB)")
+                    .arg(origFi.fileName())
+                    .arg(origSize / 1024.0 / 1024.0, 0, 'f', 2)
+                    .arg(mergedSize / 1024.0 / 1024.0, 0, 'f', 2));
+                PluginLogger::info(QString("  [替换/拷贝] %1 | 原=%2 MB 新=%3 MB")
+                    .arg(item.originalPath)
+                    .arg(origSize / 1024.0 / 1024.0, 0, 'f', 2)
+                    .arg(mergedSize / 1024.0 / 1024.0, 0, 'f', 2));
+            } else {
+                emit logMessage(QString("  ✓ 已替换 (同盘移动): %1 (%2 MB → %3 MB)")
+                    .arg(origFi.fileName())
+                    .arg(origSize / 1024.0 / 1024.0, 0, 'f', 2)
+                    .arg(mergedSize / 1024.0 / 1024.0, 0, 'f', 2));
+                PluginLogger::info(QString("  [替换/移动] %1 | 原=%2 MB 新=%3 MB")
+                    .arg(item.originalPath)
+                    .arg(origSize / 1024.0 / 1024.0, 0, 'f', 2)
+                    .arg(mergedSize / 1024.0 / 1024.0, 0, 'f', 2));
+            }
+
+            // 若 merged 文件还残留（copy 分支可能已删，但防意外）
+            if (QFileInfo::exists(item.mergedPath)) {
+                QFile::remove(item.mergedPath);
+                emit logMessage("  [清理] 已删除合成文件: " + mergedFi.fileName());
+                PluginLogger::info(QString("  [清理] 删除合成文件: %1").arg(item.mergedPath));
+            }
+
+            // 删除同名 .srt（同 Python 脚本）
+            if (m_removeSrt && !item.srtPath.isEmpty()) {
+                QFileInfo srtFi(item.srtPath);
+                if (QFile::remove(item.srtPath)) {
+                    emit logMessage("  [字幕] 已删除: " + srtFi.fileName());
+                    PluginLogger::info(QString("  [字幕] 删除: %1 (%2 KB)")
+                        .arg(item.srtPath)
+                        .arg(srtFi.size() / 1024.0, 0, 'f', 1));
+                } else {
+                    emit logMessage("  [字幕] 删除失败: " + srtFi.fileName());
+                    PluginLogger::warn(QString("  [字幕] 删除失败: %1").arg(item.srtPath));
+                }
+            }
+
+            m_successCount++;
         } else {
-            emit logMessage("  [警告] 备份失败（跳过）");
+            QString errMsg = QString("  ✗ 替换失败: %1 (%2 MB)")
+                .arg(origFi.fileName())
+                .arg(origSize / 1024.0 / 1024.0, 0, 'f', 2);
+            emit logMessage(errMsg);
+            PluginLogger::error(QString("  [替换失败] %1 | 原=%2 MB 合成=%3 MB")
+                .arg(item.originalPath)
+                .arg(origSize / 1024.0 / 1024.0, 0, 'f', 2)
+                .arg(mergedSize / 1024.0 / 1024.0, 0, 'f', 2));
+            m_failCount++;
         }
+
+        emit progress(double(i + 1) / m_items.size());
     }
 
-    // Replace original with merged file
-    // Remove original first, then copy merged to original location
-    QFile::remove(item.originalPath);
-    if (QFile::copy(item.mergedPath, item.originalPath)) {
-        emit logMessage("  ✓ 已替换: " + origFi.fileName());
-        m_successCount++;
+    // ── 最终统计（同 Python 2字幕烧录后覆盖原文件.py）──
+    int unmatched = m_totalVideoCount - m_items.size();
+    QString summary = QString(
+        "═══════════════════════════════════════\n"
+        "步骤4 替换完成统计:\n"
+        "  原视频总数:   %1 个\n"
+        "  有合成文件:   %2 个\n"
+        "  ── 已匹配 ──\n"
+        "  替换成功:     %3 个\n"
+        "  替换失败:     %4 个\n"
+        "  ── 未匹配 ──\n"
+        "  无对应合成:   %5 个\n"
+        "═══════════════════════════════════════\n"
+        "替换目录: %6\n"
+        "合成目录: %7\n"
+        "删除字幕: %8\n"
+        "═══════════════════════════════════════\n"
+        "详情请查看日志文件")
+        .arg(m_totalVideoCount)
+        .arg(m_items.size())
+        .arg(m_successCount)
+        .arg(m_failCount)
+        .arg(unmatched)
+        .arg(m_videoDir, m_mergedDir)
+        .arg(m_removeSrt ? "是" : "否");
 
-        // Remove merged file
-        QFile::remove(item.mergedPath);
-        emit logMessage("  [清理] 已删除合成文件: " + mergedFi.fileName());
+    emit logMessage(summary);
+    PluginLogger::info(summary.replace('\n', " | "));
 
-        // Remove .srt if exists and requested
-        if (m_removeSrt && !item.srtPath.isEmpty()) {
-            QFile::remove(item.srtPath);
-            emit logMessage("  [字幕] 已删除同名字幕: " + QFileInfo(item.srtPath).fileName());
-        }
-    } else {
-        emit logMessage("  ✗ 替换失败: " + origFi.fileName());
-        m_failCount++;
-    }
+    emit finished(m_cancelled.loadRelaxed() == 0,
+                  QString("替换完成: 成功 %1, 失败 %2, 总计 %3")
+                      .arg(m_successCount).arg(m_failCount).arg(m_items.size()));
 
-    emit progress(double(m_currentIndex + 1) / m_items.size());
-    processNextFile();
+    // 不在这里设 m_workerRunning = false，让 QThread::finished 信号在
+    // 主线程中通过 lambda 来设置，避免跨线程 data race
+    m_workerThread.quit();
 }

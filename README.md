@@ -27,6 +27,11 @@ plugins/                       插件目录
 qml/
   components/                  可复用界面组件
   pages/                       页面
+third/
+  ffmpeg					   可用的ffmpeg
+  model						   模型存放目录（需手动下载）
+  whisper_amd				   支持AMD显卡的whisper程序
+  whisper_cpu				   官网下载的whisper程序，只支持CPU，速度较慢
 resources/                     图标、资源文件
 ```
 

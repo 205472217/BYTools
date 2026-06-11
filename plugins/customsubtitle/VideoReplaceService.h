@@ -3,12 +3,15 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QThread>
+#include <QAtomicInt>
 
 class VideoReplaceService : public QObject
 {
     Q_OBJECT
 public:
     explicit VideoReplaceService(QObject *parent = nullptr);
+    ~VideoReplaceService();
 
     /// Step 4: Match merged videos in outputDir against originals in videoDir,
     /// replace originals, clean up subtitles.
@@ -29,9 +32,11 @@ signals:
     void logMessage(const QString &message);
     void progress(double value);
     void finished(bool success, const QString &error);
+    void scanFinished(int matchedCount);
+    void currentFileChanged(const QString &filePath);
 
 private:
-    void processNextFile();
+    void doWork();
 
     struct ReplaceItem {
         QString originalPath;
@@ -44,12 +49,15 @@ private:
     bool m_recursive = false;
     bool m_removeSrt = true;
     bool m_backupOriginal = false;
-    bool m_cancelled = false;
+    QAtomicInt m_cancelled{0};
 
     QList<ReplaceItem> m_items;
-    int m_currentIndex = -1;
+    int m_totalVideoCount = 0;
     int m_successCount = 0;
     int m_failCount = 0;
+
+    QThread m_workerThread;
+    bool m_workerRunning = false;
 
     QStringList m_videoExts = {
         ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".ts"

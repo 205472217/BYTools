@@ -257,9 +257,10 @@ void FFmpegService::startBurnSubtitles(const QString &ffmpegPath,
             this, &FFmpegService::onProcessFinished);
 
     // Build subtitle filter with full style
+    // 必须用 \\: 双反斜杠，ffmpeg 4.x graph parser 先吃一层再传给 av_set_options_string
     QString escapedSrtPath = srtPath;
     escapedSrtPath.replace("\\", "/");
-    escapedSrtPath.replace(":", "\\:");
+    escapedSrtPath.replace(":", "\\\\:");
     QString assFontColor = htmlColorToAss(fontColor);
     QString assBorderColor = htmlColorToAss(borderColor);
     QString styleFilter =
