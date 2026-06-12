@@ -2,6 +2,8 @@
 
 #include <QString>
 #include <QMutex>
+#include <QFile>
+#include <QDate>
 
 /**
  * 日志工具类，每个插件持有独立实例。
@@ -30,6 +32,13 @@ public:
 private:
     void log(const QString &level, const QString &message);
 
+    // 确保文件已打开且日期正确，跨日自动轮转
+    void ensureFileOpen();
+    void closeFile();
+
     QString m_prefix;
     QMutex m_mutex;
+
+    QFile *m_logFile = nullptr;     // 持久打开的日志文件句柄
+    QDate  m_currentDate;           // 当前写入的日期，用于检测跨日
 };

@@ -225,6 +225,24 @@ QList<SubtitleService::SubtitleEntry> SubtitleService::filterEnvironmentSounds(c
     return result;
 }
 
+bool SubtitleService::isMusicText(const QString &text)
+{
+    // ♪ U+266A — music note marker
+    // If the trimmed text starts and ends with ♪, it's a music/lyrics entry
+    // that should be preserved verbatim and not translated.
+    const QChar musicNote(0x266A);
+    QString trimmed = text.trimmed();
+    return trimmed.startsWith(musicNote) && trimmed.endsWith(musicNote);
+}
+
+bool SubtitleService::isSoundEffect(const QString &text)
+{
+    // *xxx* — sound effect marker (e.g., "*叮咚*", "*门铃声*", "*phone ringing*")
+    // These non-dialog entries should be removed from the pipeline entirely.
+    QString trimmed = text.trimmed();
+    return trimmed.startsWith('*') && trimmed.endsWith('*');
+}
+
 QString SubtitleService::detectLanguage(const QList<SubtitleEntry> &entries)
 {
     // Sample text from the first entries (enough for reliable detection)

@@ -20,6 +20,7 @@ class VideoSubtitleController : public QObject
     // === Language settings ===
     Q_PROPERTY(QString sourceLanguage READ sourceLanguage WRITE setSourceLanguage NOTIFY sourceLanguageChanged)
     Q_PROPERTY(QString targetLanguage READ targetLanguage WRITE setTargetLanguage NOTIFY targetLanguageChanged)
+    Q_PROPERTY(bool translateMusic READ translateMusic WRITE setTranslateMusic NOTIFY translateMusicChanged)
 
     // === Subtitle style ===
     Q_PROPERTY(int subtitleStyle READ subtitleStyle WRITE setSubtitleStyle NOTIFY subtitleStyleChanged)
@@ -54,6 +55,7 @@ public:
     bool recursive() const;
     QString sourceLanguage() const;
     QString targetLanguage() const;
+    bool translateMusic() const;
     int subtitleStyle() const;
     int outputMode() const;
     QString outputDir() const;
@@ -73,6 +75,7 @@ public:
     void setRecursive(bool recursive);
     void setSourceLanguage(const QString &lang);
     void setTargetLanguage(const QString &lang);
+    void setTranslateMusic(bool enabled);
     void setSubtitleStyle(int style);
     void setOutputMode(int mode);
     void setOutputDir(const QString &dir);
@@ -103,6 +106,7 @@ signals:
     void recursiveChanged();
     void sourceLanguageChanged();
     void targetLanguageChanged();
+    void translateMusicChanged();
     void subtitleStyleChanged();
     void outputModeChanged();
     void outputDirChanged();
@@ -161,6 +165,7 @@ private:
     bool m_recursive = false;
     QString m_sourceLanguage = "auto";
     QString m_targetLanguage = "zh";
+    bool m_translateMusic = false;
     int m_outputMode = 0;
     QString m_outputDir;
     QString m_statusMessage;

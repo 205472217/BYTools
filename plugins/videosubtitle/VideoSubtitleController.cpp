@@ -54,6 +54,7 @@ VideoSubtitleController::VideoSubtitleController(PluginLogger *logger, QObject *
     // 加载持久化的语言设置
     m_sourceLanguage = s.value("sourceLanguage", "auto").toString();
     m_targetLanguage = s.value("targetLanguage", "zh").toString();
+    m_translateMusic = s.value("translateMusic", false).toBool();
 }
 
 // Getters
@@ -123,6 +124,21 @@ void VideoSubtitleController::setTargetLanguage(const QString &lang)
         pluginGroupSettings("VideoSubtitle").setValue("targetLanguage", lang);
         pluginGroupSettings("VideoSubtitle").sync();
         emit targetLanguageChanged();
+    }
+}
+
+bool VideoSubtitleController::translateMusic() const
+{
+    return m_translateMusic;
+}
+
+void VideoSubtitleController::setTranslateMusic(bool enabled)
+{
+    if (m_translateMusic != enabled) {
+        m_translateMusic = enabled;
+        pluginGroupSettings("VideoSubtitle").setValue("translateMusic", enabled);
+        pluginGroupSettings("VideoSubtitle").sync();
+        emit translateMusicChanged();
     }
 }
 
@@ -277,25 +293,36 @@ void VideoSubtitleController::execute()
             return;
         }
     } else {
-        // Directory mode
+        // Directory mode — 按 Windows 自然排序处理，保证处理顺序和 Explorer 看到的一致
         QDir dir(m_inputPath);
-        QDir::Filters filters = QDir::Files;
-        if (m_recursive) {
-            filters |= QDir::Dirs;
-        }
 
-        QFileInfoList entries = dir.entryInfoList(filters);
-        for (const QFileInfo &info : entries) {
-            if (info.isDir() && m_recursive) {
-                QDir subDir(info.absoluteFilePath());
-                QFileInfoList subFiles = subDir.entryInfoList(QDir::Files);
+        if (m_recursive) {
+            // 子目录按自然排序，目录优先于文件（匹配 Windows Explorer 行为）
+            QFileInfoList subdirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
+            naturalSort(subdirs);
+            for (const QFileInfo &subdirInfo : subdirs) {
+                QDir subDir(subdirInfo.absoluteFilePath());
+                QFileInfoList subFiles = subDir.entryInfoList(QDir::Files, QDir::NoSort);
+                naturalSort(subFiles);
                 for (const QFileInfo &subFile : subFiles) {
-                    if (isVideoFile(subFile.fileName())) {
+                    if (isVideoFile(subFile.fileName()))
                         m_pendingFiles.append(subFile.absoluteFilePath());
-                    }
                 }
-            } else if (info.isFile() && isVideoFile(info.fileName())) {
-                m_pendingFiles.append(info.absoluteFilePath());
+            }
+
+            // 顶层文件在子目录之后处理
+            QFileInfoList topFiles = dir.entryInfoList(QDir::Files, QDir::NoSort);
+            naturalSort(topFiles);
+            for (const QFileInfo &file : topFiles) {
+                if (isVideoFile(file.fileName()))
+                    m_pendingFiles.append(file.absoluteFilePath());
+            }
+        } else {
+            QFileInfoList files = dir.entryInfoList(QDir::Files, QDir::NoSort);
+            naturalSort(files);
+            for (const QFileInfo &file : files) {
+                if (isVideoFile(file.fileName()))
+                    m_pendingFiles.append(file.absoluteFilePath());
             }
         }
 
@@ -593,11 +620,54 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
                     .arg(envRemoved).arg(deduped.size()).arg(filtered.size()));
             }
 
+            // Step 3: 过滤音乐字幕（仅在关闭「翻译背景音乐」时执行）
+            // 移除 ♪ ... ♪ 类音乐歌词，不翻译也不烧录
+            int musicRemoved = 0;
+            if (!m_translateMusic) {
+                auto it = filtered.begin();
+                while (it != filtered.end()) {
+                    if (SubtitleService::isMusicText(it->originalText)) {
+                        ++musicRemoved;
+                        it = filtered.erase(it);
+                    } else {
+                        ++it;
+                    }
+                }
+            }
+            if (musicRemoved > 0) {
+                m_logger->info(
+                    QString("音乐过滤: 移除 %1 条音乐字幕（%2 → %3 条）")
+                        .arg(musicRemoved).arg(filtered.size() + musicRemoved).arg(filtered.size()));
+                emit logMessage(QString("✓ 音乐过滤: 移除 %1 条音乐歌词字幕（%2 → %3）")
+                    .arg(musicRemoved).arg(filtered.size() + musicRemoved).arg(filtered.size()));
+            }
+
+            // Step 4: 过滤音效字幕 — 移除 *xxx* 类字幕（如 "*叮咚*"、"*门铃声*"）
+            int sfxRemoved = 0;
+            {
+                auto it = filtered.begin();
+                while (it != filtered.end()) {
+                    if (SubtitleService::isSoundEffect(it->originalText)) {
+                        ++sfxRemoved;
+                        it = filtered.erase(it);
+                    } else {
+                        ++it;
+                    }
+                }
+            }
+            if (sfxRemoved > 0) {
+                m_logger->info(
+                    QString("音效过滤: 移除 %1 条音效字幕（%2 → %3 条）")
+                        .arg(sfxRemoved).arg(filtered.size() + sfxRemoved).arg(filtered.size()));
+                emit logMessage(QString("✓ 音效过滤: 移除 %1 条音效字幕（%2 → %3）")
+                    .arg(sfxRemoved).arg(filtered.size() + sfxRemoved).arg(filtered.size()));
+            }
+
             // 若有变更则写回文件
-            if (dedupRemoved > 0 || envRemoved > 0) {
+            if (dedupRemoved > 0 || envRemoved > 0 || musicRemoved > 0 || sfxRemoved > 0) {
                 SubtitleService::writeSrt(m_currentOriginalSrtPath, filtered);
             } else {
-                m_logger->info("字幕无需去重或过滤，保持不变");
+                m_logger->info("字幕无需去重、环境音过滤、音乐过滤或音效过滤，保持不变");
             }
         }
     }

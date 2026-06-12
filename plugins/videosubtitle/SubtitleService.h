@@ -45,6 +45,14 @@ public:
     // These non-dialog entries are removed completely (text + timestamps)
     static QList<SubtitleEntry> filterEnvironmentSounds(const QList<SubtitleEntry> &entries);
 
+    // Check if text is a music entry wrapped in ♪ ... ♪ (e.g., "♪ Happy Birthday ♪")
+    // Music entries should be preserved as-is and not sent for translation
+    static bool isMusicText(const QString &text);
+
+    // Check if text is a sound effect wrapped in * ... * (e.g., "*叮咚*", "*门铃声*")
+    // These non-dialog entries should be removed completely
+    static bool isSoundEffect(const QString &text);
+
     // Detect language of subtitle entries by analyzing character ranges
     // Returns "en", "ja", "zh", "ko", or "auto" (for mixed/unrecognized)
     static QString detectLanguage(const QList<SubtitleEntry> &entries);

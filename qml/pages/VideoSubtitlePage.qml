@@ -506,7 +506,7 @@ Pane {
                     ComboBoxEx {
                         enabled: stepTranslate.checked
                         Layout.preferredWidth: 120
-                        model: ["自动检测", "英文", "中文", "日文", "韩文"]
+                        model: ["自动检测", "英文", "中文", "日文", "韩文", "俄语"]
                         currentIndex: {
                             if (!controller)
                                 return 0;
@@ -516,12 +516,13 @@ Pane {
                             case "zh":   return 2;
                             case "ja":   return 3;
                             case "ko":   return 4;
+                            case "ru":   return 5;
                             default:     return 0;
                             }
                         }
                         onActivated: {
                             if (!controller) return;
-                            var langs = ["auto", "en", "zh", "ja", "ko"];
+                            var langs = ["auto", "en", "zh", "ja", "ko", "ru"];
                             controller.sourceLanguage = langs[currentIndex];
                         }
                     }
@@ -551,6 +552,19 @@ Pane {
                             if (!controller) return;
                             var langs = ["zh", "en", "ja", "ko"];
                             controller.targetLanguage = langs[currentIndex];
+                        }
+                    }
+
+                    CheckBox {
+                        id: musicCheck
+                        text: "背景音乐(翻译+烧录)"
+                        checked: controller ? controller.translateMusic : false
+                        font.pixelSize: 11
+                        Layout.fillWidth: true
+                        enabled: stepTranslate.checked
+                        onCheckedChanged: {
+                            if (controller)
+                                controller.translateMusic = checked;
                         }
                     }
 
