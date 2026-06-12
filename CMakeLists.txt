@@ -86,6 +86,7 @@ if(WIN32)
     target_compile_definitions(BYTools PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
 endif()
 
+add_subdirectory(plugins/common)
 add_subdirectory(plugins/nameconverter)
 add_subdirectory(plugins/batchrename)
 add_subdirectory(plugins/imageconverter)

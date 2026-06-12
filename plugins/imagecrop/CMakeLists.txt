@@ -20,7 +20,7 @@ target_include_directories(ImageCropPlugin PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/core
 )
 
-target_link_libraries(ImageCropPlugin PRIVATE Qt6::Core Qt6::Gui)
+target_link_libraries(ImageCropPlugin PRIVATE Qt6::Core Qt6::Gui PluginCommon)
 
 set_target_properties(ImageCropPlugin PROPERTIES
     OUTPUT_NAME "ImageCrop"

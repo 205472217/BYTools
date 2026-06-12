@@ -6,11 +6,13 @@
 #include <QThread>
 #include <QAtomicInt>
 
+class PluginLogger;
+
 class VideoReplaceService : public QObject
 {
     Q_OBJECT
 public:
-    explicit VideoReplaceService(QObject *parent = nullptr);
+    explicit VideoReplaceService(PluginLogger *logger, QObject *parent = nullptr);
     ~VideoReplaceService();
 
     /// Step 4: Match merged videos in outputDir against originals in videoDir,
@@ -44,6 +46,7 @@ private:
         QString srtPath;       // may be empty
     };
 
+    PluginLogger *m_logger = nullptr;
     QString m_videoDir;
     QString m_mergedDir;
     bool m_recursive = false;
@@ -58,8 +61,4 @@ private:
 
     QThread m_workerThread;
     bool m_workerRunning = false;
-
-    QStringList m_videoExts = {
-        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".ts"
-    };
 };

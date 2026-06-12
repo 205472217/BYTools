@@ -5,6 +5,8 @@
 #include <QVariantList>
 #include <QDir>
 
+class PluginLogger;
+
 class ImageCropController : public QObject
 {
     Q_OBJECT
@@ -33,7 +35,7 @@ class ImageCropController : public QObject
     Q_PROPERTY(QString currentFilePath READ currentFilePath NOTIFY currentFilePathChanged)
 
 public:
-    explicit ImageCropController(QObject *parent = nullptr);
+    explicit ImageCropController(PluginLogger *logger, QObject *parent = nullptr);
 
     QString rootPath() const;
     void setRootPath(const QString &path);
@@ -176,6 +178,7 @@ private:
         {1, 1}, {4, 3}, {3, 2}, {16, 9}, {9, 16}, {21, 9}
     };
 
+    PluginLogger *m_logger = nullptr;
     const QStringList m_imageExtensions = {
         ".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tiff", ".gif"
     };

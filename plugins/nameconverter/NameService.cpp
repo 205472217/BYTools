@@ -1,4 +1,5 @@
 #include "NameService.h"
+#include "Logger.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -36,8 +37,9 @@ void replaceRecordPrefixes(QList<NamePreviewItem> &records, const QString &fromP
 
 }
 
-NameService::NameService(const ITextConverter &converter)
-    : m_converter(converter)
+NameService::NameService(const ITextConverter &converter, PluginLogger *logger)
+    : m_logger(logger)
+    , m_converter(converter)
 {
 }
 
@@ -87,6 +89,8 @@ NameExecutionResult NameService::execute(const QString &rootPath, TargetType tar
             record.status = QStringLiteral("失败：目标已存在");
             records.append(record);
             failures.append(message);
+            m_logger->warn(QString("  [失败] %1 → %2 — 目标已存在")
+                .arg(item.currentName, item.newName));
             continue;
         }
 
@@ -99,12 +103,15 @@ NameExecutionResult NameService::execute(const QString &rootPath, TargetType tar
             auto record = item;
             record.status = QStringLiteral("已转换");
             records.append(record);
+            m_logger->info(QString("  [转换] %1 → %2").arg(item.currentName, item.newName));
         } else {
             const QString message = QStringLiteral("%1 重命名失败").arg(item.currentPath);
             auto record = item;
             record.status = QStringLiteral("失败：重命名失败");
             records.append(record);
             failures.append(message);
+            m_logger->error(QString("  [失败] %1 → %2 — 重命名失败")
+                .arg(item.currentName, item.newName));
         }
     }
 

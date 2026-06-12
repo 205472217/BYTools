@@ -4,6 +4,7 @@
 
 class VideoSubtitleController;
 class VideoSubtitleSettings;
+class PluginLogger;
 
 class VideoSubtitlePlugin : public QObject, public PluginInterface
 {
@@ -26,6 +27,7 @@ public:
     QObject* getSettings() override;
 
 private:
+    PluginLogger *m_logger = nullptr;
     VideoSubtitleController *m_controller;
     VideoSubtitleSettings *m_settings;
 };

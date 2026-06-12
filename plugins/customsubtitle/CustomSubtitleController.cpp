@@ -1,30 +1,22 @@
 #include "CustomSubtitleController.h"
 #include "SubtitleMatcher.h"
 #include "FFmpegMergeService.h"
+#include "FfmpegUtils.h"
 #include "VideoReplaceService.h"
-#include "PluginLogger.h"
+#include "Config.h"
+#include "Logger.h"
+#include "SettingsHelper.h"
 #include <QSettings>
 #include <QDir>
 #include <QFileInfo>
 #include <QCoreApplication>
 
-// Helper: return QSettings for the shared [customsubtitle] section
-static QSettings& sharedSettings()
-{
-    static QSettings s(pluginConfigFilePath(), QSettings::IniFormat);
-    static bool groupSet = false;
-    if (!groupSet) {
-        s.beginGroup("customsubtitle");
-        groupSet = true;
-    }
-    return s;
-}
-
-CustomSubtitleController::CustomSubtitleController(QObject *parent)
+CustomSubtitleController::CustomSubtitleController(PluginLogger *logger, QObject *parent)
     : QObject(parent)
-    , m_matcher(new SubtitleMatcher(this))
-    , m_mergeService(new FFmpegMergeService(this))
-    , m_replaceService(new VideoReplaceService(this))
+    , m_logger(logger)
+    , m_matcher(new SubtitleMatcher(m_logger, this))
+    , m_mergeService(new FFmpegMergeService(m_logger, this))
+    , m_replaceService(new VideoReplaceService(m_logger, this))
 {
     // Connect matcher signals
     connect(m_matcher, &SubtitleMatcher::logMessage,
@@ -50,6 +42,8 @@ CustomSubtitleController::CustomSubtitleController(QObject *parent)
             this, [this](const QString &path) {
         setCurrentFile(path);
     });
+    connect(m_mergeService, &FFmpegMergeService::currentFileProgress,
+            this, &CustomSubtitleController::setCurrentFileProgress);
     // Step 3 显示进度条+百分比，不追踪 N/M 计数
 
     // Connect replace service signals
@@ -74,7 +68,7 @@ CustomSubtitleController::CustomSubtitleController(QObject *parent)
     });
 
     // Load persisted paths
-    QSettings &s = sharedSettings();
+    QSettings &s = pluginGroupSettings("customsubtitle");
     s.sync();
     m_subtitleDownloadPath = s.value("customSubtitleDownloadPath").toString();
     m_videoSourcePath = s.value("customVideoSourcePath").toString();
@@ -82,6 +76,7 @@ CustomSubtitleController::CustomSubtitleController(QObject *parent)
     m_ffmpegPath = s.value("customFfmpegPath").toString();
     m_recursive = s.value("customRecursive", false).toBool();
     m_gpuAccel = s.value("customGpuAccel", false).toBool();
+    m_fragmentedMp4 = s.value("customFragmentedMp4", true).toBool();
 }
 
 CustomSubtitleController::~CustomSubtitleController() = default;
@@ -92,10 +87,12 @@ QString CustomSubtitleController::videoSourcePath() const { return m_videoSource
 bool CustomSubtitleController::recursive() const { return m_recursive; }
 QString CustomSubtitleController::mergedOutputPath() const { return m_mergedOutputPath; }
 bool CustomSubtitleController::gpuAccel() const { return m_gpuAccel; }
+bool CustomSubtitleController::fragmentedMp4() const { return m_fragmentedMp4; }
 bool CustomSubtitleController::removeSrtAfterReplace() const { return m_removeSrtAfterReplace; }
 bool CustomSubtitleController::backupOriginal() const { return m_backupOriginal; }
 QString CustomSubtitleController::statusMessage() const { return m_statusMessage; }
 double CustomSubtitleController::progress() const { return m_progress; }
+double CustomSubtitleController::currentFileProgress() const { return m_currentFileProgress; }
 bool CustomSubtitleController::isProcessing() const { return m_isProcessing; }
 QString CustomSubtitleController::currentStep() const { return m_currentStep; }
 int CustomSubtitleController::processedCount() const { return m_processedCount; }
@@ -107,8 +104,8 @@ void CustomSubtitleController::setSubtitleDownloadPath(const QString &path)
 {
     if (m_subtitleDownloadPath != path) {
         m_subtitleDownloadPath = path;
-        sharedSettings().setValue("customSubtitleDownloadPath", path);
-        sharedSettings().sync();
+        pluginGroupSettings("customsubtitle").setValue("customSubtitleDownloadPath", path);
+        pluginGroupSettings("customsubtitle").sync();
         emit subtitleDownloadPathChanged();
     }
 }
@@ -117,8 +114,8 @@ void CustomSubtitleController::setVideoSourcePath(const QString &path)
 {
     if (m_videoSourcePath != path) {
         m_videoSourcePath = path;
-        sharedSettings().setValue("customVideoSourcePath", path);
-        sharedSettings().sync();
+        pluginGroupSettings("customsubtitle").setValue("customVideoSourcePath", path);
+        pluginGroupSettings("customsubtitle").sync();
         emit videoSourcePathChanged();
     }
 }
@@ -127,8 +124,8 @@ void CustomSubtitleController::setRecursive(bool recursive)
 {
     if (m_recursive != recursive) {
         m_recursive = recursive;
-        sharedSettings().setValue("customRecursive", recursive);
-        sharedSettings().sync();
+        pluginGroupSettings("customsubtitle").setValue("customRecursive", recursive);
+        pluginGroupSettings("customsubtitle").sync();
         emit recursiveChanged();
     }
 }
@@ -137,8 +134,8 @@ void CustomSubtitleController::setMergedOutputPath(const QString &path)
 {
     if (m_mergedOutputPath != path) {
         m_mergedOutputPath = path;
-        sharedSettings().setValue("customMergedOutputPath", path);
-        sharedSettings().sync();
+        pluginGroupSettings("customsubtitle").setValue("customMergedOutputPath", path);
+        pluginGroupSettings("customsubtitle").sync();
         emit mergedOutputPathChanged();
     }
 }
@@ -147,8 +144,8 @@ void CustomSubtitleController::setFfmpegPath(const QString &path)
 {
     if (m_ffmpegPath != path) {
         m_ffmpegPath = path;
-        sharedSettings().setValue("customFfmpegPath", path);
-        sharedSettings().sync();
+        pluginGroupSettings("customsubtitle").setValue("customFfmpegPath", path);
+        pluginGroupSettings("customsubtitle").sync();
         emit ffmpegPathChanged();
     }
 }
@@ -157,9 +154,19 @@ void CustomSubtitleController::setGpuAccel(bool enable)
 {
     if (m_gpuAccel != enable) {
         m_gpuAccel = enable;
-        sharedSettings().setValue("customGpuAccel", enable);
-        sharedSettings().sync();
+        pluginGroupSettings("customsubtitle").setValue("customGpuAccel", enable);
+        pluginGroupSettings("customsubtitle").sync();
         emit gpuAccelChanged();
+    }
+}
+
+void CustomSubtitleController::setFragmentedMp4(bool enable)
+{
+    if (m_fragmentedMp4 != enable) {
+        m_fragmentedMp4 = enable;
+        pluginGroupSettings("customsubtitle").setValue("customFragmentedMp4", enable);
+        pluginGroupSettings("customsubtitle").sync();
+        emit fragmentedMp4Changed();
     }
 }
 
@@ -195,7 +202,7 @@ void CustomSubtitleController::matchAndMoveSubtitles()
     setProgress(0.0);
     emit logMessage("========== 步骤2：匹配并移动字幕 ==========");
 
-    PluginLogger::info(QString("匹配字幕: %1 → %2 (递归=%3)")
+    m_logger->info(QString("匹配字幕: %1 → %2 (递归=%3)")
         .arg(m_subtitleDownloadPath, m_videoSourcePath).arg(m_recursive));
 
     // Run matching (blocking in current thread for simplicity; for large dirs use QThread)
@@ -244,7 +251,7 @@ void CustomSubtitleController::mergeSubtitleToVideo()
     if (m_isProcessing) return;
 
     QString ffmpeg = ffmpegPath();
-    if (ffmpeg.isEmpty() || !FFmpegMergeService::isFFmpegAvailable(ffmpeg)) {
+    if (ffmpeg.isEmpty() || !isFFmpegAvailable(ffmpeg, m_logger)) {
         setStatusMessage("FFmpeg 不可用，请在自定义字幕设置中配置 FFmpeg 路径");
         emit logMessage("✗ FFmpeg 不可用");
         return;
@@ -262,11 +269,11 @@ void CustomSubtitleController::mergeSubtitleToVideo()
     setIsProcessing(true);
     setProgress(0.0);
     emit logMessage("========== 步骤3：合成视频+字幕 ==========");
-    PluginLogger::info(QString("合成: %1 → %2 (GPU=%3)")
+    m_logger->info(QString("合成: %1 → %2 (GPU=%3)")
         .arg(m_videoSourcePath, m_mergedOutputPath).arg(m_gpuAccel));
 
     m_mergeService->startMerge(ffmpeg, m_videoSourcePath, m_mergedOutputPath,
-                                m_recursive, m_gpuAccel);
+                                m_recursive, m_gpuAccel, m_fragmentedMp4);
 }
 
 void CustomSubtitleController::replaceOriginalVideo()
@@ -286,10 +293,10 @@ void CustomSubtitleController::replaceOriginalVideo()
     emit logMessage("========== 步骤4：替换原视频 ==========");
     emit logMessage(QString("原视频目录: %1 (递归=%2)").arg(m_videoSourcePath).arg(m_recursive));
     emit logMessage(QString("合成视频目录: %1").arg(m_mergedOutputPath));
-    PluginLogger::info(QString("========== 步骤4：替换原视频 =========="));
-    PluginLogger::info(QString("原视频目录: %1 (递归=%2)").arg(m_videoSourcePath).arg(m_recursive));
-    PluginLogger::info(QString("合成视频目录: %1").arg(m_mergedOutputPath));
-    PluginLogger::info(QString("删除字幕=%1 | 备份原文件=%2")
+    m_logger->info(QString("========== 步骤4：替换原视频 =========="));
+    m_logger->info(QString("原视频目录: %1 (递归=%2)").arg(m_videoSourcePath).arg(m_recursive));
+    m_logger->info(QString("合成视频目录: %1").arg(m_mergedOutputPath));
+    m_logger->info(QString("删除字幕=%1 | 备份原文件=%2")
         .arg(m_removeSrtAfterReplace).arg(m_backupOriginal));
 
     m_replaceService->startReplace(m_videoSourcePath, m_mergedOutputPath,
@@ -321,6 +328,7 @@ void CustomSubtitleController::reset()
     setStatusMessage("");
     setCurrentStep("");
     setProgress(0.0);
+    setCurrentFileProgress(0.0);
 }
 
 QString CustomSubtitleController::ffmpegPath() const
@@ -335,9 +343,9 @@ void CustomSubtitleController::onMatchFinished(bool success, const QString &erro
     if (!success) {
         setStatusMessage("步骤2失败: " + error);
         emit logMessage("✗ 步骤2失败: " + error);
-        PluginLogger::error(QString("步骤2失败: %1").arg(error));
+        m_logger->error(QString("步骤2失败: %1").arg(error));
     } else {
-        PluginLogger::info("步骤2完成 ✓");
+        m_logger->info("步骤2完成 ✓");
     }
     setIsProcessing(false);
     setCurrentStep("");
@@ -348,11 +356,11 @@ void CustomSubtitleController::onMergeFinished(bool success, const QString &erro
     if (success) {
         setStatusMessage("步骤3完成");
         emit logMessage("✓ 步骤3：合成完成");
-        PluginLogger::info("步骤3完成 ✓");
+        m_logger->info("步骤3完成 ✓");
     } else {
         setStatusMessage(error);
         emit logMessage("✗ 步骤3失败: " + error);
-        PluginLogger::error(QString("步骤3失败: %1").arg(error));
+        m_logger->error(QString("步骤3失败: %1").arg(error));
     }
     setIsProcessing(false);
     setCurrentStep("");
@@ -363,11 +371,11 @@ void CustomSubtitleController::onReplaceFinished(bool success, const QString &er
     if (success) {
         setStatusMessage("步骤4完成");
         emit logMessage("✓ 步骤4：替换完成");
-        PluginLogger::info("步骤4完成 ✓");
+        m_logger->info("步骤4完成 ✓");
     } else {
         setStatusMessage(error);
         emit logMessage("✗ 步骤4失败: " + error);
-        PluginLogger::error(QString("步骤4失败: %1").arg(error));
+        m_logger->error(QString("步骤4失败: %1").arg(error));
     }
     setIsProcessing(false);
     setCurrentStep("");
@@ -397,6 +405,15 @@ void CustomSubtitleController::setProgress(double value)
     if (!qFuzzyCompare(m_progress, value)) {
         m_progress = value;
         emit progressChanged();
+    }
+}
+
+void CustomSubtitleController::setCurrentFileProgress(double value)
+{
+    value = qBound(0.0, value, 1.0);
+    if (!qFuzzyCompare(m_currentFileProgress, value)) {
+        m_currentFileProgress = value;
+        emit currentFileProgressChanged();
     }
 }
 

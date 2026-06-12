@@ -20,7 +20,7 @@ target_include_directories(BatchRenamePlugin PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/core
 )
 
-target_link_libraries(BatchRenamePlugin PRIVATE Qt6::Core)
+target_link_libraries(BatchRenamePlugin PRIVATE Qt6::Core PluginCommon)
 
 set_target_properties(BatchRenamePlugin PROPERTIES
     OUTPUT_NAME "BatchRename"

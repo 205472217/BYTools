@@ -2,31 +2,23 @@
 #include "WhisperService.h"
 #include "TranslateService.h"
 #include "FFmpegService.h"
+#include "FfmpegUtils.h"
 #include "SubtitleService.h"
-#include "PluginLogger.h"
+#include "Config.h"
+#include "Logger.h"
+#include "SettingsHelper.h"
 #include <QCoreApplication>
 #include <QSettings>
 #include <QFileInfo>
 #include <QDir>
 #include <QStandardPaths>
 
-// Helper: 返回指向 config.ini [VideoSubtitle] 节的 QSettings（静态全局避免拷贝）
-static QSettings& pluginSettings()
-{
-    static QSettings s(pluginConfigFilePath(), QSettings::IniFormat);
-    static bool groupSet = false;
-    if (!groupSet) {
-        s.beginGroup("VideoSubtitle");
-        groupSet = true;
-    }
-    return s;
-}
-
-VideoSubtitleController::VideoSubtitleController(QObject *parent)
+VideoSubtitleController::VideoSubtitleController(PluginLogger *logger, QObject *parent)
     : QObject(parent)
-    , m_whisperService(new WhisperService(this))
-    , m_translateService(new TranslateService(this))
-    , m_ffmpegService(new FFmpegService(this))
+    , m_logger(logger)
+    , m_whisperService(new WhisperService(m_logger, this))
+    , m_translateService(new TranslateService(m_logger, this))
+    , m_ffmpegService(new FFmpegService(m_logger, this))
 {
     connect(m_whisperService, &WhisperService::progress,
             this, &VideoSubtitleController::onWhisperProgress);
@@ -45,7 +37,7 @@ VideoSubtitleController::VideoSubtitleController(QObject *parent)
     // depending on the current step (see processSingleFile / onTranslateFinished).
 
     // 加载持久化的输出目录设置
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();  // 刷新，确保读取到其他 QSettings 实例（如设置页）写入的 INI 值
     m_outputDir = s.value("outputDir").toString();
     m_outputMode = s.value("outputMode", 0).toInt();
@@ -70,12 +62,12 @@ int VideoSubtitleController::inputMode() const { return m_inputMode; }
 bool VideoSubtitleController::recursive() const { return m_recursive; }
 QString VideoSubtitleController::sourceLanguage() const { return m_sourceLanguage; }
 QString VideoSubtitleController::targetLanguage() const { return m_targetLanguage; }
-int VideoSubtitleController::subtitleStyle() const { return pluginSettings().value("subtitleStyle", 0).toInt(); }
+int VideoSubtitleController::subtitleStyle() const { return pluginGroupSettings("VideoSubtitle").value("subtitleStyle", 0).toInt(); }
 int VideoSubtitleController::outputMode() const { return m_outputMode; }
 QString VideoSubtitleController::outputDir() const { return m_outputDir; }
-bool VideoSubtitleController::keepWav() const { return pluginSettings().value("keepWav", true).toBool(); }
-bool VideoSubtitleController::keepOriginalSrt() const { return pluginSettings().value("keepOriginalSrt", true).toBool(); }
-bool VideoSubtitleController::keepTranslatedSrt() const { return pluginSettings().value("keepTranslatedSrt", true).toBool(); }
+bool VideoSubtitleController::keepWav() const { return pluginGroupSettings("VideoSubtitle").value("keepWav", true).toBool(); }
+bool VideoSubtitleController::keepOriginalSrt() const { return pluginGroupSettings("VideoSubtitle").value("keepOriginalSrt", true).toBool(); }
+bool VideoSubtitleController::keepTranslatedSrt() const { return pluginGroupSettings("VideoSubtitle").value("keepTranslatedSrt", true).toBool(); }
 QString VideoSubtitleController::statusMessage() const { return m_statusMessage; }
 double VideoSubtitleController::progress() const { return m_progress; }
 bool VideoSubtitleController::isProcessing() const { return m_isProcessing; }
@@ -118,8 +110,8 @@ void VideoSubtitleController::setSourceLanguage(const QString &lang)
 {
     if (m_sourceLanguage != lang) {
         m_sourceLanguage = lang;
-        pluginSettings().setValue("sourceLanguage", lang);
-        pluginSettings().sync();
+        pluginGroupSettings("VideoSubtitle").setValue("sourceLanguage", lang);
+        pluginGroupSettings("VideoSubtitle").sync();
         emit sourceLanguageChanged();
     }
 }
@@ -128,15 +120,15 @@ void VideoSubtitleController::setTargetLanguage(const QString &lang)
 {
     if (m_targetLanguage != lang) {
         m_targetLanguage = lang;
-        pluginSettings().setValue("targetLanguage", lang);
-        pluginSettings().sync();
+        pluginGroupSettings("VideoSubtitle").setValue("targetLanguage", lang);
+        pluginGroupSettings("VideoSubtitle").sync();
         emit targetLanguageChanged();
     }
 }
 
 void VideoSubtitleController::setSubtitleStyle(int style)
 {
-    pluginSettings().setValue("subtitleStyle", style);
+    pluginGroupSettings("VideoSubtitle").setValue("subtitleStyle", style);
     emit subtitleStyleChanged();
 }
 
@@ -144,7 +136,7 @@ void VideoSubtitleController::setOutputMode(int mode)
 {
     if (m_outputMode != mode) {
         m_outputMode = mode;
-        QSettings &s = pluginSettings();
+        QSettings &s = pluginGroupSettings("VideoSubtitle");
         s.setValue("outputMode", mode);
         s.sync();  // 立即写入 INI，防止应用异常退出时丢失
         emit outputModeChanged();
@@ -155,7 +147,7 @@ void VideoSubtitleController::setOutputDir(const QString &dir)
 {
     if (m_outputDir != dir) {
         m_outputDir = dir;
-        QSettings &s = pluginSettings();
+        QSettings &s = pluginGroupSettings("VideoSubtitle");
         s.setValue("outputDir", dir);
         s.sync();  // 立即写入 INI，防止应用异常退出时丢失
         emit outputDirChanged();
@@ -164,19 +156,19 @@ void VideoSubtitleController::setOutputDir(const QString &dir)
 
 void VideoSubtitleController::setKeepWav(bool keep)
 {
-    pluginSettings().setValue("keepWav", keep);
+    pluginGroupSettings("VideoSubtitle").setValue("keepWav", keep);
     emit keepWavChanged();
 }
 
 void VideoSubtitleController::setKeepOriginalSrt(bool keep)
 {
-    pluginSettings().setValue("keepOriginalSrt", keep);
+    pluginGroupSettings("VideoSubtitle").setValue("keepOriginalSrt", keep);
     emit keepOriginalSrtChanged();
 }
 
 void VideoSubtitleController::setKeepTranslatedSrt(bool keep)
 {
-    pluginSettings().setValue("keepTranslatedSrt", keep);
+    pluginGroupSettings("VideoSubtitle").setValue("keepTranslatedSrt", keep);
     emit keepTranslatedSrtChanged();
 }
 
@@ -228,7 +220,7 @@ void VideoSubtitleController::execute()
 
     // Validate tools based on which steps are enabled
     if ((m_enableAudioExtraction || m_enableBurnSubtitle)
-        && (ffmpegPath().isEmpty() || !FFmpegService::isFFmpegAvailable(ffmpegPath()))) {
+        && (ffmpegPath().isEmpty() || !isFFmpegAvailable(ffmpegPath(), m_logger))) {
         emit settingsRequired();
         setStatusMessage("请先在设置中配置 FFmpeg 路径");
         return;
@@ -240,7 +232,7 @@ void VideoSubtitleController::execute()
             setStatusMessage("请先在设置中配置 whisper.cpp 路径");
             return;
         }
-        if (!WhisperService::isWhisperAvailable(whisperPath())) {
+        if (!WhisperService::isWhisperAvailable(whisperPath(), m_logger)) {
             emit settingsRequired();
             setStatusMessage("Whisper 运行时环境异常，请检查 whisper.dll / ggml.dll 是否齐全");
             return;
@@ -262,11 +254,11 @@ void VideoSubtitleController::execute()
         // LibreTranslate (engine == 1) needs no API key, just a local server URL
     }
 
-    PluginLogger::info(QString("===== 开始批量处理 ====="));
-    PluginLogger::info(QString("翻译引擎: %1, 源语言: %2, 目标语言: %3")
+    m_logger->info(QString("===== 开始批量处理 ====="));
+    m_logger->info(QString("翻译引擎: %1, 源语言: %2, 目标语言: %3")
         .arg((translateEngine() == 0) ? "百度翻译" : (translateEngine() == 1) ? "libretranslate" : "未知选项")
         .arg(m_sourceLanguage, m_targetLanguage));
-    PluginLogger::info(QString("步骤: 提取音频=%1, 语音识别=%2, 翻译=%3, 烧录=%4")
+    m_logger->info(QString("步骤: 提取音频=%1, 语音识别=%2, 翻译=%3, 烧录=%4")
         .arg(m_enableAudioExtraction ? "开" : "关")
         .arg(m_enableTranscribe ? "开" : "关")
         .arg(m_enableTranslate ? "开" : "关")
@@ -318,9 +310,9 @@ void VideoSubtitleController::execute()
 
     // GPU 加速设置
     {
-        bool useGpu = pluginSettings().value("useGpuAccel", false).toBool();
+        bool useGpu = pluginGroupSettings("VideoSubtitle").value("useGpuAccel", false).toBool();
         m_ffmpegService->setUseHardwareAccel(useGpu);
-        PluginLogger::info(QString("FFmpeg GPU 加速: %1").arg(useGpu ? "开启" : "关闭"));
+        m_logger->info(QString("FFmpeg GPU 加速: %1").arg(useGpu ? "开启" : "关闭"));
     }
 
     processNextFile();
@@ -407,14 +399,14 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
         .arg(m_pendingFiles.size())
         .arg(fi.fileName()));
 
-    PluginLogger::info(QString("开始处理视频: %1").arg(fi.fileName()));
+    m_logger->info(QString("开始处理视频: %1").arg(fi.fileName()));
 
     emit logMessage(QString("========== 开始处理: %1 ").arg(fi.fileName()));
 
     // [优化] 如果输出视频已存在，跳过整个文件
     if (m_enableBurnSubtitle && QFileInfo::exists(m_currentOutputVideoPath)) {
         QString reason = QString("输出文件已存在，跳过: %1").arg(m_currentOutputVideoPath);
-        PluginLogger::info(reason);
+        m_logger->info(reason);
         emit logMessage("⏭ " + fi.fileName() + " 输出已存在，跳过");
         emit logMessage(QString("========== 处理完成: %1 ").arg(fi.fileName()));
         addRecord(m_currentVideoPath, m_currentOutputVideoPath, true, "跳过（输出已存在）");
@@ -429,12 +421,12 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
             SubtitleService::parseSrt(m_currentTranslatedSrtPath);
         if (!existingEntries.isEmpty()) {
             qint64 srtLastEnd = existingEntries.last().endTime;
-            qint64 videoDuration = FFmpegService::getVideoDuration(ffmpegPath(),
+            qint64 videoDuration = getVideoDuration(ffmpegPath(),
                                                                     m_currentVideoPath);
             bool timeValid = (videoDuration <= 0)
                           || (srtLastEnd <= videoDuration + 2000); // 结束时间不超出视频2秒以上
             if (timeValid) {
-                PluginLogger::info(
+                m_logger->info(
                     QString("检测到已有翻译字幕 (%1 条字幕)，校验通过，直接烧录")
                         .arg(existingEntries.size()));
                 emit logMessage("✓ 检测到已有翻译字幕，跳过前置步骤，直接烧录");
@@ -453,13 +445,13 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
                                                      defaultBorderWidth());
                 return;
             } else {
-                PluginLogger::info(
+                m_logger->info(
                     QString("已有翻译字幕结束时间(%1 ms)超出视频时长(%2 ms)，重新处理")
                         .arg(srtLastEnd).arg(videoDuration));
                 emit logMessage("⚠ 已有翻译字幕结束时间超出视频范围，重新处理");
             }
         } else {
-            PluginLogger::info("已有翻译字幕文件为空或格式错误，重新处理: "
+            m_logger->info("已有翻译字幕文件为空或格式错误，重新处理: "
                                + m_currentTranslatedSrtPath);
             emit logMessage("⚠ 已有翻译字幕无效，重新处理");
         }
@@ -469,7 +461,7 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
     if (m_enableAudioExtraction && QFileInfo::exists(m_currentAudioPath)) {
         qint64 wavSize = QFileInfo(m_currentAudioPath).size();
         if (wavSize > 1024) {  // 有效音频文件至少 1KB
-            PluginLogger::info(QString("检测到已有音频文件 (%1 bytes)，跳过提取").arg(wavSize));
+            m_logger->info(QString("检测到已有音频文件 (%1 bytes)，跳过提取").arg(wavSize));
             emit logMessage("✓ 检测到已有音频文件，跳过提取");
             disconnect(m_ffmpegService, &FFmpegService::finished, nullptr, nullptr);
             connect(m_ffmpegService, &FFmpegService::finished,
@@ -477,7 +469,7 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
             onAudioExtracted(true, m_currentAudioPath, "");
             return;
         } else {
-            PluginLogger::info(QString("已有音频文件过小 (%1 bytes)，重新提取").arg(wavSize));
+            m_logger->info(QString("已有音频文件过小 (%1 bytes)，重新提取").arg(wavSize));
             emit logMessage("⚠ 已有音频文件过小，重新提取");
         }
     }
@@ -486,14 +478,14 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
         // Step 1: Extract audio
         setCurrentStep("提取音频");
         setProgress(0.0);
-        PluginLogger::info("步骤 1/4: 提取音频 → " + m_currentAudioPath);
+        m_logger->info("步骤 1/4: 提取音频 → " + m_currentAudioPath);
         disconnect(m_ffmpegService, &FFmpegService::finished, nullptr, nullptr);
         connect(m_ffmpegService, &FFmpegService::finished,
                 this, &VideoSubtitleController::onAudioExtracted);
         m_ffmpegService->startExtractAudio(ffmpegPath(), videoPath, m_currentAudioPath);
         emit logDetail("音频提取...");
     } else {
-        PluginLogger::info("步骤 1/4: 跳过提取音频");
+        m_logger->info("步骤 1/4: 跳过提取音频");
         emit logMessage("跳过音频提取");
         // Skip audio extraction, proceed to next enabled step
         onAudioExtracted(true, m_currentAudioPath, "");
@@ -504,7 +496,7 @@ void VideoSubtitleController::onAudioExtracted(bool success, const QString &audi
 {
     if (!success) {
         // 日志记录完整错误详情
-        PluginLogger::error("音频提取失败——原始错误: " + error);
+        m_logger->error("音频提取失败——原始错误: " + error);
         // 界面显示错误原因（error 已由 FFmpegService 翻译为中文）
         emit logMessage("✗ 音频提取失败: " + error);
         addRecord(m_currentVideoPath, "", false, "音频提取失败: " + error);
@@ -513,7 +505,7 @@ void VideoSubtitleController::onAudioExtracted(bool success, const QString &audi
         return;
     }
 
-    PluginLogger::info("音频提取完成: " + audioPath);
+    m_logger->info("音频提取完成: " + audioPath);
     emit logMessage("✓ 音频提取完成");
 
     if (m_enableTranscribe) {
@@ -522,13 +514,13 @@ void VideoSubtitleController::onAudioExtracted(bool success, const QString &audi
             QList<SubtitleService::SubtitleEntry> existingEntries =
                 SubtitleService::parseSrt(m_currentOriginalSrtPath);
             if (!existingEntries.isEmpty()) {
-                PluginLogger::info(QString("检测到已有原版字幕 (%1 条字幕)，跳过语音识别")
+                m_logger->info(QString("检测到已有原版字幕 (%1 条字幕)，跳过语音识别")
                     .arg(existingEntries.size()));
                 emit logMessage("✓ 检测到已有原版字幕，跳过语音识别");
                 onTranscribeFinished(true, m_currentOriginalSrtPath, "");
                 return;
             } else {
-                PluginLogger::info("已有原版字幕文件为空或格式错误，重新识别: "
+                m_logger->info("已有原版字幕文件为空或格式错误，重新识别: "
                                    + m_currentOriginalSrtPath);
                 emit logMessage("⚠ 已有原版字幕无效，重新识别");
             }
@@ -538,7 +530,7 @@ void VideoSubtitleController::onAudioExtracted(bool success, const QString &audi
         setCurrentStep("语音识别");
         setProgress(0.0);
         emit logDetail("语音识别开始...");
-        PluginLogger::info("步骤 2/4: 语音识别中...");
+        m_logger->info("步骤 2/4: 语音识别中...");
         QFileInfo audioInfo(m_currentAudioPath);
         QString outputDir = audioInfo.absolutePath();
         // Pass audioSegmentDuration for virtual segment progress display
@@ -546,7 +538,7 @@ void VideoSubtitleController::onAudioExtracted(bool success, const QString &audi
                                            audioPath, outputDir, m_sourceLanguage,
                                            audioSegmentDuration());
     } else {
-        PluginLogger::info("步骤 2/4: 跳过语音识别");
+        m_logger->info("步骤 2/4: 跳过语音识别");
         emit logMessage("跳过语音识别");
         // Skip transcribe, proceed to next enabled step
         onTranscribeFinished(true, m_currentOriginalSrtPath, "");
@@ -557,7 +549,7 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
 {
     if (!success) {
         // 日志记录完整错误详情
-        PluginLogger::error("语音识别失败——原始错误: " + error);
+        m_logger->error("语音识别失败——原始错误: " + error);
         // 界面显示错误原因
         emit logMessage("✗ 语音识别失败: " + error);
         addRecord(m_currentVideoPath, "", false, "语音识别失败: " + error);
@@ -567,7 +559,7 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
     }
 
     m_currentOriginalSrtPath = srtPath;
-    PluginLogger::info("语音识别完成，SRT: " + srtPath);
+    m_logger->info("语音识别完成，SRT: " + srtPath);
     emit logMessage("✓ 语音识别完成");
 
     // [优化] 去重 + 过滤环境音：移除连续重复字幕和 (xxx) 类环境音后再翻译
@@ -582,7 +574,7 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
                 SubtitleService::deduplicate(entries);
             int dedupRemoved = beforeCount - deduped.size();
             if (dedupRemoved > 0) {
-                PluginLogger::info(
+                m_logger->info(
                     QString("去重: 移除 %1 条连续重复字幕（共 %2 → %3 条）")
                         .arg(dedupRemoved).arg(beforeCount).arg(deduped.size()));
                 emit logMessage(QString("✓ 去重完成: 移除 %1 条重复字幕（%2 → %3）")
@@ -594,7 +586,7 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
                 SubtitleService::filterEnvironmentSounds(deduped);
             int envRemoved = deduped.size() - filtered.size();
             if (envRemoved > 0) {
-                PluginLogger::info(
+                m_logger->info(
                     QString("环境音过滤: 移除 %1 条环境音字幕（%2 → %3 条）")
                         .arg(envRemoved).arg(deduped.size()).arg(filtered.size()));
                 emit logMessage(QString("✓ 环境音过滤: 移除 %1 条环境音字幕（%2 → %3）")
@@ -605,7 +597,7 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
             if (dedupRemoved > 0 || envRemoved > 0) {
                 SubtitleService::writeSrt(m_currentOriginalSrtPath, filtered);
             } else {
-                PluginLogger::info("字幕无需去重或过滤，保持不变");
+                m_logger->info("字幕无需去重或过滤，保持不变");
             }
         }
     }
@@ -619,18 +611,18 @@ void VideoSubtitleController::onTranscribeFinished(bool success, const QString &
         QList<SubtitleService::SubtitleEntry> entries =
             SubtitleService::parseSrt(m_currentOriginalSrtPath);
         QString detectedLang = SubtitleService::detectLanguage(entries);
-        PluginLogger::info(QString("SRT 语种检测结果: %1").arg(detectedLang));
+        m_logger->info(QString("SRT 语种检测结果: %1").arg(detectedLang));
         emit logMessage(QString("→ 检测到字幕语种: %1").arg(detectedLang));
 
         emit logDetail("翻译字幕...");
-        PluginLogger::info("步骤 3/4: 翻译字幕中...");
+        m_logger->info("步骤 3/4: 翻译字幕中...");
         m_translateService->startTranslate(m_currentOriginalSrtPath,
                                             m_currentTranslatedSrtPath,
                                             translateEngine(), apiKey(),
                                             apiUrl(), detectedLang, m_targetLanguage,
                                             baiduAppId());
     } else {
-        PluginLogger::info("步骤 3/4: 跳过翻译");
+        m_logger->info("步骤 3/4: 跳过翻译");
         emit logMessage("跳过翻译");
         // No translation, treat original as translated and skip to burning
         m_currentTranslatedSrtPath = m_currentOriginalSrtPath;
@@ -642,7 +634,7 @@ void VideoSubtitleController::onTranslateFinished(bool success, const QString &s
 {
     if (!success) {
         // 日志记录完整错误详情
-        PluginLogger::error("翻译失败——原始错误: " + error);
+        m_logger->error("翻译失败——原始错误: " + error);
         // 界面显示错误原因
         emit logMessage("✗ 翻译失败: " + error);
         addRecord(m_currentVideoPath, "", false, "翻译失败: " + error);
@@ -652,7 +644,7 @@ void VideoSubtitleController::onTranslateFinished(bool success, const QString &s
     }
 
     m_currentTranslatedSrtPath = srtPath;
-    PluginLogger::info("翻译完成，SRT: " + srtPath);
+    m_logger->info("翻译完成，SRT: " + srtPath);
     emit logMessage("✓ 翻译完成");
 
     // Step 4: Burn subtitles
@@ -660,7 +652,7 @@ void VideoSubtitleController::onTranslateFinished(bool success, const QString &s
         setCurrentStep("烧录字幕");
         setProgress(0.0);
         emit logDetail("烧录字幕...");
-        PluginLogger::info("步骤 4/4: 烧录字幕中...");
+        m_logger->info("步骤 4/4: 烧录字幕中...");
         disconnect(m_ffmpegService, &FFmpegService::finished, nullptr, nullptr);
         connect(m_ffmpegService, &FFmpegService::finished,
                 this, &VideoSubtitleController::onBurnFinished);
@@ -672,7 +664,7 @@ void VideoSubtitleController::onTranslateFinished(bool success, const QString &s
                                              defaultBorderColor(),
                                              defaultBorderWidth());
     } else {
-        PluginLogger::info("步骤 4/4: 跳过烧录字幕");
+        m_logger->info("步骤 4/4: 跳过烧录字幕");
         emit logMessage("跳过烧录字幕");
         // No burn, finalize with SRT output
         onBurnFinished(true, m_currentTranslatedSrtPath, "");
@@ -682,12 +674,12 @@ void VideoSubtitleController::onTranslateFinished(bool success, const QString &s
 void VideoSubtitleController::onBurnFinished(bool success, const QString &outputPath, const QString &error)
 {
     if (success) {
-        PluginLogger::info(QString("烧录完成: %1 → %2").arg(m_currentVideoPath, outputPath));
+        m_logger->info(QString("烧录完成: %1 → %2").arg(m_currentVideoPath, outputPath));
         emit logMessage("✓ 烧录完成");
         finalizeCurrentFile();
     } else {
         // 日志记录完整错误详情
-        PluginLogger::error("烧录字幕失败——原始错误: " + error);
+        m_logger->error("烧录字幕失败——原始错误: " + error);
         // 界面显示错误原因
         emit logMessage("✗ 烧录字幕失败: " + error);
         addRecord(m_currentVideoPath, "", false, "烧录字幕失败: " + error);
@@ -713,12 +705,12 @@ void VideoSubtitleController::finalizeCurrentFile()
     if (m_enableAudioExtraction && QFileInfo::exists(m_currentAudioPath)) {
         if (keepWav()) {
             outputPath = m_currentAudioPath;
-            PluginLogger::info("输出音频: " + m_currentAudioPath);
+            m_logger->info("输出音频: " + m_currentAudioPath);
             emit logMessage("✓ 生成音频: " + m_currentAudioPath);
             hasAnyOutput = true;
         } else {
             QFile::remove(m_currentAudioPath);
-            PluginLogger::info("丢弃音频: " + m_currentAudioPath);
+            m_logger->info("丢弃音频: " + m_currentAudioPath);
         }
     }
 
@@ -726,12 +718,12 @@ void VideoSubtitleController::finalizeCurrentFile()
     if (m_enableTranscribe && QFileInfo::exists(m_currentOriginalSrtPath)) {
         if (keepOriginalSrt()) {
             outputPath = m_currentOriginalSrtPath;
-            PluginLogger::info("输出字幕: " + m_currentOriginalSrtPath);
+            m_logger->info("输出字幕: " + m_currentOriginalSrtPath);
             emit logMessage("✓ 生成字幕: " + m_currentOriginalSrtPath);
             hasAnyOutput = true;
         } else {
             QFile::remove(m_currentOriginalSrtPath);
-            PluginLogger::info("丢弃字幕: " + m_currentOriginalSrtPath);
+            m_logger->info("丢弃字幕: " + m_currentOriginalSrtPath);
         }
     }
 
@@ -739,19 +731,19 @@ void VideoSubtitleController::finalizeCurrentFile()
     if (m_enableTranslate && QFileInfo::exists(m_currentTranslatedSrtPath)) {
         if (keepTranslatedSrt()) {
             outputPath = m_currentTranslatedSrtPath;
-            PluginLogger::info("输出翻译字幕: " + m_currentTranslatedSrtPath);
+            m_logger->info("输出翻译字幕: " + m_currentTranslatedSrtPath);
             emit logMessage("✓ 生成翻译字幕: " + m_currentTranslatedSrtPath);
             hasAnyOutput = true;
         } else {
             QFile::remove(m_currentTranslatedSrtPath);
-            PluginLogger::info("丢弃翻译字幕: " + m_currentTranslatedSrtPath);
+            m_logger->info("丢弃翻译字幕: " + m_currentTranslatedSrtPath);
         }
     }
 
     // Burn output video is always kept (main output)
     if (m_enableBurnSubtitle && QFileInfo::exists(m_currentOutputVideoPath)) {
         outputPath = m_currentOutputVideoPath;
-        PluginLogger::info("输出视频: " + outputPath);
+        m_logger->info("输出视频: " + outputPath);
         emit logMessage("✓ 生成视频: " + outputPath);
         hasAnyOutput = true;
     }
@@ -877,32 +869,23 @@ void VideoSubtitleController::addRecord(const QString &originalPath, const QStri
     emit recordsChanged();
 }
 
-bool VideoSubtitleController::isVideoFile(const QString &fileName) const
-{
-    QString lower = fileName.toLower();
-    for (const QString &ext : m_videoExtensions) {
-        if (lower.endsWith(ext)) return true;
-    }
-    return false;
-}
-
 QString VideoSubtitleController::ffmpegPath() const
 {
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();  // 重新读取 config.ini，确保设置页面保存的值已生效
     return s.value("ffmpegPath").toString();
 }
 
 QString VideoSubtitleController::whisperPath() const
 {
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();
     return s.value("whisperPath").toString();
 }
 
 QString VideoSubtitleController::whisperModelPath() const
 {
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();
 
     // 1. Check if user specified a local model file
@@ -925,12 +908,12 @@ QString VideoSubtitleController::whisperModelPath() const
 
 QString VideoSubtitleController::apiKey() const
 {
-    return QByteArray::fromBase64(pluginSettings().value("apiKey").toByteArray());
+    return QByteArray::fromBase64(pluginGroupSettings("VideoSubtitle").value("apiKey").toByteArray());
 }
 
 QString VideoSubtitleController::apiUrl() const
 {
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();
     // Return the correct URL based on current translation engine:
     // engine 0 (Baidu) → apiUrl, engine 1 (LibreTranslate) → libreTranslateUrl
@@ -942,49 +925,49 @@ QString VideoSubtitleController::apiUrl() const
 
 QString VideoSubtitleController::baiduAppId() const
 {
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();
     return s.value("baiduAppId").toString();
 }
 
 int VideoSubtitleController::audioSegmentDuration() const
 {
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();
     return s.value("audioSegmentDuration", 10).toInt();
 }
 
 int VideoSubtitleController::translateEngine() const
 {
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();
     return s.value("translateEngine", 0).toInt();
 }
 
 int VideoSubtitleController::defaultFontSize() const
 {
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();
     return s.value("defaultFontSize", 20).toInt();
 }
 
 QString VideoSubtitleController::defaultFontColor() const
 {
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();
     return s.value("defaultFontColor", "#FFFFFF").toString();
 }
 
 QString VideoSubtitleController::defaultBorderColor() const
 {
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();
     return s.value("defaultBorderColor", "#000000").toString();
 }
 
 int VideoSubtitleController::defaultBorderWidth() const
 {
-    QSettings &s = pluginSettings();
+    QSettings &s = pluginGroupSettings("VideoSubtitle");
     s.sync();
     return s.value("defaultBorderWidth", 2).toInt();
 }

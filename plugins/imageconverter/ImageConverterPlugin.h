@@ -3,6 +3,7 @@
 #include "../../src/core/PluginInterface.h"
 
 class ImageConverterController;
+class PluginLogger;
 
 class ImageConverterPlugin : public QObject, public PluginInterface
 {
@@ -24,5 +25,6 @@ public:
     QObject* getController() override;
 
 private:
+    PluginLogger *m_logger = nullptr;
     ImageConverterController *m_controller;
 };

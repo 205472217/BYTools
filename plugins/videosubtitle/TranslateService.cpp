@@ -1,6 +1,6 @@
 #include "TranslateService.h"
 #include "SubtitleService.h"
-#include "PluginLogger.h"
+#include "Logger.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -57,8 +57,9 @@ static QString sanitizeSubtitleText(const QString &raw)
     return lines.join('\n').trimmed();
 }
 
-TranslateService::TranslateService(QObject *parent)
+TranslateService::TranslateService(PluginLogger *logger, QObject *parent)
     : QObject(parent)
+    , m_logger(logger)
     , m_networkManager(new QNetworkAccessManager(this))
     , m_currentReply(nullptr)
     , m_requestTimer(new QTimer(this))
@@ -105,7 +106,7 @@ void TranslateService::startTranslate(const QString &inputSrtPath,
     m_currentEntryIndex = 0;
     m_translatedCount = 0;
 
-    PluginLogger::info(QString("逐句翻译开始: %1 条字幕, 引擎: %2")
+    m_logger->info(QString("逐句翻译开始: %1 条字幕, 引擎: %2")
         .arg(m_totalEntries).arg(engine == 0 ? "百度翻译" : "未知"));
 
     // Start translating the first sentence
@@ -153,7 +154,7 @@ void TranslateService::translateNext()
         QString fullUrl = buildBaiduUrl(singleText, m_currentTargetLang,
                                          m_currentApiKey, m_baiduAppId);
 
-        PluginLogger::restRequest("GET", fullUrl);
+        m_logger->restRequest("GET", fullUrl);
 
         QNetworkRequest request{QUrl(fullUrl)};
         request.setTransferTimeout(TIMEOUT_MS);  // auto-abort if no data for 30s
@@ -180,7 +181,7 @@ void TranslateService::translateNext()
         m_currentReply = m_networkManager->post(request, jsonData);
         m_requestTimer->start(TIMEOUT_MS + 5000);
 
-        PluginLogger::restRequest("POST", fullUrl);
+        m_logger->restRequest("POST", fullUrl);
         break;
     }
     default:
@@ -212,11 +213,11 @@ void TranslateService::onReplyFinished(QNetworkReply *reply)
             .arg(m_currentEntryIndex + 1)
             .arg(m_entries.at(m_currentEntryIndex).originalText.left(40));
         reply->deleteLater();
-        PluginLogger::restResponse(httpStatus, "网络错误: " + errStr + srtEntryInfo);
+        m_logger->restResponse(httpStatus, "网络错误: " + errStr + srtEntryInfo);
 
         m_retryCount++;
         if (m_retryCount <= MAX_RETRIES) {
-            PluginLogger::warn(QString("第 %1 条翻译请求失败（第 %2 次重试）: %3")
+            m_logger->warn(QString("第 %1 条翻译请求失败（第 %2 次重试）: %3")
                 .arg(m_currentEntryIndex + 1).arg(m_retryCount).arg(errStr));
             translateNext();
             return;
@@ -231,7 +232,7 @@ void TranslateService::onReplyFinished(QNetworkReply *reply)
     reply->deleteLater();
 
     QJsonDocument doc = QJsonDocument::fromJson(responseData);
-    PluginLogger::restResponse(httpStatus, QString::fromUtf8(responseData));
+    m_logger->restResponse(httpStatus, QString::fromUtf8(responseData));
     QJsonObject root = doc.object();
 
     // Check API error (Baidu: error_code/error_msg; LibreTranslate: error)
@@ -241,7 +242,7 @@ void TranslateService::onReplyFinished(QNetworkReply *reply)
         QString srtEntryInfo = QString("（第 %1 条: \"%2\"）")
             .arg(m_currentEntryIndex + 1)
             .arg(m_entries.at(m_currentEntryIndex).originalText.left(40));
-        PluginLogger::error(QString("翻译 API 错误 [%1]: %2 %3").arg(errCode, errMsg, srtEntryInfo));
+        m_logger->error(QString("翻译 API 错误 [%1]: %2 %3").arg(errCode, errMsg, srtEntryInfo));
         emit finished(false, m_outputSrtPath,
                       QString("翻译失败（第 %1 条）: [%2] %3")
                           .arg(m_currentEntryIndex + 1).arg(errCode, errMsg));
@@ -252,7 +253,7 @@ void TranslateService::onReplyFinished(QNetworkReply *reply)
         QString srtEntryInfo = QString("（第 %1 条: \"%2\"）")
             .arg(m_currentEntryIndex + 1)
             .arg(m_entries.at(m_currentEntryIndex).originalText.left(40));
-        PluginLogger::error(QString("翻译 API 错误: %1 %2").arg(errMsg, srtEntryInfo));
+        m_logger->error(QString("翻译 API 错误: %1 %2").arg(errMsg, srtEntryInfo));
         emit finished(false, m_outputSrtPath,
                       QString("翻译失败（第 %1 条）: %2").arg(m_currentEntryIndex + 1).arg(errMsg));
         return;
@@ -281,7 +282,7 @@ void TranslateService::onReplyFinished(QNetworkReply *reply)
     }
 
     if (translatedTexts.isEmpty()) {
-        PluginLogger::error(QString("第 %1 条返回结果为空: \"%2\"")
+        m_logger->error(QString("第 %1 条返回结果为空: \"%2\"")
             .arg(m_currentEntryIndex + 1)
             .arg(m_entries.at(m_currentEntryIndex).originalText.left(40)));
         emit finished(false, m_outputSrtPath,
@@ -305,7 +306,7 @@ void TranslateService::onRequestTimeout()
 {
     if (m_cancelled) return;
 
-    PluginLogger::warn(QString("第 %1 条翻译请求超时").arg(m_currentEntryIndex + 1));
+    m_logger->warn(QString("第 %1 条翻译请求超时").arg(m_currentEntryIndex + 1));
 
     // Clean up the hung reply
     if (m_currentReply) {
@@ -317,13 +318,13 @@ void TranslateService::onRequestTimeout()
 
     m_retryCount++;
     if (m_retryCount <= MAX_RETRIES) {
-        PluginLogger::warn(QString("第 %1 条翻译超时重试 (%2/%3)…")
+        m_logger->warn(QString("第 %1 条翻译超时重试 (%2/%3)…")
             .arg(m_currentEntryIndex + 1).arg(m_retryCount).arg(MAX_RETRIES));
         translateNext();
         return;
     }
 
-    PluginLogger::error(QString("第 %1 条翻译超时 %2 次，放弃").arg(m_currentEntryIndex + 1).arg(m_retryCount));
+    m_logger->error(QString("第 %1 条翻译超时 %2 次，放弃").arg(m_currentEntryIndex + 1).arg(m_retryCount));
     emit finished(false, m_outputSrtPath,
                   QString("翻译超时（第 %1 条）").arg(m_currentEntryIndex + 1));
 }
@@ -331,7 +332,7 @@ void TranslateService::onRequestTimeout()
 void TranslateService::writeOutputSrt()
 {
     bool ok = SubtitleService::writeSrt(m_outputSrtPath, m_entries);
-    PluginLogger::info(QString("翻译完成: %1 条字幕 → %2")
+    m_logger->info(QString("翻译完成: %1 条字幕 → %2")
         .arg(m_totalEntries).arg(m_outputSrtPath));
     emit finished(ok, m_outputSrtPath, ok ? "" : "Failed to write SRT file");
 }

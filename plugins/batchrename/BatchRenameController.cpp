@@ -1,11 +1,13 @@
 #include "BatchRenameController.h"
+#include "Logger.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QUrl>
 #include <QRegularExpression>
 
-BatchRenameController::BatchRenameController(QObject *parent)
+BatchRenameController::BatchRenameController(PluginLogger *logger, QObject *parent)
     : QObject(parent)
+    , m_logger(logger)
 {
     updateFileTips();
 }
@@ -176,6 +178,9 @@ void BatchRenameController::executeRename()
         return;
     }
 
+    m_logger->info(QString("===== 开始批量重命名 ====="));
+    m_logger->info(QString("根目录: %1, 递归=%2").arg(m_rootPath).arg(m_recursive));
+
     m_records.clear();
     emit recordsChanged();
     emit hasRecordsChanged();
@@ -189,10 +194,13 @@ void BatchRenameController::executeRename()
 
     if (successCount == 0 && failCount == 0) {
         setStatusMessage(QStringLiteral("没有找到匹配的文件"));
+        m_logger->info("重命名完成: 没有找到匹配的文件");
     } else if (failCount == 0) {
         setStatusMessage(QStringLiteral("成功重命名 %1 个文件").arg(successCount));
+        m_logger->info(QString("重命名完成: 成功 %1 个").arg(successCount));
     } else {
         setStatusMessage(QStringLiteral("成功 %1 个，失败 %2 个").arg(successCount).arg(failCount));
+        m_logger->info(QString("重命名完成: 成功 %1 个，失败 %2 个").arg(successCount).arg(failCount));
     }
 
     emit recordsChanged();
@@ -203,6 +211,7 @@ void BatchRenameController::executeRename()
 
 void BatchRenameController::processDirectory(const QDir &currentDir, int &successCount, int &failCount)
 {
+    m_logger->info(QString("处理目录: %1").arg(currentDir.absolutePath()));
     QFileInfoList entries = currentDir.entryInfoList(
         QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden,
         QDir::Name);
@@ -260,9 +269,9 @@ void BatchRenameController::processDirectory(const QDir &currentDir, int &succes
         QString originalPath = it.key();
         QString newName = it.value();
         QString newPath = currentDir.absoluteFilePath(newName);
-        
+
         QString originalFileName = QFileInfo(originalPath).fileName();
-        
+
         bool success = false;
         QString status;
 
@@ -270,9 +279,11 @@ void BatchRenameController::processDirectory(const QDir &currentDir, int &succes
             success = true;
             status = QStringLiteral("已重命名");
             successCount++;
+            m_logger->info(QString("  [重命名] %1 → %2").arg(originalFileName, newName));
         } else {
             status = QStringLiteral("失败：重命名失败");
             failCount++;
+            m_logger->error(QString("  [失败] %1 → %2").arg(originalFileName, newName));
         }
 
         addRecord(originalPath, newPath, success, status);
@@ -335,11 +346,12 @@ void BatchRenameController::restoreRecord(int index)
 
     QFileInfo newPathInfo(record.newPath);
     QDir parentDir = newPathInfo.absoluteDir();
-    
+
     if (!QFileInfo::exists(record.newPath)) {
         record.status = QStringLiteral("失败：文件不存在");
         record.success = false;
         setStatusMessage(QStringLiteral("还原失败：文件不存在"));
+        m_logger->warn(QString("还原失败: %1 — 文件不存在").arg(record.newPath));
         emit recordsChanged();
         return;
     }
@@ -348,6 +360,7 @@ void BatchRenameController::restoreRecord(int index)
         record.status = QStringLiteral("失败：原文件已存在");
         record.success = false;
         setStatusMessage(QStringLiteral("还原失败：原文件已存在"));
+        m_logger->warn(QString("还原失败: %1 — 原文件已存在").arg(record.originalPath));
         emit recordsChanged();
         return;
     }
@@ -356,9 +369,11 @@ void BatchRenameController::restoreRecord(int index)
         record.status = QStringLiteral("已还原");
         record.success = false;
         setStatusMessage(QStringLiteral("已还原：%1").arg(record.originalName));
+        m_logger->info(QString("已还原: %1 → %2").arg(record.newName, record.originalName));
     } else {
         record.status = QStringLiteral("失败：还原失败");
         setStatusMessage(QStringLiteral("还原失败：%1").arg(record.newName));
+        m_logger->error(QString("还原失败: %1").arg(record.newName));
     }
 
     emit recordsChanged();
@@ -366,6 +381,7 @@ void BatchRenameController::restoreRecord(int index)
 
 void BatchRenameController::restoreAllRecords()
 {
+    m_logger->info("===== 开始批量还原 =====");
     int successCount = 0;
     int failCount = 0;
 
@@ -404,10 +420,13 @@ void BatchRenameController::restoreAllRecords()
 
     if (successCount == 0 && failCount == 0) {
         setStatusMessage(QStringLiteral("没有可还原的记录"));
+        m_logger->info("批量还原完成: 没有可还原的记录");
     } else if (failCount == 0) {
         setStatusMessage(QStringLiteral("已全部还原"));
+        m_logger->info(QString("批量还原完成: 成功还原 %1 个").arg(successCount));
     } else {
         setStatusMessage(QStringLiteral("成功还原 %1 个，失败 %2 个").arg(successCount).arg(failCount));
+        m_logger->info(QString("批量还原完成: 成功 %1 个，失败 %2 个").arg(successCount).arg(failCount));
     }
 
     emit recordsChanged();
@@ -453,6 +472,7 @@ bool BatchRenameController::isProcessing() const
 void BatchRenameController::cancel()
 {
     if (m_isProcessing) {
+        m_logger->info("批量重命名已取消");
         setIsProcessing(false);
         setStatusMessage("已取消");
     }

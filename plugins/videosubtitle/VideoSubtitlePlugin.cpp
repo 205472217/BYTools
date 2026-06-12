@@ -1,6 +1,7 @@
 ﻿#include "VideoSubtitlePlugin.h"
 #include "VideoSubtitleController.h"
 #include "VideoSubtitleSettings.h"
+#include "Logger.h"
 
 VideoSubtitlePlugin::VideoSubtitlePlugin(QObject *parent)
     : QObject(parent)
@@ -31,12 +32,15 @@ QString VideoSubtitlePlugin::iconName() const
 
 void VideoSubtitlePlugin::initialize()
 {
+    if (!m_logger)
+        m_logger = new PluginLogger("video-subtitle");
     if (!m_settings) {
-        m_settings = new VideoSubtitleSettings(this);
+        m_settings = new VideoSubtitleSettings(m_logger, this);
     }
     if (!m_controller) {
-        m_controller = new VideoSubtitleController(this);
+        m_controller = new VideoSubtitleController(m_logger, this);
     }
+    m_logger->info(QStringLiteral("视频字幕翻译插件已初始化"));
 }
 
 void VideoSubtitlePlugin::cleanup()
@@ -49,6 +53,8 @@ void VideoSubtitlePlugin::cleanup()
         delete m_settings;
         m_settings = nullptr;
     }
+    delete m_logger;
+    m_logger = nullptr;
 }
 
 QObject* VideoSubtitlePlugin::getController()

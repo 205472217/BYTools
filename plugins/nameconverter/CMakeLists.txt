@@ -30,7 +30,7 @@ target_include_directories(NameConverterPlugin PRIVATE
 )
 
 target_link_libraries(NameConverterPlugin
-    PRIVATE Qt6::Core
+    PRIVATE Qt6::Core PluginCommon
 )
 
 set_target_properties(NameConverterPlugin PROPERTIES

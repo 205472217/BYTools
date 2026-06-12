@@ -326,7 +326,7 @@ Pane {
                     }
                 }
 
-                // Row 2: progress（步骤3耗时→走进度条，步骤2/4→走总进度）
+                // Row 2: progress（步骤3→当前文件的 ffmpeg 实时进度，步骤2/4→走总进度 N/M）
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
@@ -341,7 +341,7 @@ Pane {
                         visible: controller && controller.currentStep === "合成视频+字幕"
 
                         Rectangle {
-                            width: parent.width * (controller ? controller.progress : 0)
+                            width: parent.width * (controller ? controller.currentFileProgress : 0)
                             height: parent.height
                             radius: 2
                             color: "#2563eb"
@@ -350,7 +350,7 @@ Pane {
 
                     Label {
                         text: controller && controller.currentStep === "合成视频+字幕"
-                              ? Math.round(controller.progress * 100) + "%"
+                              ? Math.round(controller.currentFileProgress * 100) + "%"
                               : (controller.totalCount > 0
                                  ? controller.processedCount + "/" + controller.totalCount
                                  : "")
@@ -574,10 +574,10 @@ Pane {
                                 }
 
                                 BusyIndicator {
-                                    width: 40
-                                    height: 40
-                                    implicitWidth: 20
-                                    implicitHeight: 20
+                                    width: 30
+                                    height: 30
+                                    implicitWidth: 30
+                                    implicitHeight: 30
                                     running: controller && controller.currentStep === "匹配并移动字幕"
                                     visible: running
                                 }
@@ -635,10 +635,10 @@ Pane {
                                 }
 
                                 BusyIndicator {
-                                    width: 40
-                                    height: 40
-                                    implicitWidth: 20
-                                    implicitHeight: 20
+                                    width: 30
+                                    height: 30
+                                    implicitWidth: 30
+                                    implicitHeight: 30
                                     running: controller && controller.currentStep === "合成视频+字幕"
                                     visible: running
                                 }
@@ -751,10 +751,10 @@ Pane {
                                 }
 
                                 BusyIndicator {
-                                    width: 40
-                                    height: 40
-                                    implicitWidth: 20
-                                    implicitHeight: 20
+                                    width: 30
+                                    height: 30
+                                    implicitWidth: 30
+                                    implicitHeight: 30
                                     running: controller && controller.currentStep === "替换原视频"
                                     visible: running
                                 }
@@ -797,23 +797,6 @@ Pane {
                                     onClicked: {
                                         if (controller)
                                             controller.replaceOriginalVideo();
-                                    }
-                                }
-
-                                IconButton {
-                                    Layout.preferredWidth: 72
-                                    implicitHeight: 28
-                                    text: "取消替换"
-                                    tooltip: "强制终止替换操作"
-                                    normalColor: "#dc2626"
-                                    hoverColor: "#b91c1c"
-                                    borderColor: "#b91c1c"
-                                    textColor: "#ffffff"
-                                    enabled: controller ? controller.isProcessing : false
-                                    visible: controller ? controller.isProcessing : false
-                                    onClicked: {
-                                        if (controller)
-                                            controller.cancel();
                                     }
                                 }
                             }

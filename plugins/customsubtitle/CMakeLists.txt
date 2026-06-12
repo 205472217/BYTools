@@ -22,7 +22,6 @@ add_library(CustomSubtitlePlugin MODULE
     FFmpegMergeService.h
     VideoReplaceService.cpp
     VideoReplaceService.h
-    PluginLogger.h
     plugin.json
 )
 
@@ -32,6 +31,7 @@ target_include_directories(CustomSubtitlePlugin PRIVATE
 
 target_link_libraries(CustomSubtitlePlugin PRIVATE
     Qt6::Core
+    PluginCommon
 )
 
 if(Qt6WebEngineQuick_FOUND)

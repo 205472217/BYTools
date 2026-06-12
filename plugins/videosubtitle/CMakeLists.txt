@@ -23,7 +23,6 @@ add_library(VideoSubtitlePlugin MODULE
     SubtitleService.h
     FFmpegService.cpp
     FFmpegService.h
-    PluginLogger.h
     plugin.json
 )
 
@@ -33,6 +32,7 @@ target_include_directories(VideoSubtitlePlugin PRIVATE
 
 target_link_libraries(VideoSubtitlePlugin PRIVATE
     Qt6::Core Qt6::Network Qt6::Widgets
+    PluginCommon
 )
 
 set_target_properties(VideoSubtitlePlugin PROPERTIES

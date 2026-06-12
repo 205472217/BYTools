@@ -5,6 +5,8 @@
 #include <QVariantList>
 #include <QDir>
 
+class PluginLogger;
+
 class ImageConverterController : public QObject
 {
     Q_OBJECT
@@ -21,7 +23,7 @@ class ImageConverterController : public QObject
     Q_PROPERTY(QVariantList records READ records NOTIFY recordsChanged)
 
 public:
-    explicit ImageConverterController(QObject *parent = nullptr);
+    explicit ImageConverterController(PluginLogger *logger, QObject *parent = nullptr);
 
     QString rootPath() const;
     void setRootPath(const QString &rootPath);
@@ -101,6 +103,7 @@ private:
     QString m_statusMessage;
     QList<ConvertRecord> m_records;
 
+    PluginLogger *m_logger = nullptr;
     const QStringList m_imageExtensions = {
         ".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tiff", ".tif",
         ".gif", ".ico", ".tga", ".ppm", ".pgm", ".pbm", ".xbm", ".xpm"

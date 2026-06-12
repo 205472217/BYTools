@@ -3,6 +3,8 @@
 #include "../../src/core/PluginInterface.h"
 #include "BatchNameController.h"
 
+class PluginLogger;
+
 class NameConverterPlugin : public QObject, public PluginInterface
 {
     Q_OBJECT
@@ -23,5 +25,6 @@ public:
     QObject* getController() override;
 
 private:
+    PluginLogger *m_logger = nullptr;
     BatchNameController *m_controller;
 };

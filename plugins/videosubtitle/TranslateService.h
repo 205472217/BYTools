@@ -7,11 +7,13 @@
 #include <QJsonArray>
 #include "SubtitleService.h"
 
+class PluginLogger;
+
 class TranslateService : public QObject
 {
     Q_OBJECT
 public:
-    explicit TranslateService(QObject *parent = nullptr);
+    explicit TranslateService(PluginLogger *logger, QObject *parent = nullptr);
 
     void startTranslate(const QString &inputSrtPath,
                         const QString &outputSrtPath,
@@ -39,6 +41,7 @@ private:
     QString buildBaiduUrl(const QJsonArray &texts, const QString &targetLang,
                           const QString &secretKey, const QString &appId);
 
+    PluginLogger *m_logger = nullptr;
     QNetworkAccessManager *m_networkManager;
     QNetworkReply *m_currentReply;
 

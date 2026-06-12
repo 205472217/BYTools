@@ -1,12 +1,14 @@
 #include "ImageConverterController.h"
+#include "Logger.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QImage>
 #include <QPainter>
 #include <QUrl>
 
-ImageConverterController::ImageConverterController(QObject *parent)
+ImageConverterController::ImageConverterController(PluginLogger *logger, QObject *parent)
     : QObject(parent)
+    , m_logger(logger)
 {
 }
 
@@ -96,8 +98,13 @@ void ImageConverterController::executeConvert()
 {
     if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
         setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
+        m_logger->warn("转换失败: 源文件夹无效");
         return;
     }
+
+    m_logger->info(QString("===== 开始图片格式转换 ====="));
+    m_logger->info(QString("源目录: %1, 目标格式: %2, 递归=%3")
+        .arg(m_rootPath).arg(formatExtension(m_targetFormat)).arg(m_recursive));
 
     m_records.clear();
     emit recordsChanged();
@@ -118,8 +125,10 @@ void ImageConverterController::executeConvert()
 
     if (parts.isEmpty()) {
         setStatusMessage(QStringLiteral("没有找到图片文件"));
+        m_logger->info("转换完成: 没有找到图片文件");
     } else {
         setStatusMessage(parts.join("，"));
+        m_logger->info(QString("转换完成: %1").arg(parts.join(", ")));
     }
 
     emit recordsChanged();
@@ -131,6 +140,9 @@ void ImageConverterController::executeConvert()
 void ImageConverterController::processDirectory(const QDir &currentDir, const QString &relativePath,
                                                  int &successCount, int &failCount, int &skipCount)
 {
+    m_logger->info(QString("处理目录: %1").arg(currentDir.absolutePath()));
+    int dirSuccess = 0, dirFail = 0, dirSkip = 0;
+
     QFileInfoList entries = currentDir.entryInfoList(
         QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
 
@@ -146,6 +158,8 @@ void ImageConverterController::processDirectory(const QDir &currentDir, const QS
             addRecord(entry.absoluteFilePath(), entry.absoluteFilePath(),
                       formatTagForExt(srcExt), true, QStringLiteral("已跳过"));
             skipCount++;
+            dirSkip++;
+            m_logger->info(QString("  [跳过] %1 — 已是目标格式").arg(entry.fileName()));
             continue;
         }
 
@@ -172,6 +186,7 @@ void ImageConverterController::processDirectory(const QDir &currentDir, const QS
         if (image.isNull()) {
             addRecord(entry.absoluteFilePath(), destPath,
                       formatTagForExt(srcExt), false, QStringLiteral("失败：无法读取"));
+            dirFail++;
             failCount++;
             continue;
         }
@@ -195,12 +210,19 @@ void ImageConverterController::processDirectory(const QDir &currentDir, const QS
             addRecord(entry.absoluteFilePath(), destPath,
                       formatTagForExt(srcExt), true, QStringLiteral("已转换"));
             successCount++;
+            dirSuccess++;
+            m_logger->info(QString("  [转换] %1 → %2").arg(entry.fileName(), QFileInfo(destPath).fileName()));
         } else {
             addRecord(entry.absoluteFilePath(), destPath,
                       formatTagForExt(srcExt), false, QStringLiteral("失败：保存失败"));
+            dirFail++;
             failCount++;
+            m_logger->error(QString("  [失败] %1 — 保存失败").arg(entry.fileName()));
         }
     }
+
+    m_logger->info(QString("目录处理完成: %1 (成功=%2, 失败=%3, 跳过=%4)")
+        .arg(currentDir.absolutePath()).arg(dirSuccess).arg(dirFail).arg(dirSkip));
 
     if (m_recursive) {
         QFileInfoList dirs = currentDir.entryInfoList(
@@ -231,6 +253,7 @@ bool ImageConverterController::isProcessing() const
 void ImageConverterController::cancel()
 {
     if (m_isProcessing) {
+        m_logger->info("图片转换已取消");
         setIsProcessing(false);
         setStatusMessage("已取消");
     }

@@ -1,6 +1,7 @@
 ﻿#include "VideoSubtitleSettings.h"
-#include "PluginLogger.h"
+#include "Logger.h"
 #include "FFmpegService.h"
+#include "FfmpegUtils.h"
 #include "WhisperService.h"
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -22,8 +23,9 @@ const QVector<VideoSubtitleSettings::ModelInfo> VideoSubtitleSettings::MODEL_INF
     {"large",  "ggml-large-v3.bin", 3095032444LL}
 };
 
-VideoSubtitleSettings::VideoSubtitleSettings(QObject *parent)
+VideoSubtitleSettings::VideoSubtitleSettings(PluginLogger *logger, QObject *parent)
     : QObject(parent)
+    , m_logger(logger)
     , m_settings(configPath(), QSettings::IniFormat)
     , m_networkManager(new QNetworkAccessManager(this))
     , m_testReply(nullptr)
@@ -32,7 +34,7 @@ VideoSubtitleSettings::VideoSubtitleSettings(QObject *parent)
     m_settings.beginGroup("VideoSubtitle");
     m_whisperModelDir = QCoreApplication::applicationDirPath() + "/plugins/videosubtitle";
     loadSettings();
-    PluginLogger::info("插件设置已加载");
+    m_logger->info("插件设置已加载");
 }
 
 // Getters
@@ -84,8 +86,8 @@ void VideoSubtitleSettings::setFfmpegPath(const QString &path)
         m_ffmpegPath = path;
         emit ffmpegPathChanged();
         // Auto-detect version
-        if (FFmpegService::isFFmpegAvailable(path)) {
-            QString ver = FFmpegService::ffmpegVersion(path);
+        if (isFFmpegAvailable(path, m_logger)) {
+            QString ver = ffmpegVersion(path);
             m_ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
         } else {
             m_ffmpegStatus = path.isEmpty() ? "未配置" : "无法找到 FFmpeg";
@@ -93,7 +95,7 @@ void VideoSubtitleSettings::setFfmpegPath(const QString &path)
         emit ffmpegStatusChanged();
 
         // 刷新 GPU 加速检测信息
-        if (FFmpegService::isFFmpegAvailable(path)) {
+        if (isFFmpegAvailable(path, m_logger)) {
             m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(path);
         } else {
             m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
@@ -291,7 +293,7 @@ void VideoSubtitleSettings::loadSettings()
     m_libreTranslateUrl = m_settings.value("libreTranslateUrl", "http://localhost:5000").toString();
 
     // 检测 GPU 加速能力（基于当前 ffmpegPath）
-    if (!m_ffmpegPath.isEmpty() && FFmpegService::isFFmpegAvailable(m_ffmpegPath)) {
+    if (!m_ffmpegPath.isEmpty() && isFFmpegAvailable(m_ffmpegPath, m_logger)) {
         m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(m_ffmpegPath);
     } else {
         m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
@@ -411,8 +413,8 @@ void VideoSubtitleSettings::resetDefaults()
 
 void VideoSubtitleSettings::testFfmpeg()
 {
-    if (FFmpegService::isFFmpegAvailable(m_ffmpegPath)) {
-        QString ver = FFmpegService::ffmpegVersion(m_ffmpegPath);
+    if (isFFmpegAvailable(m_ffmpegPath, m_logger)) {
+        QString ver = ffmpegVersion(m_ffmpegPath);
         m_ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
     } else {
         m_ffmpegStatus = "无法找到 FFmpeg";
@@ -422,7 +424,7 @@ void VideoSubtitleSettings::testFfmpeg()
 
 void VideoSubtitleSettings::testWhisper()
 {
-    if (!m_whisperPath.isEmpty() && WhisperService::isWhisperAvailable(m_whisperPath)) {
+    if (!m_whisperPath.isEmpty() && WhisperService::isWhisperAvailable(m_whisperPath, m_logger)) {
         m_whisperStatus = "已检测到 whisper.cpp";
     } else {
         m_whisperStatus = m_whisperPath.isEmpty() ? "未配置" : "无法找到 whisper.cpp（请检查运行时 DLL）";
@@ -487,17 +489,17 @@ void VideoSubtitleSettings::testBaiduConnection()
                           .arg(encodedQ, m_baiduAppId, salt, sign);
 
     // 日志记录完整签名信息（调试阶段全部打印）
-    PluginLogger::info(QString("测试百度翻译 API 连接"));
-    PluginLogger::info(QString("  appid=%1").arg(m_baiduAppId));
-    PluginLogger::info(QString("  q=%1").arg(query));
-    PluginLogger::info(QString("  salt=%1").arg(salt));
-    PluginLogger::info(QString("  密钥(secretKey)=%1").arg(m_apiKey));
-    PluginLogger::info(QString("  拼接串 signStr=%1").arg(signStr));
-    PluginLogger::info(QString("  计算 sign=%1").arg(sign));
-    PluginLogger::info(QString("  完整URL=%1").arg(fullUrl));
+    m_logger->info(QString("测试百度翻译 API 连接"));
+    m_logger->info(QString("  appid=%1").arg(m_baiduAppId));
+    m_logger->info(QString("  q=%1").arg(query));
+    m_logger->info(QString("  salt=%1").arg(salt));
+    m_logger->info(QString("  密钥(secretKey)=%1").arg(m_apiKey));
+    m_logger->info(QString("  拼接串 signStr=%1").arg(signStr));
+    m_logger->info(QString("  计算 sign=%1").arg(sign));
+    m_logger->info(QString("  完整URL=%1").arg(fullUrl));
 
     // 使用 GET 请求（与工作代码的 Http_POST 空 body 方式等效）
-    PluginLogger::restRequest("GET", fullUrl);
+    m_logger->restRequest("GET", fullUrl);
 
     QNetworkRequest request{QUrl(fullUrl)};
     m_testReply = m_networkManager->get(request);
@@ -508,23 +510,23 @@ void VideoSubtitleSettings::testBaiduConnection()
         if (m_testReply->error() == QNetworkReply::NoError) {
             // Check response for valid translation result
             QByteArray data = m_testReply->readAll();
-            PluginLogger::restResponse(m_testReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
+            m_logger->restResponse(m_testReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
                                        QString::fromUtf8(data));
             QJsonDocument doc = QJsonDocument::fromJson(data);
             if (doc.isObject() && doc.object().contains("trans_result")) {
                 m_apiTestResult = "连接正常";
-                PluginLogger::info("百度翻译 API 测试成功");
+                m_logger->info("百度翻译 API 测试成功");
             } else if (doc.isObject() && doc.object().contains("error_code")) {
                 QString errMsg = doc.object()["error_msg"].toString();
                 m_apiTestResult = "API 错误: " + errMsg;
-                PluginLogger::error("百度翻译 API 测试失败: " + errMsg);
+                m_logger->error("百度翻译 API 测试失败: " + errMsg);
             } else {
                 m_apiTestResult = "响应格式异常";
-                PluginLogger::error("百度翻译 API 返回格式异常");
+                m_logger->error("百度翻译 API 返回格式异常");
             }
         } else {
             m_apiTestResult = "连接失败: " + m_testReply->errorString();
-            PluginLogger::error("百度翻译请求失败: " + m_testReply->errorString());
+            m_logger->error("百度翻译请求失败: " + m_testReply->errorString());
         }
         m_testReply->deleteLater();
         m_testReply = nullptr;
@@ -550,7 +552,7 @@ void VideoSubtitleSettings::testLibreTranslateConnection()
 
     QString fullUrl = baseUrl + "/spec";
 
-    PluginLogger::info(QString("测试 LibreTranslate 连接: %1").arg(fullUrl));
+    m_logger->info(QString("测试 LibreTranslate 连接: %1").arg(fullUrl));
 
     QNetworkRequest request{QUrl(fullUrl)};
     request.setTransferTimeout(5000);
@@ -564,17 +566,17 @@ void VideoSubtitleSettings::testLibreTranslateConnection()
             if (httpStatus == 200) {
                 m_libreTranslateStatus = "连接正常";
                 m_apiTestResult = "连接正常";
-                PluginLogger::info("LibreTranslate 连接测试成功");
+                m_logger->info("LibreTranslate 连接测试成功");
             } else {
                 m_libreTranslateStatus = QString("服务返回 HTTP %1").arg(httpStatus);
                 m_apiTestResult = m_libreTranslateStatus;
-                PluginLogger::error("LibreTranslate 返回异常: HTTP " + QString::number(httpStatus));
+                m_logger->error("LibreTranslate 返回异常: HTTP " + QString::number(httpStatus));
             }
         } else {
             QString errStr = m_testReply->errorString();
             m_libreTranslateStatus = "连接失败: " + errStr;
             m_apiTestResult = m_libreTranslateStatus;
-            PluginLogger::error("LibreTranslate 连接失败: " + errStr);
+            m_logger->error("LibreTranslate 连接失败: " + errStr);
         }
         m_testReply->deleteLater();
         m_testReply = nullptr;
@@ -629,12 +631,12 @@ void VideoSubtitleSettings::detectTools()
     // ---------- FFmpeg ----------
     if (!m_ffmpegPath.isEmpty()) {
         // ini 有路径，以 ini 为准，验证可用性但不回退到自动检测
-        if (FFmpegService::isFFmpegAvailable(m_ffmpegPath)) {
-            QString ver = FFmpegService::ffmpegVersion(m_ffmpegPath);
+        if (isFFmpegAvailable(m_ffmpegPath, m_logger)) {
+            QString ver = ffmpegVersion(m_ffmpegPath);
             m_ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
         } else {
             m_ffmpegStatus = "无法找到 FFmpeg";
-            PluginLogger::warn("ini 配置的 FFmpeg 路径不可用: " + m_ffmpegPath);
+            m_logger->warn("ini 配置的 FFmpeg 路径不可用: " + m_ffmpegPath);
         }
         emit ffmpegStatusChanged();
     } else {
@@ -642,20 +644,20 @@ void VideoSubtitleSettings::detectTools()
         QString found = findBundled("ffmpeg.exe");
         if (!found.isEmpty()) {
             m_ffmpegPath = found;
-            if (FFmpegService::isFFmpegAvailable(m_ffmpegPath)) {
-                QString ver = FFmpegService::ffmpegVersion(m_ffmpegPath);
+            if (isFFmpegAvailable(m_ffmpegPath, m_logger)) {
+                QString ver = ffmpegVersion(m_ffmpegPath);
                 m_ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
             } else {
                 m_ffmpegStatus = "无法找到 FFmpeg";
             }
             changed = true;
-            PluginLogger::info("自动检测到自带的 FFmpeg: " + m_ffmpegPath);
+            m_logger->info("自动检测到自带的 FFmpeg: " + m_ffmpegPath);
         }
         emit ffmpegStatusChanged();
     }
 
     // 更新 GPU 加速检测信息
-    if (!m_ffmpegPath.isEmpty() && FFmpegService::isFFmpegAvailable(m_ffmpegPath)) {
+    if (!m_ffmpegPath.isEmpty() && isFFmpegAvailable(m_ffmpegPath, m_logger)) {
         m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(m_ffmpegPath);
     } else {
         m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
@@ -671,7 +673,7 @@ void VideoSubtitleSettings::detectTools()
             m_whisperStatus = "已找到 whisper.cpp";
         } else {
             m_whisperStatus = "无法找到 whisper.cpp";
-            PluginLogger::warn("ini 配置的 Whisper 路径不可用: " + m_whisperPath);
+            m_logger->warn("ini 配置的 Whisper 路径不可用: " + m_whisperPath);
         }
         emit whisperStatusChanged();
     } else {
@@ -681,7 +683,7 @@ void VideoSubtitleSettings::detectTools()
             m_whisperPath = found;
             m_whisperStatus = "已找到 whisper.cpp";
             changed = true;
-            PluginLogger::info("自动检测到自带的 Whisper: " + m_whisperPath);
+            m_logger->info("自动检测到自带的 Whisper: " + m_whisperPath);
         }
         emit whisperStatusChanged();
     }

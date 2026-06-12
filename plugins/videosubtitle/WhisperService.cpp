@@ -1,17 +1,19 @@
-﻿#include "WhisperService.h"
-#include "PluginLogger.h"
+#include "WhisperService.h"
+#include "Logger.h"
 #include <QFileInfo>
 #include <QDir>
 #include <QRegularExpression>
 #include <QFile>
-#include <QProcess>
 
-WhisperService::WhisperService(QObject *parent)
-    : QObject(parent)
-    , m_timer(new QTimer(this))
+WhisperService::WhisperService(PluginLogger *logger, QObject *parent)
+    : ProcessRunner(parent)
 {
-    m_timer->setSingleShot(true);
-    connect(m_timer, &QTimer::timeout, this, &WhisperService::onProcessTimeout);
+    setLogger(logger);
+}
+
+void WhisperService::cancel()
+{
+    cancelProcess();
 }
 
 void WhisperService::startTranscribe(const QString &whisperPath,
@@ -21,10 +23,6 @@ void WhisperService::startTranscribe(const QString &whisperPath,
                                       const QString &language,
                                       int segmentDuration)
 {
-    if (m_process) {
-        cancel();
-    }
-
     m_outputDir = outputPath;
     m_audioInputPath = audioPath;
     m_segmentDuration = segmentDuration;
@@ -44,75 +42,41 @@ void WhisperService::startTranscribe(const QString &whisperPath,
         }
     }
 
-    // Single whisper pass with -pp for real-time progress
     QFileInfo audioInfo(audioPath);
     QString stem = audioInfo.completeBaseName();
     QString outputFilePrefix = QDir(outputPath).filePath(stem);
-
-    m_process = new QProcess(this);
-    connect(m_process, &QProcess::readyReadStandardOutput,
-            this, &WhisperService::onProcessReadyRead);
-    connect(m_process, &QProcess::readyReadStandardError,
-            this, &WhisperService::onProcessReadyRead);
-    connect(m_process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, &WhisperService::onProcessFinished);
 
     QStringList args;
     args << "-m" << modelPath
          << "-f" << audioPath
          << "-osrt"
          << "-of" << outputFilePrefix
-         << "-pp";   // print progress — essential for real-time feedback
+         << "-pp";
 
     if (!language.isEmpty() && language != "auto") {
         args << "-l" << language;
     }
 
     emit statusUpdate("正在加载模型...");
-    m_process->start(whisperPath, args);
-
-    // 空闲超时: 只要 whisper 还在打印进度就是活着的，计时器不断重置
-    // 仅在完全静默 120 秒后才判定为卡死
-    m_timer->start(120000);
-    PluginLogger::info("Whisper 空闲超时: 120 秒（有进度输出自动续期）");
+    startProcess(whisperPath, args, 120000, false, /*connectStdout=*/true);
+    if (m_logger) m_logger->info("Whisper 空闲超时: 120 秒（有进度输出自动续期）");
 }
 
-void WhisperService::cancel()
+// ── Protected overrides ──────────────────────────────────
+
+void WhisperService::onStderrData(const QByteArray &data)
 {
-    m_timer->stop();
-    if (m_process && m_process->state() != QProcess::NotRunning) {
-        m_process->kill();
-        m_process->waitForFinished(3000);
-    }
-    if (m_process) {
-        m_process->deleteLater();
-        m_process = nullptr;
-    }
-}
+    QString text = QString::fromUtf8(data);
 
-void WhisperService::onProcessReadyRead()
-{
-    if (!m_process) return;
-
-    // 收到进程输出 → 重置空闲超时（whisper 还在工作）
-    m_timer->start(120000);
-
-    // Read ALL available data — multiple progress lines may arrive in one chunk
-    QString combined = QString::fromUtf8(m_process->readAllStandardOutput())
-                     + QString::fromUtf8(m_process->readAllStandardError());
-
-    // Use globalMatch to catch EVERY progress line, not just the first
-    // whisper.cpp outputs lines like: "part progress = 53%"
+    // whisper.cpp outputs: "part progress = 53%"
     QRegularExpression progressRe(R"(part\s*progress\s*=\s*(\d+)%)");
-    QRegularExpressionMatchIterator iter = progressRe.globalMatch(combined);
+    QRegularExpressionMatchIterator iter = progressRe.globalMatch(text);
 
-    // fallback: some whisper versions use "progress = XX%"
     if (!iter.hasNext()) {
         QRegularExpression fallbackRe(R"(progress\s*=\s*(\d+)%)");
-        iter = fallbackRe.globalMatch(combined);
+        iter = fallbackRe.globalMatch(text);
     }
 
-    // Process each progress line individually so no virtual segment is skipped
     while (iter.hasNext()) {
         QRegularExpressionMatch match = iter.next();
         double pct = qMin(1.0, match.captured(1).toDouble() / 100.0);
@@ -134,17 +98,14 @@ void WhisperService::onProcessReadyRead()
 
 void WhisperService::onProcessFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-    m_timer->stop();
     bool success = (exitCode == 0 && exitStatus == QProcess::NormalExit);
 
-    // Locate the output SRT
     QString srtPath;
     if (success && !m_outputDir.isEmpty()) {
         QFileInfo audioInfo(m_audioInputPath);
         QString stem = audioInfo.completeBaseName();
         srtPath = QDir(m_outputDir).filePath(stem + ".srt");
         if (!QFileInfo::exists(srtPath)) {
-            // Fallback: scan output directory
             QDir dir(m_outputDir);
             QFileInfoList srtFiles = dir.entryInfoList(QStringList("*.srt"), QDir::Files);
             if (!srtFiles.isEmpty())
@@ -154,11 +115,10 @@ void WhisperService::onProcessFinished(int exitCode, QProcess::ExitStatus exitSt
 
     QString error;
     if (!success) {
-        QString rawError = QString::fromUtf8(m_process->readAllStandardError());
-        // 日志记录完整原始错误
+        QString rawError = QString::fromUtf8(stderrBuffer());
         if (!rawError.isEmpty())
-            PluginLogger::error("Whisper 原始错误: " + rawError);
-        // 界面展示简明中文提示
+            if (m_logger) m_logger->error("Whisper 原始错误: " + rawError);
+
         if (rawError.isEmpty()) {
             error = QString("语音识别工具无响应（退出码 %1）").arg(exitCode);
         } else if (rawError.contains("failed to load model") || rawError.contains("error loading model")) {
@@ -168,7 +128,6 @@ void WhisperService::onProcessFinished(int exitCode, QProcess::ExitStatus exitSt
         } else if (rawError.contains("KEG") || rawError.contains("out of memory")) {
             error = "语音识别内存不足，请关闭其他程序后重试";
         } else if (rawError.contains("error: ")) {
-            // 取 error: 后面的内容作为提示
             int idx = rawError.indexOf("error: ");
             QString detail = rawError.mid(idx + 7, 80).trimmed();
             error = "语音识别出错: " + detail;
@@ -180,34 +139,22 @@ void WhisperService::onProcessFinished(int exitCode, QProcess::ExitStatus exitSt
         }
     }
 
-    m_process->deleteLater();
-    m_process = nullptr;
-
     emit progress(1.0);
     emit finished(success, srtPath, error);
 }
 
 void WhisperService::onProcessTimeout()
 {
-    PluginLogger::error("Whisper 进程超时，强制终止");
+    if (m_logger) m_logger->error("Whisper 进程超时，强制终止");
     emit statusUpdate("✗ 语音识别超时，进程已终止");
-
-    if (m_process) {
-        if (m_process->state() != QProcess::NotRunning) {
-            m_process->kill();
-            m_process->waitForFinished(3000);
-        }
-        m_process->deleteLater();
-        m_process = nullptr;
-    }
-
+    cancelProcess();
     emit progress(1.0);
     emit finished(false, QString(), "语音识别超时，进程已终止");
 }
 
-// --- helper: read WAV header to get audio duration ---
+// ── Private helpers ──────────────────────────────────────
 
-bool WhisperService::isWhisperAvailable(const QString &whisperPath)
+bool WhisperService::isWhisperAvailable(const QString &whisperPath, PluginLogger *logger)
 {
     if (whisperPath.isEmpty()) return false;
 
@@ -217,7 +164,7 @@ bool WhisperService::isWhisperAvailable(const QString &whisperPath)
     proc.start(nativePath, {"--help"});
 
     if (!proc.waitForStarted(3000)) {
-        PluginLogger::warn(QString("Whisper 启动失败，可能缺少运行时 DLL: %1, 错误: %2")
+        if (logger) logger->warn(QString("Whisper 启动失败，可能缺少运行时 DLL: %1, 错误: %2")
             .arg(nativePath, proc.errorString()));
         return false;
     }
@@ -233,8 +180,6 @@ qint64 WhisperService::getWavDurationMs(const QString &wavPath)
     if (!f.open(QIODevice::ReadOnly))
         return 0;
 
-    // WAV header layout at offset 28: byte rate (4 bytes, little-endian int32)
-    // byte_rate = sample_rate * channels * bits_per_sample/8
     f.seek(28);
     QByteArray br = f.read(4);
     if (br.size() < 4) {
@@ -247,7 +192,7 @@ qint64 WhisperService::getWavDurationMs(const QString &wavPath)
         return 0;
     }
 
-    qint64 dataSize = f.size() - 44; // skip 44-byte WAV header
+    qint64 dataSize = f.size() - 44;
     f.close();
 
     if (dataSize <= 0) return 0;

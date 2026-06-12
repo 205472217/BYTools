@@ -1,13 +1,15 @@
 #include "SubtitleMatcher.h"
-#include "PluginLogger.h"
+#include "Config.h"
+#include "Logger.h"
 #include <QRegularExpression>
 #include <QFile>
 #include <QMap>
 #include <QCollator>
 #include <algorithm>
 
-SubtitleMatcher::SubtitleMatcher(QObject *parent)
+SubtitleMatcher::SubtitleMatcher(PluginLogger *logger, QObject *parent)
     : QObject(parent)
+    , m_logger(logger)
 {
 }
 
@@ -23,18 +25,6 @@ QString SubtitleMatcher::extractKey(const QString &fileName)
     return {};
 }
 
-bool SubtitleMatcher::isVideoFile(const QString &fileName)
-{
-    QString lower = fileName.toLower();
-    static const QStringList exts = {
-        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".ts", ".rmvb"
-    };
-    for (const QString &ext : exts) {
-        if (lower.endsWith(ext)) return true;
-    }
-    return false;
-}
-
 QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
     const QString &subtitleDir,
     const QString &videoDir,
@@ -42,11 +32,11 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
     const QStringList &videoExts)
 {
     QList<MatchResult> results;
-    const QStringList &exts = videoExts.isEmpty() ? m_defaultVideoExts : videoExts;
+    const QStringList &exts = videoExts.isEmpty() ? videoExtensions() : videoExts;
 
-    PluginLogger::info("========== 步骤2：匹配并移动字幕 ==========");
-    PluginLogger::info(QString("字幕目录: %1").arg(subtitleDir));
-    PluginLogger::info(QString("视频目录: %1 (递归=%2)").arg(videoDir).arg(recursive));
+    m_logger->info("========== 步骤2：匹配并移动字幕 ==========");
+    m_logger->info(QString("字幕目录: %1").arg(subtitleDir));
+    m_logger->info(QString("视频目录: %1 (递归=%2)").arg(videoDir).arg(recursive));
 
     // 1. Scan subtitle directory
     QMap<QString, QList<QPair<QString, QString>>> subMap; // key -> [(path, name)]
@@ -54,7 +44,7 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
     if (!sDir.exists()) {
         QString err = "✗ 字幕目录不存在: " + subtitleDir;
         emit logMessage(err);
-        PluginLogger::error(err);
+        m_logger->error(err);
         emit finished(false, "字幕目录不存在");
         return results;
     }
@@ -62,16 +52,14 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
     emit logMessage("步骤2：扫描字幕目录...");
     int subCount = 0;
     QFileInfoList sEntries = sDir.entryInfoList(QDir::Files, QDir::NoSort);
-    { QCollator c; c.setNumericMode(true);
-    std::sort(sEntries.begin(), sEntries.end(), [&](const QFileInfo &a, const QFileInfo &b) {
-        return c.compare(a.fileName(), b.fileName()) < 0; }); }
+    naturalSort(sEntries);
     for (const QFileInfo &fi : sEntries) {
         if (!fi.fileName().toLower().endsWith(".srt")) continue;
         subCount++;
         QString key = extractKey(fi.fileName());
         if (key.isEmpty()) {
             emit logMessage("  [跳过] 未能提取关键码: " + fi.fileName());
-            PluginLogger::warn(QString("  [跳过] 未能提取关键码: %1").arg(fi.fileName()));
+            m_logger->warn(QString("  [跳过] 未能提取关键码: %1").arg(fi.fileName()));
             continue;
         }
         subMap[key].append({fi.absoluteFilePath(), fi.fileName()});
@@ -81,18 +69,18 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
     if (subCount == 0) {
         QString err = "✗ 字幕目录中没有 .srt 文件: " + subtitleDir;
         emit logMessage(err);
-        PluginLogger::error(err);
+        m_logger->error(err);
         emit finished(false, "字幕目录中没有 .srt 文件");
         return results;
     }
     if (subMap.isEmpty()) {
         QString err = "✗ 有 .srt 文件，但全部未能提取出关键码（文件名需含字母+数字，如 aaa-304）";
         emit logMessage(err);
-        PluginLogger::warn(err);
+        m_logger->warn(err);
         emit finished(false, "有 .srt 文件但均未能提取关键码，请检查文件名是否符合 aaa-304 格式");
         return results;
     }
-    PluginLogger::info(QString("字幕目录扫描完成: 共 %1 个 .srt 文件").arg(subCount));
+    m_logger->info(QString("字幕目录扫描完成: 共 %1 个 .srt 文件").arg(subCount));
 
     // 2. Scan video directory
     struct VidInfo {
@@ -108,9 +96,7 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
     collectDir = [&](const QString &dirPath) {
         QDir dir(dirPath);
         QFileInfoList files = dir.entryInfoList(QDir::Files, QDir::NoSort);
-        { QCollator c; c.setNumericMode(true);
-        std::sort(files.begin(), files.end(), [&](const QFileInfo &a, const QFileInfo &b) {
-            return c.compare(a.fileName(), b.fileName()) < 0; }); }
+        naturalSort(files);
         for (const QFileInfo &fi : files) {
             QString lower = fi.suffix().toLower();
             if (!exts.contains("." + lower)) continue;
@@ -126,9 +112,7 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
         }
         if (!recursive) return;
         QFileInfoList subdirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
-        { QCollator c; c.setNumericMode(true);
-        std::sort(subdirs.begin(), subdirs.end(), [&](const QFileInfo &a, const QFileInfo &b) {
-            return c.compare(a.fileName(), b.fileName()) < 0; }); }
+        naturalSort(subdirs);
         for (const QFileInfo &subdir : subdirs) {
             collectDir(subdir.absoluteFilePath());
         }
@@ -138,11 +122,11 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
     if (vidCount == 0) {
         QString err = "✗ 视频目录中没有视频文件: " + videoDir;
         emit logMessage(err);
-        PluginLogger::error(err);
+        m_logger->error(err);
         emit finished(false, "视频目录中没有视频文件");
         return results;
     }
-    PluginLogger::info(QString("视频目录扫描完成: 共 %1 个视频文件").arg(vidCount));
+    m_logger->info(QString("视频目录扫描完成: 共 %1 个视频文件").arg(vidCount));
 
     // 3. Match
     emit logMessage("匹配结果：");
@@ -151,7 +135,7 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
         const QString &key = it.key();
         if (!vidInfoMap.contains(key)) {
             emit logMessage("  ✗ [" + key + "] 字幕存在但未找到对应视频");
-            PluginLogger::warn(QString("  [无匹配] 关键码 %1 的字幕未找到对应视频").arg(key));
+            m_logger->warn(QString("  [无匹配] 关键码 %1 的字幕未找到对应视频").arg(key));
             continue;
         }
 
@@ -174,19 +158,19 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
             QString msg = QString("  ✓ [%1] %2 → %3 => %4")
                 .arg(key, mr.subtitleName, mr.newSubtitleName, mr.videoDir);
             emit logMessage(msg);
-            PluginLogger::info(msg);
+            m_logger->info(msg);
         }
     }
 
     if (matchedCount == 0) {
         QString err = "✗ 没有字幕能匹配到视频文件（关键码名称不一致或未命名规范）";
         emit logMessage(err);
-        PluginLogger::error(err);
+        m_logger->error(err);
         emit finished(false, "没有字幕能匹配到视频");
         return results;
     }
 
-    PluginLogger::info(QString("匹配完成: 共匹配 %1 个字幕文件").arg(matchedCount));
+    m_logger->info(QString("匹配完成: 共匹配 %1 个字幕文件").arg(matchedCount));
     emit logMessage(QString("共匹配 %1 个字幕文件").arg(matchedCount));
     return results;
 }

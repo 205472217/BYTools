@@ -7,17 +7,16 @@
 #include <QFileInfo>
 #include <QPair>
 
+class PluginLogger;
+
 class SubtitleMatcher : public QObject
 {
     Q_OBJECT
 public:
-    explicit SubtitleMatcher(QObject *parent = nullptr);
+    explicit SubtitleMatcher(PluginLogger *logger, QObject *parent = nullptr);
 
     /// Extract key code from filename, e.g. "aaa-304" → "aaa-304", "abc123" → "abc-123"
     static QString extractKey(const QString &fileName);
-
-    /// Check if file extension is a video format
-    static bool isVideoFile(const QString &fileName);
 
     /// Result of a single match operation
     struct MatchResult {
@@ -55,7 +54,5 @@ signals:
     void finished(bool success, const QString &error);
 
 private:
-    const QStringList m_defaultVideoExts = {
-        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".ts", ".rmvb"
-    };
+    PluginLogger *m_logger;
 };

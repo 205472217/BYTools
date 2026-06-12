@@ -1,11 +1,13 @@
 #include "BatchNameController.h"
+#include "Logger.h"
 
 #include <QDir>
 #include <QUrl>
 
-BatchNameController::BatchNameController(QObject *parent)
+BatchNameController::BatchNameController(PluginLogger *logger, QObject *parent)
     : QObject(parent)
-    , m_service(m_converter)
+    , m_logger(logger)
+    , m_service(m_converter, logger)
 {
 }
 
@@ -95,14 +97,17 @@ void BatchNameController::buildPreview()
         return;
     }
 
+    m_logger->info(QString("预览繁转简: %1 (递归=%2)").arg(m_rootPath).arg(m_recursive));
     const auto items = m_service.preview(m_rootPath, currentTargetType(), m_recursive);
     m_previewModel.setItems(items);
     emit hasRecordsChanged();
 
     if (items.isEmpty()) {
         setStatusMessage(QStringLiteral("没有发现需要转换的名称"));
+        m_logger->info("预览完成: 没有发现需要转换的名称");
     } else {
         setStatusMessage(QStringLiteral("发现 %1 项可转换名称").arg(items.count()));
+        m_logger->info(QString("预览完成: 发现 %1 项可转换名称").arg(items.count()));
     }
 }
 
@@ -112,14 +117,19 @@ void BatchNameController::executeRename()
         m_previewModel.clear();
         emit hasRecordsChanged();
         setStatusMessage(QStringLiteral("请选择有效的根文件夹"));
+        m_logger->warn("繁转简失败: 源文件夹无效");
         return;
     }
+
+    m_logger->info(QString("===== 开始繁转简 ====="));
+    m_logger->info(QString("根目录: %1, 递归=%2").arg(m_rootPath).arg(m_recursive));
 
     setIsProcessing(true);
     const auto execution = m_service.execute(m_rootPath, currentTargetType(), m_recursive);
     m_previewModel.setItems(execution.records);
     emit hasRecordsChanged();
     setStatusMessage(execution.result.message);
+    m_logger->info("繁转简完成: " + execution.result.message);
     setIsProcessing(false);
 }
 
@@ -132,6 +142,8 @@ void BatchNameController::restoreRecord(int row)
         m_previewModel.replacePathPrefix(item.newPath, item.currentPath);
     }
     setStatusMessage(result.message);
+    m_logger->info(QString("还原: %1 → %2 — %3")
+        .arg(item.newName, item.currentName, result.message));
 }
 
 void BatchNameController::clearRecords()

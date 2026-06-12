@@ -7,6 +7,8 @@
 #include "NameService.h"
 #include "TextConverter.h"
 
+class PluginLogger;
+
 class BatchNameController : public QObject
 {
     Q_OBJECT
@@ -18,7 +20,7 @@ class BatchNameController : public QObject
     Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
 
 public:
-    explicit BatchNameController(QObject *parent = nullptr);
+    explicit BatchNameController(PluginLogger *logger, QObject *parent = nullptr);
 
     QString rootPath() const;
     void setRootPath(const QString &rootPath);
@@ -61,6 +63,7 @@ private:
     bool m_isProcessing = false;
     QString m_statusMessage;
     ChineseTextConverter m_converter;
+    PluginLogger *m_logger = nullptr;
     NameService m_service;
     NamePreviewModel m_previewModel;
 };

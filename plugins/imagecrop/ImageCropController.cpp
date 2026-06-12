@@ -1,12 +1,14 @@
 #include "ImageCropController.h"
+#include "Logger.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QImage>
 #include <QImageReader>
 #include <QUrl>
 
-ImageCropController::ImageCropController(QObject *parent)
+ImageCropController::ImageCropController(PluginLogger *logger, QObject *parent)
     : QObject(parent)
+    , m_logger(logger)
 {
 }
 
@@ -206,11 +208,14 @@ void ImageCropController::scanImages()
 
     if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
         setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
+        m_logger->warn("扫描图片失败: 源文件夹无效");
         emit currentIndexChanged();
         emit currentFileCountChanged();
         emit currentFilePathChanged();
         return;
     }
+
+    m_logger->info(QString("扫描图片目录: %1 (递归=%2)").arg(m_rootPath).arg(m_recursive));
 
     QDir dir(m_rootPath);
     QFileInfoList entries = dir.entryInfoList(
@@ -240,8 +245,10 @@ void ImageCropController::scanImages()
     if (!m_imageFiles.isEmpty()) {
         m_currentIndex = 0;
         setStatusMessage(QStringLiteral("已扫描到 %1 张图片").arg(m_imageFiles.size()));
+        m_logger->info(QString("扫描完成: 共 %1 张图片").arg(m_imageFiles.size()));
     } else {
         setStatusMessage(QStringLiteral("未找到图片文件"));
+        m_logger->info("扫描完成: 未找到图片文件");
     }
 
     emit currentIndexChanged();
@@ -315,21 +322,26 @@ bool ImageCropController::executeCrop(int cropX, int cropY, int cropW, int cropH
 {
     if (m_rootPath.isEmpty() || m_imageFiles.isEmpty() || m_currentIndex < 0) {
         setStatusMessage(QStringLiteral("没有可裁剪的图片"));
+        m_logger->warn("裁剪失败: 没有可裁剪的图片");
         return false;
     }
 
     if (cropW <= 0 || cropH <= 0) {
         setStatusMessage(QStringLiteral("裁剪区域无效"));
+        m_logger->warn("裁剪失败: 裁剪区域无效");
         return false;
     }
 
     setIsProcessing(true);
 
     QString srcPath = m_imageFiles.at(m_currentIndex);
+    m_logger->info(QString("开始裁剪: %1 [%2,%3 %4x%5]").arg(srcPath).arg(cropX).arg(cropY).arg(cropW).arg(cropH));
+
     QImage image(srcPath);
     if (image.isNull()) {
         setStatusMessage(QStringLiteral("无法读取图片"));
         addRecord(srcPath, {}, cropW, cropH, false, QStringLiteral("失败：无法读取"));
+        m_logger->error("裁剪失败: 无法读取图片 " + srcPath);
         setIsProcessing(false);
         return false;
     }
@@ -344,6 +356,7 @@ bool ImageCropController::executeCrop(int cropX, int cropY, int cropW, int cropH
 
     if (clampedW <= 0 || clampedH <= 0) {
         setStatusMessage(QStringLiteral("裁剪区域超出图片范围"));
+        m_logger->warn("裁剪失败: 裁剪区域超出图片范围");
         setIsProcessing(false);
         return false;
     }
@@ -374,9 +387,11 @@ bool ImageCropController::executeCrop(int cropX, int cropY, int cropW, int cropH
     if (ok) {
         addRecord(srcPath, destPath, clampedW, clampedH, true, QStringLiteral("已裁剪"));
         setStatusMessage(QStringLiteral("裁剪成功：%1").arg(newName));
+        m_logger->info(QString("裁剪成功: %1 → %2").arg(fi.fileName(), newName));
     } else {
         addRecord(srcPath, destPath, clampedW, clampedH, false, QStringLiteral("失败：保存失败"));
         setStatusMessage(QStringLiteral("裁剪失败：%1").arg(fi.fileName()));
+        m_logger->error(QString("裁剪失败: %1 — 保存失败").arg(fi.fileName()));
     }
 
     emit recordsChanged();
@@ -451,6 +466,7 @@ bool ImageCropController::isProcessing() const
 void ImageCropController::cancel()
 {
     if (m_isProcessing) {
+        m_logger->info("图片裁剪已取消");
         setIsProcessing(false);
         setStatusMessage("已取消");
     }

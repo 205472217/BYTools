@@ -1,5 +1,6 @@
 #include "CustomSubtitlePlugin.h"
 #include "CustomSubtitleController.h"
+#include "Logger.h"
 
 CustomSubtitlePlugin::CustomSubtitlePlugin(QObject *parent)
     : QObject(parent)
@@ -28,9 +29,12 @@ QString CustomSubtitlePlugin::iconName() const
 
 void CustomSubtitlePlugin::initialize()
 {
+    if (!m_logger)
+        m_logger = new PluginLogger("custom-subtitle");
     if (!m_controller) {
-        m_controller = new CustomSubtitleController(this);
+        m_controller = new CustomSubtitleController(m_logger, this);
     }
+    m_logger->info(QStringLiteral("自定义视频字幕插件已初始化"));
 }
 
 void CustomSubtitlePlugin::cleanup()
@@ -39,6 +43,8 @@ void CustomSubtitlePlugin::cleanup()
         delete m_controller;
         m_controller = nullptr;
     }
+    delete m_logger;
+    m_logger = nullptr;
 }
 
 QObject* CustomSubtitlePlugin::getController()

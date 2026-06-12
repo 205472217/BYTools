@@ -5,6 +5,8 @@
 #include <QVariantList>
 #include <QDir>
 
+class PluginLogger;
+
 class BatchRenameController : public QObject
 {
     Q_OBJECT
@@ -23,7 +25,7 @@ class BatchRenameController : public QObject
     Q_PROPERTY(QVariantList records READ records NOTIFY recordsChanged)
 
 public:
-    explicit BatchRenameController(QObject *parent = nullptr);
+    explicit BatchRenameController(PluginLogger *logger, QObject *parent = nullptr);
 
     QString rootPath() const;
     void setRootPath(const QString &rootPath);
@@ -113,6 +115,7 @@ private:
     QString m_statusMessage;
     QList<RenameRecord> m_records;
 
+    PluginLogger *m_logger = nullptr;
     const QStringList m_videoExtensions = {".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".ts"};
     const QStringList m_audioExtensions = {".mp3", ".wav", ".flac", ".ogg", ".aac", ".wma"};
     const QStringList m_textExtensions = {".txt", ".md", ".json", ".xml", ".csv", ".log"};

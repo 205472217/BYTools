@@ -6,6 +6,7 @@
 #include <QVariantList>
 #include <QVariantMap>
 
+class PluginLogger;
 class SubtitleMatcher;
 class FFmpegMergeService;
 class VideoReplaceService;
@@ -23,12 +24,14 @@ class CustomSubtitleController : public QObject
 
     // === Options ===
     Q_PROPERTY(bool gpuAccel READ gpuAccel WRITE setGpuAccel NOTIFY gpuAccelChanged)
+    Q_PROPERTY(bool fragmentedMp4 READ fragmentedMp4 WRITE setFragmentedMp4 NOTIFY fragmentedMp4Changed)
     Q_PROPERTY(bool removeSrtAfterReplace READ removeSrtAfterReplace WRITE setRemoveSrtAfterReplace NOTIFY removeSrtAfterReplaceChanged)
     Q_PROPERTY(bool backupOriginal READ backupOriginal WRITE setBackupOriginal NOTIFY backupOriginalChanged)
 
     // === State ===
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(double progress READ progress NOTIFY progressChanged)
+    Q_PROPERTY(double currentFileProgress READ currentFileProgress NOTIFY currentFileProgressChanged)
     Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
     Q_PROPERTY(QString currentStep READ currentStep NOTIFY currentStepChanged)
     Q_PROPERTY(int processedCount READ processedCount NOTIFY processedCountChanged)
@@ -36,7 +39,7 @@ class CustomSubtitleController : public QObject
     Q_PROPERTY(QString currentFile READ currentFile NOTIFY currentFileChanged)
 
 public:
-    explicit CustomSubtitleController(QObject *parent = nullptr);
+    explicit CustomSubtitleController(PluginLogger *logger, QObject *parent = nullptr);
     ~CustomSubtitleController();
 
     // Getters
@@ -46,10 +49,12 @@ public:
     QString mergedOutputPath() const;
     QString ffmpegPath() const;
     bool gpuAccel() const;
+    bool fragmentedMp4() const;
     bool removeSrtAfterReplace() const;
     bool backupOriginal() const;
     QString statusMessage() const;
     double progress() const;
+    double currentFileProgress() const;
     bool isProcessing() const;
     QString currentStep() const;
     int processedCount() const;
@@ -63,6 +68,7 @@ public:
     void setMergedOutputPath(const QString &path);
     void setFfmpegPath(const QString &path);
     void setGpuAccel(bool enable);
+    void setFragmentedMp4(bool enable);
     void setRemoveSrtAfterReplace(bool remove);
     void setBackupOriginal(bool backup);
 
@@ -83,10 +89,12 @@ signals:
     void mergedOutputPathChanged();
     void ffmpegPathChanged();
     void gpuAccelChanged();
+    void fragmentedMp4Changed();
     void removeSrtAfterReplaceChanged();
     void backupOriginalChanged();
     void statusMessageChanged();
     void progressChanged();
+    void currentFileProgressChanged();
     void isProcessingChanged();
     void currentStepChanged();
     void processedCountChanged();
@@ -103,6 +111,7 @@ private:
     void setStatusMessage(const QString &msg);
     void setCurrentStep(const QString &step);
     void setProgress(double value);
+    void setCurrentFileProgress(double value);
     void setIsProcessing(bool processing);
     void setProcessedCount(int count);
     void setTotalCount(int count);
@@ -114,13 +123,16 @@ private:
     QString m_mergedOutputPath;
     QString m_ffmpegPath;
     bool m_gpuAccel = false;
+    bool m_fragmentedMp4 = false;
     bool m_removeSrtAfterReplace = true;
     bool m_backupOriginal = false;
     QString m_statusMessage;
     double m_progress = 0.0;
+    double m_currentFileProgress = 0.0;
     bool m_isProcessing = false;
     QString m_currentStep;
 
+    PluginLogger *m_logger;
     SubtitleMatcher *m_matcher;
     FFmpegMergeService *m_mergeService;
     VideoReplaceService *m_replaceService;

@@ -3,6 +3,7 @@
 #include "../../src/core/PluginInterface.h"
 
 class BatchRenameController;
+class PluginLogger;
 
 class BatchRenamePlugin : public QObject, public PluginInterface
 {
@@ -24,5 +25,6 @@ public:
     QObject* getController() override;
 
 private:
+    PluginLogger *m_logger = nullptr;
     BatchRenameController *m_controller;
 };

@@ -4,6 +4,7 @@
 #include <QVariantList>
 #include <QDir>
 
+class PluginLogger;
 class WhisperService;
 class TranslateService;
 class FFmpegService;
@@ -45,7 +46,7 @@ class VideoSubtitleController : public QObject
     Q_PROPERTY(QString currentStep READ currentStep NOTIFY currentStepChanged)
 
 public:
-    explicit VideoSubtitleController(QObject *parent = nullptr);
+    explicit VideoSubtitleController(PluginLogger *logger, QObject *parent = nullptr);
 
     // Getters
     QString inputPath() const;
@@ -141,8 +142,6 @@ private:
     void setIsProcessing(bool processing);
     void addRecord(const QString &originalPath, const QString &outputPath,
                    bool success, const QString &status);
-    bool isVideoFile(const QString &fileName) const;
-
     // Read settings from QSettings
     QString ffmpegPath() const;
     QString whisperPath() const;
@@ -179,6 +178,7 @@ private:
     QStringList m_pendingFiles;
     int m_currentFileIndex = -1;
 
+    PluginLogger *m_logger = nullptr;
     WhisperService *m_whisperService;
     TranslateService *m_translateService;
     FFmpegService *m_ffmpegService;
@@ -188,8 +188,4 @@ private:
     QString m_currentTranslatedSrtPath;
     QString m_currentVideoPath;
     QString m_currentOutputVideoPath;
-
-    const QStringList m_videoExtensions = {
-        ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".ts"
-    };
 };

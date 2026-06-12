@@ -1,4 +1,5 @@
 #include "NameConverterPlugin.h"
+#include "Logger.h"
 
 NameConverterPlugin::NameConverterPlugin(QObject *parent)
     : QObject(parent)
@@ -28,9 +29,12 @@ QString NameConverterPlugin::iconName() const
 
 void NameConverterPlugin::initialize()
 {
+    if (!m_logger)
+        m_logger = new PluginLogger("name-converter");
     if (!m_controller) {
-        m_controller = new BatchNameController(this);
+        m_controller = new BatchNameController(m_logger, this);
     }
+    m_logger->info(QStringLiteral("文件名繁转简插件已初始化"));
 }
 
 void NameConverterPlugin::cleanup()
@@ -39,6 +43,8 @@ void NameConverterPlugin::cleanup()
         delete m_controller;
         m_controller = nullptr;
     }
+    delete m_logger;
+    m_logger = nullptr;
 }
 
 QObject* NameConverterPlugin::getController()

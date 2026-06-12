@@ -5,7 +5,9 @@
 #include <QVariantList>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include "PluginLogger.h"
+#include "Config.h"
+
+class PluginLogger;
 
 class VideoSubtitleSettings : public QObject
 {
@@ -61,7 +63,7 @@ class VideoSubtitleSettings : public QObject
     Q_PROPERTY(QString gpuAccelInfo READ gpuAccelInfo NOTIFY gpuAccelInfoChanged)
 
 public:
-    explicit VideoSubtitleSettings(QObject *parent = nullptr);
+    explicit VideoSubtitleSettings(PluginLogger *logger, QObject *parent = nullptr);
 
     // Getters
     QString ffmpegPath() const;
@@ -164,6 +166,7 @@ private:
     void testBaiduConnection();
     void testLibreTranslateConnection();
 
+    PluginLogger *m_logger = nullptr;
     QSettings m_settings;
     QString m_ffmpegPath;
     QString m_ffmpegStatus;

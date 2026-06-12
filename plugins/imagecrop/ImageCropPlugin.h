@@ -3,6 +3,7 @@
 #include "../../src/core/PluginInterface.h"
 
 class ImageCropController;
+class PluginLogger;
 
 class ImageCropPlugin : public QObject, public PluginInterface
 {
@@ -24,5 +25,6 @@ public:
     QObject* getController() override;
 
 private:
+    PluginLogger *m_logger = nullptr;
     ImageCropController *m_controller;
 };
