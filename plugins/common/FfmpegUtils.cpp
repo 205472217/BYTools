@@ -138,11 +138,9 @@ QString buildSubtitleFilter(const QString &subtitlePath,
     QString assBorderColor = htmlColorToAss(borderColor);
 
     // 路径包单引号防止 FFmpeg < 4.2 无法处理 \: 转义时冒号截断
-    // + format=yuv420p 强制去掉 alpha 通道（subtitles 有时输出 yuva420p），避免编码器产生透明方块
     return QString("subtitles=f='%1':force_style='FontName=%2,FontSize=%3,"
                    "PrimaryColour=%4,OutlineColour=%5,"
-                   "BorderStyle=1,Outline=%6,Shadow=%7',"
-                   "format=yuv420p")
+                   "BorderStyle=1,Outline=%6,Shadow=%7'")
         .arg(subPath,
              fontName,
              QString::number(fontSize),
@@ -175,44 +173,44 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
 
     switch (vendor) {
     case GpuVendor::CUDA:
+        //   -rc constqp -qp 23：固定 QP 值，0-51(0为无损质量)，码率自适应，彻底避免 VBR 预测错误
+        //   -spatial_aq 1：保护字幕边缘不模糊
         args << "-hwaccel" << "cuda"
              << "-hwaccel_output_format" << "cuda"
              << "-i" << videoPath
              << "-vf" << ("hwdownload,format=nv12," + subtitleFilter + ",hwupload_cuda")
              << "-c:v" << encoder
              << "-preset" << "p7"
-             << "-rc" << "vbr"
-             << "-b:v" << QString::number(targetBitrate)
-             << "-maxrate" << QString::number(maxBitrate)
-             << "-bufsize" << QString::number(maxBitrate * 2)
+             << "-rc" << "constqp"
+             << "-qp" << "23"
+             << "-spatial_aq" << "1"
              << "-c:a" << "copy" << "-y" << outputPath;
         break;
 
     case GpuVendor::Intel:
+        //   -rc icq -global_quality 23：固定参数0-51(0为无损质量)，ICQ 模式下 GPU 自动分配码率
         args << "-hwaccel" << "qsv"
              << "-hwaccel_output_format" << "qsv"
              << "-i" << videoPath
              << "-vf" << ("hwdownload=format=nv12," + subtitleFilter + ",hwupload=format=nv12")
              << "-c:v" << encoder
              << "-preset" << "medium"
-             << "-rc" << "vbr"
-             << "-b:v" << QString::number(targetBitrate)
-             << "-maxrate" << QString::number(maxBitrate)
-             << "-bufsize" << QString::number(maxBitrate * 2)
+             << "-rc" << "icq"
+             << "-global_quality" << "23"
              << "-c:a" << "copy" << "-y" << outputPath;
         break;
 
     case GpuVendor::AMD:
-        // AMD AMF — 不用 -hwaccel，因为 DXVA2/D3D11VA 与 subtitles CPU 滤镜冲突
-        // 参考格式工厂：-b:v 源码率，默认质量
+        //   -rc cqp -qp_i 23 -qp_p 23：固定参数0-51(0为无损质量)，无 B 帧预测问题
+        //   -bf 0：关闭 B 帧，根除字幕突现时的宏块预测错误
         args << "-i" << videoPath
              << "-vf" << subtitleFilter
              << "-c:v" << encoder
              << "-quality" << "quality"
-             << "-rc" << "vbr"
-             << "-b:v" << QString::number(targetBitrate)
-             << "-maxrate" << QString::number(maxBitrate)
-             << "-bufsize" << QString::number(maxBitrate * 2)
+             << "-rc" << "cqp"
+             << "-qp_i" << "23"
+             << "-qp_p" << "23"
+             << "-bf" << "0"
              << "-c:a" << "copy" << "-y" << outputPath;
         break;
 
