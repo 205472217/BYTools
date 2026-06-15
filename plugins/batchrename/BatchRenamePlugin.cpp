@@ -28,6 +28,11 @@ QString BatchRenamePlugin::iconName() const
     return "rename";
 }
 
+int BatchRenamePlugin::order() const
+{
+    return 1;
+}
+
 void BatchRenamePlugin::initialize()
 {
     if (!m_logger)

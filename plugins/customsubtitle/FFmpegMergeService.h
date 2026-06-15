@@ -18,11 +18,10 @@ public:
                     const QString &videoDir,
                     const QString &outputDir,
                     bool recursive,
-                    bool useGpu,
-                    bool useFragMp4 = true);
+                    bool useGpu);
 
     void cancel();
-    void requestStopAfterCurrent();
+    void requestStopAfterCount(int count);
 
 signals:
     void progress(double value);
@@ -52,7 +51,7 @@ private:
     QList<VideoFile> m_pendingFiles;
     int m_currentIndex = -1;
     bool m_cancelled = false;
-    bool m_stopAfterCurrent = false;
+    int m_stopTargetIndex = -1;   // ≥0 时处理到此索引后停止，含当前文件
     int m_successCount = 0;
     int m_failCount = 0;
     bool m_checkUseGpu = false;

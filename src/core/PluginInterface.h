@@ -13,6 +13,7 @@ public:
     virtual QString name() const = 0;
     virtual QString description() const = 0;
     virtual QString iconName() const = 0;
+    virtual int order() const = 0;
 
     virtual void initialize() = 0;
     virtual void cleanup() = 0;

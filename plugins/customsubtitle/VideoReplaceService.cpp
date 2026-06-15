@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <QFile>
 #include <QAtomicInt>
+#include <QCoreApplication>
 
 // ── 辅助函数（定义在使用前） ──
 
@@ -136,6 +137,7 @@ void VideoReplaceService::startReplace(const QString &videoDir,
             }
             emit logMessage(log);
             m_logger->info(log.replace('\n', " | "));
+            QCoreApplication::processEvents();
         }
 
         if (!recursive) return;

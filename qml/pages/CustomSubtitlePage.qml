@@ -57,6 +57,34 @@ Pane {
     // ── Log state ──
     property string _lastLogLine: ""
 
+    // ── 字幕预处理同步 ──
+    function _syncPreprocessors() {
+        if (!controller) return;
+        var list = [];
+        for (var i = 0; i < _preprocessModel.count; ++i) {
+            if (_preprocessModel.get(i).checked)
+                list.push(_preprocessModel.get(i).key);
+        }
+        controller.enabledPreprocessors = list;
+    }
+
+    function _loadPreprocessors() {
+        if (!controller) return;
+        var stored = controller.enabledPreprocessors;
+        for (var i = 0; i < _preprocessModel.count; ++i) {
+            _preprocessModel.get(i).checked = stored.indexOf(_preprocessModel.get(i).key) >= 0;
+        }
+    }
+
+    ListModel {
+        id: _preprocessModel
+        ListElement { key: "removeEnvSound"; label: "去除环境音"; tooltip: "移除字幕中被括号包裹的环境音字幕，如 (music)、[Applause]、（掌声）"; checked: false }
+        ListElement { key: "removeBgSound";  label: "去除背景音"; tooltip: "移除字幕中被星号包裹的音效字幕，如 *叮咚*、*门铃声*"; checked: false }
+        ListElement { key: "removeMusic";    label: "过滤歌词";   tooltip: "移除字幕中被音符标记 ♪ 包裹的音乐歌词字幕，如 ♪ Happy Birthday ♪"; checked: false }
+        ListElement { key: "dedup";          label: "去重";       tooltip: "移除字幕中相邻重复的字幕文本，连续相同内容只保留第一条"; checked: false }
+        ListElement { key: "t2s";            label: "中文繁转简"; tooltip: "将字幕中的繁体中文转换为简体中文"; checked: false }
+    }
+
     Connections {
         target: controller
         function onLogMessage(message) {
@@ -591,21 +619,68 @@ Pane {
                                 Layout.fillWidth: true
                             }
 
-                            IconButton {
+                            RowLayout {
                                 Layout.fillWidth: true
-                                implicitHeight: 28
-                                text: "执行"
-                                tooltip: "匹配并移动字幕"
-                                normalColor: controller && controller.isProcessing ? "#94a3b8" : "#3b82f6"
-                                hoverColor: "#2563eb"
-                                borderColor: "#2563eb"
-                                textColor: "#ffffff"
-                                enabled: !controller || !controller.isProcessing
-                                onClicked: {
-                                    if (controller)
-                                        controller.matchAndMoveSubtitles();
+                                spacing: 5
+
+                                ComboBox {
+                                    id: preprocessCombo
+                                    Layout.fillWidth: true
+                                    implicitHeight: 28
+                                    font.pixelSize: 11
+                                    model: _preprocessModel
+                                    visible: !controller || !controller.isProcessing
+
+                                    delegate: ItemDelegate {
+                                        width: parent.width
+                                        contentItem: RowLayout {
+                                            spacing: 8
+                                            Label {
+                                                text: model.checked ? "☑" : "☐"
+                                                font.pixelSize: 14
+                                            }
+                                            Label {
+                                                text: model.label
+                                                font.pixelSize: 11
+                                                Layout.fillWidth: true
+                                            }
+                                        }
+                                        ToolTip {
+                                            text: model.tooltip
+                                            visible: parent.hovered
+                                            delay: 600
+                                            font.pixelSize: 11
+                                        }
+                                        onClicked: {
+                                            model.checked = !model.checked;
+                                            _syncPreprocessors();
+                                        }
+                                    }
+
+                                    displayText: "字幕处理"
+
+                                    Component.onCompleted: {
+                                        _loadPreprocessors();
+                                    }
+                                }
+
+                                IconButton {
+                                    Layout.preferredWidth: 64
+                                    implicitHeight: 28
+                                    text: "执行"
+                                    tooltip: "匹配并移动字幕"
+                                    normalColor: controller && controller.isProcessing ? "#94a3b8" : "#3b82f6"
+                                    hoverColor: "#2563eb"
+                                    borderColor: "#2563eb"
+                                    textColor: "#ffffff"
+                                    visible: !controller || !controller.isProcessing
+                                    onClicked: {
+                                        if (controller)
+                                            controller.matchAndMoveSubtitles();
+                                    }
                                 }
                             }
+
                         }
                     }
 
@@ -662,12 +737,11 @@ Pane {
                                     checked: controller ? controller.gpuAccel : false
                                     font.pixelSize: 11
                                     Layout.fillWidth: true
-                                    enabled: !controller || !controller.isProcessing
+                                    visible: !controller || !controller.isProcessing
                                     onCheckedChanged: {
                                         if (controller)
                                             controller.gpuAccel = checked;
                                     }
-                                    visible: !controller || !controller.isProcessing
                                 }
 
                                 IconButton {
@@ -679,7 +753,6 @@ Pane {
                                     hoverColor: "#7c3aed"
                                     borderColor: "#7c3aed"
                                     textColor: "#ffffff"
-                                    enabled: !controller || !controller.isProcessing
                                     visible: !controller || !controller.isProcessing
                                     onClicked: {
                                         if (controller)
@@ -688,20 +761,41 @@ Pane {
                                 }
 
                                 // 运行状态：停止控制
-                                IconButton {
-                                    Layout.preferredWidth: 84
-                                    implicitHeight: 28
-                                    text: "当前完成停止"
-                                    tooltip: "处理完当前视频后停止，不再继续下一个"
-                                    normalColor: "#f59e0b"
-                                    hoverColor: "#d97706"
-                                    borderColor: "#d97706"
-                                    textColor: "#ffffff"
-                                    enabled: controller ? controller.isProcessing : false
+                                RowLayout {
+                                    spacing: 4
                                     visible: controller ? controller.isProcessing : false
-                                    onClicked: {
-                                        if (controller)
-                                            controller.requestStopAfterCurrent();
+
+                                    Label {
+                                        text: "完成"
+                                        color: "#475569"
+                                        font.pixelSize: 11
+                                        Layout.alignment: Qt.AlignVCenter
+                                    }
+
+                                    ComboBox {
+                                        id: stopAfterCombo
+                                        model: ["全部", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                                        currentIndex: 0
+                                        implicitWidth: 60
+                                        implicitHeight: 26
+                                        font.pixelSize: 11
+                                        Layout.alignment: Qt.AlignVCenter
+                                        onActivated: {
+                                            // 选中即生效，无需额外点击按钮
+                                            if (controller && controller.isProcessing) {
+                                                var val = currentValue;
+                                                if (typeof val === "number")
+                                                    controller.requestStopAfterCount(val);
+                                            }
+                                        }
+                                    }
+
+                                    Label {
+                                        text: "个后停止"
+                                        color: "#475569"
+                                        font.pixelSize: 11
+                                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                                        Layout.fillWidth: true
                                     }
                                 }
 
@@ -777,7 +871,7 @@ Pane {
                                     checked: controller ? controller.backupOriginal : false
                                     font.pixelSize: 11
                                     Layout.fillWidth: true
-                                    enabled: !controller || !controller.isProcessing
+                                    visible: !controller || !controller.isProcessing
                                     onCheckedChanged: {
                                         if (controller)
                                             controller.backupOriginal = checked;
@@ -793,7 +887,7 @@ Pane {
                                     hoverColor: "#b91c1c"
                                     borderColor: "#b91c1c"
                                     textColor: "#ffffff"
-                                    enabled: !controller || !controller.isProcessing
+                                    visible: !controller || !controller.isProcessing
                                     onClicked: {
                                         if (controller)
                                             controller.replaceOriginalVideo();

@@ -138,9 +138,11 @@ QString buildSubtitleFilter(const QString &subtitlePath,
     QString assBorderColor = htmlColorToAss(borderColor);
 
     // 路径包单引号防止 FFmpeg < 4.2 无法处理 \: 转义时冒号截断
+    // + format=yuv420p 强制去掉 alpha 通道（subtitles 有时输出 yuva420p），避免编码器产生透明方块
     return QString("subtitles=f='%1':force_style='FontName=%2,FontSize=%3,"
                    "PrimaryColour=%4,OutlineColour=%5,"
-                   "BorderStyle=1,Outline=%6,Shadow=%7'")
+                   "BorderStyle=1,Outline=%6,Shadow=%7',"
+                   "format=yuv420p")
         .arg(subPath,
              fontName,
              QString::number(fontSize),
@@ -157,7 +159,7 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
                               const QString &subtitleFilter,
                               const QString &outputPath,
                               const QString &inputCodec,
-                              bool needFragMp4)
+                              qint64 bitrate)
 {
     QStringList args;
     if (vendor == GpuVendor::None)
@@ -167,6 +169,10 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
     if (encoder.isEmpty())
         return args;
 
+    // 目标码率 = 源码率（最低 2 Mbps），峰值上限 = 源码率×1.5
+    qint64 targetBitrate = qMax(bitrate, 2000'000ll);
+    qint64 maxBitrate = targetBitrate * 3 / 2;
+
     switch (vendor) {
     case GpuVendor::CUDA:
         args << "-hwaccel" << "cuda"
@@ -175,12 +181,11 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
              << "-vf" << ("hwdownload,format=nv12," + subtitleFilter + ",hwupload_cuda")
              << "-c:v" << encoder
              << "-preset" << "p7"
-             << "-cq" << "23"
-             << "-c:a" << "copy"
-             << "-y";
-        if (needFragMp4)
-            args << "-movflags" << "+frag_keyframe+separate_moof";
-        args << outputPath;
+             << "-rc" << "vbr"
+             << "-b:v" << QString::number(targetBitrate)
+             << "-maxrate" << QString::number(maxBitrate)
+             << "-bufsize" << QString::number(maxBitrate * 2)
+             << "-c:a" << "copy" << "-y" << outputPath;
         break;
 
     case GpuVendor::Intel:
@@ -189,27 +194,26 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
              << "-i" << videoPath
              << "-vf" << ("hwdownload=format=nv12," + subtitleFilter + ",hwupload=format=nv12")
              << "-c:v" << encoder
-             << "-preset" << "veryfast"
-             << "-global_quality" << "23"
-             << "-c:a" << "copy"
-             << "-y";
-        if (needFragMp4)
-            args << "-movflags" << "+frag_keyframe+separate_moof";
-        args << outputPath;
+             << "-preset" << "medium"
+             << "-rc" << "vbr"
+             << "-b:v" << QString::number(targetBitrate)
+             << "-maxrate" << QString::number(maxBitrate)
+             << "-bufsize" << QString::number(maxBitrate * 2)
+             << "-c:a" << "copy" << "-y" << outputPath;
         break;
 
     case GpuVendor::AMD:
         // AMD AMF — 不用 -hwaccel，因为 DXVA2/D3D11VA 与 subtitles CPU 滤镜冲突
-        // （FFmpegMergeService 已验证此行为）
+        // 参考格式工厂：-b:v 源码率，默认质量
         args << "-i" << videoPath
              << "-vf" << subtitleFilter
              << "-c:v" << encoder
              << "-quality" << "quality"
-             << "-c:a" << "copy"
-             << "-y";
-        if (needFragMp4)
-            args << "-movflags" << "+frag_keyframe+separate_moof";
-        args << outputPath;
+             << "-rc" << "vbr"
+             << "-b:v" << QString::number(targetBitrate)
+             << "-maxrate" << QString::number(maxBitrate)
+             << "-bufsize" << QString::number(maxBitrate * 2)
+             << "-c:a" << "copy" << "-y" << outputPath;
         break;
 
     default:
@@ -299,6 +303,76 @@ qint64 getVideoDuration(const QString &ffmpegPath, const QString &videoPath)
     qint64 centiseconds = match.captured(4).toLongLong();
 
     return (hours * 3600 + minutes * 60 + seconds) * 1000 + centiseconds * 10;
+}
+
+// ── getVideoBitrate ───────────────────────────────────────
+
+qint64 getVideoBitrate(const QString &ffmpegPath, const QString &videoPath)
+{
+    if (ffmpegPath.isEmpty() || videoPath.isEmpty())
+        return 0;
+
+    QFileInfo fi(videoPath);
+    qint64 fileSizeBytes = fi.size();
+    if (fileSizeBytes <= 0)
+        return 0;
+
+    qint64 durationMs = getVideoDuration(ffmpegPath, videoPath);
+    if (durationMs <= 0)
+        return 0;
+
+    // 码率 = 文件大小(bytes) × 8 / 时长(秒)
+    double durationSec = static_cast<double>(durationMs) / 1000.0;
+    return static_cast<qint64>(static_cast<double>(fileSizeBytes) * 8.0 / durationSec);
+}
+
+// ── getVideoStreamBitrate ──────────────────────────────────
+
+qint64 getVideoStreamBitrate(const QString &ffmpegPath, const QString &videoPath)
+{
+    if (ffmpegPath.isEmpty() || videoPath.isEmpty())
+        return 0;
+
+    QProcess proc;
+    proc.start(ffmpegPath, {"-i", videoPath});
+    if (!proc.waitForFinished(10000))
+        return 0;
+
+    QString output = QString::fromUtf8(proc.readAllStandardError());
+
+    // 1) 优先解析视频流的单独码率：
+    //    Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p, 1920x1080 [SAR 1:1 DAR 16:9], 1048 kb/s, 23.98 fps
+    QRegularExpression reVideo(R"(Stream\s+#0:0.*Video:.*?(\d+)\s*kb/s)");
+    QRegularExpressionMatch mVideo = reVideo.match(output);
+    if (mVideo.hasMatch()) {
+        qint64 kbps = mVideo.captured(1).toLongLong();
+        if (kbps > 0)
+            return kbps * 1000; // kb/s → bps
+    }
+
+    // 处理 mb/s（高码率视频）
+    QRegularExpression reVideoMb(R"(Stream\s+#0:0.*Video:.*?(\d+\.?\d*)\s*mb/s)");
+    QRegularExpressionMatch mVideoMb = reVideoMb.match(output);
+    if (mVideoMb.hasMatch()) {
+        double mbps = mVideoMb.captured(1).toDouble();
+        if (mbps > 0.0)
+            return static_cast<qint64>(mbps * 1000000); // mb/s → bps
+    }
+
+    // 2) 回退：从 Duration 行取总码率，扣减估算的音频码率
+    //    Duration: 01:23:45.67, start: 0.000000, bitrate: 1500 kb/s
+    QRegularExpression reTotal(R"(bitrate:\s*(\d+)\s*kb/s)");
+    QRegularExpressionMatch mTotal = reTotal.match(output);
+    if (mTotal.hasMatch()) {
+        qint64 totalKbps = mTotal.captured(1).toLongLong();
+        // 总码率 ≈ 视频码率 + 音频码率（通常 128k～320k）
+        // 统一扣 15% 作为音频估算，下限不低于总码率的 70%
+        qint64 videoBps = static_cast<qint64>(totalKbps * 0.85 * 1000);
+        qint64 minBps = static_cast<qint64>(totalKbps * 0.70 * 1000);
+        return qMax(videoBps, minBps);
+    }
+
+    return 0;
 }
 
 // ── extractFfmpegError ────────────────────────────────────

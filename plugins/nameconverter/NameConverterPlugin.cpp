@@ -27,6 +27,11 @@ QString NameConverterPlugin::iconName() const
     return "translate";
 }
 
+int NameConverterPlugin::order() const
+{
+    return 0;
+}
+
 void NameConverterPlugin::initialize()
 {
     if (!m_logger)

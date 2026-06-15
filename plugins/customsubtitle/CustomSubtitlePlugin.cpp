@@ -19,12 +19,17 @@ QString CustomSubtitlePlugin::name() const
 
 QString CustomSubtitlePlugin::description() const
 {
-    return QStringLiteral("从网站下载字幕，匹配视频并合成，替换原视频");
+    return QStringLiteral("从网站下载字幕->根据关键码匹配视频字幕->将匹配的视频和字幕合成->替换原视频");
 }
 
 QString CustomSubtitlePlugin::iconName() const
 {
     return "custom-subtitle";
+}
+
+int CustomSubtitlePlugin::order() const
+{
+    return 5;
 }
 
 void CustomSubtitlePlugin::initialize()

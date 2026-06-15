@@ -24,9 +24,11 @@ class CustomSubtitleController : public QObject
 
     // === Options ===
     Q_PROPERTY(bool gpuAccel READ gpuAccel WRITE setGpuAccel NOTIFY gpuAccelChanged)
-    Q_PROPERTY(bool fragmentedMp4 READ fragmentedMp4 WRITE setFragmentedMp4 NOTIFY fragmentedMp4Changed)
     Q_PROPERTY(bool removeSrtAfterReplace READ removeSrtAfterReplace WRITE setRemoveSrtAfterReplace NOTIFY removeSrtAfterReplaceChanged)
     Q_PROPERTY(bool backupOriginal READ backupOriginal WRITE setBackupOriginal NOTIFY backupOriginalChanged)
+
+    // === Preprocessing ===
+    Q_PROPERTY(QStringList enabledPreprocessors READ enabledPreprocessors WRITE setEnabledPreprocessors NOTIFY enabledPreprocessorsChanged)
 
     // === State ===
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
@@ -49,9 +51,9 @@ public:
     QString mergedOutputPath() const;
     QString ffmpegPath() const;
     bool gpuAccel() const;
-    bool fragmentedMp4() const;
     bool removeSrtAfterReplace() const;
     bool backupOriginal() const;
+    QStringList enabledPreprocessors() const;
     QString statusMessage() const;
     double progress() const;
     double currentFileProgress() const;
@@ -68,16 +70,16 @@ public:
     void setMergedOutputPath(const QString &path);
     void setFfmpegPath(const QString &path);
     void setGpuAccel(bool enable);
-    void setFragmentedMp4(bool enable);
     void setRemoveSrtAfterReplace(bool remove);
     void setBackupOriginal(bool backup);
+    void setEnabledPreprocessors(const QStringList &ops);
 
     // === Actions (called from QML) ===
     Q_INVOKABLE void matchAndMoveSubtitles();       // Step 2
     Q_INVOKABLE void mergeSubtitleToVideo();         // Step 3
     Q_INVOKABLE void replaceOriginalVideo();         // Step 4
     Q_INVOKABLE void cancel();
-    Q_INVOKABLE void requestStopAfterCurrent();       // Graceful stop after current merge
+    Q_INVOKABLE void requestStopAfterCount(int count);  // 完成 count 个后退出
     Q_INVOKABLE void reset();
 
     // === URL helper ===
@@ -89,7 +91,6 @@ signals:
     void mergedOutputPathChanged();
     void ffmpegPathChanged();
     void gpuAccelChanged();
-    void fragmentedMp4Changed();
     void removeSrtAfterReplaceChanged();
     void backupOriginalChanged();
     void statusMessageChanged();
@@ -101,6 +102,7 @@ signals:
     void totalCountChanged();
     void currentFileChanged();
     void logMessage(const QString &message);
+    void enabledPreprocessorsChanged();
 
 private slots:
     void onMatchFinished(bool success, const QString &error);
@@ -108,6 +110,17 @@ private slots:
     void onReplaceFinished(bool success, const QString &error);
 
 private:
+    // SRT 条目
+    struct SrtEntry {
+        int index = 0;
+        qint64 startMs = 0;
+        qint64 endMs = 0;
+        QStringList textLines;
+    };
+    QList<SrtEntry> parseSrtFile(const QString &filePath);
+    bool writeSrtFile(const QString &filePath, const QList<SrtEntry> &entries);
+    void processSrtFile(const QString &filePath, const QStringList &ops);
+
     void setStatusMessage(const QString &msg);
     void setCurrentStep(const QString &step);
     void setProgress(double value);
@@ -123,7 +136,6 @@ private:
     QString m_mergedOutputPath;
     QString m_ffmpegPath;
     bool m_gpuAccel = false;
-    bool m_fragmentedMp4 = false;
     bool m_removeSrtAfterReplace = true;
     bool m_backupOriginal = false;
     QString m_statusMessage;
@@ -131,6 +143,8 @@ private:
     double m_currentFileProgress = 0.0;
     bool m_isProcessing = false;
     QString m_currentStep;
+
+    QStringList m_enabledPreprocessors;
 
     PluginLogger *m_logger;
     SubtitleMatcher *m_matcher;

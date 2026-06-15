@@ -2,6 +2,10 @@
 #include "Logger.h"
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <QThread>
+#ifdef Q_OS_WIN
+#include <qt_windows.h>
+#endif
 
 FfmpegRunner::FfmpegRunner(QObject *parent)
     : ProcessRunner(parent)
@@ -31,11 +35,14 @@ void FfmpegRunner::burnSubtitles(const BurnConfig &config)
     // 获取视频时长用于进度计算
     m_totalDuration = getVideoDuration(config.ffmpegPath, config.videoPath);
 
-    // 判断是否需要碎片化 MP4（-movflags 必须在输出文件之前）
-    bool needFragMp4 = false;
-    if (config.useFragMp4) {
-        QString lower = config.outputPath.toLower();
-        needFragMp4 = (lower.endsWith(".mp4") || lower.endsWith(".m4v"));
+    // 获取原视频码率（仅视频流，不含音频 — 用于 VBR 目标码率保持文件大小）
+    m_srcBitrate = getVideoStreamBitrate(config.ffmpegPath, config.videoPath);
+    qint64 srcBitrate = m_srcBitrate;
+    bool hasBitrate = (srcBitrate > 0);
+
+    // 计算线程限制：默认保留 ~15% CPU 余量，避免系统卡顿
+    if (m_burnConfig.threadCount == 0) {
+        m_burnConfig.threadCount = qMax(1, qRound(QThread::idealThreadCount() * 0.85));
     }
 
     QStringList args;
@@ -46,24 +53,50 @@ void FfmpegRunner::burnSubtitles(const BurnConfig &config)
                                               config.fontSize, config.fontColor,
                                               config.borderColor, config.borderWidth);
         args = buildGpuAccelArgs(vendor, config.videoPath, filter,
-                                  config.outputPath, codec, needFragMp4);
+                                  config.outputPath, codec, srcBitrate);
     }
 
     if (args.isEmpty()) {
-        // 软件编码
-        args << "-i" << config.videoPath
+        // 软件编码 — 目标码率 = 源码率，峰值不超过 1.5 倍
+        args << "-threads" << QString::number(m_burnConfig.threadCount)
+             << "-i" << config.videoPath
              << "-vf" << buildSubtitleFilter(config.subtitlePath, config.fontName,
                                               config.fontSize, config.fontColor,
                                               config.borderColor, config.borderWidth)
-             << "-c:a" << "copy"
+             << "-c:v" << "libx264"
+             << "-preset" << "slow";
+        if (hasBitrate) {
+            args << "-b:v" << QString::number(srcBitrate)
+                 << "-maxrate" << QString::number(srcBitrate * 3 / 2)   // ×1.5 峰值上限
+                 << "-bufsize" << QString::number(srcBitrate * 3);       // 3x 缓冲
+        } else {
+            args << "-b:v" << "5M"
+                 << "-maxrate" << "10M"
+                 << "-bufsize" << "20M";
+        }
+        args << "-c:a" << "copy"
              << "-y";
-        if (needFragMp4)
-            args << "-movflags" << "+frag_keyframe+separate_moof";
         args << config.outputPath;
+    } else {
+        // GPU 路径：在 -i 前插入线程限制
+        args.prepend(QString::number(m_burnConfig.threadCount));
+        args.prepend("-threads");
     }
 
     if (m_logger) m_logger->info("FfmpegRunner burn args: " + args.join(" "));
     startProcess(config.ffmpegPath, args, 120000, /*graceful=*/true, /*connectStdout=*/false);
+
+    // 设置 ffmpeg 进程为低优先级，避免抢占系统资源
+#ifdef Q_OS_WIN
+    connect(m_process, &QProcess::started, this, [this]() {
+        HANDLE hProcess = OpenProcess(PROCESS_SET_INFORMATION, FALSE,
+                                       (DWORD)m_process->processId());
+        if (hProcess) {
+            SetPriorityClass(hProcess, BELOW_NORMAL_PRIORITY_CLASS);
+            CloseHandle(hProcess);
+        }
+    }, Qt::SingleShotConnection);
+#endif
 }
 
 void FfmpegRunner::extractAudio(const ExtractAudioConfig &config)
@@ -126,24 +159,40 @@ void FfmpegRunner::onProcessFinished(int exitCode, QProcess::ExitStatus exitStat
                 swConfig.gpuVendor = GpuVendor::None;
 
                 QStringList swArgs;
-                swArgs << "-i" << swConfig.videoPath
+                swArgs << "-threads" << QString::number(m_burnConfig.threadCount)
+                       << "-i" << swConfig.videoPath
                        << "-vf" << buildSubtitleFilter(swConfig.subtitlePath, swConfig.fontName,
                                                         swConfig.fontSize, swConfig.fontColor,
                                                         swConfig.borderColor, swConfig.borderWidth)
-                       << "-c:a" << "copy"
-                       << "-y";
-
-                if (swConfig.useFragMp4) {
-                    QString lower = swConfig.outputPath.toLower();
-                    if (lower.endsWith(".mp4") || lower.endsWith(".m4v")) {
-                        swArgs << "-movflags" << "+frag_keyframe+separate_moof";
-                    }
+                       << "-c:v" << "libx264"
+                       << "-preset" << "slow";
+                if (m_srcBitrate > 0) {
+                    swArgs << "-b:v" << QString::number(m_srcBitrate)
+                           << "-maxrate" << QString::number(m_srcBitrate * 3 / 2)
+                           << "-bufsize" << QString::number(m_srcBitrate * 3);
+                } else {
+                    swArgs << "-b:v" << "5M"
+                           << "-maxrate" << "10M"
+                           << "-bufsize" << "20M";
                 }
-
-                swArgs << swConfig.outputPath;
+                swArgs << "-c:a" << "copy"
+                       << "-y"
+                       << swConfig.outputPath;
 
                 if (m_logger) m_logger->info("FfmpegRunner CPU fallback args: " + swArgs.join(" "));
                 startProcess(swConfig.ffmpegPath, swArgs, 120000, /*graceful=*/true);
+
+                // 同样设置低优先级
+#ifdef Q_OS_WIN
+                connect(m_process, &QProcess::started, this, [this]() {
+                    HANDLE hProcess = OpenProcess(PROCESS_SET_INFORMATION, FALSE,
+                                                   (DWORD)m_process->processId());
+                    if (hProcess) {
+                        SetPriorityClass(hProcess, BELOW_NORMAL_PRIORITY_CLASS);
+                        CloseHandle(hProcess);
+                    }
+                }, Qt::SingleShotConnection);
+#endif
                 return;
             }
 

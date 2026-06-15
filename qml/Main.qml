@@ -15,6 +15,43 @@ ApplicationWindow {
 
     property string currentFeatureId: ""
 
+    // 关闭保护：有任务执行时确认是否退出
+    onClosing: function(closeEvent) {
+        var pluginIds = ["name-converter", "batch-rename", "image-converter",
+                         "image-crop", "video-subtitle", "custom-subtitle"]
+        var anyProcessing = false
+        for (var i = 0; i < pluginIds.length; i++) {
+            var ctrl = pluginManager.getPlugin(pluginIds[i])
+            if (ctrl && ctrl.isProcessing) {
+                anyProcessing = true
+                break
+            }
+        }
+        if (anyProcessing) {
+            closeEvent.accepted = false
+            confirmCloseDialog.open()
+        }
+    }
+
+    Dialog {
+        id: confirmCloseDialog
+        title: "确认退出"
+        standardButtons: Dialog.Yes | Dialog.No
+        closePolicy: Popup.CloseOnEscape
+        x: Math.round((window.width - width) / 2)
+        y: Math.round((window.height - height) / 2)
+        modal: true
+
+        Label {
+            text: "有任务正在执行中，确定要退出吗？\n退出后任务将被中断。"
+            wrapMode: Text.WordWrap
+            width: 320
+            lineHeight: 1.5
+        }
+
+        onAccepted: Qt.quit()
+    }
+
     StackView {
         id: stackView
         anchors.fill: parent

@@ -30,6 +30,11 @@ QString VideoSubtitlePlugin::iconName() const
     return "subtitle";
 }
 
+int VideoSubtitlePlugin::order() const
+{
+    return 4;
+}
+
 void VideoSubtitlePlugin::initialize()
 {
     if (!m_logger)

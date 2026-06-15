@@ -1,4 +1,5 @@
 ﻿#include "VideoSubtitleSettings.h"
+#include "VideoSubtitlePlugin.h"
 #include "Logger.h"
 #include "FFmpegService.h"
 #include "FfmpegUtils.h"
@@ -31,7 +32,7 @@ VideoSubtitleSettings::VideoSubtitleSettings(PluginLogger *logger, QObject *pare
     , m_testReply(nullptr)
     , m_libreTranslateUrl("http://localhost:5000")
 {
-    m_settings.beginGroup("VideoSubtitle");
+    m_settings.beginGroup(VideoSubtitlePlugin::kIniSection);
     m_whisperModelDir = QCoreApplication::applicationDirPath() + "/plugins/videosubtitle";
     loadSettings();
     m_logger->info("插件设置已加载");

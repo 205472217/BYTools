@@ -1,4 +1,5 @@
 ﻿#include "VideoSubtitleController.h"
+#include "VideoSubtitlePlugin.h"
 #include "WhisperService.h"
 #include "TranslateService.h"
 #include "FFmpegService.h"
@@ -37,7 +38,7 @@ VideoSubtitleController::VideoSubtitleController(PluginLogger *logger, QObject *
     // depending on the current step (see processSingleFile / onTranslateFinished).
 
     // 加载持久化的输出目录设置
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();  // 刷新，确保读取到其他 QSettings 实例（如设置页）写入的 INI 值
     m_outputDir = s.value("outputDir").toString();
     m_outputMode = s.value("outputMode", 0).toInt();
@@ -63,12 +64,12 @@ int VideoSubtitleController::inputMode() const { return m_inputMode; }
 bool VideoSubtitleController::recursive() const { return m_recursive; }
 QString VideoSubtitleController::sourceLanguage() const { return m_sourceLanguage; }
 QString VideoSubtitleController::targetLanguage() const { return m_targetLanguage; }
-int VideoSubtitleController::subtitleStyle() const { return pluginGroupSettings("VideoSubtitle").value("subtitleStyle", 0).toInt(); }
+int VideoSubtitleController::subtitleStyle() const { return pluginGroupSettings(VideoSubtitlePlugin::kIniSection).value("subtitleStyle", 0).toInt(); }
 int VideoSubtitleController::outputMode() const { return m_outputMode; }
 QString VideoSubtitleController::outputDir() const { return m_outputDir; }
-bool VideoSubtitleController::keepWav() const { return pluginGroupSettings("VideoSubtitle").value("keepWav", true).toBool(); }
-bool VideoSubtitleController::keepOriginalSrt() const { return pluginGroupSettings("VideoSubtitle").value("keepOriginalSrt", true).toBool(); }
-bool VideoSubtitleController::keepTranslatedSrt() const { return pluginGroupSettings("VideoSubtitle").value("keepTranslatedSrt", true).toBool(); }
+bool VideoSubtitleController::keepWav() const { return pluginGroupSettings(VideoSubtitlePlugin::kIniSection).value("keepWav", true).toBool(); }
+bool VideoSubtitleController::keepOriginalSrt() const { return pluginGroupSettings(VideoSubtitlePlugin::kIniSection).value("keepOriginalSrt", true).toBool(); }
+bool VideoSubtitleController::keepTranslatedSrt() const { return pluginGroupSettings(VideoSubtitlePlugin::kIniSection).value("keepTranslatedSrt", true).toBool(); }
 QString VideoSubtitleController::statusMessage() const { return m_statusMessage; }
 double VideoSubtitleController::progress() const { return m_progress; }
 bool VideoSubtitleController::isProcessing() const { return m_isProcessing; }
@@ -111,8 +112,8 @@ void VideoSubtitleController::setSourceLanguage(const QString &lang)
 {
     if (m_sourceLanguage != lang) {
         m_sourceLanguage = lang;
-        pluginGroupSettings("VideoSubtitle").setValue("sourceLanguage", lang);
-        pluginGroupSettings("VideoSubtitle").sync();
+        pluginGroupSettings(VideoSubtitlePlugin::kIniSection).setValue("sourceLanguage", lang);
+        pluginGroupSettings(VideoSubtitlePlugin::kIniSection).sync();
         emit sourceLanguageChanged();
     }
 }
@@ -121,8 +122,8 @@ void VideoSubtitleController::setTargetLanguage(const QString &lang)
 {
     if (m_targetLanguage != lang) {
         m_targetLanguage = lang;
-        pluginGroupSettings("VideoSubtitle").setValue("targetLanguage", lang);
-        pluginGroupSettings("VideoSubtitle").sync();
+        pluginGroupSettings(VideoSubtitlePlugin::kIniSection).setValue("targetLanguage", lang);
+        pluginGroupSettings(VideoSubtitlePlugin::kIniSection).sync();
         emit targetLanguageChanged();
     }
 }
@@ -136,15 +137,15 @@ void VideoSubtitleController::setTranslateMusic(bool enabled)
 {
     if (m_translateMusic != enabled) {
         m_translateMusic = enabled;
-        pluginGroupSettings("VideoSubtitle").setValue("translateMusic", enabled);
-        pluginGroupSettings("VideoSubtitle").sync();
+        pluginGroupSettings(VideoSubtitlePlugin::kIniSection).setValue("translateMusic", enabled);
+        pluginGroupSettings(VideoSubtitlePlugin::kIniSection).sync();
         emit translateMusicChanged();
     }
 }
 
 void VideoSubtitleController::setSubtitleStyle(int style)
 {
-    pluginGroupSettings("VideoSubtitle").setValue("subtitleStyle", style);
+    pluginGroupSettings(VideoSubtitlePlugin::kIniSection).setValue("subtitleStyle", style);
     emit subtitleStyleChanged();
 }
 
@@ -152,7 +153,7 @@ void VideoSubtitleController::setOutputMode(int mode)
 {
     if (m_outputMode != mode) {
         m_outputMode = mode;
-        QSettings &s = pluginGroupSettings("VideoSubtitle");
+        QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
         s.setValue("outputMode", mode);
         s.sync();  // 立即写入 INI，防止应用异常退出时丢失
         emit outputModeChanged();
@@ -163,7 +164,7 @@ void VideoSubtitleController::setOutputDir(const QString &dir)
 {
     if (m_outputDir != dir) {
         m_outputDir = dir;
-        QSettings &s = pluginGroupSettings("VideoSubtitle");
+        QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
         s.setValue("outputDir", dir);
         s.sync();  // 立即写入 INI，防止应用异常退出时丢失
         emit outputDirChanged();
@@ -172,19 +173,19 @@ void VideoSubtitleController::setOutputDir(const QString &dir)
 
 void VideoSubtitleController::setKeepWav(bool keep)
 {
-    pluginGroupSettings("VideoSubtitle").setValue("keepWav", keep);
+    pluginGroupSettings(VideoSubtitlePlugin::kIniSection).setValue("keepWav", keep);
     emit keepWavChanged();
 }
 
 void VideoSubtitleController::setKeepOriginalSrt(bool keep)
 {
-    pluginGroupSettings("VideoSubtitle").setValue("keepOriginalSrt", keep);
+    pluginGroupSettings(VideoSubtitlePlugin::kIniSection).setValue("keepOriginalSrt", keep);
     emit keepOriginalSrtChanged();
 }
 
 void VideoSubtitleController::setKeepTranslatedSrt(bool keep)
 {
-    pluginGroupSettings("VideoSubtitle").setValue("keepTranslatedSrt", keep);
+    pluginGroupSettings(VideoSubtitlePlugin::kIniSection).setValue("keepTranslatedSrt", keep);
     emit keepTranslatedSrtChanged();
 }
 
@@ -337,7 +338,7 @@ void VideoSubtitleController::execute()
 
     // GPU 加速设置
     {
-        bool useGpu = pluginGroupSettings("VideoSubtitle").value("useGpuAccel", false).toBool();
+        bool useGpu = pluginGroupSettings(VideoSubtitlePlugin::kIniSection).value("useGpuAccel", false).toBool();
         m_ffmpegService->setUseHardwareAccel(useGpu);
         m_logger->info(QString("FFmpeg GPU 加速: %1").arg(useGpu ? "开启" : "关闭"));
     }
@@ -941,21 +942,21 @@ void VideoSubtitleController::addRecord(const QString &originalPath, const QStri
 
 QString VideoSubtitleController::ffmpegPath() const
 {
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();  // 重新读取 config.ini，确保设置页面保存的值已生效
     return s.value("ffmpegPath").toString();
 }
 
 QString VideoSubtitleController::whisperPath() const
 {
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();
     return s.value("whisperPath").toString();
 }
 
 QString VideoSubtitleController::whisperModelPath() const
 {
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();
 
     // 1. Check if user specified a local model file
@@ -978,12 +979,12 @@ QString VideoSubtitleController::whisperModelPath() const
 
 QString VideoSubtitleController::apiKey() const
 {
-    return QByteArray::fromBase64(pluginGroupSettings("VideoSubtitle").value("apiKey").toByteArray());
+    return QByteArray::fromBase64(pluginGroupSettings(VideoSubtitlePlugin::kIniSection).value("apiKey").toByteArray());
 }
 
 QString VideoSubtitleController::apiUrl() const
 {
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();
     // Return the correct URL based on current translation engine:
     // engine 0 (Baidu) → apiUrl, engine 1 (LibreTranslate) → libreTranslateUrl
@@ -995,49 +996,49 @@ QString VideoSubtitleController::apiUrl() const
 
 QString VideoSubtitleController::baiduAppId() const
 {
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();
     return s.value("baiduAppId").toString();
 }
 
 int VideoSubtitleController::audioSegmentDuration() const
 {
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();
     return s.value("audioSegmentDuration", 10).toInt();
 }
 
 int VideoSubtitleController::translateEngine() const
 {
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();
     return s.value("translateEngine", 0).toInt();
 }
 
 int VideoSubtitleController::defaultFontSize() const
 {
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();
     return s.value("defaultFontSize", 20).toInt();
 }
 
 QString VideoSubtitleController::defaultFontColor() const
 {
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();
     return s.value("defaultFontColor", "#FFFFFF").toString();
 }
 
 QString VideoSubtitleController::defaultBorderColor() const
 {
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();
     return s.value("defaultBorderColor", "#000000").toString();
 }
 
 int VideoSubtitleController::defaultBorderWidth() const
 {
-    QSettings &s = pluginGroupSettings("VideoSubtitle");
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::kIniSection);
     s.sync();
     return s.value("defaultBorderWidth", 2).toInt();
 }

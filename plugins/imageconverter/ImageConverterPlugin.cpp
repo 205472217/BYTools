@@ -28,6 +28,11 @@ QString ImageConverterPlugin::iconName() const
     return "image";
 }
 
+int ImageConverterPlugin::order() const
+{
+    return 2;
+}
+
 void ImageConverterPlugin::initialize()
 {
     if (!m_logger)

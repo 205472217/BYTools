@@ -29,8 +29,7 @@ void FFmpegMergeService::startMerge(const QString &ffmpegPath,
                                      const QString &videoDir,
                                      const QString &outputDir,
                                      bool recursive,
-                                     bool useGpu,
-                                     bool useFragMp4)
+                                     bool useGpu)
 {
     if (m_runner->isRunning()) {
         emit logMessage("✗ 已有合成任务正在执行，请等待完成");
@@ -42,12 +41,11 @@ void FFmpegMergeService::startMerge(const QString &ffmpegPath,
     m_outputDir = outputDir;
     m_currentIndex = -1;
     m_cancelled = false;
-    m_stopAfterCurrent = false;
+    m_stopTargetIndex = -1;
     m_successCount = 0;
     m_failCount = 0;
     m_pendingFiles.clear();
     m_checkUseGpu = useGpu;
-    m_useFragMp4 = useFragMp4;
 
     QDir outDir(outputDir);
     if (!outDir.exists()) {
@@ -119,6 +117,26 @@ void FFmpegMergeService::startMerge(const QString &ffmpegPath,
 
     collectDir(videoDir);
 
+    // 去重：输出路径相同的任务只保留第一个，避免多次合成相同视频
+    {
+        QSet<QString> seenOutputs;
+        QList<VideoFile> deduped;
+        int dupCount = 0;
+        for (const auto &vf : m_pendingFiles) {
+            if (seenOutputs.contains(vf.outputPath)) {
+                emit logMessage("    ⏭ 跳过重复输出: " + QFileInfo(vf.path).fileName());
+                dupCount++;
+                continue;
+            }
+            seenOutputs.insert(vf.outputPath);
+            deduped.append(vf);
+        }
+        if (dupCount > 0) {
+            emit logMessage(QString("  ⏭ 去重完成，移除了 %1 个重复视频").arg(dupCount));
+        }
+        m_pendingFiles = deduped;
+    }
+
     if (m_pendingFiles.isEmpty()) {
         QString err = "✗ 所选文件夹中未找到带字幕的视频文件\n"
                       "  请检查：\n"
@@ -150,18 +168,19 @@ void FFmpegMergeService::cancel()
     emit logMessage("  ⏹ 已取消");
 }
 
-void FFmpegMergeService::requestStopAfterCurrent()
+void FFmpegMergeService::requestStopAfterCount(int count)
 {
-    m_stopAfterCurrent = true;
-    emit logMessage("  ⏹ 已预约停止，当前视频处理完后将不再继续");
+    m_stopTargetIndex = m_currentIndex + count;
+    emit logMessage(QString("  ⏹ 已预约停止，再完成 %1 个文件后退出").arg(count));
 }
 
 void FFmpegMergeService::processNextFile()
 {
     m_currentIndex++;
-    if (m_cancelled || m_stopAfterCurrent || m_currentIndex >= m_pendingFiles.size()) {
+    bool stopHit = (m_stopTargetIndex >= 0 && m_currentIndex >= m_stopTargetIndex);
+    if (m_cancelled || stopHit || m_currentIndex >= m_pendingFiles.size()) {
         QString msg = QString("合成完成: 成功 %1, 失败 %2").arg(m_successCount).arg(m_failCount);
-        if (m_stopAfterCurrent && m_currentIndex < m_pendingFiles.size()) {
+        if (stopHit && m_currentIndex < m_pendingFiles.size()) {
             msg += QString(" (已跳过剩余 %1 个)").arg(m_pendingFiles.size() - m_currentIndex);
         }
         emit logMessage(msg);
@@ -184,7 +203,6 @@ void FFmpegMergeService::processNextFile()
     cfg.outputPath    = vf.outputPath;
     cfg.useGpu        = m_checkUseGpu;
     cfg.gpuVendor     = GpuVendor::None; // 每次重新检测，避免跨文件 GPU 状态变化
-    cfg.useFragMp4    = m_useFragMp4;
 
     m_runner->burnSubtitles(cfg);
 

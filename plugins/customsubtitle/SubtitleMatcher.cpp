@@ -5,6 +5,7 @@
 #include <QFile>
 #include <QMap>
 #include <QCollator>
+#include <QCoreApplication>
 #include <algorithm>
 
 SubtitleMatcher::SubtitleMatcher(PluginLogger *logger, QObject *parent)
@@ -64,6 +65,7 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
         }
         subMap[key].append({fi.absoluteFilePath(), fi.fileName()});
         emit logMessage("  [字幕] 关键码 " + key + " → " + fi.fileName());
+        QCoreApplication::processEvents();
     }
 
     if (subCount == 0) {
@@ -109,6 +111,7 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
             vInfo.nameNoExt = fi.completeBaseName();
             vidInfoMap[key].append(vInfo);
             emit logMessage("  [视频] 关键码 " + key + " → " + fi.fileName());
+            QCoreApplication::processEvents();
         }
         if (!recursive) return;
         QFileInfoList subdirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
@@ -136,6 +139,7 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
         if (!vidInfoMap.contains(key)) {
             emit logMessage("  ✗ [" + key + "] 字幕存在但未找到对应视频");
             m_logger->warn(QString("  [无匹配] 关键码 %1 的字幕未找到对应视频").arg(key));
+            QCoreApplication::processEvents();
             continue;
         }
 
@@ -159,6 +163,7 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::matchSubtitles(
                 .arg(key, mr.subtitleName, mr.newSubtitleName, mr.videoDir);
             emit logMessage(msg);
             m_logger->info(msg);
+            QCoreApplication::processEvents();
         }
     }
 
@@ -197,6 +202,7 @@ int SubtitleMatcher::executeRename(QList<MatchResult> &results)
             emit logMessage("  ✗ 重命名失败: " + r.subtitleName);
         }
         emit progress(double(i + 1) / results.size());
+        QCoreApplication::processEvents();
     }
     return ok;
 }
@@ -224,6 +230,7 @@ int SubtitleMatcher::executeMove(const QList<MatchResult> &results)
             }
         }
         emit progress(double(i + 1) / results.size());
+        QCoreApplication::processEvents();
     }
     return ok;
 }

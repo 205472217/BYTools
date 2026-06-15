@@ -1,4 +1,5 @@
 #include "CustomSubtitleController.h"
+#include "CustomSubtitlePlugin.h"
 #include "SubtitleMatcher.h"
 #include "FFmpegMergeService.h"
 #include "FfmpegUtils.h"
@@ -9,7 +10,13 @@
 #include <QSettings>
 #include <QDir>
 #include <QFileInfo>
+#include <QFile>
+#include <QRegularExpression>
 #include <QCoreApplication>
+
+#ifdef Q_OS_WIN
+#include <qt_windows.h>
+#endif
 
 CustomSubtitleController::CustomSubtitleController(PluginLogger *logger, QObject *parent)
     : QObject(parent)
@@ -68,7 +75,7 @@ CustomSubtitleController::CustomSubtitleController(PluginLogger *logger, QObject
     });
 
     // Load persisted paths
-    QSettings &s = pluginGroupSettings("customsubtitle");
+    QSettings &s = pluginGroupSettings(CustomSubtitlePlugin::kIniSection);
     s.sync();
     m_subtitleDownloadPath = s.value("customSubtitleDownloadPath").toString();
     m_videoSourcePath = s.value("customVideoSourcePath").toString();
@@ -76,7 +83,7 @@ CustomSubtitleController::CustomSubtitleController(PluginLogger *logger, QObject
     m_ffmpegPath = s.value("customFfmpegPath").toString();
     m_recursive = s.value("customRecursive", false).toBool();
     m_gpuAccel = s.value("customGpuAccel", false).toBool();
-    m_fragmentedMp4 = s.value("customFragmentedMp4", true).toBool();
+    m_enabledPreprocessors = s.value("customPreprocessors").toStringList();
 }
 
 CustomSubtitleController::~CustomSubtitleController() = default;
@@ -87,7 +94,6 @@ QString CustomSubtitleController::videoSourcePath() const { return m_videoSource
 bool CustomSubtitleController::recursive() const { return m_recursive; }
 QString CustomSubtitleController::mergedOutputPath() const { return m_mergedOutputPath; }
 bool CustomSubtitleController::gpuAccel() const { return m_gpuAccel; }
-bool CustomSubtitleController::fragmentedMp4() const { return m_fragmentedMp4; }
 bool CustomSubtitleController::removeSrtAfterReplace() const { return m_removeSrtAfterReplace; }
 bool CustomSubtitleController::backupOriginal() const { return m_backupOriginal; }
 QString CustomSubtitleController::statusMessage() const { return m_statusMessage; }
@@ -104,8 +110,8 @@ void CustomSubtitleController::setSubtitleDownloadPath(const QString &path)
 {
     if (m_subtitleDownloadPath != path) {
         m_subtitleDownloadPath = path;
-        pluginGroupSettings("customsubtitle").setValue("customSubtitleDownloadPath", path);
-        pluginGroupSettings("customsubtitle").sync();
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).setValue("customSubtitleDownloadPath", path);
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).sync();
         emit subtitleDownloadPathChanged();
     }
 }
@@ -114,8 +120,8 @@ void CustomSubtitleController::setVideoSourcePath(const QString &path)
 {
     if (m_videoSourcePath != path) {
         m_videoSourcePath = path;
-        pluginGroupSettings("customsubtitle").setValue("customVideoSourcePath", path);
-        pluginGroupSettings("customsubtitle").sync();
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).setValue("customVideoSourcePath", path);
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).sync();
         emit videoSourcePathChanged();
     }
 }
@@ -124,8 +130,8 @@ void CustomSubtitleController::setRecursive(bool recursive)
 {
     if (m_recursive != recursive) {
         m_recursive = recursive;
-        pluginGroupSettings("customsubtitle").setValue("customRecursive", recursive);
-        pluginGroupSettings("customsubtitle").sync();
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).setValue("customRecursive", recursive);
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).sync();
         emit recursiveChanged();
     }
 }
@@ -134,8 +140,8 @@ void CustomSubtitleController::setMergedOutputPath(const QString &path)
 {
     if (m_mergedOutputPath != path) {
         m_mergedOutputPath = path;
-        pluginGroupSettings("customsubtitle").setValue("customMergedOutputPath", path);
-        pluginGroupSettings("customsubtitle").sync();
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).setValue("customMergedOutputPath", path);
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).sync();
         emit mergedOutputPathChanged();
     }
 }
@@ -144,8 +150,8 @@ void CustomSubtitleController::setFfmpegPath(const QString &path)
 {
     if (m_ffmpegPath != path) {
         m_ffmpegPath = path;
-        pluginGroupSettings("customsubtitle").setValue("customFfmpegPath", path);
-        pluginGroupSettings("customsubtitle").sync();
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).setValue("customFfmpegPath", path);
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).sync();
         emit ffmpegPathChanged();
     }
 }
@@ -154,19 +160,9 @@ void CustomSubtitleController::setGpuAccel(bool enable)
 {
     if (m_gpuAccel != enable) {
         m_gpuAccel = enable;
-        pluginGroupSettings("customsubtitle").setValue("customGpuAccel", enable);
-        pluginGroupSettings("customsubtitle").sync();
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).setValue("customGpuAccel", enable);
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).sync();
         emit gpuAccelChanged();
-    }
-}
-
-void CustomSubtitleController::setFragmentedMp4(bool enable)
-{
-    if (m_fragmentedMp4 != enable) {
-        m_fragmentedMp4 = enable;
-        pluginGroupSettings("customsubtitle").setValue("customFragmentedMp4", enable);
-        pluginGroupSettings("customsubtitle").sync();
-        emit fragmentedMp4Changed();
     }
 }
 
@@ -183,6 +179,23 @@ void CustomSubtitleController::setBackupOriginal(bool backup)
     if (m_backupOriginal != backup) {
         m_backupOriginal = backup;
         emit backupOriginalChanged();
+    }
+}
+
+// ── Preprocessing ──
+
+QStringList CustomSubtitleController::enabledPreprocessors() const
+{
+    return m_enabledPreprocessors;
+}
+
+void CustomSubtitleController::setEnabledPreprocessors(const QStringList &ops)
+{
+    if (m_enabledPreprocessors != ops) {
+        m_enabledPreprocessors = ops;
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).setValue("customPreprocessors", ops);
+        pluginGroupSettings(CustomSubtitlePlugin::kIniSection).sync();
+        emit enabledPreprocessorsChanged();
     }
 }
 
@@ -239,6 +252,18 @@ void CustomSubtitleController::matchAndMoveSubtitles()
     int moved = m_matcher->executeMove(results);
     emit logMessage(QString("移动完成: %1 个").arg(moved));
 
+    // Apply subtitle content preprocessing
+    if (!m_enabledPreprocessors.isEmpty()) {
+        emit logMessage("--- 字幕内容预处理 ---");
+        int processed = 0;
+        for (const auto &r : results) {
+            QString destPath = r.videoDir + "/" + r.newSubtitleName;
+            processSrtFile(destPath, m_enabledPreprocessors);
+            ++processed;
+        }
+        emit logMessage(QString("预处理完成: %1 个文件").arg(processed));
+    }
+
     setProgress(1.0);
     setStatusMessage(QString("步骤2完成: 重命名 %1, 移动 %2").arg(renamed).arg(moved));
     setIsProcessing(false);
@@ -273,7 +298,7 @@ void CustomSubtitleController::mergeSubtitleToVideo()
         .arg(m_videoSourcePath, m_mergedOutputPath).arg(m_gpuAccel));
 
     m_mergeService->startMerge(ffmpeg, m_videoSourcePath, m_mergedOutputPath,
-                                m_recursive, m_gpuAccel, m_fragmentedMp4);
+                                m_recursive, m_gpuAccel);
 }
 
 void CustomSubtitleController::replaceOriginalVideo()
@@ -316,10 +341,10 @@ void CustomSubtitleController::cancel()
     emit logMessage("⏹ 已取消操作");
 }
 
-void CustomSubtitleController::requestStopAfterCurrent()
+void CustomSubtitleController::requestStopAfterCount(int count)
 {
     if (m_mergeService)
-        m_mergeService->requestStopAfterCurrent();
+        m_mergeService->requestStopAfterCount(count);
 }
 
 void CustomSubtitleController::reset()
@@ -438,6 +463,218 @@ void CustomSubtitleController::setCurrentFile(const QString &path)
     if (m_currentFile != path) {
         m_currentFile = path;
         emit currentFileChanged();
+    }
+}
+
+// ── SRT 预处理 ──
+
+QList<CustomSubtitleController::SrtEntry> CustomSubtitleController::parseSrtFile(const QString &filePath)
+{
+    QList<SrtEntry> entries;
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return entries;
+
+    QTextStream stream(&file);
+    stream.setEncoding(QStringConverter::Utf8);
+
+    static QRegularExpression timeRe(R"(^(\d{2}:\d{2}:\d{2}[,.]\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}[,.]\d{3}))");
+    auto parseMs = [](const QString &t) -> qint64 {
+        QRegularExpression re(R"((\d{2}):(\d{2}):(\d{2})[,.](\d{3}))");
+        auto m = re.match(t);
+        if (!m.hasMatch()) return 0;
+        return m.captured(1).toLongLong() * 3600000
+             + m.captured(2).toLongLong() * 60000
+             + m.captured(3).toLongLong() * 1000
+             + m.captured(4).toLongLong();
+    };
+
+    bool readingTime = false;
+    SrtEntry entry;
+    while (!stream.atEnd()) {
+        QString line = stream.readLine().trimmed();
+        if (line.isEmpty()) {
+            if (readingTime && !entry.textLines.isEmpty()) {
+                entries.append(entry);
+                entry = SrtEntry();
+            }
+            readingTime = false;
+            continue;
+        }
+        auto tm = timeRe.match(line);
+        if (tm.hasMatch()) {
+            readingTime = true;
+            entry.startMs = parseMs(tm.captured(1));
+            entry.endMs = parseMs(tm.captured(2));
+        } else if (readingTime) {
+            entry.textLines.append(line);
+        }
+    }
+    if (readingTime && !entry.textLines.isEmpty())
+        entries.append(entry);
+
+    file.close();
+    return entries;
+}
+
+bool CustomSubtitleController::writeSrtFile(const QString &filePath, const QList<SrtEntry> &entries)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        return false;
+
+    QTextStream stream(&file);
+    stream.setEncoding(QStringConverter::Utf8);
+
+    auto fmtMs = [](qint64 ms) -> QString {
+        qint64 h = ms / 3600000; ms %= 3600000;
+        qint64 m = ms / 60000;   ms %= 60000;
+        qint64 s = ms / 1000;    ms %= 1000;
+        return QString("%1:%2:%3,%4")
+            .arg(h, 2, 10, QChar('0'))
+            .arg(m, 2, 10, QChar('0'))
+            .arg(s, 2, 10, QChar('0'))
+            .arg(ms, 3, 10, QChar('0'));
+    };
+
+    for (int i = 0; i < entries.size(); ++i) {
+        const auto &e = entries[i];
+        stream << (i + 1) << "\n";
+        stream << fmtMs(e.startMs) << " --> " << fmtMs(e.endMs) << "\n";
+        for (int j = 0; j < e.textLines.size(); ++j) {
+            if (j > 0) stream << "\n";
+            stream << e.textLines[j];
+        }
+        stream << "\n\n";
+    }
+
+    file.close();
+    return true;
+}
+
+void CustomSubtitleController::processSrtFile(const QString &filePath, const QStringList &ops)
+{
+    QFileInfo fi(filePath);
+    QString fileName = fi.fileName();
+
+    QList<SrtEntry> entries = parseSrtFile(filePath);
+    if (entries.isEmpty())
+        return;
+
+    int beforeCount = entries.size();
+
+    // ── 去重 ──
+    if (ops.contains("dedup")) {
+        QList<SrtEntry> deduped;
+        QString lastText;
+        for (const auto &e : entries) {
+            QString cur = e.textLines.join("\n").trimmed();
+            if (cur == lastText)
+                continue;
+            deduped.append(e);
+            lastText = cur;
+        }
+        int removed = entries.size() - deduped.size();
+        if (removed > 0)
+            emit logMessage(QString("  ✓ [%1] 去重: 移除 %2 条重复字幕").arg(fileName).arg(removed));
+        entries = deduped;
+    }
+
+    // ── 过滤环境音 ──
+    if (ops.contains("removeEnvSound")) {
+        const QChar fullLeft(0xFF08);   // （
+        const QChar fullRight(0xFF09);  // ）
+        QList<SrtEntry> filtered;
+        for (const auto &e : entries) {
+            QString text = e.textLines.join("\n").trimmed();
+            bool isEnv = (!text.isEmpty()) &&
+                ((text.startsWith('(') && text.endsWith(')')) ||
+                 (text.startsWith('[') && text.endsWith(']')) ||
+                 (text.startsWith(fullLeft) && text.endsWith(fullRight)));
+            if (!isEnv)
+                filtered.append(e);
+        }
+        int removed = entries.size() - filtered.size();
+        if (removed > 0)
+            emit logMessage(QString("  ✓ [%1] 去除环境音: 移除 %2 条").arg(fileName).arg(removed));
+        entries = filtered;
+    }
+
+    // ── 过滤背景音/音效 ──
+    if (ops.contains("removeBgSound")) {
+        QList<SrtEntry> filtered;
+        for (const auto &e : entries) {
+            QString text = e.textLines.join("\n").trimmed();
+            if (!text.isEmpty() && text.startsWith('*') && text.endsWith('*'))
+                continue;
+            filtered.append(e);
+        }
+        int removed = entries.size() - filtered.size();
+        if (removed > 0)
+            emit logMessage(QString("  ✓ [%1] 去除背景音: 移除 %2 条音效").arg(fileName).arg(removed));
+        entries = filtered;
+    }
+
+    // ── 过滤歌词 ──
+    if (ops.contains("removeMusic")) {
+        const QChar musicNote(0x266A); // ♪
+        QList<SrtEntry> filtered;
+        for (const auto &e : entries) {
+            QString text = e.textLines.join("\n").trimmed();
+            if (!text.isEmpty() && text.startsWith(musicNote) && text.endsWith(musicNote))
+                continue;
+            filtered.append(e);
+        }
+        int removed = entries.size() - filtered.size();
+        if (removed > 0)
+            emit logMessage(QString("  ✓ [%1] 过滤歌词: 移除 %2 条歌词").arg(fileName).arg(removed));
+        entries = filtered;
+    }
+
+    // ── 中文繁转简 ──
+    if (ops.contains("t2s")) {
+#ifdef Q_OS_WIN
+        int convertedCount = 0;
+        for (auto &e : entries) {
+            for (auto &line : e.textLines) {
+                QString orig = line;
+                int len = line.length();
+                int req = LCMapStringEx(
+                    L"zh-CN", LCMAP_SIMPLIFIED_CHINESE,
+                    reinterpret_cast<LPCWSTR>(line.utf16()), len,
+                    nullptr, 0, nullptr, nullptr, 0);
+                if (req <= 0) continue;
+                QString out(req, Qt::Uninitialized);
+                int ret = LCMapStringEx(
+                    L"zh-CN", LCMAP_SIMPLIFIED_CHINESE,
+                    reinterpret_cast<LPCWSTR>(line.utf16()), len,
+                    reinterpret_cast<LPWSTR>(out.data()), req,
+                    nullptr, nullptr, 0);
+                if (ret > 0) {
+                    out.truncate(ret);
+                    if (out != orig) {
+                        line = out;
+                        ++convertedCount;
+                    }
+                }
+            }
+        }
+        if (convertedCount > 0)
+            emit logMessage(QString("  ✓ [%1] 繁转简: 转换 %2 行").arg(fileName).arg(convertedCount));
+#else
+        emit logMessage(QString("  - [%1] 繁转简: 当前平台不支持，跳过").arg(fileName));
+#endif
+    }
+
+    // ── 有变更则写回 ──
+    if (entries.size() != beforeCount) {
+        writeSrtFile(filePath, entries);
+        emit logMessage(QString("  ✓ [%1] 处理完成: %2 → %3 条").arg(fileName).arg(beforeCount).arg(entries.size()));
+    } else if (ops.contains("t2s")) {
+        // t2s 可能改变了文本但条数不变，仍需要写回
+        writeSrtFile(filePath, entries);
+    } else {
+        emit logMessage(QString("  - [%1] 无需处理").arg(fileName));
     }
 }
 

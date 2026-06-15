@@ -28,6 +28,11 @@ QString ImageCropPlugin::iconName() const
     return "crop";
 }
 
+int ImageCropPlugin::order() const
+{
+    return 3;
+}
+
 void ImageCropPlugin::initialize()
 {
     if (!m_logger)

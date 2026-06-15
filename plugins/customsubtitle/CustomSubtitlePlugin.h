@@ -12,12 +12,15 @@ class CustomSubtitlePlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
+    static constexpr const char* kIniSection = "custom-subtitle";
+
     explicit CustomSubtitlePlugin(QObject *parent = nullptr);
 
     QString id() const override;
     QString name() const override;
     QString description() const override;
     QString iconName() const override;
+    int order() const override;
 
     void initialize() override;
     void cleanup() override;

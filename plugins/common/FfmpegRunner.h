@@ -20,12 +20,12 @@ public:
         QString outputPath;
         bool useGpu = false;
         GpuVendor gpuVendor = GpuVendor::None;  // 可选，调用者预先检测好的
-        bool useFragMp4 = false;
         QString fontName  = "Microsoft YaHei";
         int     fontSize   = 20;
         QString fontColor  = "#FFFFFF";
         QString borderColor = "#000000";
         int     borderWidth = 2;
+        int     threadCount = 0;  // 0=自动(85%), >0=指定线程数
     };
 
     struct ExtractAudioConfig {
@@ -64,6 +64,7 @@ private:
     BurnConfig m_burnConfig;
     bool m_burnFallbackTried = false;
     qint64 m_totalDuration = 0;
+    qint64 m_srcBitrate = 0;
 
     // ExtractAudio state
     QString m_audioOutputPath;
