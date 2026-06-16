@@ -18,12 +18,6 @@ from lxml.html import fromstring
 MAX_RESULTS = 100
 MAX_RESOLVE = 10
 
-LANG_MAP = {
-    "中文": "Chinese",
-    "中文繁体": "Chinese",
-    "英文": "English",
-}
-
 LANG_URL_PATTERNS = {
     "Chinese": ["zh"],
     "English": ["en"],
@@ -31,7 +25,10 @@ LANG_URL_PATTERNS = {
 
 
 def search(keyword: str, language_filter: str = "") -> list:
-    """搜索 subtitlecat.com，返回结果列表。"""
+    """搜索 subtitlecat.com，返回结果列表。
+    language_filter: 由 C++ 传过来的 pageLabel（如 "Chinese (Simplified)"），
+    在详情页匹配 Download 按钮前的文本。
+    """
     results = []
     base = "https://www.subtitlecat.com"
     search_url = f"{base}/index.php?search={keyword}"
@@ -48,15 +45,13 @@ def search(keyword: str, language_filter: str = "") -> list:
     results = results[:MAX_RESULTS]
 
     if language_filter:
-        target_lang = LANG_MAP.get(language_filter)
-        if target_lang:
-            before = len(results)
-            results = [r for r in results if r.get("language") == target_lang]
-            _log(f"language filter '{language_filter}'->'{target_lang}': {before} -> {len(results)}")
-
-    _resolve_downloads(results, base, max_items=MAX_RESOLVE)
-
-    return results
+        # 有语言筛选：进详情页，按 Download 按钮前的文本匹配
+        _log(f"filtering by download state: target_label={language_filter}")
+        return _filter_by_download_state(results, base, language_filter, max_items=MAX_RESULTS)
+    else:
+        # 无筛选（兜底）：取第一个下载链接
+        _resolve_downloads(results, base, max_items=MAX_RESULTS)
+        return results
 
 
 def _fetch(url: str) -> str | None:
@@ -174,3 +169,63 @@ def _resolve_downloads(results: list, base: str, max_items=0):
                 item["file_name"] = url_filename
         except Exception:
             continue
+
+
+def _filter_by_download_state(results, base, target_page_label, max_items=0):
+    """有语言筛选时：进详情页，找到目标语种文本，在附近找 Download 链接。
+    不做任何结构假设。
+    """
+    filtered = []
+    todo = results[:max_items] if max_items > 0 else results
+    for item in todo:
+        url = item.get("download_url")
+        if not url:
+            continue
+        try:
+            html = _fetch(url)
+            if html is None:
+                continue
+            doc = fromstring(html)
+            href = _find_download_near_text(doc, target_page_label, base)
+            if not href:
+                _log(f"  skip {url}: no download near '{target_page_label}'")
+                continue
+
+            item["download_url"] = href
+            url_filename = href.split("/")[-1].split("?")[0]
+            if "." in url_filename:
+                item["file_name"] = url_filename
+            _log(f"  OK {href}")
+            filtered.append(item)
+        except Exception:
+            continue
+
+    _log(f"_filter_by_download_state({target_page_label}): {len(todo)} -> {len(filtered)}")
+    return filtered
+
+
+def _find_download_near_text(doc, target_text, base):
+    """找到目标文本，上到最近的 <div>，在 div 范围内找 green-link"""
+    for elem in doc.iter():
+        if elem.tag in ('script', 'style', 'head', 'meta'):
+            continue
+        text = (elem.text or "").strip()
+        if text != target_text:
+            continue
+        # 上到最近的 <div>
+        div = elem
+        while div.tag != 'div' and div.getparent() is not None:
+            div = div.getparent()
+        if div.tag != 'div':
+            continue
+        # 在这个 div 里找 green-link
+        links = div.xpath('.//a[contains(@class, "green-link")]')
+        if not links:
+            continue
+        href = links[0].get("href", "")
+        if not href:
+            continue
+        if not href.startswith("http"):
+            href = urllib.parse.urljoin(base, href)
+        return href
+    return ""

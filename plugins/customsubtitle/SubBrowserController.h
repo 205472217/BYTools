@@ -19,6 +19,9 @@ class SubBrowserController : public QObject
     Q_PROPERTY(QStringList availableSites READ availableSites NOTIFY availableSitesChanged)
     Q_PROPERTY(QString currentSite READ currentSite WRITE setCurrentSite NOTIFY currentSiteChanged)
 
+    // === 语言筛选选项（显示名 + 后端 code + 页面匹配文本，只此一处定义） ===
+    Q_PROPERTY(QVariantList languageFilterOptions READ languageFilterOptions CONSTANT)
+
     // === 搜索 ===
     Q_PROPERTY(QString keyword READ keyword WRITE setKeyword NOTIFY keywordChanged)
     Q_PROPERTY(QString languageFilter READ languageFilter WRITE setLanguageFilter NOTIFY languageFilterChanged)
@@ -39,6 +42,7 @@ public:
 
     QStringList availableSites() const;
     QString currentSite() const;
+    QVariantList languageFilterOptions() const;
     QString keyword() const;
     QString languageFilter() const;
     bool searching() const;
@@ -56,6 +60,7 @@ public:
     void setDownloadPath(const QString &path);
 
     Q_INVOKABLE void search();
+    Q_INVOKABLE void stopSearch();
     Q_INVOKABLE void download(int index);
     Q_INVOKABLE void openDownloadFolder();
     Q_INVOKABLE void checkDependencies();

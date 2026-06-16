@@ -20,6 +20,7 @@ import re
 import traceback
 import urllib.request
 import urllib.parse
+from urllib.parse import urlparse, urlunparse, quote
 
 
 LANG_URL_PATTERNS = {
@@ -91,58 +92,36 @@ def _extract_subtitle_text(html: str) -> str | None:
     return None
 
 
+def _encode_url(url: str) -> str:
+    """确保 URL 中的特殊字符被正确编码（如空格 → %20），避免 urllib 请求失败
+
+    不会对已有 % 编码造成二次编码（% 在 safe 中）。
+    """
+    parsed = urlparse(url)
+    # 编码路径（保留 / 和已有 % 编码）
+    path = quote(parsed.path, safe='/%')
+    # 编码查询参数（保留 = & 和已有 % 编码）
+    query = quote(parsed.query, safe='=&')
+    # 编码 fragment（保留已有 % 编码）
+    fragment = quote(parsed.fragment, safe='/%')
+    return urlunparse((parsed.scheme, parsed.netloc, path, parsed.params, query, fragment))
+
+
 def _resolve_and_download(url: str, file_name: str, output_dir: str, language: str = "") -> dict:
-    """下载 URL，如果返回 HTML 则解析出 .srt 链接再下载"""
+    """下载 URL（已经是最终下载链接），直接 GET 保存"""
+    url = _encode_url(url)
     req = urllib.request.Request(url, headers={
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/120.0.0.0 Safari/537.36"
+                      "Chrome/120.0.0.0 Safari/537.36",
+        "Referer": "https://www.subtitlecat.com/",
     })
     with urllib.request.urlopen(req, timeout=30) as resp:
         body = resp.read()
-        content_type = resp.headers.get("Content-Type", "")
-
-    is_html = "text/html" in content_type or body[:200].strip().lower().startswith(b"<")
-
-    if is_html:
-        from lxml.html import fromstring
-        html_text = body.decode("utf-8", errors="replace")
-        doc = fromstring(html_text)
-
-        links = doc.xpath("//a[contains(@href, '.srt')] | //a[contains(@href, '.ass')]")
-        if links:
-            chosen = links[0]
-            if language:
-                patterns = LANG_URL_PATTERNS.get(language, [])
-                for a in links:
-                    href = a.get("href", "")
-                    if any(p in href for p in patterns):
-                        chosen = a
-                        break
-            href = chosen.get("href", "")
-            if href:
-                if not href.startswith("http"):
-                    href = urllib.parse.urljoin(url, href)
-                srt_name = href.split("/")[-1].split("?")[0]
-                if "." in srt_name:
-                    file_name = srt_name
-                return _resolve_and_download(href, file_name, output_dir, language)
-
-        text = _extract_subtitle_text(html_text)
-        if text:
-            os.makedirs(output_dir, exist_ok=True)
-            file_name = _ensure_extension(file_name, url)
-            save_path = os.path.join(output_dir, file_name)
-            data = text.encode("utf-8")
-            with open(save_path, "wb") as f:
-                f.write(data)
-            return {"ok": True, "file_path": save_path, "size": len(data)}
-
-        return {"ok": False, "error": "详情页中未找到字幕下载链接"}
 
     os.makedirs(output_dir, exist_ok=True)
     file_name = _ensure_extension(file_name, url)
-    save_path = os.path.join(output_dir, file_name)
+    save_path = os.path.join(output_dir, file_name).replace("\\", "/")
     data = _to_utf8_bytes(body)
     with open(save_path, "wb") as f:
         f.write(data)
@@ -159,7 +138,7 @@ def _write_json(obj):
 
 def main():
     try:
-        raw = sys.stdin.read()
+        raw = sys.stdin.buffer.read().decode("utf-8")
         req = json.loads(raw)
     except (json.JSONDecodeError, Exception) as e:
         _write_json({"ok": False, "error": f"请求解析失败: {e}"})

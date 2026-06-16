@@ -515,21 +515,30 @@ Pane {
                             // 语言筛选下拉框
                             ComboBox {
                                 id: langFilterCombo
-                                Layout.preferredWidth: 100
+                                Layout.preferredWidth: 120
                                 implicitHeight: 32
                                 font.pixelSize: 12
                                 currentIndex: 0
 
-                                model: ["全部语言", "中文简体", "中文繁体", "英文"]
+                                model: browserCtrl ? browserCtrl.languageFilterOptions : []
+                                textRole: "display"
+                                valueRole: "code"
 
-                                onCurrentTextChanged: {
+                                onCurrentValueChanged: {
                                     if (browserCtrl)
-                                        browserCtrl.languageFilter = currentText;
+                                        browserCtrl.languageFilter = currentValue;
                                 }
 
                                 Component.onCompleted: {
-                                    if (browserCtrl)
-                                        currentIndex = find(browserCtrl.languageFilter);
+                                    if (!browserCtrl) return
+                                    var opts = browserCtrl.languageFilterOptions;
+                                    var cur  = browserCtrl.languageFilter;
+                                    for (var i = 0; i < opts.length; i++) {
+                                        if (opts[i].code === cur) {
+                                            currentIndex = i;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
 
@@ -562,39 +571,44 @@ Pane {
                                 }
                             }
 
-                            // 搜索按钮
+                            // 搜索/停止按钮
                             IconButton {
                                 id: searchBtn
-                                Layout.preferredWidth: 80
+                                Layout.preferredWidth: 90
                                 implicitHeight: 32
-                                text: "搜索"
-                                tooltip: "搜索字幕"
-                                normalColor: "#2563eb"
-                                hoverColor: "#1d4ed8"
-                                borderColor: "#1d4ed8"
+                                text: browserCtrl && browserCtrl.searching ? "停止搜索" : "搜索"
+                                tooltip: browserCtrl && browserCtrl.searching ? "停止搜索" : "搜索字幕"
+                                normalColor: browserCtrl && browserCtrl.searching ? "#dc2626" : "#2563eb"
+                                hoverColor: browserCtrl && browserCtrl.searching ? "#b91c1c" : "#1d4ed8"
+                                borderColor: normalColor
                                 textColor: "#ffffff"
-                                enabled: !(browserCtrl && browserCtrl.searching)
                                 onClicked: {
-                                    if (keywordInput.text.trim().length <= 0)
-                                        return;
-                                    if (browserCtrl) {
-                                        browserCtrl.keyword = keywordInput.text.trim();
-                                        browserCtrl.search();
+                                    if (browserCtrl && browserCtrl.searching) {
+                                        browserCtrl.stopSearch();
+                                    } else {
+                                        if (keywordInput.text.trim().length <= 0)
+                                            return;
+                                        if (browserCtrl) {
+                                            browserCtrl.keyword = keywordInput.text.trim();
+                                            browserCtrl.search();
+                                        }
                                     }
                                 }
                             }
 
                             BusyIndicator {
                                 id: searchBusyIndicator
-                                width: 28
-                                height: 28
+                                Layout.preferredWidth: 30
+                                Layout.preferredHeight: 30
+                                Layout.maximumWidth: 30
+                                Layout.maximumHeight: 30
                                 running: browserCtrl ? browserCtrl.searching : false
                                 visible: running
                             }
                             Item {
                                 id: searchBusyIndicatorKeepSize
-                                width: 28
-                                height: 28
+                                Layout.preferredWidth: 30
+                                Layout.preferredHeight: 30
                                 visible: !searchBusyIndicator.visible
                             }
                         }

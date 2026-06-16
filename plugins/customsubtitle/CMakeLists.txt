@@ -58,6 +58,17 @@ configure_file(
     COPYONLY
 )
 
-# Copy Python scripts to build directory
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/python
-     DESTINATION ${CMAKE_BINARY_DIR}/plugins/customsubtitle)
+# ── Python 脚本拷贝（每次构建时自动同步） ──
+set(PYTHON_SRC_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/python")
+set(PYTHON_DST_DIR  "${CMAKE_BINARY_DIR}/plugins/customsubtitle/python")
+
+file(GLOB_RECURSE PYTHON_SCRIPTS "${PYTHON_SRC_DIR}/*.py")
+add_custom_command(
+    OUTPUT  "${PYTHON_DST_DIR}/.copy_stamp"
+    DEPENDS ${PYTHON_SCRIPTS}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${PYTHON_SRC_DIR}" "${PYTHON_DST_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E touch "${PYTHON_DST_DIR}/.copy_stamp"
+    COMMENT "Copying Python scripts to build directory"
+)
+add_custom_target(PythonScripts ALL DEPENDS "${PYTHON_DST_DIR}/.copy_stamp")
+add_dependencies(CustomSubtitlePlugin PythonScripts)

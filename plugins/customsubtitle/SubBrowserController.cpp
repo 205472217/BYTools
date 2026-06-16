@@ -180,6 +180,24 @@ void SubBrowserController::checkDependencies()
 // ══════════════════════════════════════════════════════════
 QStringList SubBrowserController::availableSites() const { return m_availableSites; }
 QString SubBrowserController::currentSite()   const { return m_currentSite; }
+QVariantList SubBrowserController::languageFilterOptions() const
+{
+    // 语言筛选选项：显示名 → QML 下拉，code → 后端标识，pageLabel → 详情页匹配文本
+    // 定义只此一处，QML 和 Python 都动态获取
+    QVariantList opts;
+    auto add = [&](const char *display, const char *code, const char *pageLabel) {
+        QVariantMap m;
+        m["display"]    = QString::fromUtf8(display);
+        m["code"]       = QString::fromUtf8(code);
+        m["pageLabel"]  = QString::fromUtf8(pageLabel);
+        opts.append(m);
+    };
+    add("中文简体", "zh-CN", "Chinese (Simplified)");
+    add("中文繁体", "zh-TW", "Chinese (Traditional)");
+    add("英文",     "en",    "English");
+    return opts;
+}
+
 QString SubBrowserController::keyword()        const { return m_keyword; }
 QString SubBrowserController::languageFilter() const { return m_languageFilter; }
 bool SubBrowserController::searching()        const { return m_searching; }
@@ -264,8 +282,19 @@ void SubBrowserController::search()
     QJsonObject req;
     req["site"] = siteKey;
     req["keyword"] = m_keyword.trimmed();
-    if (!m_languageFilter.isEmpty() && m_languageFilter != "全部")
-        req["language_filter"] = m_languageFilter;
+    // m_languageFilter 存的是 code（如 zh-CN），查出 pageLabel（如 "Chinese (Simplified)"）传给 Python
+    QString pageLabel;
+    if (!m_languageFilter.isEmpty()) {
+        for (const auto &opt : languageFilterOptions()) {
+            QVariantMap m = opt.toMap();
+            if (m.value("code").toString() == m_languageFilter) {
+                pageLabel = m.value("pageLabel").toString();
+                break;
+            }
+        }
+    }
+    if (!pageLabel.isEmpty())
+        req["language_filter"] = pageLabel;
     QByteArray jsonData = QJsonDocument(req).toJson(QJsonDocument::Compact);
 
     if (m_searchProcess) {
@@ -371,6 +400,18 @@ void SubBrowserController::onSearchProcessError(QProcess::ProcessError error)
     if (m_searchProcess) { m_searchProcess->deleteLater(); m_searchProcess = nullptr; }
 }
 
+void SubBrowserController::stopSearch()
+{
+    if (m_searchProcess && m_searchProcess->state() != QProcess::NotRunning) {
+        m_searchProcess->kill();
+        m_searchTimer->stop();
+    }
+    m_searching = false;
+    m_searchStatus = QStringLiteral("已停止搜索");
+    emit searchingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
+    if (m_logger) m_logger->info("SubBrowser: 搜索已手动停止");
+}
+
 void SubBrowserController::onSearchTimeout()
 {
     if (m_searchProcess && m_searchProcess->state() != QProcess::NotRunning) {
@@ -406,7 +447,8 @@ void SubBrowserController::download(int index)
     emit downloadingChanged(); emit downloadingFileChanged();
 
     if (m_logger)
-        m_logger->info(QStringLiteral("SubBrowser: 下载 '%1' (%2)").arg(fileName, language));
+        m_logger->info(QStringLiteral("SubBrowser: 下载 '%1' (%2)\n  url=%3")
+                           .arg(fileName, language, url));
 
     QJsonObject req;
     req["url"]        = url;
