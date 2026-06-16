@@ -31,6 +31,7 @@ class SubBrowserController : public QObject
     Q_PROPERTY(bool downloading READ downloading NOTIFY downloadingChanged)
     Q_PROPERTY(QString downloadingFile READ downloadingFile NOTIFY downloadingFileChanged)
     Q_PROPERTY(bool pythonAvailable READ pythonAvailable NOTIFY pythonAvailableChanged)
+    Q_PROPERTY(bool dependenciesMet READ dependenciesMet NOTIFY dependenciesMetChanged)
 
 public:
     explicit SubBrowserController(PluginLogger *logger, QObject *parent = nullptr);
@@ -47,6 +48,7 @@ public:
     bool downloading() const;
     QString downloadingFile() const;
     bool pythonAvailable() const;
+    bool dependenciesMet() const;
 
     void setCurrentSite(const QString &site);
     void setKeyword(const QString &keyword);
@@ -56,6 +58,7 @@ public:
     Q_INVOKABLE void search();
     Q_INVOKABLE void download(int index);
     Q_INVOKABLE void openDownloadFolder();
+    Q_INVOKABLE void checkDependencies();
 
 signals:
     void availableSitesChanged();
@@ -69,6 +72,7 @@ signals:
     void downloadingChanged();
     void downloadingFileChanged();
     void pythonAvailableChanged();
+    void dependenciesMetChanged();
     void logMessage(const QString &message);
 
 private slots:
@@ -101,6 +105,7 @@ private:
     QString m_downloadingFile;
 
     bool m_pythonAvailable = false;
+    bool m_dependenciesMet = false;
     QString m_pythonPath;
     QString m_scriptsDir;
 

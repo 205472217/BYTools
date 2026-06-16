@@ -573,9 +573,10 @@ Pane {
                                 hoverColor: "#1d4ed8"
                                 borderColor: "#1d4ed8"
                                 textColor: "#ffffff"
-                                enabled: keywordInput.text.trim().length > 0
-                                         && !(browserCtrl && browserCtrl.searching)
+                                enabled: !(browserCtrl && browserCtrl.searching)
                                 onClicked: {
+                                    if (keywordInput.text.trim().length <= 0)
+                                        return;
                                     if (browserCtrl) {
                                         browserCtrl.keyword = keywordInput.text.trim();
                                         browserCtrl.search();
@@ -589,6 +590,12 @@ Pane {
                                 height: 28
                                 running: browserCtrl ? browserCtrl.searching : false
                                 visible: running
+                            }
+                            Item {
+                                id: searchBusyIndicatorKeepSize
+                                width: 28
+                                height: 28
+                                visible: !searchBusyIndicator.visible
                             }
                         }
                     }
@@ -633,16 +640,46 @@ Pane {
                                 }
                                 Label {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "请安装 Python 3.10+ 并安装 scrapling 库"
+                                    text: "请安装 Python 3.10+，并确保在系统 PATH 中"
                                     color: "#b45309"
                                     font.pixelSize: 12
                                     horizontalAlignment: Text.AlignHCenter
                                     width: 320
                                     wrapMode: Text.WordWrap
                                 }
+                            }
+
+                            // Python 依赖缺失警告
+                            Column {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                spacing: 8
+                                visible: browserCtrl && browserCtrl.pythonAvailable && !browserCtrl.dependenciesMet
+
                                 Label {
                                     anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "pip install scrapling"
+                                    text: "📦"
+                                    font.pixelSize: 28
+                                    color: "#f59e0b"
+                                }
+                                Label {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "缺少 Python 依赖库"
+                                    color: "#92400e"
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                }
+                                Label {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "请安装 lxml 库"
+                                    color: "#b45309"
+                                    font.pixelSize: 12
+                                    horizontalAlignment: Text.AlignHCenter
+                                    width: 320
+                                    wrapMode: Text.WordWrap
+                                }
+                                TextField {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "pip install lxml"
                                     color: "#92400e"
                                     font.pixelSize: 12
                                     font.family: "Consolas, 'Courier New', monospace"
@@ -650,13 +687,31 @@ Pane {
                                     padding: 6
                                     background: Rectangle { radius: 4; color: "#fef3c7"; border.color: "#fde68a"; border.width: 1 }
                                 }
+                                Button {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "检查安装"
+                                    onClicked: browserCtrl.checkDependencies()
+                                    background: Rectangle {
+                                        radius: 4
+                                        color: parent.hovered ? "#d97706" : "#f59e0b"
+                                        border.color: "#d97706"
+                                        border.width: 1
+                                    }
+                                    contentItem: Text {
+                                        text: parent.text
+                                        color: "#ffffff"
+                                        font.pixelSize: 12
+                                        horizontalAlignment: Text.AlignHCenter
+                                        verticalAlignment: Text.AlignVCenter
+                                    }
+                                }
                             }
 
                             // 正常空状态
                             Column {
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 spacing: 10
-                                visible: !browserCtrl || browserCtrl.pythonAvailable
+                                visible: !browserCtrl || (browserCtrl.pythonAvailable && browserCtrl.dependenciesMet)
 
                                 Label {
                                     anchors.horizontalCenter: parent.horizontalCenter
@@ -691,7 +746,7 @@ Pane {
 
                             model: ListModel {
                                 id: searchResultsModel
-                                // TODO: 从 controller.browserController.searchResults 同步
+                                // 从 controller.browserController.searchResults 同步
                                 // ListElement {
                                 //     site: "SubtitleCat"
                                 //     language: "English"

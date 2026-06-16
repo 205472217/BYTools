@@ -24,6 +24,9 @@ SubBrowserController::SubBrowserController(PluginLogger *logger, QObject *parent
     m_scriptsDir  = findScriptsDir();
     m_pythonAvailable = !m_pythonPath.isEmpty() && !m_scriptsDir.isEmpty();
 
+    if (m_pythonAvailable)
+        checkDependencies();
+
     initSites();  // 扫描 python/<site>/search.py 文件夹
 
     QSettings &s = pluginGroupSettings("custom-subtitle");
@@ -75,23 +78,63 @@ void SubBrowserController::initSites()
 // ── Python 探测 ──
 QString SubBrowserController::findPython() const
 {
-#if defined(Q_OS_WIN)
-    QStringList candidates = {
-        "python", "python3",
-        QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
-            + "/../Local/Programs/Python/Python312/python.exe",
-        QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
-            + "/../Local/Programs/Python/Python311/python.exe",
-        "C:/Python312/python.exe", "C:/Python311/python.exe",
-    };
-#else
-    QStringList candidates = {"python3", "python"};
-#endif
-    for (const QString &c : candidates) {
+    // 1) PATH 直接查找（适用于命令行启动场景）
+    QString byPath = QStandardPaths::findExecutable("python3");
+    if (byPath.isEmpty())
+        byPath = QStandardPaths::findExecutable("python");
+    if (!byPath.isEmpty()) {
         QProcess proc;
-        proc.start(c, {"--version"});
-        if (proc.waitForFinished(5000) && proc.exitCode() == 0) return c;
+        proc.start(byPath, {"--version"});
+        if (proc.waitForFinished(5000) && proc.exitCode() == 0)
+            return byPath;
     }
+
+#if defined(Q_OS_WIN)
+    // 2) 遍历已知安装目录（Python.org / 微软商店安装）
+    QString localAppData = QStandardPaths::writableLocation(QStandardPaths::ConfigLocation)
+                           + "/../Local/Programs/Python";
+    QStringList searchRoots = {
+        localAppData,
+        "C:/Python",
+        "C:/Program Files/Python",
+    };
+    for (const QString &root : searchRoots) {
+        QDir dir(root);
+        if (!dir.exists()) continue;
+        const QStringList entries = dir.entryList({"Python*"}, QDir::Dirs | QDir::NoDotAndDotDot);
+        for (const QString &sub : entries) {
+            QString exe = root + "/" + sub + "/python.exe";
+            QProcess proc;
+            proc.start(exe, {"--version"});
+            if (proc.waitForFinished(5000) && proc.exitCode() == 0)
+                return exe;
+        }
+    }
+
+    // 3) 兜底：直接尝试 Python 3.10~3.13 的常见路径
+    QStringList fallbacks = {
+        localAppData + "/Python313/python.exe",
+        localAppData + "/Python312/python.exe",
+        localAppData + "/Python311/python.exe",
+        localAppData + "/Python310/python.exe",
+        "C:/Python313/python.exe",
+        "C:/Python312/python.exe",
+        "C:/Python311/python.exe",
+        "C:/Python310/python.exe",
+        "C:/Python/Python313/python.exe",
+        "C:/Python/Python312/python.exe",
+        "C:/Python/Python311/python.exe",
+        "C:/Python/Python310/python.exe",
+    };
+    for (const QString &exe : fallbacks) {
+        if (!QFile::exists(exe)) continue;
+        QProcess proc;
+        proc.start(exe, {"--version"});
+        if (proc.waitForFinished(5000) && proc.exitCode() == 0)
+            return exe;
+    }
+#endif
+
     return {};
 }
 
@@ -118,6 +161,20 @@ bool SubBrowserController::ensurePythonAvailable()
     return m_pythonAvailable;
 }
 
+void SubBrowserController::checkDependencies()
+{
+    if (!m_pythonAvailable) {
+        m_dependenciesMet = false;
+        emit dependenciesMetChanged();
+        return;
+    }
+
+    QProcess proc;
+    proc.start(m_pythonPath, {"-c", "import lxml"});
+    m_dependenciesMet = proc.waitForFinished(10000) && proc.exitCode() == 0;
+    emit dependenciesMetChanged();
+}
+
 // ══════════════════════════════════════════════════════════
 //  Getters / Setters
 // ══════════════════════════════════════════════════════════
@@ -132,6 +189,7 @@ QString SubBrowserController::downloadPath()  const { return m_downloadPath; }
 bool SubBrowserController::downloading()      const { return m_downloading; }
 QString SubBrowserController::downloadingFile() const { return m_downloadingFile; }
 bool SubBrowserController::pythonAvailable()  const { return m_pythonAvailable; }
+bool SubBrowserController::dependenciesMet() const { return m_dependenciesMet; }
 
 void SubBrowserController::setCurrentSite(const QString &site)
 {
@@ -166,12 +224,22 @@ void SubBrowserController::search()
     if (m_searching) return;
 
     if (!ensurePythonAvailable()) {
-        m_searchStatus = QStringLiteral(
-            "Python 不可用，请安装 Python 3.10+ 并安装 scrapling 库\n"
-            "安装命令: pip install scrapling");
+        m_searchStatus = QStringLiteral("Python 不可用，请安装 Python 3.10+");
         emit searchStatusChanged();
         emit logMessage(m_searchStatus);
         return;
+    }
+
+    if (!m_dependenciesMet) {
+        checkDependencies();
+        if (!m_dependenciesMet) {
+            m_searchStatus = QStringLiteral(
+                "缺少 Python 依赖 lxml 库，请运行:\n"
+                "pip install lxml");
+            emit searchStatusChanged();
+            emit logMessage(m_searchStatus);
+            return;
+        }
     }
 
     if (m_keyword.trimmed().isEmpty()) {
