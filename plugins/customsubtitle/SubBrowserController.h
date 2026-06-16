@@ -21,6 +21,7 @@ class SubBrowserController : public QObject
 
     // === 搜索 ===
     Q_PROPERTY(QString keyword READ keyword WRITE setKeyword NOTIFY keywordChanged)
+    Q_PROPERTY(QString languageFilter READ languageFilter WRITE setLanguageFilter NOTIFY languageFilterChanged)
     Q_PROPERTY(bool searching READ searching NOTIFY searchingChanged)
     Q_PROPERTY(QVariantList searchResults READ searchResults NOTIFY searchResultsChanged)
     Q_PROPERTY(QString searchStatus READ searchStatus NOTIFY searchStatusChanged)
@@ -38,6 +39,7 @@ public:
     QStringList availableSites() const;
     QString currentSite() const;
     QString keyword() const;
+    QString languageFilter() const;
     bool searching() const;
     QVariantList searchResults() const;
     QString searchStatus() const;
@@ -48,6 +50,7 @@ public:
 
     void setCurrentSite(const QString &site);
     void setKeyword(const QString &keyword);
+    void setLanguageFilter(const QString &filter);
     void setDownloadPath(const QString &path);
 
     Q_INVOKABLE void search();
@@ -58,6 +61,7 @@ signals:
     void availableSitesChanged();
     void currentSiteChanged();
     void keywordChanged();
+    void languageFilterChanged();
     void searchingChanged();
     void searchResultsChanged();
     void searchStatusChanged();
@@ -87,6 +91,7 @@ private:
     QString m_currentSite;
 
     QString m_keyword;
+    QString m_languageFilter;
     bool m_searching = false;
     QVariantList m_searchResults;
     QString m_searchStatus;

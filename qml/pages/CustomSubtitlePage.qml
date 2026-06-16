@@ -492,7 +492,7 @@ Pane {
                             // 网站下拉框
                             ComboBox {
                                 id: siteCombo
-                                Layout.preferredWidth: 180
+                                Layout.preferredWidth: 140
                                 implicitHeight: 32
                                 font.pixelSize: 12
                                 currentIndex: 0
@@ -509,6 +509,27 @@ Pane {
                                         var idx = find(browserCtrl.currentSite);
                                         if (idx >= 0) currentIndex = idx;
                                     }
+                                }
+                            }
+
+                            // 语言筛选下拉框
+                            ComboBox {
+                                id: langFilterCombo
+                                Layout.preferredWidth: 100
+                                implicitHeight: 32
+                                font.pixelSize: 12
+                                currentIndex: 0
+
+                                model: ["全部语言", "中文简体", "中文繁体", "英文"]
+
+                                onCurrentTextChanged: {
+                                    if (browserCtrl)
+                                        browserCtrl.languageFilter = currentText;
+                                }
+
+                                Component.onCompleted: {
+                                    if (browserCtrl)
+                                        currentIndex = find(browserCtrl.languageFilter);
                                 }
                             }
 

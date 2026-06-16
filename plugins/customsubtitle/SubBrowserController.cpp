@@ -123,7 +123,8 @@ bool SubBrowserController::ensurePythonAvailable()
 // ══════════════════════════════════════════════════════════
 QStringList SubBrowserController::availableSites() const { return m_availableSites; }
 QString SubBrowserController::currentSite()   const { return m_currentSite; }
-QString SubBrowserController::keyword()       const { return m_keyword; }
+QString SubBrowserController::keyword()        const { return m_keyword; }
+QString SubBrowserController::languageFilter() const { return m_languageFilter; }
 bool SubBrowserController::searching()        const { return m_searching; }
 QVariantList SubBrowserController::searchResults() const { return m_searchResults; }
 QString SubBrowserController::searchStatus()  const { return m_searchStatus; }
@@ -145,6 +146,11 @@ void SubBrowserController::setCurrentSite(const QString &site)
 void SubBrowserController::setKeyword(const QString &keyword)
 {
     if (m_keyword != keyword) { m_keyword = keyword; emit keywordChanged(); }
+}
+
+void SubBrowserController::setLanguageFilter(const QString &filter)
+{
+    if (m_languageFilter != filter) { m_languageFilter = filter; emit languageFilterChanged(); }
 }
 
 void SubBrowserController::setDownloadPath(const QString &path)
@@ -190,6 +196,8 @@ void SubBrowserController::search()
     QJsonObject req;
     req["site"] = siteKey;
     req["keyword"] = m_keyword.trimmed();
+    if (!m_languageFilter.isEmpty() && m_languageFilter != "全部")
+        req["language_filter"] = m_languageFilter;
     QByteArray jsonData = QJsonDocument(req).toJson(QJsonDocument::Compact);
 
     if (m_searchProcess) {
@@ -221,11 +229,15 @@ void SubBrowserController::onSearchProcessFinished(int exitCode, QProcess::ExitS
 {
     m_searchTimer->stop();
 
+    QByteArray out = m_searchProcess->readAllStandardOutput();
+    QByteArray err = m_searchProcess->readAllStandardError();
+
     if (exitStatus != QProcess::NormalExit || exitCode != 0) {
-        QByteArray err = m_searchProcess->readAllStandardError();
+        QString msg = QString::fromUtf8(err).trimmed();
+        if (msg.isEmpty())
+            msg = QString::fromUtf8(out).trimmed();
         m_searchStatus = QStringLiteral("搜索失败 (exit=%1): %2")
-                             .arg(exitCode)
-                             .arg(QString::fromUtf8(err).trimmed());
+                             .arg(exitCode).arg(msg);
         m_searching = false;
         emit searchingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
         if (m_logger) m_logger->warn(m_searchStatus);
@@ -233,8 +245,14 @@ void SubBrowserController::onSearchProcessFinished(int exitCode, QProcess::ExitS
         return;
     }
 
-    QByteArray out = m_searchProcess->readAllStandardOutput();
     m_searchProcess->deleteLater(); m_searchProcess = nullptr;
+
+    if (!err.trimmed().isEmpty()) {
+        auto lines = QString::fromUtf8(err).trimmed().split('\n');
+        for (const auto &line : lines) {
+            if (m_logger) m_logger->info(QStringLiteral("[Python] %1").arg(line.trimmed()));
+        }
+    }
 
     QJsonParseError pe;
     QJsonDocument doc = QJsonDocument::fromJson(out, &pe);
@@ -312,6 +330,7 @@ void SubBrowserController::download(int index)
     QVariantMap item = m_searchResults[index].toMap();
     QString url      = item.value("downloadUrl").toString();
     QString fileName = item.value("fileName").toString();
+    QString language = item.value("language").toString();
     if (url.isEmpty()) return;
 
     m_downloading = true;
@@ -319,12 +338,13 @@ void SubBrowserController::download(int index)
     emit downloadingChanged(); emit downloadingFileChanged();
 
     if (m_logger)
-        m_logger->info(QStringLiteral("SubBrowser: 下载 '%1'").arg(fileName));
+        m_logger->info(QStringLiteral("SubBrowser: 下载 '%1' (%2)").arg(fileName, language));
 
     QJsonObject req;
     req["url"]        = url;
     req["file_name"]  = fileName;
     req["output_dir"] = m_downloadPath;
+    req["language"]   = language;
     QByteArray jsonData = QJsonDocument(req).toJson(QJsonDocument::Compact);
 
     if (m_downloadProcess) {
