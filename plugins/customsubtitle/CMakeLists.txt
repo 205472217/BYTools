@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui)
 
 # Optional: Qt6 WebEngine for embedded browser in step 1
 find_package(Qt6 QUIET COMPONENTS WebEngineQuick WebEngineCore)
@@ -16,6 +16,9 @@ add_library(CustomSubtitlePlugin MODULE
     CustomSubtitlePlugin.h
     CustomSubtitleController.cpp
     CustomSubtitleController.h
+    SubBrowserController.cpp
+    SubBrowserController.h
+    SubSearchResult.h
     SubtitleMatcher.cpp
     SubtitleMatcher.h
     FFmpegMergeService.cpp
@@ -31,6 +34,7 @@ target_include_directories(CustomSubtitlePlugin PRIVATE
 
 target_link_libraries(CustomSubtitlePlugin PRIVATE
     Qt6::Core
+    Qt6::Gui
     PluginCommon
 )
 
@@ -53,3 +57,7 @@ configure_file(
     ${CMAKE_BINARY_DIR}/plugins/customsubtitle/plugin.json
     COPYONLY
 )
+
+# Copy Python scripts to build directory
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/python
+     DESTINATION ${CMAKE_BINARY_DIR}/plugins/customsubtitle)

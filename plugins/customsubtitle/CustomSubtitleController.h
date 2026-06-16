@@ -10,6 +10,7 @@ class PluginLogger;
 class SubtitleMatcher;
 class FFmpegMergeService;
 class VideoReplaceService;
+#include "SubBrowserController.h"
 
 class CustomSubtitleController : public QObject
 {
@@ -29,6 +30,9 @@ class CustomSubtitleController : public QObject
 
     // === Preprocessing ===
     Q_PROPERTY(QStringList enabledPreprocessors READ enabledPreprocessors WRITE setEnabledPreprocessors NOTIFY enabledPreprocessorsChanged)
+
+    // === Sub Browser ===
+    Q_PROPERTY(SubBrowserController* browserController READ browserController CONSTANT)
 
     // === State ===
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
@@ -73,6 +77,9 @@ public:
     void setRemoveSrtAfterReplace(bool remove);
     void setBackupOriginal(bool backup);
     void setEnabledPreprocessors(const QStringList &ops);
+
+    // === Sub Browser ===
+    SubBrowserController* browserController() const;
 
     // === Actions (called from QML) ===
     Q_INVOKABLE void matchAndMoveSubtitles();       // Step 2
@@ -150,6 +157,7 @@ private:
     SubtitleMatcher *m_matcher;
     FFmpegMergeService *m_mergeService;
     VideoReplaceService *m_replaceService;
+    SubBrowserController *m_browserController;
     int m_processedCount = 0;
     int m_totalCount = 0;
     QString m_currentFile;

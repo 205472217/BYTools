@@ -57,6 +57,9 @@ Pane {
     // ── Log state ──
     property string _lastLogLine: ""
 
+    // ── Browser controller shortcut ──
+    property var browserCtrl: controller ? controller.browserController : null
+
     // ── 字幕预处理同步 ──
     function _syncPreprocessors() {
         if (!controller) return;
@@ -91,6 +94,30 @@ Pane {
             if (message.length === 0)
                 return;
             _lastLogLine = message;
+        }
+    }
+
+    // ── 浏览器控制器数据同步 ──
+    Connections {
+        target: browserCtrl
+        function onSearchResultsChanged() {
+            searchResultsModel.clear();
+            if (!browserCtrl) return;
+            var results = browserCtrl.searchResults;
+            for (var i = 0; i < results.length; ++i) {
+                searchResultsModel.append(results[i]);
+            }
+        }
+        function onSearchingChanged() {
+            searchBusyIndicator.running = browserCtrl ? browserCtrl.searching : false;
+        }
+        function onDownloadingChanged() {
+            downloadBusyIndicator.running = browserCtrl ? browserCtrl.downloading : false;
+        }
+        function onCurrentSiteChanged() {
+            if (!browserCtrl) return;
+            var idx = siteCombo.find(browserCtrl.currentSite);
+            if (idx >= 0) siteCombo.currentIndex = idx;
         }
     }
 
@@ -391,14 +418,14 @@ Pane {
         }
 
         // ═══════════════════════════════════════
-        // Main content: Left (browser 3/4) + Right (steps 1/4)
+        // Main content: Left (字幕搜索 3/4) + Right (自定义步骤 1/4)
         // ═══════════════════════════════════════
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             spacing: 10
 
-            // ── Left Panel: Web Browser ─────────────────
+            // ── Left Panel: 字幕搜索 ─────────────────
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
@@ -417,7 +444,7 @@ Pane {
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 40
-                        
+
                         RowLayout {
                             anchors.fill: parent
                             anchors.leftMargin: 14
@@ -425,15 +452,13 @@ Pane {
                             spacing: 8
 
                             Label {
-                                text: "步骤1：下载字幕"
+                                text: "步骤1：搜索并下载字幕"
                                 color: "#111827"
                                 font.pixelSize: 14
                                 font.bold: true
                             }
 
-                            Item {
-                                Layout.fillWidth: true
-                            }
+                            Item { Layout.fillWidth: true }
 
                             Label {
                                 text: "下载的文件将保存到字幕下载路径"
@@ -443,122 +468,301 @@ Pane {
                         }
                     }
 
-                    // separator 
+                    // separator
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 1
                         color: "#e2e8f0"
                     }
 
-                    // Browser area: Loader for WebEnginePage + fallback
-                    Item {
+                    // ── Search bar (fixed height) ──
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 48
+                        color: "transparent"
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: 12
+                            anchors.rightMargin: 12
+                            anchors.topMargin: 8
+                            anchors.bottomMargin: 8
+                            spacing: 8
+
+                            // 网站下拉框
+                            ComboBox {
+                                id: siteCombo
+                                Layout.preferredWidth: 180
+                                implicitHeight: 32
+                                font.pixelSize: 12
+                                currentIndex: 0
+
+                                model: browserCtrl ? browserCtrl.availableSites : []
+
+                                onCurrentIndexChanged: {
+                                    if (browserCtrl && currentIndex >= 0)
+                                        browserCtrl.currentSite = currentText;
+                                }
+
+                                Component.onCompleted: {
+                                    if (browserCtrl) {
+                                        var idx = find(browserCtrl.currentSite);
+                                        if (idx >= 0) currentIndex = idx;
+                                    }
+                                }
+                            }
+
+                            // 关键字输入框
+                            Rectangle {
+                                Layout.fillWidth: true
+                                implicitHeight: 32
+                                radius: 4
+                                color: "#ffffff"
+                                border.color: keywordInput.activeFocus ? "#2563eb" : "#e2e8f0"
+                                border.width: 1
+
+                                TextField {
+                                    id: keywordInput
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 8
+                                    anchors.rightMargin: 8
+                                    topPadding: 4
+                                    bottomPadding: 4
+                                    background: Item {}
+                                    verticalAlignment: TextInput.AlignVCenter
+                                    font.pixelSize: 12
+                                    color: "#334155"
+                                    placeholderText: "输入关键字搜索字幕..."
+                                    selectByMouse: true
+                                    onTextChanged: {
+                                        if (browserCtrl) browserCtrl.keyword = text;
+                                    }
+                                    onAccepted: searchBtn.clicked()
+                                }
+                            }
+
+                            // 搜索按钮
+                            IconButton {
+                                id: searchBtn
+                                Layout.preferredWidth: 80
+                                implicitHeight: 32
+                                text: "搜索"
+                                tooltip: "搜索字幕"
+                                normalColor: "#2563eb"
+                                hoverColor: "#1d4ed8"
+                                borderColor: "#1d4ed8"
+                                textColor: "#ffffff"
+                                enabled: keywordInput.text.trim().length > 0
+                                         && !(browserCtrl && browserCtrl.searching)
+                                onClicked: {
+                                    if (browserCtrl) {
+                                        browserCtrl.keyword = keywordInput.text.trim();
+                                        browserCtrl.search();
+                                    }
+                                }
+                            }
+
+                            BusyIndicator {
+                                id: searchBusyIndicator
+                                width: 28
+                                height: 28
+                                running: browserCtrl ? browserCtrl.searching : false
+                                visible: running
+                            }
+                        }
+                    }
+
+                    // separator
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 1
+                        color: "#e2e8f0"
+                    }
+
+                    // ── Search results list ──
+                    Rectangle {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
+                        color: "transparent"
 
-                        Loader {
-                            id: browserLoader
-                            anchors.fill: parent
-                            source: Qt.resolvedUrl("../components/WebEnginePage.qml")
-                            visible: status === Loader.Ready
+                        // 空状态提示
+                        Column {
+                            anchors.centerIn: parent
+                            spacing: 10
+                            visible: searchResultsModel.count === 0 && !searchBusyIndicator.running
 
-                            onLoaded: {
-                                if (item) {
-                                    item.downloadPath = controller ? controller.subtitleDownloadPath : "";
-                                    item.downloadRequested.connect(function (url, fileName) {
-                                        if (controller) {
-                                            controller.logMessage("✓ 开始下载: " + fileName);
-                                            controller.logMessage(" 来源: " + url);
-                                        }
-                                    });
+                            // Python 不可用警告
+                            Column {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                spacing: 8
+                                visible: browserCtrl && !browserCtrl.pythonAvailable
+
+                                Label {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "⚠️"
+                                    font.pixelSize: 28
+                                    color: "#f59e0b"
+                                }
+                                Label {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "Python 不可用"
+                                    color: "#92400e"
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                }
+                                Label {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "请安装 Python 3.10+ 并安装 scrapling 库"
+                                    color: "#b45309"
+                                    font.pixelSize: 12
+                                    horizontalAlignment: Text.AlignHCenter
+                                    width: 320
+                                    wrapMode: Text.WordWrap
+                                }
+                                Label {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "pip install scrapling"
+                                    color: "#92400e"
+                                    font.pixelSize: 12
+                                    font.family: "Consolas, 'Courier New', monospace"
+                                    font.bold: true
+                                    padding: 6
+                                    background: Rectangle { radius: 4; color: "#fef3c7"; border.color: "#fde68a"; border.width: 1 }
+                                }
+                            }
+
+                            // 正常空状态
+                            Column {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                spacing: 10
+                                visible: !browserCtrl || browserCtrl.pythonAvailable
+
+                                Label {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "🔍"
+                                    font.pixelSize: 28
+                                    color: "#cbd5e1"
+                                }
+                                Label {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "输入关键字搜索字幕"
+                                    color: "#94a3b8"
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                }
+                                Label {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "选择左侧网站，输入片名或关键字，点击搜索"
+                                    color: "#c7d2e0"
+                                    font.pixelSize: 12
                                 }
                             }
                         }
 
-                        // Fallback when QtWebEngine is not available
-                        Rectangle {
+                        // 结果列表
+                        ListView {
+                            id: searchResultsList
                             anchors.fill: parent
-                            visible: browserLoader.status !== Loader.Ready
-                            color: "#f8fafc"
+                            anchors.margins: 4
+                            clip: true
+                            spacing: 2
+                            visible: searchResultsModel.count > 0
 
-                            Column {
-                                anchors.centerIn: parent
-                                spacing: 14
+                            model: ListModel {
+                                id: searchResultsModel
+                                // TODO: 从 controller.browserController.searchResults 同步
+                                // ListElement {
+                                //     site: "SubtitleCat"
+                                //     language: "English"
+                                //     fileName: "The.Matrix.1999.srt"
+                                //     downloadUrl: "https://..."
+                                // }
+                            }
 
-                                Label {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "内嵌浏览器不可用"
-                                    color: "#94a3b8"
-                                    font.pixelSize: 16
-                                    font.bold: true
-                                }
+                            delegate: Rectangle {
+                                width: searchResultsList.width
+                                height: 48
+                                radius: 4
+                                color: itemMouse.containsMouse ? "#eff6ff" : "#ffffff"
+                                border.color: itemMouse.containsMouse ? "#bfdbfe" : "#f1f5f9"
+                                border.width: 1
 
-                                Label {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "请在下方输入字幕网站URL，点击按钮在系统浏览器中打开"
-                                    color: "#c7d2e0"
-                                    font.pixelSize: 12
-                                    horizontalAlignment: Text.AlignHCenter
-                                    width: 350
-                                    wrapMode: Text.WordWrap
-                                }
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 12
+                                    anchors.rightMargin: 8
+                                    spacing: 10
 
-                                IconButton {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: fallbackUrlInput.text.length > 0 ? "在浏览器中打开" : "请输入URL"
-                                    tooltip: "打开系统浏览器访问字幕网站"
-                                    normalColor: "#2563eb"
-                                    hoverColor: "#1d4ed8"
-                                    borderColor: "#1d4ed8"
-                                    textColor: "#ffffff"
-                                    enabled: fallbackUrlInput.text.trim().length > 0
-                                    onClicked: {
-                                        var url = fallbackUrlInput.text.trim();
-                                        if (url.indexOf("://") < 0)
-                                            url = "https://" + url;
-                                        Qt.openUrlExternally(url);
+                                    // 语言标签
+                                    Rectangle {
+                                        Layout.preferredWidth: 52
+                                        Layout.preferredHeight: 22
+                                        radius: 4
+                                        color: "#dbeafe"
+
+                                        Label {
+                                            anchors.centerIn: parent
+                                            text: model.language || ""
+                                            color: "#2563eb"
+                                            font.pixelSize: 10
+                                            font.bold: true
+                                        }
                                     }
-                                }
 
-                                Rectangle {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    width: 300
-                                    height: 30
-                                    radius: 4
-                                    color: "#ffffff"
-                                    border.color: "#e2e8f0"
-                                    border.width: 1
-
-                                    TextField {
-                                        id: fallbackUrlInput
-                                        anchors.fill: parent
-                                        anchors.leftMargin: 0
-                                        anchors.rightMargin: 0
-                                        topPadding: 4
-                                        bottomPadding: 4
-                                        background: Item {}
-                                        verticalAlignment: TextInput.AlignVCenter
-                                        font.pixelSize: 12
+                                    // 文件名
+                                    Label {
+                                        Layout.fillWidth: true
+                                        text: model.fileName || ""
                                         color: "#334155"
-                                        placeholderText: "输入字幕网站URL..."
-                                        selectByMouse: true
-                                        onAccepted: {
-                                            var url = text.trim();
-                                            if (url.length === 0)
-                                                return;
-                                            if (url.indexOf("://") < 0)
-                                                url = "https://" + url;
-                                            Qt.openUrlExternally(url);
+                                        font.pixelSize: 12
+                                        elide: Text.ElideRight
+                                    }
+
+                                    // 站点来源
+                                    Label {
+                                        text: model.site || ""
+                                        color: "#94a3b8"
+                                        font.pixelSize: 10
+                                        Layout.preferredWidth: 80
+                                        horizontalAlignment: Text.AlignRight
+                                    }
+
+                                    // 下载按钮
+                                    IconButton {
+                                        Layout.preferredWidth: 64
+                                        implicitHeight: 28
+                                        text: "下载"
+                                        tooltip: "下载此字幕文件"
+                                        normalColor: "#16a34a"
+                                        hoverColor: "#15803d"
+                                        borderColor: "#15803d"
+                                        textColor: "#ffffff"
+                                        enabled: browserCtrl && !browserCtrl.downloading
+                                        onClicked: {
+                                            if (browserCtrl) browserCtrl.download(index);
                                         }
                                     }
                                 }
 
-                                Label {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "下载字幕文件后点击右侧「步骤2」继续处理"
-                                    color: "#94a3b8"
-                                    font.pixelSize: 11
+                                MouseArea {
+                                    id: itemMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    // 不拦截下载按钮的点击
+                                    propagateComposedEvents: true
+                                    onPressed: mouse.accepted = false
                                 }
                             }
+                        }
+
+                        BusyIndicator {
+                            id: downloadBusyIndicator
+                            anchors.centerIn: parent
+                            width: 40
+                            height: 40
+                            running: browserCtrl ? browserCtrl.downloading : false
+                            visible: running
                         }
                     }
                 }

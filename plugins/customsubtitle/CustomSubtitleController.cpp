@@ -4,6 +4,7 @@
 #include "FFmpegMergeService.h"
 #include "FfmpegUtils.h"
 #include "VideoReplaceService.h"
+#include "SubBrowserController.h"
 #include "Config.h"
 #include "Logger.h"
 #include "SettingsHelper.h"
@@ -24,7 +25,17 @@ CustomSubtitleController::CustomSubtitleController(PluginLogger *logger, QObject
     , m_matcher(new SubtitleMatcher(m_logger, this))
     , m_mergeService(new FFmpegMergeService(m_logger, this))
     , m_replaceService(new VideoReplaceService(m_logger, this))
+    , m_browserController(new SubBrowserController(m_logger, this))
 {
+    // Connect browser controller signals
+    connect(m_browserController, &SubBrowserController::logMessage,
+            this, &CustomSubtitleController::logMessage);
+    connect(m_browserController, &SubBrowserController::downloadPathChanged,
+            this, [this]() {
+        // 同步下载路径到 SubBrowserController
+        m_browserController->setDownloadPath(m_subtitleDownloadPath);
+    });
+
     // Connect matcher signals
     connect(m_matcher, &SubtitleMatcher::logMessage,
             this, &CustomSubtitleController::logMessage);
@@ -104,6 +115,7 @@ QString CustomSubtitleController::currentStep() const { return m_currentStep; }
 int CustomSubtitleController::processedCount() const { return m_processedCount; }
 int CustomSubtitleController::totalCount() const { return m_totalCount; }
 QString CustomSubtitleController::currentFile() const { return m_currentFile; }
+SubBrowserController* CustomSubtitleController::browserController() const { return m_browserController; }
 
 // ── Setters ──
 void CustomSubtitleController::setSubtitleDownloadPath(const QString &path)
@@ -113,6 +125,9 @@ void CustomSubtitleController::setSubtitleDownloadPath(const QString &path)
         pluginGroupSettings(CustomSubtitlePlugin::kIniSection).setValue("customSubtitleDownloadPath", path);
         pluginGroupSettings(CustomSubtitlePlugin::kIniSection).sync();
         emit subtitleDownloadPathChanged();
+        // 同步到 SubBrowserController
+        if (m_browserController)
+            m_browserController->setDownloadPath(path);
     }
 }
 
