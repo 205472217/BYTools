@@ -1097,7 +1097,7 @@ Pane {
 
                                     ComboBox {
                                         id: stopAfterCombo
-                                        model: ["全部", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                                        model: ["全部", 1, 2, 3, 5, 10, 20, 30, 40, 50]
                                         currentIndex: 0
                                         implicitWidth: 60
                                         implicitHeight: 26
