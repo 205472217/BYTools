@@ -32,9 +32,7 @@ QVariant MatchPairModel::data(const QModelIndex &index, int role) const
     case SubtitleDisplayRole:
         return QFileInfo(pair.subtitleFile).fileName();
     case StatusDisplayRole:
-        if (pair.status == 2) return QStringLiteral("已调整");
-        if (pair.status == 1) return QStringLiteral("已导出");
-        return QStringLiteral("未处理");
+        return pair.status == 1 ? QStringLiteral("已导出") : QStringLiteral("未处理");
     }
     return {};
 }

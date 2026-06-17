@@ -188,8 +188,8 @@ void SubtitleAdjustController::startMatch()
         }
 
         QList<MatchPairModel::MatchPair> pairs;
-        int status = hasRecord(m_subtitlePath) ? 2 : 0;
-        pairs.append({m_videoPath, m_subtitlePath, status});
+        int st = hasRecord(m_subtitlePath) ? 1 : 0;
+        pairs.append({m_videoPath, m_subtitlePath, st});
         m_matchModel->setPairs(pairs);
 
         QString msg = QStringLiteral("✓ 已添加映射: %1 → %2")
@@ -238,10 +238,10 @@ void SubtitleAdjustController::startMatch()
 
         m_matchModel->setPairs(pairs);
 
-        // 检查已完成记录，标记已调整的字幕
+        // 查 JSON 记录，已有导出记录的标为「已导出」
         for (int i = 0; i < m_matchModel->rowCount(); ++i) {
             if (hasRecord(m_matchModel->at(i).subtitleFile))
-                m_matchModel->setStatus(i, 2);
+                m_matchModel->setStatus(i, 1);
         }
 
         QString msg = QStringLiteral("✓ 匹配完成: 共扫描 %1 个视频, %2 个字幕, 成功匹配 %3 对")
