@@ -36,16 +36,6 @@ if (WIN32)
     )
 endif()
 
-# Optional Qt6 WebEngine for embedded browser
-find_package(Qt6 QUIET COMPONENTS WebEngineQuick WebEngineCore)
-if(Qt6WebEngineQuick_FOUND)
-    message(STATUS "BYTools: Qt6 WebEngine found - embedded browser enabled")
-    add_definitions(-DHAS_QTWEBENGINE)
-else()
-    message(STATUS "BYTools: Qt6 WebEngine not found - browser features disabled")
-endif()
-
-# Build QML files list (WebEnginePage is conditional on Qt6 WebEngine)
 set(BYTOOLS_QML_FILES
     qml/Main.qml
     qml/components/FeatureCard.qml
@@ -60,10 +50,18 @@ set(BYTOOLS_QML_FILES
     qml/pages/VideoSubtitlePage.qml
     qml/pages/VideoSubtitleSettingsPage.qml
     qml/pages/CustomSubtitlePage.qml
+    qml/pages/SubtitleAdjustPage.qml
 )
-if(Qt6WebEngineQuick_FOUND)
-    list(APPEND BYTOOLS_QML_FILES qml/components/WebEnginePage.qml)
+
+# Optional Qt6 Multimedia for video playback (subtitle adjust plugin)
+find_package(Qt6 QUIET COMPONENTS Multimedia)
+if(Qt6Multimedia_FOUND)
+    message(STATUS "BYTools: Qt6 Multimedia found - video player component enabled")
+    list(APPEND BYTOOLS_QML_FILES qml/components/SubtitleAdjustVideoPlayer.qml)
+else()
+    message(STATUS "BYTools: Qt6 Multimedia not found - video preview disabled")
 endif()
+
 
 qt_add_qml_module(BYTools
     URI BYTools
@@ -78,10 +76,6 @@ target_link_libraries(BYTools
     PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Core
 )
 
-if(Qt6WebEngineQuick_FOUND)
-    target_link_libraries(BYTools PRIVATE Qt6::WebEngineQuick)
-endif()
-
 if(WIN32)
     target_compile_definitions(BYTools PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
 endif()
@@ -93,3 +87,4 @@ add_subdirectory(plugins/imageconverter)
 add_subdirectory(plugins/imagecrop)
 add_subdirectory(plugins/videosubtitle)
 add_subdirectory(plugins/customsubtitle)
+add_subdirectory(plugins/subtitleadjust)

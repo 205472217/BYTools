@@ -8,9 +8,6 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui)
 
-# Optional: Qt6 WebEngine for embedded browser in step 1
-find_package(Qt6 QUIET COMPONENTS WebEngineQuick WebEngineCore)
-
 add_library(CustomSubtitlePlugin MODULE
     CustomSubtitlePlugin.cpp
     CustomSubtitlePlugin.h
@@ -37,14 +34,6 @@ target_link_libraries(CustomSubtitlePlugin PRIVATE
     Qt6::Gui
     PluginCommon
 )
-
-if(Qt6WebEngineQuick_FOUND)
-    target_link_libraries(CustomSubtitlePlugin PRIVATE Qt6::WebEngineQuick)
-    target_compile_definitions(CustomSubtitlePlugin PRIVATE HAS_QTWEBENGINE)
-    message(STATUS "CustomSubtitle: Qt6 WebEngine found - embedded browser enabled")
-else()
-    message(STATUS "CustomSubtitle: Qt6 WebEngine not found - using system browser fallback")
-endif()
 
 set_target_properties(CustomSubtitlePlugin PROPERTIES
     OUTPUT_NAME "CustomSubtitle"

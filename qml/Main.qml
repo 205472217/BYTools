@@ -18,7 +18,8 @@ ApplicationWindow {
     // 关闭保护：有任务执行时确认是否退出
     onClosing: function(closeEvent) {
         var pluginIds = ["name-converter", "batch-rename", "image-converter",
-                         "image-crop", "video-subtitle", "custom-subtitle"]
+                         "image-crop", "video-subtitle", "custom-subtitle",
+                         "subtitle-adjust"]
         var anyProcessing = false
         for (var i = 0; i < pluginIds.length; i++) {
             var ctrl = pluginManager.getPlugin(pluginIds[i])
@@ -124,6 +125,8 @@ ApplicationWindow {
                     stackView.push(videoSubtitlePageComponent, {controller: controller})
                 } else if (featureId === "custom-subtitle") {
                     stackView.push(customSubtitlePageComponent, {controller: controller})
+                } else if (featureId === "subtitle-adjust") {
+                    stackView.push(subtitleAdjustPageComponent, {controller: controller})
                 }
             }
         }
@@ -202,6 +205,17 @@ ApplicationWindow {
         id: customSubtitlePageComponent
 
         CustomSubtitlePage {
+            onBackRequested: {
+                stackView.pop()
+                window.currentFeatureId = ""
+            }
+        }
+    }
+
+    Component {
+        id: subtitleAdjustPageComponent
+
+        SubtitleAdjustPage {
             onBackRequested: {
                 stackView.pop()
                 window.currentFeatureId = ""
