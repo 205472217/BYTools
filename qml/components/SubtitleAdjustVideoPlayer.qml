@@ -15,12 +15,17 @@ Item {
 
     MediaPlayer {
         id: mediaPlayer
-        audioOutput: AudioOutput {}
+        videoOutput: videoOut
     }
 
     VideoOutput {
+        id: videoOut
         anchors.fill: parent
-        source: mediaPlayer
         fillMode: VideoOutput.PreserveAspectFit
+    }
+
+    onVisibleChanged: {
+        if (!root.visible && mediaPlayer.playbackState === 1)
+            mediaPlayer.pause()
     }
 }

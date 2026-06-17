@@ -14,6 +14,8 @@ Pane {
     property bool isSingleMode: controller ? controller.mode === 0 : true
 
     property int stepMs: 100
+    property string _lastLogLine: ""
+    property string _currentSubtitleText: ""
 
     function fmtTime(ms) {
         if (ms < 0) return "-" + fmtTime(-ms)
@@ -161,15 +163,23 @@ Pane {
         }
     }
 
-    // ── Video Player Loader (instantiated once, in the middle column) ──
+    // ── Controller signal connections ──
     Connections {
         target: controller
+        function onLogMessage(message) {
+            if (message.length === 0) return
+            root._lastLogLine = message
+        }
+        function onExportFinished(success, message) {
+            if (message.length === 0) return
+            root._lastLogLine = message
+        }
         function onVideoReady(videoPath, subtitlePath) {
+            root._currentSubtitleText = ""
             videoDisplayLoader.active = true
             var p = videoDisplayLoader.item
             if (p) {
                 p.source = "file:///" + videoPath
-                p.play()
             }
         }
         function onCurrentVideoPathChanged() {
@@ -189,15 +199,10 @@ Pane {
         id: subtitleTimer
         interval: 100
         repeat: true
-        running: {
-            var p = videoDisplayLoader.item
-            p && p.playbackState === 1 && controller
-        }
+        running: controller && player() && player().playbackState === 1
         onTriggered: {
-            if (!controller) return
-            var p = videoDisplayLoader.item
-            if (!p) return
-            var adjustedPos = p.position + controller.offsetMs
+            if (!controller || !player()) return
+            root._currentSubtitleText = controller.getSubtitleTextAt(player().position)
         }
     }
 
@@ -413,6 +418,37 @@ Pane {
             }
         }
 
+        // ═══════════════ Log Row + Shortcut Hints ═══════════════
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 28
+            radius: 6
+            color: "#f1f5f9"
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 12
+                anchors.rightMargin: 12
+                spacing: 12
+
+                Label {
+                    Layout.fillWidth: true
+                    text: root._lastLogLine.length > 0 ? root._lastLogLine : "就绪"
+                    color: root._lastLogLine.length > 0 ? "#334155" : "#94a3b8"
+                    font.pixelSize: 11
+                    font.family: "Consolas, 'Courier New', monospace"
+                    elide: Text.ElideRight
+                }
+
+                Label {
+                    text: "← → 偏移 ±" + (root.stepMs / 1000).toFixed(1) + "s  |  Ctrl+←/→ ±500ms  |  Space 播放/暂停"
+                    color: "#94a3b8"
+                    font.pixelSize: 10
+                    visible: hasVideo && videoDisplayLoader.active
+                }
+            }
+        }
+
         // ═══════════════ Bottom: 3-Column Layout ═══════════════
         RowLayout {
             Layout.fillWidth: true
@@ -431,43 +467,37 @@ Pane {
 
                 ColumnLayout {
                     anchors.fill: parent
+                    anchors.margins: 12
                     spacing: 0
 
-                    // Table header
-                    Rectangle {
+                    // Header + column labels
+                    RowLayout {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 36
-                        color: "#f8fafc"
+                        Layout.preferredHeight: 32
+                        spacing: 0
 
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 12
-                            anchors.rightMargin: 12
-                            spacing: 0
+                        Label {
+                            Layout.preferredWidth: 140
+                            text: "视频文件"
+                            color: "#64748b"
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
 
-                            Label {
-                                Layout.preferredWidth: 140
-                                text: "视频文件"
-                                color: "#64748b"
-                                font.pixelSize: 11
-                                font.bold: true
-                            }
+                        Label {
+                            Layout.preferredWidth: 140
+                            text: "字幕文件"
+                            color: "#64748b"
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
 
-                            Label {
-                                Layout.preferredWidth: 140
-                                text: "字幕文件"
-                                color: "#64748b"
-                                font.pixelSize: 11
-                                font.bold: true
-                            }
-
-                            Label {
-                                Layout.fillWidth: true
-                                text: "状态"
-                                color: "#64748b"
-                                font.pixelSize: 11
-                                font.bold: true
-                            }
+                        Label {
+                            Layout.fillWidth: true
+                            text: "状态"
+                            color: "#64748b"
+                            font.pixelSize: 11
+                            font.bold: true
                         }
                     }
 
@@ -477,87 +507,89 @@ Pane {
                         color: "#e2e8f0"
                     }
 
-                    // Table body
-                    ListView {
-                        id: matchListView
+                    // Table body area
+                    Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        model: controller ? controller.matchModel : null
                         clip: true
-                        ScrollBar.vertical: ScrollBar {
-                            policy: ScrollBar.AsNeeded
+
+                        ListView {
+                            id: matchListView
+                            anchors.fill: parent
+                            model: controller ? controller.matchModel : null
+                            visible: controller && controller.matchModel && controller.matchModel.count > 0
+                            ScrollBar.vertical: ScrollBar {
+                                policy: ScrollBar.AsNeeded
+                            }
+                            highlightMoveDuration: 0
+                            highlightResizeDuration: 0
+
+                            delegate: Rectangle {
+                                id: delegateRoot
+                                width: matchListView.width
+                                height: 36
+                                required property int index
+                                required property string videoDisplay
+                                required property string subtitleDisplay
+                                required property string statusDisplay
+                                required property int status
+
+                                color: {
+                                    if (status === 1) return "#dcfce7"
+                                    if (ListView.isCurrentItem) return "#eff6ff"
+                                    return index % 2 === 0 ? "#ffffff" : "#fafbfc"
+                                }
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 12
+                                    anchors.rightMargin: 12
+                                    spacing: 0
+
+                                    Label {
+                                        Layout.preferredWidth: 140
+                                        text: delegateRoot.videoDisplay
+                                        color: "#334155"
+                                        font.pixelSize: 12
+                                        elide: Text.ElideRight
+                                    }
+
+                                    Label {
+                                        Layout.preferredWidth: 140
+                                        text: delegateRoot.subtitleDisplay
+                                        color: "#334155"
+                                        font.pixelSize: 12
+                                        elide: Text.ElideRight
+                                    }
+
+                                    Label {
+                                        Layout.fillWidth: true
+                                        text: delegateRoot.statusDisplay
+                                        color: delegateRoot.status === 1 ? "#059669" : "#94a3b8"
+                                        font.pixelSize: 12
+                                        font.bold: delegateRoot.status === 1
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: {
+                                        matchListView.currentIndex = delegateRoot.index
+                                        root.tryStartAdjust(delegateRoot.index)
+                                    }
+                                }
+                            }
                         }
-                        highlightMoveDuration: 0
-                        highlightResizeDuration: 0
 
-                        delegate: Rectangle {
-                            id: delegateRoot
-                            width: matchListView.width
-                            height: 36
-                            color: {
-                                if (model.status === 1) return "#dcfce7"
-                                if (ListView.isCurrentItem) return "#eff6ff"
-                                return index % 2 === 0 ? "#ffffff" : "#fafbfc"
-                            }
-
-                            required property int index
-                            required property string videoDisplay
-                            required property string subtitleDisplay
-                            required property string statusDisplay
-                            required property int status
-
-                            RowLayout {
-                                anchors.fill: parent
-                                anchors.leftMargin: 12
-                                anchors.rightMargin: 12
-                                spacing: 0
-
-                                Label {
-                                    Layout.preferredWidth: 140
-                                    text: delegateRoot.videoDisplay
-                                    color: "#334155"
-                                    font.pixelSize: 12
-                                    elide: Text.ElideRight
-                                }
-
-                                Label {
-                                    Layout.preferredWidth: 140
-                                    text: delegateRoot.subtitleDisplay
-                                    color: "#334155"
-                                    font.pixelSize: 12
-                                    elide: Text.ElideRight
-                                }
-
-                                Label {
-                                    Layout.fillWidth: true
-                                    text: delegateRoot.statusDisplay
-                                    color: delegateRoot.status === 1 ? "#059669" : "#94a3b8"
-                                    font.pixelSize: 12
-                                    font.bold: delegateRoot.status === 1
-                                }
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    matchListView.currentIndex = delegateRoot.index
-                                    root.tryStartAdjust(delegateRoot.index)
-                                }
-                            }
+                        // Empty state
+                        Label {
+                            anchors.centerIn: parent
+                            text: "暂无映射，请选择文件后点击「开始映射」"
+                            color: "#94a3b8"
+                            font.pixelSize: 13
+                            visible: !controller || !controller.matchModel || controller.matchModel.count === 0
                         }
-                    }
-
-                    // Empty state
-                    Label {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        text: "暂无映射，请选择文件后点击「开始映射」"
-                        color: "#94a3b8"
-                        font.pixelSize: 13
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        visible: !controller || !controller.matchModel || controller.matchModel.count === 0
                     }
                 }
             }
@@ -632,7 +664,7 @@ Pane {
                             Label {
                                 id: subtitleText
                                 anchors.centerIn: parent
-                                text: controller ? controller.currentSubtitleText : ""
+                                text: root._currentSubtitleText
                                 color: "#ffffff"
                                 font.pixelSize: 20
                                 font.bold: true
@@ -664,13 +696,12 @@ Pane {
                                 implicitWidth: 32
                                 implicitHeight: 32
                                 property var p: videoDisplayLoader.item
-                                iconSource: (p && p.playbackState === 1) ? "" : "qrc:/icons/play.svg"
-                                text: (p && p.playbackState === 1) ? "▌▌" : "▶"
-                                tooltip: (p && p.playbackState === 1) ? "暂停" : "播放"
+                                property bool isPlaying: p && p.playbackState === 1
+                                iconSource: isPlaying ? "qrc:/icons/video-pause.svg" : "qrc:/icons/video-play.svg"
+                                tooltip: isPlaying ? "暂停" : "播放"
                                 normalColor: "#ffffff"
                                 hoverColor: "#f1f5f9"
                                 borderColor: "#cbd5e1"
-                                textColor: "#475569"
                                 onClicked: {
                                     var p = videoDisplayLoader.item
                                     if (p) {
@@ -866,7 +897,6 @@ Pane {
                     // Step size selector
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.topMargin: 12
                         spacing: 8
 
                         Label {
@@ -887,8 +917,6 @@ Pane {
                             }
                         }
                     }
-
-                    Item { Layout.fillHeight: true }
 
                     Rectangle {
                         Layout.fillWidth: true
@@ -916,21 +944,6 @@ Pane {
             }
         }
 
-        // ═══════════════ Shortcut Hints ═══════════════
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 32
-            radius: 6
-            color: "#f1f5f9"
-            visible: hasVideo && videoDisplayLoader.active
-
-            Label {
-                anchors.centerIn: parent
-                text: "快捷键  ← →  偏移 ±" + (root.stepMs / 1000).toFixed(1) + "s    Ctrl+←/→  ±500ms    Space  播放/暂停"
-                color: "#94a3b8"
-                font.pixelSize: 11
-            }
-        }
     }
 
     // ── Keyboard shortcuts ──

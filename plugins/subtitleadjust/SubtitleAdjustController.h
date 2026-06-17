@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QList>
 #include "MatchPairModel.h"
 
 class PluginLogger;
@@ -35,6 +36,12 @@ class SubtitleAdjustController : public QObject
     Q_PROPERTY(MatchPairModel* matchModel READ matchModel CONSTANT)
 
 public:
+    struct SubtitleEntry {
+        qint64 startTime = 0;   // ms
+        qint64 endTime = 0;     // ms
+        QString text;
+    };
+
     explicit SubtitleAdjustController(PluginLogger *logger, QObject *parent = nullptr);
 
     // ── mode ──
@@ -80,7 +87,10 @@ public:
     Q_INVOKABLE void loadVideo(const QString &videoPath, const QString &subtitlePath);
     Q_INVOKABLE void reset();
 
+    Q_INVOKABLE QString getSubtitleTextAt(qint64 positionMs);
+
 signals:
+    void logMessage(const QString &message);
     void modeChanged();
     void videoPathChanged();
     void subtitlePathChanged();
@@ -96,6 +106,7 @@ signals:
     void currentSubtitlePathChanged();
     void matchCompleted();
     void videoReady(const QString &videoPath, const QString &subtitlePath);
+    void exportFinished(bool success, const QString &message);
 
 private:
     void setCurrentSubtitleText(const QString &text);
@@ -103,6 +114,13 @@ private:
     void setCurrentMatchIndex(int index);
     void setCurrentVideoPath(const QString &path);
     void setCurrentSubtitlePath(const QString &path);
+
+    bool parseSrtFile(const QString &filePath);
+    bool writeAdjustedSrt(const QString &outputPath);
+    static qint64 parseSrtTime(const QString &timeStr);
+    static QString formatSrtTime(qint64 ms);
+    void collectFiles(const QString &dirPath, bool recursive,
+                      const QStringList &extensions, QStringList &results);
 
     PluginLogger *m_logger = nullptr;
 
@@ -124,4 +142,7 @@ private:
     QString m_currentSubtitlePath;
 
     MatchPairModel *m_matchModel = nullptr;
+
+    QList<SubtitleEntry> m_subtitleEntries;
+    QString m_srtFilePath;
 };
