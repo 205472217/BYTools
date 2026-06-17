@@ -381,7 +381,36 @@ Pane {
                     }
                 }
 
-                // Row 2: progress（步骤3→当前文件的 ffmpeg 实时进度，步骤2/4→走总进度 N/M）
+                // Row 2: search progress（字幕搜索进度）
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+                    visible: browserCtrl && browserCtrl.searching && browserCtrl.searchProgress > 0
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 4
+                        Layout.alignment: Qt.AlignVCenter
+                        radius: 2
+                        color: "#e2e8f0"
+
+                        Rectangle {
+                            width: parent.width * (browserCtrl ? browserCtrl.searchProgress / 100 : 0)
+                            height: parent.height
+                            radius: 2
+                            color: "#2563eb"
+                        }
+                    }
+
+                    Label {
+                        text: browserCtrl ? browserCtrl.searchProgressMessage : ""
+                        color: "#2563eb"
+                        font.pixelSize: 11
+                        font.bold: true
+                    }
+                }
+
+                // Row 3: progress（步骤3→当前文件的 ffmpeg 实时进度，步骤2/4→走总进度 N/M）
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6

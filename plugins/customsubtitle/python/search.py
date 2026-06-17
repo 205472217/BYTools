@@ -23,6 +23,7 @@ import os
 import re
 import importlib
 import traceback
+import log_util
 
 
 def _list_available_sites() -> list:
@@ -45,10 +46,14 @@ def _write_json(obj):
 
 
 def main():
+    here = os.path.dirname(os.path.abspath(__file__))
+    log_util.init_log(here)
+
     try:
         raw = sys.stdin.read()
         req = json.loads(raw)
     except (json.JSONDecodeError, Exception) as e:
+        log_util.log(f"请求解析失败: {e}")
         _write_json({"ok": False, "error": f"请求解析失败: {e}"})
         return
 
@@ -56,30 +61,41 @@ def main():
     keyword = req.get("keyword", "").strip()
     language_filter = req.get("language_filter", "").strip()
 
+    log_util.log(f"请求: site={site}, keyword={keyword}, lang={language_filter}")
+
     if not keyword:
+        log_util.log("关键字为空")
         _write_json({"ok": False, "error": "关键字不能为空"})
         return
 
+    max_results = req.get("max_results", 50)
+
     # 安全校验：只允许字母数字和下划线，防止路径穿越
     if not re.fullmatch(r"\w+", site):
+        log_util.log(f"无效站点名: {site}")
         _write_json({"ok": False, "error": f"无效的站点名称: {site}"})
         return
 
+    log_util.log(f"加载模块: {site}.search")
     try:
         mod = importlib.import_module(f"{site}.search")
     except ModuleNotFoundError:
         available = _list_available_sites()
+        log_util.log(f"站点不支持: {site}，可选: {available}")
         _write_json({
             "ok": False,
             "error": f"不支持的站点: {site}，可选: {available}"
         })
         return
 
+    log_util.log(f"开始搜索: site={site}, keyword={keyword}, max_results={max_results}")
     try:
-        results = mod.search(keyword, language_filter)
+        results = mod.search(keyword, language_filter, max_results)
+        log_util.log(f"搜索完成: 结果数={len(results)}")
         _write_json({"ok": True, "results": results})
     except Exception as e:
         tb = traceback.format_exc()
+        log_util.log(f"搜索异常: {e}\n{tb}")
         _write_json({"ok": False, "error": str(e), "traceback": tb})
 
 

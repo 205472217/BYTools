@@ -28,6 +28,8 @@ class SubBrowserController : public QObject
     Q_PROPERTY(bool searching READ searching NOTIFY searchingChanged)
     Q_PROPERTY(QVariantList searchResults READ searchResults NOTIFY searchResultsChanged)
     Q_PROPERTY(QString searchStatus READ searchStatus NOTIFY searchStatusChanged)
+    Q_PROPERTY(int searchProgress READ searchProgress NOTIFY searchProgressChanged)
+    Q_PROPERTY(QString searchProgressMessage READ searchProgressMessage NOTIFY searchProgressMessageChanged)
 
     // === 下载 ===
     Q_PROPERTY(QString downloadPath READ downloadPath WRITE setDownloadPath NOTIFY downloadPathChanged)
@@ -53,6 +55,8 @@ public:
     QString downloadingFile() const;
     bool pythonAvailable() const;
     bool dependenciesMet() const;
+    int searchProgress() const;
+    QString searchProgressMessage() const;
 
     void setCurrentSite(const QString &site);
     void setKeyword(const QString &keyword);
@@ -79,12 +83,15 @@ signals:
     void pythonAvailableChanged();
     void dependenciesMetChanged();
     void logMessage(const QString &message);
+    void searchProgressChanged();
+    void searchProgressMessageChanged();
 
 private slots:
     void onSearchProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void onSearchProcessError(QProcess::ProcessError error);
     void onDownloadProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void onDownloadProcessError(QProcess::ProcessError error);
+    void onSearchStdoutReady();
     void onSearchTimeout();
     void onDownloadTimeout();
 
@@ -104,6 +111,8 @@ private:
     bool m_searching = false;
     QVariantList m_searchResults;
     QString m_searchStatus;
+    int m_searchProgress = 0;
+    QString m_searchProgressMessage;
 
     QString m_downloadPath;
     bool m_downloading = false;
@@ -118,4 +127,5 @@ private:
     QProcess *m_downloadProcess = nullptr;
     QTimer *m_searchTimer = nullptr;
     QTimer *m_downloadTimer = nullptr;
+    QByteArray m_searchBuffer;
 };

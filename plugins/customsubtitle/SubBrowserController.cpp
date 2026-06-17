@@ -208,6 +208,8 @@ bool SubBrowserController::downloading()      const { return m_downloading; }
 QString SubBrowserController::downloadingFile() const { return m_downloadingFile; }
 bool SubBrowserController::pythonAvailable()  const { return m_pythonAvailable; }
 bool SubBrowserController::dependenciesMet() const { return m_dependenciesMet; }
+int SubBrowserController::searchProgress() const { return m_searchProgress; }
+QString SubBrowserController::searchProgressMessage() const { return m_searchProgressMessage; }
 
 void SubBrowserController::setCurrentSite(const QString &site)
 {
@@ -295,6 +297,17 @@ void SubBrowserController::search()
     }
     if (!pageLabel.isEmpty())
         req["language_filter"] = pageLabel;
+
+    static constexpr int kDefaultMaxResults = 50;
+    static constexpr int kMaxResultsMin    = 5;
+    static constexpr int kMaxResultsMax    = 100;
+
+    QSettings &s = pluginGroupSettings("custom-subtitle");
+    int maxResults = s.value("browserMaxResults", kDefaultMaxResults).toInt();
+    if (maxResults < kMaxResultsMin || maxResults > kMaxResultsMax)
+        maxResults = kDefaultMaxResults;
+    req["max_results"] = maxResults;
+
     QByteArray jsonData = QJsonDocument(req).toJson(QJsonDocument::Compact);
 
     if (m_searchProcess) {
@@ -303,11 +316,19 @@ void SubBrowserController::search()
         m_searchProcess->deleteLater();
     }
 
+    m_searchProgress = 0;
+    m_searchProgressMessage.clear();
+    m_searchBuffer.clear();
+    emit searchProgressChanged();
+    emit searchProgressMessageChanged();
+
     m_searchProcess = new QProcess(this);
     connect(m_searchProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, &SubBrowserController::onSearchProcessFinished);
     connect(m_searchProcess, &QProcess::errorOccurred,
             this, &SubBrowserController::onSearchProcessError);
+    connect(m_searchProcess, &QProcess::readyReadStandardOutput,
+            this, &SubBrowserController::onSearchStdoutReady);
 
     if (!m_searchTimer) {
         m_searchTimer = new QTimer(this);
@@ -322,6 +343,48 @@ void SubBrowserController::search()
     m_searchTimer->start(kSearchTimeoutMs);
 }
 
+void SubBrowserController::onSearchStdoutReady()
+{
+    m_searchBuffer.append(m_searchProcess->readAllStandardOutput());
+
+    while (true) {
+        int idx = m_searchBuffer.indexOf('\n');
+        if (idx < 0)
+            break;
+
+        QByteArray line = m_searchBuffer.left(idx).trimmed();
+        m_searchBuffer.remove(0, idx + 1);
+
+        if (line.isEmpty())
+            continue;
+
+        QJsonParseError pe;
+        QJsonDocument doc = QJsonDocument::fromJson(line, &pe);
+        if (pe.error != QJsonParseError::NoError || !doc.isObject())
+            continue;
+
+        QJsonObject obj = doc.object();
+
+        if (obj.contains("progress")) {
+            int current = obj.value("progress").toInt();
+            int total = obj.value("total").toInt();
+            m_searchProgress = total > 0 ? current * 100 / total : 0;
+            m_searchProgressMessage = obj.value("message").toString();
+            emit searchProgressChanged();
+            emit searchProgressMessageChanged();
+            if (m_logger)
+                m_logger->info(QStringLiteral("SubBrowser: 进度 %1/%2").arg(current).arg(total));
+            m_searchTimer->start(kSearchTimeoutMs);
+            continue;
+        }
+
+        if (obj.contains("ok") || obj.contains("error")) {
+            m_searchBuffer.prepend(line + '\n');
+            break;
+        }
+    }
+}
+
 void SubBrowserController::onSearchProcessFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     m_searchTimer->stop();
@@ -329,16 +392,18 @@ void SubBrowserController::onSearchProcessFinished(int exitCode, QProcess::ExitS
     if (!m_searchProcess)
         return;
 
-    QByteArray out = m_searchProcess->readAllStandardOutput();
+    // Read any remaining stdout not yet consumed by onSearchStdoutReady
+    m_searchBuffer.append(m_searchProcess->readAllStandardOutput());
     QByteArray err = m_searchProcess->readAllStandardError();
 
     if (exitStatus != QProcess::NormalExit || exitCode != 0) {
         QString msg = QString::fromUtf8(err).trimmed();
         if (msg.isEmpty())
-            msg = QString::fromUtf8(out).trimmed();
+            msg = QString::fromUtf8(m_searchBuffer).trimmed();
         m_searchStatus = QStringLiteral("搜索失败 (exit=%1): %2")
                              .arg(exitCode).arg(msg);
         m_searching = false;
+        m_searchBuffer.clear();
         emit searchingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
         if (m_logger) m_logger->warn(m_searchStatus);
         m_searchProcess->deleteLater(); m_searchProcess = nullptr;
@@ -355,7 +420,8 @@ void SubBrowserController::onSearchProcessFinished(int exitCode, QProcess::ExitS
     }
 
     QJsonParseError pe;
-    QJsonDocument doc = QJsonDocument::fromJson(out, &pe);
+    QJsonDocument doc = QJsonDocument::fromJson(m_searchBuffer, &pe);
+    m_searchBuffer.clear();
     if (pe.error != QJsonParseError::NoError || !doc.isObject()) {
         m_searchStatus = QStringLiteral("搜索结果解析失败: %1").arg(pe.errorString());
         m_searching = false;
@@ -383,7 +449,10 @@ void SubBrowserController::onSearchProcessFinished(int exitCode, QProcess::ExitS
     }
 
     m_searchResults = results;
-    m_searchStatus = QStringLiteral("找到 %1 条字幕").arg(results.size());
+    if (results.isEmpty())
+        m_searchStatus = QStringLiteral("搜索完成，未找到相关内容");
+    else
+        m_searchStatus = QStringLiteral("找到 %1 条字幕").arg(results.size());
     m_searching = false;
     emit searchResultsChanged(); emit searchStatusChanged(); emit searchingChanged();
     emit logMessage(m_searchStatus);
@@ -402,6 +471,7 @@ void SubBrowserController::onSearchProcessError(QProcess::ProcessError error)
         : QStringLiteral("Python 进程错误");
     m_searchStatus = msg;
     m_searching = false;
+    m_searchBuffer.clear();
     emit searchingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
     if (m_logger) m_logger->error("SubBrowser: " + msg);
     m_searchProcess->deleteLater(); m_searchProcess = nullptr;
@@ -410,9 +480,14 @@ void SubBrowserController::onSearchProcessError(QProcess::ProcessError error)
 void SubBrowserController::stopSearch()
 {
     if (m_searchProcess && m_searchProcess->state() != QProcess::NotRunning) {
+        m_searchProcess->disconnect();
         m_searchProcess->kill();
+        m_searchProcess->waitForFinished(3000);
+        m_searchProcess->deleteLater();
+        m_searchProcess = nullptr;
         m_searchTimer->stop();
     }
+    m_searchBuffer.clear();
     m_searching = false;
     m_searchStatus = QStringLiteral("已停止搜索");
     emit searchingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
@@ -422,11 +497,17 @@ void SubBrowserController::stopSearch()
 void SubBrowserController::onSearchTimeout()
 {
     if (m_searchProcess && m_searchProcess->state() != QProcess::NotRunning) {
+        m_searchProcess->disconnect();
         m_searchProcess->kill();
-        m_searchStatus = QStringLiteral("搜索超时，请检查网络连接后重试");
-        m_searching = false;
-        emit searchingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
+        m_searchProcess->waitForFinished(3000);
+        m_searchProcess->deleteLater();
+        m_searchProcess = nullptr;
     }
+    m_searchBuffer.clear();
+    m_searching = false;
+    m_searchStatus = QStringLiteral("搜索超时，请检查网络连接后重试");
+    emit searchingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
+    if (m_logger) m_logger->warn("SubBrowser: 搜索超时");
 }
 
 // ══════════════════════════════════════════════════════════
@@ -550,11 +631,15 @@ void SubBrowserController::onDownloadProcessError(QProcess::ProcessError error)
 void SubBrowserController::onDownloadTimeout()
 {
     if (m_downloadProcess && m_downloadProcess->state() != QProcess::NotRunning) {
+        m_downloadProcess->disconnect();
         m_downloadProcess->kill();
-        m_searchStatus = QStringLiteral("下载超时");
-        m_downloading = false;
-        emit downloadingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
+        m_downloadProcess->waitForFinished(3000);
+        m_downloadProcess->deleteLater();
+        m_downloadProcess = nullptr;
     }
+    m_downloading = false;
+    m_searchStatus = QStringLiteral("下载超时");
+    emit downloadingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
 }
 
 void SubBrowserController::openDownloadFolder()

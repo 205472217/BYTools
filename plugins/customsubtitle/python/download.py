@@ -21,6 +21,7 @@ import traceback
 import urllib.request
 import urllib.parse
 from urllib.parse import urlparse, urlunparse, quote
+import log_util
 
 
 LANG_URL_PATTERNS = {
@@ -110,6 +111,7 @@ def _encode_url(url: str) -> str:
 def _resolve_and_download(url: str, file_name: str, output_dir: str, language: str = "") -> dict:
     """下载 URL（已经是最终下载链接），直接 GET 保存"""
     url = _encode_url(url)
+    log_util.log(f"[Download] 发起 HTTP 请求: {url}")
     req = urllib.request.Request(url, headers={
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -117,6 +119,7 @@ def _resolve_and_download(url: str, file_name: str, output_dir: str, language: s
         "Referer": "https://www.subtitlecat.com/",
     })
     with urllib.request.urlopen(req, timeout=30) as resp:
+        log_util.log(f"[Download] HTTP 响应: {resp.status}")
         body = resp.read()
 
     os.makedirs(output_dir, exist_ok=True)
@@ -137,10 +140,14 @@ def _write_json(obj):
 
 
 def main():
+    here = os.path.dirname(os.path.abspath(__file__))
+    log_util.init_log(here)
+
     try:
         raw = sys.stdin.buffer.read().decode("utf-8")
         req = json.loads(raw)
     except (json.JSONDecodeError, Exception) as e:
+        log_util.log(f"[Download] 请求解析失败: {e}")
         _write_json({"ok": False, "error": f"请求解析失败: {e}"})
         return
 
@@ -149,10 +156,14 @@ def main():
     output_dir = req.get("output_dir", "").strip()
     language = req.get("language", "").strip()
 
+    log_util.log(f"[Download] url={url}, file_name={file_name}, output_dir={output_dir}, language={language}")
+
     if not url:
+        log_util.log("[Download] URL 为空")
         _write_json({"ok": False, "error": "下载 URL 不能为空"})
         return
     if not output_dir:
+        log_util.log("[Download] 输出目录为空")
         _write_json({"ok": False, "error": "输出目录不能为空"})
         return
     if not file_name:
@@ -161,10 +172,13 @@ def main():
             file_name = "subtitle.srt"
 
     try:
+        log_util.log(f"[Download] 开始下载: {url}")
         result = _resolve_and_download(url, file_name, output_dir, language)
+        log_util.log(f"[Download] 完成: {result}")
         _write_json(result)
     except Exception as e:
         tb = traceback.format_exc()
+        log_util.log(f"[Download] 异常: {e}\n{tb}")
         _write_json({"ok": False, "error": str(e), "traceback": tb})
 
 

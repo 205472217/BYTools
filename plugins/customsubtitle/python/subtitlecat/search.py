@@ -9,14 +9,17 @@ SubtitleCat 字幕搜索
 
 import re
 import sys
+import os
 import urllib.request
 import urllib.error
 import urllib.parse
 from lxml.html import fromstring
 
+_parent = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _parent not in sys.path:
+    sys.path.insert(0, _parent)
+import log_util
 
-MAX_RESULTS = 100
-MAX_RESOLVE = 10
 
 LANG_URL_PATTERNS = {
     "Chinese": ["zh"],
@@ -24,7 +27,7 @@ LANG_URL_PATTERNS = {
 }
 
 
-def search(keyword: str, language_filter: str = "") -> list:
+def search(keyword: str, language_filter: str = "", max_results: int = 50) -> list:
     """搜索 subtitlecat.com，返回结果列表。
     language_filter: 由 C++ 传过来的 pageLabel（如 "Chinese (Simplified)"），
     在详情页匹配 Download 按钮前的文本。
@@ -33,24 +36,24 @@ def search(keyword: str, language_filter: str = "") -> list:
     base = "https://www.subtitlecat.com"
     search_url = f"{base}/index.php?search={keyword}"
 
-    _log(f"search_url: {search_url}, language_filter: {language_filter!r}")
+    log_util.log("[SubtitleCat]", f"search_url: {search_url}, language_filter: {language_filter!r}")
 
     html = _fetch(search_url)
     if html is None:
         return results
 
     _parse_html(html, results, base, search_url)
-    _log(f"parsed {len(results)} results, capping to {MAX_RESULTS}")
+    log_util.log("[SubtitleCat]", f"parsed {len(results)} results, capping to {max_results}")
 
-    results = results[:MAX_RESULTS]
+    results = results[:max_results]
 
     if language_filter:
         # 有语言筛选：进详情页，按 Download 按钮前的文本匹配
-        _log(f"filtering by download state: target_label={language_filter}")
-        return _filter_by_download_state(results, base, language_filter, max_items=MAX_RESULTS)
+        log_util.log("[SubtitleCat]", f"filtering by download state: target_label={language_filter}")
+        return _filter_by_download_state(results, base, language_filter, max_items=max_results)
     else:
         # 无筛选（兜底）：取第一个下载链接
-        _resolve_downloads(results, base, max_items=MAX_RESULTS)
+        _resolve_downloads(results, base, max_items=max_results)
         return results
 
 
@@ -68,27 +71,23 @@ def _fetch(url: str) -> str | None:
     )
     try:
         resp = urllib.request.urlopen(req, timeout=20)
-        _log(f"response status: {resp.status}")
+        log_util.log("[SubtitleCat]", f"response status: {resp.status}")
         if resp.status != 200:
+            log_util.log("[SubtitleCat]", f"非200响应: {resp.status}")
             return None
         return resp.read().decode("utf-8", errors="replace")
     except Exception as e:
-        _log(f"fetch error: {e}")
+        log_util.log("[SubtitleCat]", f"fetch error: {e}")
         return None
-
-
-def _log(*args):
-    """打印调试日志到 stderr"""
-    print("[SubtitleCat]", *args, file=sys.stderr, flush=True)
 
 
 def _parse_html(html: str, results: list, base: str, current_url: str):
     """解析搜索结果页面的 HTML 表格"""
-    _log("page body length:", len(html))
+    log_util.log("[SubtitleCat]", "page body length:", len(html))
 
     doc = fromstring(html)
     rows = doc.xpath('//table[contains(@class, "sub-table")]/tbody/tr')
-    _log(f"xpath found {len(rows)} rows")
+    log_util.log("[SubtitleCat]", f"xpath found {len(rows)} rows")
 
     for row in rows:
         try:
@@ -124,11 +123,11 @@ def _parse_html(html: str, results: list, base: str, current_url: str):
 
 
 def _resolve_downloads(results: list, base: str, max_items=0):
-    """访问详情页，查找真正的 .srt / .ass 下载链接
-    max_items: 最多解析前 N 条，0 表示全部
-    """
+    """无语言筛选时：进详情页，找第一个 green-link 作为下载链接"""
     todo = results[:max_items] if max_items > 0 else results
-    for item in todo:
+    total = len(todo)
+    for idx, item in enumerate(todo):
+        log_util.write_progress(idx + 1, total, f"正在解析第 {idx+1}/{total} 条...")
         url = item.get("download_url")
         if not url:
             continue
@@ -137,33 +136,16 @@ def _resolve_downloads(results: list, base: str, max_items=0):
             if html is None:
                 continue
             doc = fromstring(html)
-            links = doc.xpath(
-                "//a[contains(@href, '.srt')] | "
-                "//a[contains(@href, '.ass')] | "
-                "//a[contains(@href, '.zip')] | "
-                "//a[contains(@href, '.rar')] | "
-                "//a[contains(@href, 'download.php')]"
-            )
+            links = doc.xpath('.//a[contains(@class, "green-link")]')
             if not links:
                 continue
 
-            # 按语言偏好选择下载链接
-            item_lang = item.get("language", "")
-            patterns = LANG_URL_PATTERNS.get(item_lang, [])
-            chosen = links[0]
-            if patterns:
-                for a in links:
-                    href = a.get("href", "")
-                    if any(p in href for p in patterns):
-                        chosen = a
-                        break
-
-            href = chosen.get("href", "")
-            if href and not href.startswith("http"):
-                href = urllib.parse.urljoin(url, href)
+            href = links[0].get("href", "")
+            if not href:
+                continue
+            if not href.startswith("http"):
+                href = urllib.parse.urljoin(base, href)
             item["download_url"] = href
-
-            # 从 URL 路径提取带扩展名的文件名
             url_filename = href.split("/")[-1].split("?")[0]
             if "." in url_filename:
                 item["file_name"] = url_filename
@@ -177,7 +159,9 @@ def _filter_by_download_state(results, base, target_page_label, max_items=0):
     """
     filtered = []
     todo = results[:max_items] if max_items > 0 else results
-    for item in todo:
+    total = len(todo)
+    for idx, item in enumerate(todo):
+        log_util.write_progress(idx + 1, total, f"正在分析第 {idx+1}/{total} 条...")
         url = item.get("download_url")
         if not url:
             continue
@@ -188,19 +172,19 @@ def _filter_by_download_state(results, base, target_page_label, max_items=0):
             doc = fromstring(html)
             href = _find_download_near_text(doc, target_page_label, base)
             if not href:
-                _log(f"  skip {url}: no download near '{target_page_label}'")
+                log_util.log("[SubtitleCat]", f"  skip {url}: no download near '{target_page_label}'")
                 continue
 
             item["download_url"] = href
             url_filename = href.split("/")[-1].split("?")[0]
             if "." in url_filename:
                 item["file_name"] = url_filename
-            _log(f"  OK {href}")
+            log_util.log("[SubtitleCat]", f"  OK {href}")
             filtered.append(item)
         except Exception:
             continue
 
-    _log(f"_filter_by_download_state({target_page_label}): {len(todo)} -> {len(filtered)}")
+    log_util.log("[SubtitleCat]", f"_filter_by_download_state({target_page_label}): {len(todo)} -> {len(filtered)}")
     return filtered
 
 
