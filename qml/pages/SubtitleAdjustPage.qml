@@ -14,6 +14,7 @@ Pane {
     property bool isSingleMode: controller ? controller.mode === 0 : true
 
     property int stepMs: 100
+    property int maxOffsetMs: 60000 // 默认 ±1 分钟
     property string _lastLogLine: ""
     property string _currentSubtitleText: ""
 
@@ -776,13 +777,45 @@ Pane {
                     anchors.margins: 18
                     spacing: 0
 
-                    Label {
+                    // 最大偏移选择
+                    RowLayout {
                         Layout.fillWidth: true
-                        Layout.topMargin: 8
-                        text: "偏移量"
-                        color: "#64748b"
-                        font.pixelSize: 11
-                        font.bold: true
+                        Layout.topMargin: 4
+                        spacing: 8
+
+                        Label {
+                            text: "偏移量"
+                            color: "#64748b"
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Label {
+                            text: "最大偏移"
+                            color: "#64748b"
+                            font.pixelSize: 11
+                        }
+
+                        ComboBox {
+                            id: maxOffsetCombo
+                            model: [
+                                { text: "30 秒", value: 30000 },
+                                { text: "1 分钟", value: 60000 },
+                                { text: "5 分钟", value: 300000 },
+                                { text: "10 分钟", value: 600000 },
+                            ]
+                            textRole: "text"
+                            valueRole: "value"
+                            currentIndex: 1
+                            font.pixelSize: 11
+                            implicitWidth: 120
+                            implicitHeight: 26
+                            onActivated: {
+                                root.maxOffsetMs = currentValue
+                            }
+                        }
                     }
 
                     Label {
@@ -811,8 +844,8 @@ Pane {
                             Slider {
                                 id: offsetSlider
                                 Layout.fillWidth: true
-                                from: -10000
-                                to: 10000
+                                from: -root.maxOffsetMs
+                                to: root.maxOffsetMs
                                 value: controller ? controller.offsetMs : 0
                                 stepSize: root.stepMs
                                 enabled: hasVideo
@@ -826,7 +859,7 @@ Pane {
                                 spacing: 0
 
                                 Label {
-                                    text: "-10s"
+                                    text: "-" + (root.maxOffsetMs / 1000) + "s"
                                     color: "#94a3b8"
                                     font.pixelSize: 10
                                 }
@@ -842,7 +875,7 @@ Pane {
                                 Item { Layout.fillWidth: true }
 
                                 Label {
-                                    text: "+10s"
+                                    text: "+" + (root.maxOffsetMs / 1000) + "s"
                                     color: "#94a3b8"
                                     font.pixelSize: 10
                                 }
@@ -924,12 +957,25 @@ Pane {
                         color: "#e2e8f0"
                     }
 
+                    CheckBox {
+                        Layout.fillWidth: true
+                        Layout.topMargin: 8
+                        text: "替换原字幕文件"
+                        font.pixelSize: 12
+                        checked: controller ? controller.overwriteOriginal : false
+                        onCheckedChanged: {
+                            if (controller) controller.overwriteOriginal = checked
+                        }
+                    }
+
                     IconButton {
                         Layout.fillWidth: true
                         Layout.topMargin: 12
                         Layout.bottomMargin: 8
                         text: "导出字幕文件"
-                        tooltip: "应用当前偏移并导出调整后的字幕文件"
+                        tooltip: controller && controller.overwriteOriginal
+                            ? "替换原字幕文件（将覆盖原文件）"
+                            : "导出为 _adjusted.srt 文件"
                         implicitHeight: 42
                         normalColor: "#2563eb"
                         hoverColor: "#1d4ed8"

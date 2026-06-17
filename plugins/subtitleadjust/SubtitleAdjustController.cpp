@@ -8,6 +8,10 @@
 #include <QDirIterator>
 #include <QTextStream>
 #include <QRegularExpression>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QDateTime>
 #include <algorithm>
 
 SubtitleAdjustController::SubtitleAdjustController(PluginLogger *logger, QObject *parent)
@@ -24,6 +28,10 @@ SubtitleAdjustController::SubtitleAdjustController(PluginLogger *logger, QObject
     m_subtitleFolder = s.value("subtitleFolder").toString();
     m_recursiveVideo = s.value("recursiveVideo", false).toBool();
     m_recursiveSubtitle = s.value("recursiveSubtitle", false).toBool();
+    m_overwriteOriginal = s.value("overwriteOriginal", false).toBool();
+
+    // 加载已完成记录
+    loadRecords();
 }
 
 // ── mode ──
@@ -138,8 +146,9 @@ QString SubtitleAdjustController::getSubtitleTextAt(qint64 positionMs)
     if (m_subtitleEntries.isEmpty())
         return QString();
 
-    // 应用偏移：实际字幕时间 = 播放器位置 + 用户偏移
-    qint64 adjustedPos = positionMs + m_offsetMs;
+    // 应用偏移：实际字幕时间 = 播放器位置 - 用户偏移
+    // offset > 0 → 字幕延后（推迟），offset < 0 → 字幕提前
+    qint64 adjustedPos = positionMs - m_offsetMs;
 
     for (const auto &entry : m_subtitleEntries) {
         if (adjustedPos >= entry.startTime && adjustedPos < entry.endTime) {
@@ -179,7 +188,8 @@ void SubtitleAdjustController::startMatch()
         }
 
         QList<MatchPairModel::MatchPair> pairs;
-        pairs.append({m_videoPath, m_subtitlePath, 0});
+        int status = hasRecord(m_subtitlePath) ? 2 : 0;
+        pairs.append({m_videoPath, m_subtitlePath, status});
         m_matchModel->setPairs(pairs);
 
         QString msg = QStringLiteral("✓ 已添加映射: %1 → %2")
@@ -227,6 +237,12 @@ void SubtitleAdjustController::startMatch()
         }
 
         m_matchModel->setPairs(pairs);
+
+        // 检查已完成记录，标记已调整的字幕
+        for (int i = 0; i < m_matchModel->rowCount(); ++i) {
+            if (hasRecord(m_matchModel->at(i).subtitleFile))
+                m_matchModel->setStatus(i, 2);
+        }
 
         QString msg = QStringLiteral("✓ 匹配完成: 共扫描 %1 个视频, %2 个字幕, 成功匹配 %3 对")
             .arg(videoFiles.size()).arg(subFiles.size()).arg(matched);
@@ -297,9 +313,14 @@ void SubtitleAdjustController::exportSubtitle()
         return;
     }
 
-    // 构造输出路径：原文件名 + _adjusted.srt
+    // 构造输出路径
     QFileInfo fi(m_srtFilePath);
-    QString outputPath = fi.absolutePath() + "/" + fi.completeBaseName() + "_adjusted.srt";
+    QString outputPath;
+    if (m_overwriteOriginal) {
+        outputPath = m_srtFilePath; // 直接覆盖原文件
+    } else {
+        outputPath = fi.absolutePath() + "/" + fi.completeBaseName() + "_adjusted.srt";
+    }
 
     if (!writeAdjustedSrt(outputPath)) {
         QString msg = QStringLiteral("✗ 导出失败: ") + outputPath;
@@ -313,6 +334,9 @@ void SubtitleAdjustController::exportSubtitle()
     if (m_currentMatchIndex >= 0) {
         m_matchModel->setStatus(m_currentMatchIndex, 1);
     }
+
+    // 保存已完成记录
+    saveRecord(m_currentVideoPath, m_srtFilePath, m_offsetMs);
 
     setIsDirty(false);
 
@@ -558,18 +582,117 @@ QString SubtitleAdjustController::formatSrtTime(qint64 ms)
         .arg(millis, 3, 10, QLatin1Char('0'));
 }
 
-// ── 递归收集文件 ──
+// ── 递归收集文件（Windows 自然排序，深度优先）──
 
 void SubtitleAdjustController::collectFiles(const QString &dirPath, bool recursive,
                                               const QStringList &extensions, QStringList &results)
 {
-    QDirIterator::IteratorFlags flags = QDirIterator::NoIteratorFlags;
-    if (recursive)
-        flags = QDirIterator::Subdirectories;
+    QDir dir(dirPath);
 
-    QDirIterator it(dirPath, extensions, QDir::Files, flags);
-    while (it.hasNext()) {
-        it.next();
-        results.append(it.filePath());
+    // 当前目录的文件（已排序）
+    QFileInfoList files = dir.entryInfoList(extensions, QDir::Files, QDir::NoSort);
+    naturalSort(files);
+    for (const auto &fi : files)
+        results.append(fi.absoluteFilePath());
+
+    if (!recursive)
+        return;
+
+    // 子目录（已排序），深度优先递归
+    QFileInfoList subdirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
+    naturalSort(subdirs);
+    for (const auto &sd : subdirs)
+        collectFiles(sd.absoluteFilePath(), true, extensions, results);
+}
+
+// ── 导出选项 ──
+
+bool SubtitleAdjustController::overwriteOriginal() const
+{
+    return m_overwriteOriginal;
+}
+
+void SubtitleAdjustController::setOverwriteOriginal(bool overwrite)
+{
+    if (m_overwriteOriginal != overwrite) {
+        m_overwriteOriginal = overwrite;
+        emit overwriteOriginalChanged();
+        pluginGroupSettings("subtitle-adjust").setValue("overwriteOriginal", overwrite);
+        pluginGroupSettings("subtitle-adjust").sync();
     }
+}
+
+// ── 已完成记录管理 ──
+
+QString SubtitleAdjustController::recordsFilePath() const
+{
+    // 与 config.ini 同级目录
+    QFileInfo fi(pluginConfigFilePath());
+    return fi.absolutePath() + "/subtitle_adjust_records.json";
+}
+
+void SubtitleAdjustController::loadRecords()
+{
+    m_records.clear();
+
+    QFile file(recordsFilePath());
+    if (!file.open(QIODevice::ReadOnly))
+        return;
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    file.close();
+
+    if (!doc.isArray())
+        return;
+
+    for (const QJsonValue &val : doc.array()) {
+        QJsonObject obj = val.toObject();
+        CompletedRecord rec;
+        rec.videoPath = obj.value("videoPath").toString();
+        rec.subtitlePath = obj.value("subtitlePath").toString();
+        rec.offsetMs = static_cast<qint64>(obj.value("offsetMs").toDouble());
+        rec.timestamp = obj.value("timestamp").toString();
+        if (!rec.subtitlePath.isEmpty())
+            m_records.insert(rec.subtitlePath, rec);
+    }
+}
+
+void SubtitleAdjustController::saveRecord(const QString &videoPath,
+                                           const QString &subtitlePath,
+                                           qint64 offsetMs)
+{
+    if (videoPath.isEmpty() || subtitlePath.isEmpty())
+        return;
+
+    CompletedRecord rec;
+    rec.videoPath = videoPath;
+    rec.subtitlePath = subtitlePath;
+    rec.offsetMs = offsetMs;
+    rec.timestamp = QDateTime::currentDateTime().toString(Qt::ISODate);
+
+    // 更新内存索引（覆盖旧记录）
+    m_records.insert(subtitlePath, rec);
+
+    // 写入文件
+    QJsonArray arr;
+    for (auto it = m_records.constBegin(); it != m_records.constEnd(); ++it) {
+        const auto &r = it.value();
+        QJsonObject obj;
+        obj["videoPath"] = r.videoPath;
+        obj["subtitlePath"] = r.subtitlePath;
+        obj["offsetMs"] = r.offsetMs;
+        obj["timestamp"] = r.timestamp;
+        arr.append(obj);
+    }
+
+    QFile file(recordsFilePath());
+    if (!file.open(QIODevice::WriteOnly))
+        return;
+    file.write(QJsonDocument(arr).toJson(QJsonDocument::Indented));
+    file.close();
+}
+
+bool SubtitleAdjustController::hasRecord(const QString &subtitlePath) const
+{
+    return m_records.contains(subtitlePath);
 }

@@ -16,6 +16,11 @@ Item {
     MediaPlayer {
         id: mediaPlayer
         videoOutput: videoOut
+        audioOutput: audioOut
+    }
+
+    AudioOutput {
+        id: audioOut
     }
 
     VideoOutput {

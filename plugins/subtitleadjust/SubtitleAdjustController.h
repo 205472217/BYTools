@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QString>
 #include <QList>
+#include <QHash>
 #include "MatchPairModel.h"
 
 class PluginLogger;
@@ -31,6 +32,9 @@ class SubtitleAdjustController : public QObject
     Q_PROPERTY(QString currentSubtitleText READ currentSubtitleText NOTIFY currentSubtitleTextChanged)
     Q_PROPERTY(QString currentVideoPath READ currentVideoPath NOTIFY currentVideoPathChanged)
     Q_PROPERTY(QString currentSubtitlePath READ currentSubtitlePath NOTIFY currentSubtitlePathChanged)
+
+    // ── 导出选项 ──
+    Q_PROPERTY(bool overwriteOriginal READ overwriteOriginal WRITE setOverwriteOriginal NOTIFY overwriteOriginalChanged)
 
     // ── 映射表模型 ──
     Q_PROPERTY(MatchPairModel* matchModel READ matchModel CONSTANT)
@@ -89,6 +93,10 @@ public:
 
     Q_INVOKABLE QString getSubtitleTextAt(qint64 positionMs);
 
+    // ── 导出选项 ──
+    bool overwriteOriginal() const;
+    void setOverwriteOriginal(bool overwrite);
+
 signals:
     void logMessage(const QString &message);
     void modeChanged();
@@ -107,6 +115,7 @@ signals:
     void matchCompleted();
     void videoReady(const QString &videoPath, const QString &subtitlePath);
     void exportFinished(bool success, const QString &message);
+    void overwriteOriginalChanged();
 
 private:
     void setCurrentSubtitleText(const QString &text);
@@ -121,6 +130,18 @@ private:
     static QString formatSrtTime(qint64 ms);
     void collectFiles(const QString &dirPath, bool recursive,
                       const QStringList &extensions, QStringList &results);
+
+    struct CompletedRecord {
+        QString videoPath;
+        QString subtitlePath;
+        qint64 offsetMs;
+        QString timestamp;
+    };
+
+    void loadRecords();
+    void saveRecord(const QString &videoPath, const QString &subtitlePath, qint64 offsetMs);
+    bool hasRecord(const QString &subtitlePath) const;
+    QString recordsFilePath() const;
 
     PluginLogger *m_logger = nullptr;
 
@@ -141,8 +162,12 @@ private:
     QString m_currentVideoPath;
     QString m_currentSubtitlePath;
 
+    bool m_overwriteOriginal = false;
+
     MatchPairModel *m_matchModel = nullptr;
 
     QList<SubtitleEntry> m_subtitleEntries;
     QString m_srtFilePath;
+
+    QHash<QString, CompletedRecord> m_records; // keyed by subtitlePath
 };
