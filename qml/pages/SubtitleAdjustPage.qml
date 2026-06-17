@@ -440,13 +440,6 @@ Pane {
                     font.family: "Consolas, 'Courier New', monospace"
                     elide: Text.ElideRight
                 }
-
-                Label {
-                    text: "← → 偏移 ±" + (root.stepMs / 1000).toFixed(1) + "s  |  Ctrl+←/→ ±500ms  |  Space 播放/暂停  |  A/D 快退/快进 5s"
-                    color: "#94a3b8"
-                    font.pixelSize: 10
-                    visible: hasVideo && videoDisplayLoader.active
-                }
             }
         }
 
@@ -478,7 +471,15 @@ Pane {
                         spacing: 0
 
                         Label {
-                            Layout.preferredWidth: 140
+                            Layout.preferredWidth: 20
+                            text: "#"
+                            color: "#64748b"
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+
+                        Label {
+                            Layout.preferredWidth: 128
                             text: "视频文件"
                             color: "#64748b"
                             font.pixelSize: 11
@@ -486,7 +487,7 @@ Pane {
                         }
 
                         Label {
-                            Layout.preferredWidth: 140
+                            Layout.preferredWidth: 128
                             text: "字幕文件"
                             color: "#64748b"
                             font.pixelSize: 11
@@ -548,7 +549,14 @@ Pane {
                                     spacing: 0
 
                                     Label {
-                                        Layout.preferredWidth: 140
+                                        Layout.preferredWidth: 20
+                                        text: delegateRoot.index + 1
+                                        color: "#94a3b8"
+                                        font.pixelSize: 11
+                                    }
+
+                                    Label {
+                                        Layout.preferredWidth: 128
                                         text: delegateRoot.videoDisplay
                                         color: "#334155"
                                         font.pixelSize: 12
@@ -556,7 +564,7 @@ Pane {
                                     }
 
                                     Label {
-                                        Layout.preferredWidth: 140
+                                        Layout.preferredWidth: 128
                                         text: delegateRoot.subtitleDisplay
                                         color: "#334155"
                                         font.pixelSize: 12
@@ -666,13 +674,7 @@ Pane {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "请点击播放，开始调整字幕"
                                     color: "#e2e8f0"
-                                    font.pixelSize: 16
-                                }
-                                Label {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "使用 ←/→ 调整字幕偏移，A/D 快退/快进视频"
-                                    color: "#94a3b8"
-                                    font.pixelSize: 12
+                                    font.pixelSize: 20
                                 }
                             }
                         }
@@ -999,7 +1001,7 @@ Pane {
                         ComboBoxEx {
                             id: stepCombo
                             Layout.fillWidth: true
-                            model: ["100ms", "500ms", "1000ms", "5000ms"]
+                            model: ["0.1s", "0.5s", "1s", "5s"]
                             currentIndex: 0
                             onActivated: {
                                 var steps = [100, 500, 1000, 5000]
@@ -1047,49 +1049,5 @@ Pane {
             }
         }
 
-    }
-
-    // ── Keyboard shortcuts ──
-    Keys.onLeftPressed: {
-        if (hasVideo && controller) {
-            if (event.modifiers & Qt.ControlModifier)
-                controller.shiftBackward(500)
-            else
-                controller.shiftBackward(root.stepMs)
-        }
-    }
-
-    Keys.onRightPressed: {
-        if (hasVideo && controller) {
-            if (event.modifiers & Qt.ControlModifier)
-                controller.shiftForward(500)
-            else
-                controller.shiftForward(root.stepMs)
-        }
-    }
-
-    Keys.onPressed: {
-        if (hasVideo) {
-            var p = videoDisplayLoader.item
-            if (event.key === Qt.Key_A) {
-                if (p) p.position = Math.max(0, p.position - 5000)
-                event.accepted = true
-            } else if (event.key === Qt.Key_D) {
-                if (p) p.position = Math.min(p.duration, p.position + 5000)
-                event.accepted = true
-            }
-        }
-    }
-
-    Keys.onSpacePressed: {
-        if (hasVideo) {
-            var p = videoDisplayLoader.item
-            if (p) {
-                if (p.playbackState === 1)
-                    p.pause()
-                else
-                    p.play()
-            }
-        }
     }
 }
