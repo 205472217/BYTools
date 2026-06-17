@@ -16,8 +16,6 @@ Item {
 
     implicitWidth: text.length > 0 ? 76 : 38
     implicitHeight: 38
-    opacity: root.enabled ? 1.0 : 0
-    Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
     signal clicked()
 
@@ -25,11 +23,11 @@ Item {
         id: bg
         anchors.fill: parent
         radius: 8
-        color: mouseArea.pressed ? root.pressColor :
-               mouseArea.containsMouse ? root.hoverColor : root.normalColor
+        color: root.enabled ? (mouseArea.pressed ? root.pressColor :
+               mouseArea.containsMouse ? root.hoverColor : root.normalColor) : "#f1f5f9"
         border.width: 1
-        border.color: mouseArea.pressed ? root.borderColor :
-                      mouseArea.containsMouse ? root.borderColor : "#e2e8f0"
+        border.color: root.enabled ? (mouseArea.pressed ? root.borderColor :
+                      mouseArea.containsMouse ? root.borderColor : "#e2e8f0") : "#e2e8f0"
 
         // 悬浮时的微妙阴影
         Rectangle {
@@ -74,13 +72,14 @@ Item {
             source: root.iconSource
             visible: root.iconSource.length > 0
             anchors.verticalCenter: parent.verticalCenter
+            opacity: root.enabled ? 1.0 : 0.4
         }
 
         Label {
             id: labelText
             text: root.text
             visible: root.text.length > 0
-            color: root.textColor
+            color: root.enabled ? root.textColor : "#94a3b8"
             font.pixelSize: 13
             font.bold: true
             anchors.verticalCenter: parent.verticalCenter
