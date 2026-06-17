@@ -17,5 +17,7 @@
 	<file>icons/card-subtitle-adjust.svg</file>
 	<file>icons/video-play.svg</file>
 	<file>icons/video-pause.svg</file>
+	<file>icons/video-seekadd.svg</file>
+	<file>icons/video-seekdec.svg</file>
     </qresource>
 </RCC>

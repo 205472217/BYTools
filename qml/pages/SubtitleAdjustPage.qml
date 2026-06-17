@@ -29,7 +29,7 @@ Pane {
     }
 
     function fmtOffset(ms) {
-        var sign = ms >= 0 ? "+" : ""
+        var sign = ms >= 0 ? "+" : "-"
         var absMs = Math.abs(ms)
         return sign + (absMs / 1000).toFixed(1) + "s"
     }
@@ -442,7 +442,7 @@ Pane {
                 }
 
                 Label {
-                    text: "← → 偏移 ±" + (root.stepMs / 1000).toFixed(1) + "s  |  Ctrl+←/→ ±500ms  |  Space 播放/暂停"
+                    text: "← → 偏移 ±" + (root.stepMs / 1000).toFixed(1) + "s  |  Ctrl+←/→ ±500ms  |  Space 播放/暂停  |  A/D 快退/快进 5s"
                     color: "#94a3b8"
                     font.pixelSize: 10
                     visible: hasVideo && videoDisplayLoader.active
@@ -648,6 +648,35 @@ Pane {
                             }
                         }
 
+                        // 视频未播放时的提示
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 6
+                            color: "#000000"
+                            visible: {
+                                var p = videoDisplayLoader.item
+                                hasVideo && p && p.playbackState === 0
+                            }
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: 8
+
+                                Label {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "请点击播放，开始调整字幕"
+                                    color: "#e2e8f0"
+                                    font.pixelSize: 16
+                                }
+                                Label {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: "使用 ←/→ 调整字幕偏移，A/D 快退/快进视频"
+                                    color: "#94a3b8"
+                                    font.pixelSize: 12
+                                }
+                            }
+                        }
+
                         // Subtitle overlay
                         Rectangle {
                             id: subtitleOverlay
@@ -693,6 +722,20 @@ Pane {
                             spacing: 8
 
                             IconButton {
+                                implicitWidth: 26
+                                implicitHeight: 26
+                                iconSource: "qrc:/icons/video-seekdec.svg"
+                                tooltip: "快退 5 秒"
+                                normalColor: "#ffffff"
+                                hoverColor: "#f1f5f9"
+                                borderColor: "#cbd5e1"
+                                onClicked: {
+                                    var p = videoDisplayLoader.item
+                                    if (p) p.position = Math.max(0, p.position - 5000)
+                                }
+                            }
+
+                            IconButton {
                                 id: playBtn
                                 implicitWidth: 32
                                 implicitHeight: 32
@@ -711,6 +754,20 @@ Pane {
                                         else
                                             p.play()
                                     }
+                                }
+                            }
+
+                            IconButton {
+                                implicitWidth: 26
+                                implicitHeight: 26
+                                iconSource: "qrc:/icons/video-seekadd.svg"
+                                tooltip: "快进 5 秒"
+                                normalColor: "#ffffff"
+                                hoverColor: "#f1f5f9"
+                                borderColor: "#cbd5e1"
+                                onClicked: {
+                                    var p = videoDisplayLoader.item
+                                    if (p) p.position = Math.min(p.duration, p.position + 5000)
                                 }
                             }
 
@@ -1008,6 +1065,19 @@ Pane {
                 controller.shiftForward(500)
             else
                 controller.shiftForward(root.stepMs)
+        }
+    }
+
+    Keys.onPressed: {
+        if (hasVideo) {
+            var p = videoDisplayLoader.item
+            if (event.key === Qt.Key_A) {
+                if (p) p.position = Math.max(0, p.position - 5000)
+                event.accepted = true
+            } else if (event.key === Qt.Key_D) {
+                if (p) p.position = Math.min(p.duration, p.position + 5000)
+                event.accepted = true
+            }
         }
     }
 
