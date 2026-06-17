@@ -326,6 +326,9 @@ void SubBrowserController::onSearchProcessFinished(int exitCode, QProcess::ExitS
 {
     m_searchTimer->stop();
 
+    if (!m_searchProcess)
+        return;
+
     QByteArray out = m_searchProcess->readAllStandardOutput();
     QByteArray err = m_searchProcess->readAllStandardError();
 
@@ -390,6 +393,10 @@ void SubBrowserController::onSearchProcessFinished(int exitCode, QProcess::ExitS
 void SubBrowserController::onSearchProcessError(QProcess::ProcessError error)
 {
     m_searchTimer->stop();
+
+    if (!m_searchProcess)
+        return;
+
     QString msg = (error == QProcess::FailedToStart)
         ? QStringLiteral("Python 进程启动失败，请确认已安装 Python")
         : QStringLiteral("Python 进程错误");
@@ -397,7 +404,7 @@ void SubBrowserController::onSearchProcessError(QProcess::ProcessError error)
     m_searching = false;
     emit searchingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
     if (m_logger) m_logger->error("SubBrowser: " + msg);
-    if (m_searchProcess) { m_searchProcess->deleteLater(); m_searchProcess = nullptr; }
+    m_searchProcess->deleteLater(); m_searchProcess = nullptr;
 }
 
 void SubBrowserController::stopSearch()
@@ -486,6 +493,9 @@ void SubBrowserController::onDownloadProcessFinished(int exitCode, QProcess::Exi
 {
     m_downloadTimer->stop();
 
+    if (!m_downloadProcess)
+        return;
+
     if (exitStatus != QProcess::NormalExit || exitCode != 0) {
         QByteArray err = m_downloadProcess->readAllStandardError();
         m_searchStatus = QStringLiteral("下载失败: %1").arg(QString::fromUtf8(err).trimmed());
@@ -524,13 +534,17 @@ void SubBrowserController::onDownloadProcessFinished(int exitCode, QProcess::Exi
 void SubBrowserController::onDownloadProcessError(QProcess::ProcessError error)
 {
     m_downloadTimer->stop();
+
+    if (!m_downloadProcess)
+        return;
+
     QString msg = (error == QProcess::FailedToStart)
         ? QStringLiteral("Python 进程启动失败")
         : QStringLiteral("下载进程错误");
     m_searchStatus = msg;
     m_downloading = false;
     emit downloadingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
-    if (m_downloadProcess) { m_downloadProcess->deleteLater(); m_downloadProcess = nullptr; }
+    m_downloadProcess->deleteLater(); m_downloadProcess = nullptr;
 }
 
 void SubBrowserController::onDownloadTimeout()
