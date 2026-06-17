@@ -30,6 +30,11 @@ QString VideoSubtitlePlugin::iconName() const
     return "subtitle";
 }
 
+QString VideoSubtitlePlugin::category() const
+{
+    return QStringLiteral("字幕处理");
+}
+
 int VideoSubtitlePlugin::order() const
 {
     return 4;

@@ -28,6 +28,11 @@ QString ImageConverterPlugin::iconName() const
     return "image";
 }
 
+QString ImageConverterPlugin::category() const
+{
+    return QStringLiteral("图片处理");
+}
+
 int ImageConverterPlugin::order() const
 {
     return 2;

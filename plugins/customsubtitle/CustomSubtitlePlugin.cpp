@@ -27,6 +27,11 @@ QString CustomSubtitlePlugin::iconName() const
     return "custom-subtitle";
 }
 
+QString CustomSubtitlePlugin::category() const
+{
+    return QStringLiteral("字幕处理");
+}
+
 int CustomSubtitlePlugin::order() const
 {
     return 5;

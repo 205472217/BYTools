@@ -20,6 +20,7 @@ public:
     QString name() const override;
     QString description() const override;
     QString iconName() const override;
+    QString category() const override;
     int order() const override;
 
     void initialize() override;

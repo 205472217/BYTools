@@ -27,6 +27,11 @@ QString NameConverterPlugin::iconName() const
     return "translate";
 }
 
+QString NameConverterPlugin::category() const
+{
+    return QStringLiteral("文件处理");
+}
+
 int NameConverterPlugin::order() const
 {
     return 0;

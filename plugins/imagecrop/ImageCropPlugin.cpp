@@ -28,6 +28,11 @@ QString ImageCropPlugin::iconName() const
     return "crop";
 }
 
+QString ImageCropPlugin::category() const
+{
+    return QStringLiteral("图片处理");
+}
+
 int ImageCropPlugin::order() const
 {
     return 3;

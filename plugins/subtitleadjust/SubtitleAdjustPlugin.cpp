@@ -26,6 +26,11 @@ QString SubtitleAdjustPlugin::iconName() const
     return "eye";
 }
 
+QString SubtitleAdjustPlugin::category() const
+{
+    return QStringLiteral("字幕处理");
+}
+
 int SubtitleAdjustPlugin::order() const
 {
     return 6;

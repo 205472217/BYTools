@@ -10,3 +10,8 @@ QVariantList AppController::features() const
 {
     return PluginManager::instance()->plugins();
 }
+
+QStringList AppController::pluginCategories() const
+{
+    return PluginManager::instance()->pluginCategories();
+}

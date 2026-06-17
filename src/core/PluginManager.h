@@ -12,11 +12,13 @@ class PluginManager : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QVariantList plugins READ plugins NOTIFY pluginsChanged)
+    Q_PROPERTY(QStringList pluginCategories READ pluginCategories NOTIFY pluginsChanged)
 
 public:
     static PluginManager* instance();
 
     QVariantList plugins() const;
+    QStringList pluginCategories() const;
     QStringList loadPlugins(const QString &pluginPath = QString());
     Q_INVOKABLE QObject* getPlugin(const QString &id);
     Q_INVOKABLE QObject* getPluginSettings(const QString &id);

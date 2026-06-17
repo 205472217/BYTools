@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QPluginLoader>
 #include <QVariantMap>
+#include <QSet>
 #include <QCoreApplication>
 #include <QDebug>
 #include <algorithm>
@@ -40,9 +41,21 @@ QVariantList PluginManager::plugins() const
         item["name"] = plugin->name();
         item["description"] = plugin->description();
         item["iconName"] = plugin->iconName();
+        item["category"] = plugin->category();
         result.append(item);
     }
     return result;
+}
+
+QStringList PluginManager::pluginCategories() const
+{
+    QSet<QString> categories;
+    for (auto plugin : m_plugins.values()) {
+        categories.insert(plugin->category());
+    }
+    QStringList sorted = categories.values();
+    std::sort(sorted.begin(), sorted.end());
+    return sorted;
 }
 
 void PluginManager::loadPluginsFromDir(const QDir &dir, const QStringList &filters, QStringList &loadedPlugins)

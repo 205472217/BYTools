@@ -28,6 +28,11 @@ QString BatchRenamePlugin::iconName() const
     return "rename";
 }
 
+QString BatchRenamePlugin::category() const
+{
+    return QStringLiteral("文件处理");
+}
+
 int BatchRenamePlugin::order() const
 {
     return 1;
