@@ -46,6 +46,29 @@ inline bool isVideoFile(const QString &fileName)
     return false;
 }
 
+// ── 路径前缀替换 ──────────────────────────────────────────
+// 用于重命名后更新记录中的路径
+
+inline bool replacePathPrefix(QString &path, const QString &fromPrefix, const QString &toPrefix)
+{
+    const QString cleanedPath = QDir::cleanPath(path);
+    const QString cleanedFrom = QDir::cleanPath(fromPrefix);
+    const QString cleanedTo = QDir::cleanPath(toPrefix);
+    const QString childPrefix = cleanedFrom + QLatin1Char('/');
+
+    if (cleanedPath.compare(cleanedFrom, Qt::CaseInsensitive) == 0) {
+        path = cleanedTo;
+        return true;
+    }
+
+    if (cleanedPath.startsWith(childPrefix, Qt::CaseInsensitive)) {
+        path = cleanedTo + cleanedPath.mid(cleanedFrom.length());
+        return true;
+    }
+
+    return false;
+}
+
 // ── 自然排序 ──────────────────────────────────────────────
 // 替代重复 7 次的 QCollator + std::sort 模式
 

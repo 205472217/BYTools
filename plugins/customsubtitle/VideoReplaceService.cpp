@@ -9,6 +9,8 @@
 #include <QFile>
 #include <QAtomicInt>
 #include <QCoreApplication>
+#include <QStandardPaths>
+#include <QUuid>
 
 // ── 辅助函数（定义在使用前） ──
 
@@ -202,35 +204,51 @@ void VideoReplaceService::doWork()
         emit logMessage(QString("[%1/%2] 替换: %3")
             .arg(i + 1).arg(m_items.size()).arg(origFi.fileName()));
 
-        // 备份（如果需要）
-        if (m_backupOriginal) {
-            QString backupPath = origFi.absolutePath() + "/" + origFi.completeBaseName() + "_backup." + origFi.suffix();
-            if (QFile::copy(item.originalPath, backupPath)) {
-                emit logMessage("  [备份] 已备份原文件: " + backupPath);
-                m_logger->info(QString("  [备份] %1 → %2").arg(item.originalPath, backupPath));
+        // === 替换逻辑：先备份到系统临时目录，替换成功后再删除 ===
+        QString tempBackupPath;
+        {
+            QString tempDir = QDir::cleanPath(
+                QStandardPaths::writableLocation(QStandardPaths::TempLocation))
+                + "/BYTools_replace_backup";
+            QDir().mkpath(tempDir);
+            tempBackupPath = tempDir + "/" + QUuid::createUuid().toString(QUuid::WithoutBraces)
+                             + "_" + origFi.fileName();
+            if (!QFile::copy(item.originalPath, tempBackupPath)) {
+                tempBackupPath.clear();
+                emit logMessage("  [警告] 临时备份失败");
+                m_logger->warn(QString("  [备份] 临时备份失败: %1").arg(item.originalPath));
             } else {
-                emit logMessage("  [警告] 备份失败（跳过）");
-                m_logger->warn(QString("  [备份] 失败: %1").arg(item.originalPath));
+                m_logger->info(QString("  [备份] 已备份到: %1").arg(tempBackupPath));
             }
         }
 
-        // === 替换逻辑：同 Python 的 os.replace(burned, original) ===
-        // 策略：优先尝试 rename（同盘原子操作，瞬间完成），失败则降级为 copy
         bool replaced = false;
         bool usedCopy = false;
 
-        // Qt 的 QFile::rename 不覆盖已存在文件，所以先删原文件
         QFile::remove(item.originalPath);
         if (QFile::rename(item.mergedPath, item.originalPath)) {
-            // ✓ rename 成功 — 同盘原子操作，瞬间完成，已自动删除 merged 文件
             replaced = true;
             usedCopy = false;
         } else if (QFile::copy(item.mergedPath, item.originalPath)) {
-            // rename 失败（跨盘等）→ 降级为 copy + 删 merged
             QFile::remove(item.mergedPath);
             replaced = true;
             usedCopy = true;
         }
+
+        // 替换失败且有备份 → 从临时目录还原
+        if (!replaced && !tempBackupPath.isEmpty()) {
+            if (QFile::copy(tempBackupPath, item.originalPath)) {
+                emit logMessage("  [还原] 已从临时备份还原");
+                m_logger->info(QString("  [还原] %1 ← %2").arg(item.originalPath, tempBackupPath));
+            } else {
+                emit logMessage("  [严重] 还原失败！原文件在: " + tempBackupPath);
+                m_logger->error(QString("  [还原] 失败: %1 ← %2").arg(item.originalPath, tempBackupPath));
+            }
+        }
+
+        // 替换成功后删除临时备份
+        if (replaced && !tempBackupPath.isEmpty())
+            QFile::remove(tempBackupPath);
 
         if (replaced) {
             if (usedCopy) {
@@ -274,7 +292,10 @@ void VideoReplaceService::doWork()
                 }
             }
 
-            m_successCount++;
+            {
+                QMutexLocker lock(&m_mutex);
+                m_successCount++;
+            }
         } else {
             QString errMsg = QString("  ✗ 替换失败: %1 (%2 MB)")
                 .arg(origFi.fileName())
@@ -284,13 +305,23 @@ void VideoReplaceService::doWork()
                 .arg(item.originalPath)
                 .arg(origSize / 1024.0 / 1024.0, 0, 'f', 2)
                 .arg(mergedSize / 1024.0 / 1024.0, 0, 'f', 2));
-            m_failCount++;
+            {
+                QMutexLocker lock(&m_mutex);
+                m_failCount++;
+            }
         }
 
         emit progress(double(i + 1) / m_items.size());
     }
 
     // ── 最终统计（同 Python 2字幕烧录后覆盖原文件.py）──
+    int failed;
+    int succeeded;
+    {
+        QMutexLocker lock(&m_mutex);
+        succeeded = m_successCount;
+        failed = m_failCount;
+    }
     int unmatched = m_totalVideoCount - m_items.size();
     QString summary = QString(
         "═══════════════════════════════════════\n"
@@ -310,8 +341,8 @@ void VideoReplaceService::doWork()
         "详情请查看日志文件")
         .arg(m_totalVideoCount)
         .arg(m_items.size())
-        .arg(m_successCount)
-        .arg(m_failCount)
+        .arg(succeeded)
+        .arg(failed)
         .arg(unmatched)
         .arg(m_videoDir, m_mergedDir)
         .arg(m_removeSrt ? "是" : "否");
@@ -321,7 +352,7 @@ void VideoReplaceService::doWork()
 
     emit finished(m_cancelled.loadRelaxed() == 0,
                   QString("替换完成: 成功 %1, 失败 %2, 总计 %3")
-                      .arg(m_successCount).arg(m_failCount).arg(m_items.size()));
+                      .arg(succeeded).arg(failed).arg(m_items.size()));
 
     // 不在这里设 m_workerRunning = false，让 QThread::finished 信号在
     // 主线程中通过 lambda 来设置，避免跨线程 data race

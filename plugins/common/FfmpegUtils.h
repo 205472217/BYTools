@@ -52,10 +52,6 @@ QString ffmpegVersion(const QString &ffmpegPath);
 /// 获取视频时长（毫秒），失败返回 0
 qint64 getVideoDuration(const QString &ffmpegPath, const QString &videoPath);
 
-/// 获取视频文件的平均码率（bps），基于文件大小 / 时长计算
-/// 失败时返回 0
-qint64 getVideoBitrate(const QString &ffmpegPath, const QString &videoPath);
-
 /// 获取视频流的编码码率（bps），基于 ffmpeg -i 输出解析
 /// 优先读取视频流码率（如 "1048 kb/s"），回退到总码率估算音频后取值，失败返回 0
 /// 相比 getVideoBitrate，这个值不包含音频码率，更适合传给 -b:v

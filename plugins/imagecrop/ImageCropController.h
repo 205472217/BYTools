@@ -105,6 +105,16 @@ public:
     Q_INVOKABLE void clearRecords();
     Q_INVOKABLE void reset();
 
+    // Crop calculation helpers (moved from QML business logic)
+    Q_INVOKABLE double calcEffectiveRatio() const;
+    Q_INVOKABLE QVariantMap constrainToRatio(double rawW, double rawH) const;
+    Q_INVOKABLE QVariantMap calcDisplayDimensions(int containerW, int containerH, int srcW, int srcH);
+    Q_INVOKABLE QVariantMap calcInitCropRect(int dispW, int dispH, int srcW, int srcH) const;
+    Q_INVOKABLE QVariantMap clampCropRect(int cropX, int cropY, int cropW, int cropH, int dispW, int dispH);
+    Q_INVOKABLE void syncCropToController(int cropX, int cropY, int cropW, int cropH, int dispW, int dispH, int srcW, int srcH);
+    Q_INVOKABLE int hitTest(int mx, int my, int cropX, int cropY, int cropW, int cropH, int cornerHitSize) const;
+    Q_INVOKABLE static QString extractFileName(const QString &filePath);
+
 signals:
     void rootPathChanged();
     void recursiveChanged();

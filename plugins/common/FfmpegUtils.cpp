@@ -47,7 +47,7 @@ GpuVendor detectGpuVendor(const QString &ffmpegPath)
     // 1. 查询 ffmpeg 编译了哪些 GPU 编码器
     QProcess proc;
     proc.start(ffmpegPath, {"-encoders"});
-    if (!proc.waitForFinished(15000) || proc.exitCode() != 0)
+    if (!proc.waitForStarted(3000) || !proc.waitForFinished(15000) || proc.exitCode() != 0)
         return GpuVendor::None;
 
     QString output = QString::fromUtf8(proc.readAllStandardOutput());
@@ -98,7 +98,7 @@ QString detectInputCodec(const QString &ffmpegPath, const QString &videoPath)
 
     QProcess proc;
     proc.start(ffmpegPath, {"-i", videoPath});
-    if (!proc.waitForFinished(10000))
+    if (!proc.waitForStarted(3000) || !proc.waitForFinished(10000))
         return "h264";
 
     QString output = QString::fromUtf8(proc.readAllStandardError());
@@ -288,7 +288,8 @@ qint64 getVideoDuration(const QString &ffmpegPath, const QString &videoPath)
 
     QProcess proc;
     proc.start(ffmpegPath, {"-i", videoPath});
-    proc.waitForFinished(10000);
+    if (!proc.waitForStarted(3000) || !proc.waitForFinished(10000))
+        return 0;
 
     QString output = QString::fromUtf8(proc.readAllStandardError());
     QRegularExpression re(R"(Duration:\s*(\d{2}):(\d{2}):(\d{2})\.(\d{2}))");
@@ -303,27 +304,6 @@ qint64 getVideoDuration(const QString &ffmpegPath, const QString &videoPath)
     return (hours * 3600 + minutes * 60 + seconds) * 1000 + centiseconds * 10;
 }
 
-// ── getVideoBitrate ───────────────────────────────────────
-
-qint64 getVideoBitrate(const QString &ffmpegPath, const QString &videoPath)
-{
-    if (ffmpegPath.isEmpty() || videoPath.isEmpty())
-        return 0;
-
-    QFileInfo fi(videoPath);
-    qint64 fileSizeBytes = fi.size();
-    if (fileSizeBytes <= 0)
-        return 0;
-
-    qint64 durationMs = getVideoDuration(ffmpegPath, videoPath);
-    if (durationMs <= 0)
-        return 0;
-
-    // 码率 = 文件大小(bytes) × 8 / 时长(秒)
-    double durationSec = static_cast<double>(durationMs) / 1000.0;
-    return static_cast<qint64>(static_cast<double>(fileSizeBytes) * 8.0 / durationSec);
-}
-
 // ── getVideoStreamBitrate ──────────────────────────────────
 
 qint64 getVideoStreamBitrate(const QString &ffmpegPath, const QString &videoPath)
@@ -333,7 +313,7 @@ qint64 getVideoStreamBitrate(const QString &ffmpegPath, const QString &videoPath
 
     QProcess proc;
     proc.start(ffmpegPath, {"-i", videoPath});
-    if (!proc.waitForFinished(10000))
+    if (!proc.waitForStarted(3000) || !proc.waitForFinished(10000))
         return 0;
 
     QString output = QString::fromUtf8(proc.readAllStandardError());

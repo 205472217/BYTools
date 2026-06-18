@@ -1,30 +1,5 @@
 #include "NamePreviewModel.h"
-
-#include <QDir>
-
-namespace {
-
-bool replacePrefix(QString &path, const QString &fromPrefix, const QString &toPrefix)
-{
-    const QString cleanedPath = QDir::cleanPath(path);
-    const QString cleanedFrom = QDir::cleanPath(fromPrefix);
-    const QString cleanedTo = QDir::cleanPath(toPrefix);
-    const QString childPrefix = cleanedFrom + QLatin1Char('/');
-
-    if (cleanedPath.compare(cleanedFrom, Qt::CaseInsensitive) == 0) {
-        path = cleanedTo;
-        return true;
-    }
-
-    if (cleanedPath.startsWith(childPrefix, Qt::CaseInsensitive)) {
-        path = cleanedTo + cleanedPath.mid(cleanedFrom.length());
-        return true;
-    }
-
-    return false;
-}
-
-}
+#include "Config.h"
 
 NamePreviewModel::NamePreviewModel(QObject *parent)
     : QAbstractListModel(parent)
@@ -119,8 +94,8 @@ void NamePreviewModel::replacePathPrefix(const QString &fromPrefix, const QStrin
 
     bool changed = false;
     for (auto &item : m_items) {
-        changed = replacePrefix(item.currentPath, fromPrefix, toPrefix) || changed;
-        changed = replacePrefix(item.newPath, fromPrefix, toPrefix) || changed;
+        changed = ::replacePathPrefix(item.currentPath, fromPrefix, toPrefix) || changed;
+        changed = ::replacePathPrefix(item.newPath, fromPrefix, toPrefix) || changed;
     }
 
     if (!changed) {

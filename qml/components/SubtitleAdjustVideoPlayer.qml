@@ -30,7 +30,7 @@ Item {
     }
 
     onVisibleChanged: {
-        if (!root.visible && mediaPlayer.playbackState === 1)
+        if (!root.visible && mediaPlayer.playbackState === MediaPlayer.PlayingState)
             mediaPlayer.pause()
     }
 }

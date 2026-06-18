@@ -624,24 +624,24 @@ Pane {
                             y: 14
                             height: 22
                             radius: 4
-                            color: modelData.formatTag === "PNG" ? "#dbeafe" :
-                                   modelData.formatTag === "JPG" ? "#d1fae5" :
-                                   modelData.formatTag === "BMP" ? "#f3e8ff" :
-                                   modelData.formatTag === "WEBP" ? "#fef3c7" :
-                                   modelData.formatTag === "TIFF" ? "#fce7f3" :
-                                   modelData.formatTag === "GIF" ? "#fef3c7" : "#f1f5f9"
+                            color: modelData.formatTag && modelData.formatTag === "PNG" ? "#dbeafe" :
+                                   modelData.formatTag && modelData.formatTag === "JPG" ? "#d1fae5" :
+                                   modelData.formatTag && modelData.formatTag === "BMP" ? "#f3e8ff" :
+                                   modelData.formatTag && modelData.formatTag === "WEBP" ? "#fef3c7" :
+                                   modelData.formatTag && modelData.formatTag === "TIFF" ? "#fce7f3" :
+                                   modelData.formatTag && modelData.formatTag === "GIF" ? "#fef3c7" : "#f1f5f9"
 
                             Label {
                                 anchors.centerIn: parent
                                 text: modelData.formatTag
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: modelData.formatTag === "PNG" ? "#2563eb" :
-                                       modelData.formatTag === "JPG" ? "#0f766e" :
-                                       modelData.formatTag === "BMP" ? "#7c3aed" :
-                                       modelData.formatTag === "WEBP" ? "#b45309" :
-                                       modelData.formatTag === "TIFF" ? "#be185d" :
-                                       modelData.formatTag === "GIF" ? "#b45309" : "#64748b"
+                                color: modelData.formatTag && modelData.formatTag === "PNG" ? "#2563eb" :
+                                       modelData.formatTag && modelData.formatTag === "JPG" ? "#0f766e" :
+                                       modelData.formatTag && modelData.formatTag === "BMP" ? "#7c3aed" :
+                                       modelData.formatTag && modelData.formatTag === "WEBP" ? "#b45309" :
+                                       modelData.formatTag && modelData.formatTag === "TIFF" ? "#be185d" :
+                                       modelData.formatTag && modelData.formatTag === "GIF" ? "#b45309" : "#64748b"
                             }
                         }
 
@@ -697,18 +697,6 @@ Pane {
                             elide: Text.ElideMiddle
                         }
 
-                        IconButton {
-                            x: root.actionColumnX
-                            width: root.actionColumnWidth
-                            anchors.verticalCenter: parent.verticalCenter
-                            iconSource: "qrc:/icons/undo.svg"
-                            tooltip: "还原"
-                            visible: modelData.status === "已转换"
-                            enabled: modelData.status === "已转换"
-                            onClicked: {
-                                // 还原：从新文件恢复原文件
-                            }
-                        }
 
                         MouseArea {
                             id: rowMouseArea

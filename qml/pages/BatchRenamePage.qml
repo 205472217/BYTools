@@ -596,20 +596,20 @@ Pane {
                             y: 14
                             height: 22
                             radius: 4
-                            color: modelData.fileType.startsWith("视频") ? "#f3e8ff" :
-                                   modelData.fileType.startsWith("图片") ? "#d1fae5" :
-                                   modelData.fileType.startsWith("音频") ? "#fef3c7" :
-                                   modelData.fileType.startsWith("文本") ? "#dbeafe" : "#f1f5f9"
+                            color: modelData.fileType && modelData.fileType.startsWith("视频") ? "#f3e8ff" :
+                                   modelData.fileType && modelData.fileType.startsWith("图片") ? "#d1fae5" :
+                                   modelData.fileType && modelData.fileType.startsWith("音频") ? "#fef3c7" :
+                                   modelData.fileType && modelData.fileType.startsWith("文本") ? "#dbeafe" : "#f1f5f9"
 
                             Label {
                                 anchors.centerIn: parent
                                 text: modelData.fileType
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: modelData.fileType.startsWith("视频") ? "#7c3aed" :
-                                       modelData.fileType.startsWith("图片") ? "#0f766e" :
-                                       modelData.fileType.startsWith("音频") ? "#b45309" :
-                                       modelData.fileType.startsWith("文本") ? "#2563eb" : "#64748b"
+                                color: modelData.fileType && modelData.fileType.startsWith("视频") ? "#7c3aed" :
+                                       modelData.fileType && modelData.fileType.startsWith("图片") ? "#0f766e" :
+                                       modelData.fileType && modelData.fileType.startsWith("音频") ? "#b45309" :
+                                       modelData.fileType && modelData.fileType.startsWith("文本") ? "#2563eb" : "#64748b"
                             }
                         }
 

@@ -161,74 +161,6 @@ Pane {
         dispH = Math.round(srcH * s);
     }
 
-    // ── Helper: extract filename from path ──────────────────────────────
-    function fileNameFromPath(filePath) {
-        if (!filePath || filePath.length === 0)
-            return "";
-        var p = filePath.replace(/\\/g, "/");
-        var idx = p.lastIndexOf("/");
-        if (idx >= 0)
-            p = p.substring(idx + 1);
-        return p;
-    }
-
-    // ── Helper: current effective aspect ratio ─────────────────────────
-    // Returns >0 for locked ratio, 0 for free ratio or pixel mode
-    function effectiveRatio() {
-        if (!controller)
-            return 1;
-        if (controller.cropMode === 0) {
-            if (controller.usePresetRatio) {
-                // Index 5 = "自由" (free ratio)
-                if (controller.presetRatioIndex === 4)
-                    return 0;
-                var ratios = [[1, 1], [4, 3], [16, 9], [9, 16]];
-                var idx = controller.presetRatioIndex;
-                if (idx >= 0 && idx < ratios.length) {
-                    return ratios[idx][0] / ratios[idx][1];
-                }
-                return 1;
-            } else {
-                var cw = controller.customRatioW;
-                var ch = controller.customRatioH;
-                return (cw > 0 && ch > 0) ? cw / ch : 1;
-            }
-        }
-        return 0; // pixel mode
-    }
-
-    function isFreeRatio() {
-        return effectiveRatio() === 0;
-    }
-
-    // ── Constrain w/h to current ratio ─────────────────────────────────
-    // rawW/rawH = distance from fixed corner to mouse
-    function constrainToRatio(rawW, rawH) {
-        var ratio = effectiveRatio();
-        if (ratio <= 0)
-            return {
-                w: Math.max(20, rawW),
-                h: Math.max(20, rawH)
-            };
-
-        // Project (rawW, rawH) onto ratio diagonal direction (ratio, 1)
-        var t = (rawW * ratio + rawH) / (ratio * ratio + 1);
-        var nw = Math.round(t * ratio);
-        var nh = Math.round(t);
-        if (nw < 20) {
-            nw = 20;
-            nh = Math.round(nw / ratio);
-        }
-        if (nh < 20) {
-            nh = 20;
-            nw = Math.round(nh * ratio);
-        }
-        return {
-            w: nw,
-            h: nh
-        };
-    }
-
     // ── Initialize crop when image loads ───────────────────────────────
     function initImage() {
         if (!controller)
@@ -251,70 +183,28 @@ Pane {
     }
 
     function initCrop() {
-        if (dispW <= 0 || dispH <= 0) {
+        if (!controller || dispW <= 0 || dispH <= 0) {
             cropReady = false;
             return;
         }
-        if (controller && controller.cropMode === 1) {
-            // Pixel mode: map target pixels to screen
-            var scaleX = dispW / srcW;
-            var scaleY = dispH / srcH;
-            var pw = controller.targetWidth * scaleX;
-            var ph = controller.targetHeight * scaleY;
-            pw = Math.min(pw, dispW);
-            ph = Math.min(ph, dispH);
-            cropW = Math.round(pw);
-            cropH = Math.round(ph);
+        var result = controller.calcInitCropRect(Math.round(dispW), Math.round(dispH), Math.round(srcW), Math.round(srcH));
+        if (result.cropReady) {
+            cropX = result.x;
+            cropY = result.y;
+            cropW = result.w;
+            cropH = result.h;
+            cropReady = true;
+            imageCanvas.requestPaint();
         } else {
-            var r = effectiveRatio();
-            if (r > 0) {
-                // Ratio mode: fit largest rectangle with target ratio
-                var fitW = dispH * r;
-                if (fitW <= dispW) {
-                    cropW = Math.round(fitW);
-                    cropH = Math.round(dispH);
-                } else {
-                    cropW = Math.round(dispW);
-                    cropH = Math.round(dispW / r);
-                }
-            } else {
-                // Free ratio: use full display area
-                cropW = Math.round(dispW);
-                cropH = Math.round(dispH);
-            }
+            cropReady = false;
         }
-        cropX = Math.round((dispW - cropW) / 2);
-        cropY = Math.round((dispH - cropH) / 2);
-        cropReady = true;
-        imageCanvas.requestPaint();
-    }
-
-    // ── Clamp crop area to display bounds ──────────────────────────────
-    function clampCrop() {
-        if (!cropReady)
-            return;
-        cropW = Math.max(20, Math.min(cropW, dispW));
-        cropH = Math.max(20, Math.min(cropH, dispH));
-        cropX = Math.max(0, Math.min(cropX, dispW - cropW));
-        cropY = Math.max(0, Math.min(cropY, dispH - cropH));
     }
 
     // ── Sync crop state to controller ──────────────────────────────────
     function syncCropToController() {
         if (!controller || !cropReady || !srcW || !srcH)
             return;
-        var scaleX = srcW / dispW;
-        var scaleY = srcH / dispH;
-        controller.cropX = Math.round(cropX * scaleX);
-        controller.cropY = Math.round(cropY * scaleY);
-        if (controller.cropMode === 1) {
-            // Pixel mode: use exact target dimensions, no rounding error
-            controller.cropW = controller.targetWidth;
-            controller.cropH = controller.targetHeight;
-        } else {
-            controller.cropW = Math.round(cropW * scaleX);
-            controller.cropH = Math.round(cropH * scaleY);
-        }
+        controller.syncCropToController(Math.round(cropX), Math.round(cropY), Math.round(cropW), Math.round(cropH), Math.round(dispW), Math.round(dispH), Math.round(srcW), Math.round(srcH));
     }
 
     // ── Navigation ─────────────────────────────────────────────────────
@@ -672,23 +562,6 @@ Pane {
                                     property real startCropH: 0
                                     property real cornerHitSize: 14
 
-                                    function hitTest(mx, my) {
-                                        var ch = cornerHitSize;
-                                        // Corners first (higher priority)
-                                        if (Math.abs(mx - root.cropX) < ch && Math.abs(my - root.cropY) < ch)
-                                            return 2;
-                                        if (Math.abs(mx - (root.cropX + root.cropW)) < ch && Math.abs(my - root.cropY) < ch)
-                                            return 3;
-                                        if (Math.abs(mx - root.cropX) < ch && Math.abs(my - (root.cropY + root.cropH)) < ch)
-                                            return 4;
-                                        if (Math.abs(mx - (root.cropX + root.cropW)) < ch && Math.abs(my - (root.cropY + root.cropH)) < ch)
-                                            return 5;
-                                        // Inside crop → move
-                                        if (mx >= root.cropX && mx <= root.cropX + root.cropW && my >= root.cropY && my <= root.cropY + root.cropH)
-                                            return 1;
-                                        return 0;
-                                    }
-
                                     function cursorForMode(mode) {
                                         if (mode === 1)
                                             return Qt.SizeAllCursor;
@@ -702,7 +575,7 @@ Pane {
                                             return Qt.SizeFDiagCursor; // BR
                                         if (!containsMouse)
                                             return Qt.ArrowCursor;
-                                        var h = hitTest(mouseX, mouseY);
+                                        var h = controller ? controller.hitTest(mouseX, mouseY, root.cropX, root.cropY, root.cropW, root.cropH, cornerHitSize) : 0;
                                         if (h === 1)
                                             return Qt.SizeAllCursor;
                                         if (h === 2 || h === 5)
@@ -715,7 +588,7 @@ Pane {
                                     cursorShape: cursorForMode(dragMode > 0 ? dragMode : 0)
 
                                     onPressed: function (mouse) {
-                                        var mode = hitTest(mouse.x, mouse.y);
+                                        var mode = controller ? controller.hitTest(mouse.x, mouse.y, root.cropX, root.cropY, root.cropW, root.cropH, cornerHitSize) : 0;
                                         if (mode === 0)
                                             return;
                                         dragMode = mode;
@@ -744,18 +617,18 @@ Pane {
                                             // TL — fixed corner is BR
                                             nw = startCropW - dx;
                                             nh = startCropH - dy;
-                                            c = root.constrainToRatio(nw, nh);
+                                            c = controller ? controller.constrainToRatio(nw, nh) : {w: nw, h: nh};
                                             nw = c.w;
                                             nh = c.h;
                                             maxW = startCropX + startCropW;
                                             maxH = startCropY + startCropH;
                                             if (nw > maxW) {
                                                 nw = maxW;
-                                                nh = Math.round(nw / root.effectiveRatio()) || nh;
+                                                nh = Math.round(nw / (controller ? controller.calcEffectiveRatio() : 1)) || nh;
                                             }
                                             if (nh > maxH) {
                                                 nh = maxH;
-                                                nw = Math.round(nh * root.effectiveRatio()) || nw;
+                                                nw = Math.round(nh * (controller ? controller.calcEffectiveRatio() : 1)) || nw;
                                             }
                                             root.cropX = maxW - nw;
                                             root.cropY = maxH - nh;
@@ -765,18 +638,18 @@ Pane {
                                             // TR — fixed corner is BL
                                             nw = startCropW + dx;
                                             nh = startCropH - dy;
-                                            c = root.constrainToRatio(nw, nh);
+                                            c = controller ? controller.constrainToRatio(nw, nh) : {w: nw, h: nh};
                                             nw = c.w;
                                             nh = c.h;
                                             maxW = root.dispW - startCropX;
                                             maxH = startCropY + startCropH;
                                             if (nw > maxW) {
                                                 nw = maxW;
-                                                nh = Math.round(nw / root.effectiveRatio()) || nh;
+                                                nh = Math.round(nw / (controller ? controller.calcEffectiveRatio() : 1)) || nh;
                                             }
                                             if (nh > maxH) {
                                                 nh = maxH;
-                                                nw = Math.round(nh * root.effectiveRatio()) || nw;
+                                                nw = Math.round(nh * (controller ? controller.calcEffectiveRatio() : 1)) || nw;
                                             }
                                             root.cropX = startCropX;
                                             root.cropY = maxH - nh;
@@ -786,18 +659,18 @@ Pane {
                                             // BL — fixed corner is TR
                                             nw = startCropW - dx;
                                             nh = startCropH + dy;
-                                            c = root.constrainToRatio(nw, nh);
+                                            c = controller ? controller.constrainToRatio(nw, nh) : {w: nw, h: nh};
                                             nw = c.w;
                                             nh = c.h;
                                             maxW = startCropX + startCropW;
                                             maxH = root.dispH - startCropY;
                                             if (nw > maxW) {
                                                 nw = maxW;
-                                                nh = Math.round(nw / root.effectiveRatio()) || nh;
+                                                nh = Math.round(nw / (controller ? controller.calcEffectiveRatio() : 1)) || nh;
                                             }
                                             if (nh > maxH) {
                                                 nh = maxH;
-                                                nw = Math.round(nh * root.effectiveRatio()) || nw;
+                                                nw = Math.round(nh * (controller ? controller.calcEffectiveRatio() : 1)) || nw;
                                             }
                                             root.cropX = maxW - nw;
                                             root.cropY = startCropY;
@@ -807,18 +680,18 @@ Pane {
                                             // BR — fixed corner is TL
                                             nw = startCropW + dx;
                                             nh = startCropH + dy;
-                                            c = root.constrainToRatio(nw, nh);
+                                            c = controller ? controller.constrainToRatio(nw, nh) : {w: nw, h: nh};
                                             nw = c.w;
                                             nh = c.h;
                                             maxW = root.dispW - startCropX;
                                             maxH = root.dispH - startCropY;
                                             if (nw > maxW) {
                                                 nw = maxW;
-                                                nh = Math.round(nw / root.effectiveRatio()) || nh;
+                                                nh = Math.round(nw / (controller ? controller.calcEffectiveRatio() : 1)) || nh;
                                             }
                                             if (nh > maxH) {
                                                 nh = maxH;
-                                                nw = Math.round(nh * root.effectiveRatio()) || nw;
+                                                nw = Math.round(nh * (controller ? controller.calcEffectiveRatio() : 1)) || nw;
                                             }
                                             root.cropX = startCropX;
                                             root.cropY = startCropY;
@@ -916,7 +789,7 @@ Pane {
                             width: 36
                             height: 60
                             radius: 10
-                            color: prevBtnMouse.containsMouse ? "#DDE4EE" : "#B0000000"
+                            color: prevBtnMouse.containsMouse ? "#DDE4EE" : "#80FFFFFF"
                             visible: controller && controller.currentFileCount > 0
                             opacity: prevBtnMouse.containsMouse ? 1.0 : 0.55
 
@@ -952,7 +825,7 @@ Pane {
                             width: 36
                             height: 60
                             radius: 10
-                            color: nextBtnMouse.containsMouse ? "#DDE4EE" : "#B0000000"
+                            color: nextBtnMouse.containsMouse ? "#DDE4EE" : "#80FFFFFF"
                             visible: controller && controller.currentFileCount > 0
                             opacity: nextBtnMouse.containsMouse ? 1.0 : 0.55
 
@@ -1025,7 +898,7 @@ Pane {
                                 text: {
                                     if (!root.cropReady)
                                         return "";
-                                    var ratio = root.effectiveRatio();
+                                    var ratio = controller ? controller.calcEffectiveRatio() : 0;
                                     if (root.controller && root.controller.cropMode === 0 && ratio > 0) {
                                         return "裁剪比例 " + (ratio >= 1 ? ratio.toFixed(1) : ("1:" + (1 / ratio).toFixed(1)));
                                     } else if (root.controller && root.controller.cropMode === 1) {
@@ -1052,7 +925,7 @@ Pane {
                             Label {
                                 id: fileNameLabel
                                 anchors.centerIn: parent
-                                text: controller ? root.fileNameFromPath(controller.currentFilePath) : ""
+                                text: controller ? controller.extractFileName(controller.currentFilePath) : ""
                                 color: "#94a3b8"
                                 font.pixelSize: 11
                                 elide: Text.ElideMiddle

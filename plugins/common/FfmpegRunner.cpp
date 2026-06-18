@@ -89,6 +89,8 @@ void FfmpegRunner::burnSubtitles(const BurnConfig &config)
     // 设置 ffmpeg 进程为低优先级，避免抢占系统资源
 #ifdef Q_OS_WIN
     connect(m_process, &QProcess::started, this, [this]() {
+        if (!m_process)
+            return;
         HANDLE hProcess = OpenProcess(PROCESS_SET_INFORMATION, FALSE,
                                        (DWORD)m_process->processId());
         if (hProcess) {
@@ -185,6 +187,8 @@ void FfmpegRunner::onProcessFinished(int exitCode, QProcess::ExitStatus exitStat
                 // 同样设置低优先级
 #ifdef Q_OS_WIN
                 connect(m_process, &QProcess::started, this, [this]() {
+                    if (!m_process)
+                        return;
                     HANDLE hProcess = OpenProcess(PROCESS_SET_INFORMATION, FALSE,
                                                    (DWORD)m_process->processId());
                     if (hProcess) {

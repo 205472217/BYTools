@@ -12,7 +12,7 @@
 #include <QSettings>
 #include <QFileInfo>
 #include <QDir>
-#include <QStandardPaths>
+
 
 VideoSubtitleController::VideoSubtitleController(PluginLogger *logger, QObject *parent)
     : QObject(parent)
@@ -461,7 +461,7 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
 
                 setCurrentStep("烧录字幕");
                 setProgress(0.0);
-                disconnect(m_ffmpegService, &FFmpegService::finished, nullptr, nullptr);
+                disconnect(m_ffmpegService, &FFmpegService::finished, this, nullptr);
                 connect(m_ffmpegService, &FFmpegService::finished,
                         this, &VideoSubtitleController::onBurnFinished);
                 m_ffmpegService->startBurnSubtitles(ffmpegPath(), m_currentVideoPath,
@@ -491,7 +491,7 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
         if (wavSize > 1024) {  // 有效音频文件至少 1KB
             m_logger->info(QString("检测到已有音频文件 (%1 bytes)，跳过提取").arg(wavSize));
             emit logMessage("✓ 检测到已有音频文件，跳过提取");
-            disconnect(m_ffmpegService, &FFmpegService::finished, nullptr, nullptr);
+            disconnect(m_ffmpegService, &FFmpegService::finished, this, nullptr);
             connect(m_ffmpegService, &FFmpegService::finished,
                     this, &VideoSubtitleController::onAudioExtracted);
             onAudioExtracted(true, m_currentAudioPath, "");
@@ -507,7 +507,7 @@ void VideoSubtitleController::processSingleFile(const QString &videoPath)
         setCurrentStep("提取音频");
         setProgress(0.0);
         m_logger->info("步骤 1/4: 提取音频 → " + m_currentAudioPath);
-        disconnect(m_ffmpegService, &FFmpegService::finished, nullptr, nullptr);
+        disconnect(m_ffmpegService, &FFmpegService::finished, this, nullptr);
         connect(m_ffmpegService, &FFmpegService::finished,
                 this, &VideoSubtitleController::onAudioExtracted);
         m_ffmpegService->startExtractAudio(ffmpegPath(), videoPath, m_currentAudioPath);
@@ -724,7 +724,7 @@ void VideoSubtitleController::onTranslateFinished(bool success, const QString &s
         setProgress(0.0);
         emit logDetail("烧录字幕...");
         m_logger->info("步骤 4/4: 烧录字幕中...");
-        disconnect(m_ffmpegService, &FFmpegService::finished, nullptr, nullptr);
+        disconnect(m_ffmpegService, &FFmpegService::finished, this, nullptr);
         connect(m_ffmpegService, &FFmpegService::finished,
                 this, &VideoSubtitleController::onBurnFinished);
         m_ffmpegService->startBurnSubtitles(ffmpegPath(), m_currentVideoPath,

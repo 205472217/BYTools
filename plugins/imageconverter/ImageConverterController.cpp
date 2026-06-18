@@ -120,7 +120,7 @@ void ImageConverterController::executeConvert()
 
     QStringList parts;
     if (successCount > 0) parts << QStringLiteral("成功 %1 个").arg(successCount);
-    if (failCount > 0) parts << QStringLiteral("失败 %2 个").arg(failCount);
+    if (failCount > 0) parts << QStringLiteral("失败 %1 个").arg(failCount);
     if (skipCount > 0) parts << QStringLiteral("跳过 %1 个").arg(skipCount);
 
     if (parts.isEmpty()) {

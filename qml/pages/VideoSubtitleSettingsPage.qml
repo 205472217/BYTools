@@ -700,7 +700,7 @@ Pane {
                                 Item { Layout.preferredHeight: 2 }
 
                                 Label {
-                                    text: "步骤 2: 启动服务（仅加载需要的语言: en=英语,zh=中文,ja=日语,ja=日语,ko=韩语）："
+                                    text: "步骤 2: 启动服务（仅加载需要的语言: en=英语,zh=中文,ja=日语,ko=韩语）"
                                     color: "#475569"
                                     font.pixelSize: 12
                                 }

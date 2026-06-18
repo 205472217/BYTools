@@ -35,9 +35,6 @@ public:
     // Format milliseconds to ASS time format "0:01:23.45"
     static QString formatAssTime(qint64 ms);
 
-    // Extract plain text (remove index and time axis)
-    static QStringList extractTexts(const QList<SubtitleEntry> &entries);
-
     // Deduplicate consecutive duplicate text entries (keep first occurrence)
     static QList<SubtitleEntry> deduplicate(const QList<SubtitleEntry> &entries);
 

@@ -1,4 +1,5 @@
 #include "NameService.h"
+#include "Config.h"
 #include "Logger.h"
 
 #include <QDir>
@@ -7,31 +8,11 @@
 
 namespace {
 
-bool replacePrefix(QString &path, const QString &fromPrefix, const QString &toPrefix)
-{
-    const QString cleanedPath = QDir::cleanPath(path);
-    const QString cleanedFrom = QDir::cleanPath(fromPrefix);
-    const QString cleanedTo = QDir::cleanPath(toPrefix);
-    const QString childPrefix = cleanedFrom + QLatin1Char('/');
-
-    if (cleanedPath.compare(cleanedFrom, Qt::CaseInsensitive) == 0) {
-        path = cleanedTo;
-        return true;
-    }
-
-    if (cleanedPath.startsWith(childPrefix, Qt::CaseInsensitive)) {
-        path = cleanedTo + cleanedPath.mid(cleanedFrom.length());
-        return true;
-    }
-
-    return false;
-}
-
 void replaceRecordPrefixes(QList<NamePreviewItem> &records, const QString &fromPrefix, const QString &toPrefix)
 {
     for (auto &record : records) {
-        replacePrefix(record.currentPath, fromPrefix, toPrefix);
-        replacePrefix(record.newPath, fromPrefix, toPrefix);
+        replacePathPrefix(record.currentPath, fromPrefix, toPrefix);
+        replacePathPrefix(record.newPath, fromPrefix, toPrefix);
     }
 }
 

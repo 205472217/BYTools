@@ -512,3 +512,173 @@ QString ImageCropController::buildCropSuffix() const
     if (m_suffix.isEmpty()) return "_cropped";
     return m_suffix;
 }
+
+// ── Crop Calculation Helpers (moved from QML) ──────────────────────────
+
+double ImageCropController::calcEffectiveRatio() const
+{
+    if (m_cropMode == 0) {
+        if (m_usePresetRatio) {
+            if (m_presetRatioIndex == 4)
+                return 0;
+            if (m_presetRatioIndex >= 0 && m_presetRatioIndex < RATIO_COUNT)
+                return PRESET_RATIOS[m_presetRatioIndex][0] / PRESET_RATIOS[m_presetRatioIndex][1];
+            return 1;
+        }
+        return (m_customRatioW > 0 && m_customRatioH > 0)
+            ? static_cast<double>(m_customRatioW) / m_customRatioH : 1;
+    }
+    return 0;
+}
+
+QVariantMap ImageCropController::constrainToRatio(double rawW, double rawH) const
+{
+    constexpr int MIN_SIZE = 20;
+    double ratio = calcEffectiveRatio();
+    QVariantMap result;
+
+    if (ratio <= 0) {
+        result["w"] = qMax(MIN_SIZE, static_cast<int>(rawW));
+        result["h"] = qMax(MIN_SIZE, static_cast<int>(rawH));
+        return result;
+    }
+
+    double t = (rawW * ratio + rawH) / (ratio * ratio + 1);
+    int nw = qRound(t * ratio);
+    int nh = qRound(t);
+
+    if (nw < MIN_SIZE) {
+        nw = MIN_SIZE;
+        nh = qRound(nw / ratio);
+    }
+    if (nh < MIN_SIZE) {
+        nh = MIN_SIZE;
+        nw = qRound(nh * ratio);
+    }
+
+    result["w"] = nw;
+    result["h"] = nh;
+    return result;
+}
+
+QVariantMap ImageCropController::calcDisplayDimensions(int containerW, int containerH, int srcW, int srcH)
+{
+    QVariantMap result;
+    if (containerW <= 0 || containerH <= 0 || srcW <= 0 || srcH <= 0) {
+        result["dispW"] = 0;
+        result["dispH"] = 0;
+        return result;
+    }
+
+    double scaleX = static_cast<double>(containerW) / srcW;
+    double scaleY = static_cast<double>(containerH) / srcH;
+    double s = qMin(scaleX, scaleY);
+
+    result["dispW"] = qRound(srcW * s);
+    result["dispH"] = qRound(srcH * s);
+    return result;
+}
+
+QVariantMap ImageCropController::calcInitCropRect(int dispW, int dispH, int srcW, int srcH) const
+{
+    QVariantMap result;
+    result["cropReady"] = false;
+    if (dispW <= 0 || dispH <= 0)
+        return result;
+
+    int cropX = 0, cropY = 0, cropW = 0, cropH = 0;
+
+    if (m_cropMode == 1) {
+        double scaleX = static_cast<double>(dispW) / qMax(srcW, 1);
+        double scaleY = static_cast<double>(dispH) / qMax(srcH, 1);
+        int pw = qMin(static_cast<int>(m_targetWidth * scaleX), dispW);
+        int ph = qMin(static_cast<int>(m_targetHeight * scaleY), dispH);
+        cropW = pw;
+        cropH = ph;
+    } else {
+        double r = calcEffectiveRatio();
+        if (r > 0) {
+            int fitW = static_cast<int>(dispH * r);
+            if (fitW <= dispW) {
+                cropW = fitW;
+                cropH = dispH;
+            } else {
+                cropW = dispW;
+                cropH = static_cast<int>(dispW / r);
+            }
+        } else {
+            cropW = dispW;
+            cropH = dispH;
+        }
+    }
+
+    cropX = (dispW - cropW) / 2;
+    cropY = (dispH - cropH) / 2;
+
+    result["x"] = cropX;
+    result["y"] = cropY;
+    result["w"] = cropW;
+    result["h"] = cropH;
+    result["cropReady"] = true;
+    return result;
+}
+
+QVariantMap ImageCropController::clampCropRect(int cropX, int cropY, int cropW, int cropH, int dispW, int dispH)
+{
+    QVariantMap result;
+    constexpr int MIN_SIZE = 20;
+
+    cropW = qMax(MIN_SIZE, qMin(cropW, dispW));
+    cropH = qMax(MIN_SIZE, qMin(cropH, dispH));
+    cropX = qMax(0, qMin(cropX, dispW - cropW));
+    cropY = qMax(0, qMin(cropY, dispH - cropH));
+
+    result["x"] = cropX;
+    result["y"] = cropY;
+    result["w"] = cropW;
+    result["h"] = cropH;
+    return result;
+}
+
+void ImageCropController::syncCropToController(int cropX, int cropY, int cropW, int cropH, int dispW, int dispH, int srcW, int srcH)
+{
+    double scaleX = srcW / static_cast<double>(qMax(dispW, 1));
+    double scaleY = srcH / static_cast<double>(qMax(dispH, 1));
+
+    setCropX(qRound(cropX * scaleX));
+    setCropY(qRound(cropY * scaleY));
+
+    if (m_cropMode == 1) {
+        setCropW(m_targetWidth);
+        setCropH(m_targetHeight);
+    } else {
+        setCropW(qRound(cropW * scaleX));
+        setCropH(qRound(cropH * scaleY));
+    }
+}
+
+int ImageCropController::hitTest(int mx, int my, int cropX, int cropY, int cropW, int cropH, int cornerHitSize) const
+{
+    if (qAbs(mx - cropX) < cornerHitSize && qAbs(my - cropY) < cornerHitSize)
+        return 2;
+    if (qAbs(mx - (cropX + cropW)) < cornerHitSize && qAbs(my - cropY) < cornerHitSize)
+        return 3;
+    if (qAbs(mx - cropX) < cornerHitSize && qAbs(my - (cropY + cropH)) < cornerHitSize)
+        return 4;
+    if (qAbs(mx - (cropX + cropW)) < cornerHitSize && qAbs(my - (cropY + cropH)) < cornerHitSize)
+        return 5;
+    if (mx >= cropX && mx <= cropX + cropW && my >= cropY && my <= cropY + cropH)
+        return 1;
+    return 0;
+}
+
+QString ImageCropController::extractFileName(const QString &filePath)
+{
+    if (filePath.isEmpty())
+        return {};
+    QString p = QString(filePath).replace(QLatin1Char('\\'), QLatin1Char('/'));
+    int idx = p.lastIndexOf(QLatin1Char('/'));
+    if (idx >= 0)
+        return p.mid(idx + 1);
+    return p;
+}

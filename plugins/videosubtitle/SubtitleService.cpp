@@ -178,15 +178,6 @@ QString SubtitleService::formatAssTime(qint64 ms)
         .arg(centiseconds, 2, 10, QChar('0'));
 }
 
-QStringList SubtitleService::extractTexts(const QList<SubtitleEntry> &entries)
-{
-    QStringList texts;
-    for (const SubtitleEntry &entry : entries) {
-        texts.append(entry.originalText);
-    }
-    return texts;
-}
-
 QList<SubtitleService::SubtitleEntry> SubtitleService::deduplicate(const QList<SubtitleEntry> &entries)
 {
     QList<SubtitleEntry> result;

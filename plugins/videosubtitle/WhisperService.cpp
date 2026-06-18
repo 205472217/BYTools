@@ -186,7 +186,8 @@ qint64 WhisperService::getWavDurationMs(const QString &wavPath)
         f.close();
         return 0;
     }
-    qint64 byteRate = *reinterpret_cast<const qint32*>(br.constData());
+    qint32 byteRate = 0;
+    memcpy(&byteRate, br.constData(), sizeof(byteRate));
     if (byteRate <= 0) {
         f.close();
         return 0;

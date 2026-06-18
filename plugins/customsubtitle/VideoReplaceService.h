@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <QThread>
 #include <QAtomicInt>
+#include <QMutex>
 
 class PluginLogger;
 
@@ -45,6 +46,8 @@ private:
         QString mergedPath;
         QString srtPath;       // may be empty
     };
+
+    mutable QMutex m_mutex;
 
     PluginLogger *m_logger = nullptr;
     QString m_videoDir;
