@@ -323,6 +323,22 @@ Pane {
                         font.pixelSize: 11
                     }
 
+                    Label {
+                        text: "下载地址 →"
+                        color: "#2563eb"
+                        font.pixelSize: 12
+                        font.underline: true
+
+                        MouseArea {
+                            anchors.fill: parent
+                            anchors.margins: -4
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                Qt.openUrlExternally("https://ffmpeg.org/download.html");
+                            }
+                        }
+                    }
+
                     IconButton {
                         implicitWidth: 26
                         implicitHeight: 26

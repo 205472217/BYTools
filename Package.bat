@@ -16,8 +16,22 @@ mkdir "%PLUGIN_OUT%"
 copy "build\BYTools.exe" "%OUT_DIR%"
 copy "README.md" "%OUT_DIR%"
 
-::==========================plugins===============================
+:: Copy third-party libraries
+mkdir "%OUT_DIR%\third"
+if exist "third\ffmpeg" (
+    xcopy /E /I "third\ffmpeg" "%OUT_DIR%\third\ffmpeg"
+)
+if exist "third\whisper_amd" (
+    xcopy /E /I "third\whisper_amd" "%OUT_DIR%\third\whisper_amd"
+)
+if exist "third\whisper_cpu" (
+    xcopy /E /I "third\whisper_cpu" "%OUT_DIR%\third\whisper_cpu"
+)
+if exist "third\model" (
+    xcopy /E /I "third\model" "%OUT_DIR%\third\model"
+)
 
+::==========================plugins===============================
 :: Copy batchrename plugin
 mkdir "%PLUGIN_OUT%\card-batchrename"
 copy "build\plugins\batchrename\libBatchRename.dll" "%PLUGIN_OUT%\card-batchrename"
@@ -45,6 +59,9 @@ if exist "plugins\customsubtitle\python" (
     xcopy /E /I "plugins\customsubtitle\python" "%PLUGIN_OUT%\card-customsubtitle\python"
 )
 
+:: Copy adjustsubtitle plugin
+mkdir "%PLUGIN_OUT%\card-adjustsubtitle"
+copy "build\plugins\adjustsubtitle\libAdjustSubtitle.dll" "%PLUGIN_OUT%\card-adjustsubtitle"
 ::==========================plugins===============================
 
 :: Deploy Qt runtime dependencies for the exe

@@ -11,6 +11,8 @@ Qt/QML + C++ PC 工具集合应用骨架。
 - **图片裁剪**：按比例或指定像素尺寸裁剪图片，支持实时预览、拖拽调整裁剪框、多图浏览切换，支持覆盖源文件或输出到新目录。
 - **视频字幕翻译**：从视频中提取音频，使用 Whisper 进行语音识别生成SRT字幕，支持翻译SRT字幕（百度翻译API/本地翻译），内嵌SRT字幕到视频（支持 GPU 加速）。
 - **自定义视频字幕**：从网站下载字幕，根据关键码匹配视频字幕，将匹配的视频和字幕合成，替换原视频。
+- **调整视频字幕**：根据视频内容自动调整字幕位置，支持手动微调。
+
 
 ## 目录结构
 
@@ -26,16 +28,36 @@ plugins/                       插件目录
   imagecrop/                   图片裁剪插件
   videosubtitle/               视频字幕翻译插件
   customsubtitle/              自定义视频字幕插件
+  adjustsubtitle/              调整视频字幕插件
 qml/
   components/                  可复用界面组件
   pages/                       页面
 third/
-  ffmpeg					   可用的ffmpeg
-  model						   模型存放目录（需手动下载）
-  whisper_amd				   支持AMD显卡的whisper程序
-  whisper_cpu				   官网下载的whisper程序，只支持CPU，速度较慢
+  ffmpeg/                      可用的ffmpeg
+  model/                       模型存放目录（需手动下载）
+  whisper_amd/                 支持AMD显卡的whisper程序
+  whisper_cpu/                 官网下载的whisper程序，只支持CPU，速度较慢
 resources/                     图标、资源文件
 ```
+
+## 打包目录
+BYTools/
+  BYTools.exe                  应用可执行文件
+  plugins/                     插件目录
+    card-customsubtitle/       自定义视频字幕插件
+      python/                  自定义字幕插件访问字幕网站的python脚本（目前支持网站: subtitlecat）
+    card-adjustsubtitle/       调整视频字幕插件
+    card-videosubtitle/        视频字幕翻译插件
+    card-nameconverter/        繁简转换插件
+    card-batchrename/          批量重命名插件
+    card-imageconverter/       图片格式转换插件
+    card-imagecrop/            图片裁剪插件
+  third/                       第三方程序
+    ffmpeg/                    可用的ffmpeg(自定义字幕、视频字幕翻译，在最后烧录视频+字幕时需要)
+    model/                     模型存放目录（whisper语音识别模型，模型太大未上传,需手动下载）
+    whisper_amd/               支持AMD显卡的whisper程序(加快语音识别速度，本地编译)
+    whisper_cpu/               官网下载的whisper程序（只支持CPU，速度较慢）
+  ```
 
 ## 插件架构
 
