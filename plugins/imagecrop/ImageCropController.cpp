@@ -412,6 +412,7 @@ void ImageCropController::clearRecords()
 
 void ImageCropController::reset()
 {
+    cancel();
     m_records.clear();
     m_imageFiles.clear();
     m_currentIndex = -1;

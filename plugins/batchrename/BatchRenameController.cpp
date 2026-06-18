@@ -310,6 +310,7 @@ void BatchRenameController::clearRecords()
 
 void BatchRenameController::reset()
 {
+    cancel();
     m_records.clear();
     m_rootPath.clear();
     m_fileType = 0;

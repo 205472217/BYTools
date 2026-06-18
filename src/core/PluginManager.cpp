@@ -16,9 +16,12 @@ PluginManager::PluginManager(QObject *parent)
 
 PluginManager::~PluginManager()
 {
-    for (auto plugin : m_plugins.values()) {
-        plugin->cleanup();
+    for (auto &entry : m_plugins) {
+        if (entry.plugin)
+            entry.plugin->cleanup();
+        delete entry.loader;
     }
+    m_plugins.clear();
 }
 
 PluginManager* PluginManager::instance()
@@ -29,7 +32,11 @@ PluginManager* PluginManager::instance()
 
 QVariantList PluginManager::plugins() const
 {
-    QList<PluginInterface*> sorted = m_plugins.values();
+    QList<PluginInterface*> sorted;
+    for (const auto &entry : m_plugins) {
+        if (entry.plugin)
+            sorted.append(entry.plugin);
+    }
     std::sort(sorted.begin(), sorted.end(), [](PluginInterface *a, PluginInterface *b) {
         return a->order() < b->order();
     });
@@ -50,8 +57,9 @@ QVariantList PluginManager::plugins() const
 QStringList PluginManager::pluginCategories() const
 {
     QSet<QString> categories;
-    for (auto plugin : m_plugins.values()) {
-        categories.insert(plugin->category());
+    for (const auto &entry : m_plugins) {
+        if (entry.plugin)
+            categories.insert(entry.plugin->category());
     }
     QStringList sorted = categories.values();
     std::sort(sorted.begin(), sorted.end());
@@ -63,11 +71,12 @@ void PluginManager::loadPluginsFromDir(const QDir &dir, const QStringList &filte
     QFileInfoList files = dir.entryInfoList(filters, QDir::Files);
 
     for (const QFileInfo &file : files) {
-        QPluginLoader loader(file.absoluteFilePath());
-        QObject *instance = loader.instance();
+        QPluginLoader *loader = new QPluginLoader(file.absoluteFilePath());
+        QObject *instance = loader->instance();
 
         if (!instance) {
-            qWarning() << "✗ 插件加载失败:" << file.fileName() << "-" << loader.errorString();
+            qWarning() << "✗ 插件加载失败:" << file.fileName() << "-" << loader->errorString();
+            delete loader;
             continue;
         }
 
@@ -75,17 +84,19 @@ void PluginManager::loadPluginsFromDir(const QDir &dir, const QStringList &filte
         if (!plugin) {
             qWarning() << "✗ 插件接口不兼容:" << file.fileName();
             delete instance;
+            delete loader;
             continue;
         }
 
         QString pluginId = plugin->id();
         if (m_plugins.contains(pluginId)) {
             qWarning() << "⚠ 插件 ID 重复，跳过:" << pluginId << file.fileName();
+            delete loader;
             continue;
         }
 
         plugin->initialize();
-        m_plugins[pluginId] = plugin;
+        m_plugins[pluginId] = {plugin, loader};
         m_loadedPluginPaths.append(file.absoluteFilePath());
         loadedPlugins.append(pluginId);
         qDebug() << "✓ 插件已加载:" << pluginId << file.fileName();
@@ -119,21 +130,25 @@ QStringList PluginManager::loadPlugins(const QString &pluginPath)
 
 QObject* PluginManager::getPlugin(const QString &id)
 {
-    PluginInterface* plugin = m_plugins.value(id, nullptr);
-    return plugin ? plugin->getController() : nullptr;
+    auto it = m_plugins.constFind(id);
+    if (it == m_plugins.constEnd() || !it->plugin)
+        return nullptr;
+    return it->plugin->getController();
 }
 
 QObject* PluginManager::getPluginSettings(const QString &id)
 {
-    PluginInterface* plugin = m_plugins.value(id, nullptr);
-    return plugin ? plugin->getSettings() : nullptr;
+    auto it = m_plugins.constFind(id);
+    if (it == m_plugins.constEnd() || !it->plugin)
+        return nullptr;
+    return it->plugin->getSettings();
 }
 
 void PluginManager::registerPlugin(PluginInterface *plugin)
 {
     if (plugin && !m_plugins.contains(plugin->id())) {
         plugin->initialize();
-        m_plugins[plugin->id()] = plugin;
+        m_plugins[plugin->id()] = {plugin, nullptr};
         emit pluginsChanged();
     }
 }

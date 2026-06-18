@@ -5,6 +5,7 @@
 #include <QVariantList>
 #include <QMap>
 #include <QDir>
+#include <QPluginLoader>
 
 class PluginInterface;
 
@@ -31,7 +32,12 @@ private:
     PluginManager(QObject *parent = nullptr);
     ~PluginManager();
 
-    QMap<QString, PluginInterface*> m_plugins;
+    struct PluginEntry {
+        PluginInterface *plugin = nullptr;
+        QPluginLoader *loader = nullptr;
+    };
+
+    QMap<QString, PluginEntry> m_plugins;
     QStringList m_loadedPluginPaths;
 
     void loadPluginsFromDir(const QDir &dir, const QStringList &filters, QStringList &loadedPlugins);

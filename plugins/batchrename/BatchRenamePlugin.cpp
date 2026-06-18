@@ -60,7 +60,7 @@ void BatchRenamePlugin::cleanup()
 
 QObject* BatchRenamePlugin::getController()
 {
-    if (m_controller) {
+    if (m_controller && !m_controller->isProcessing()) {
         m_controller->reset();
     }
     return m_controller;

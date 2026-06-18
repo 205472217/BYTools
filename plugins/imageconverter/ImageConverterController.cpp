@@ -268,6 +268,7 @@ void ImageConverterController::setIsProcessing(bool processing)
 
 void ImageConverterController::reset()
 {
+    cancel();
     m_records.clear();
     m_rootPath.clear();
     m_targetFormat = 1;
