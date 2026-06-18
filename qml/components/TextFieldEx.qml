@@ -4,17 +4,25 @@ import QtQuick.Controls
 TextField {
     id: root
 
-    property color borderColor: "#e2e8f0"
-    property color focusBorderColor: "#3b82f6"
-    property color disabledBorderColor: "#f1f5f9"
+    property color bgColor: "#ffffff"
     property color disabledBgColor: "#f8fafc"
+    property color textColor: "#1e293b"
+    property color disabledTextColor: "#94a3b8"
+    property color phColor: "#b0bec5"
+    property color selColor: "#3b82f6"
+    property color selTextColor: "#ffffff"
+    property color borderColor: "#e2e8f0"
+    property color disabledBorderColor: "#f1f5f9"
+    property color focusBorderColor: "#3b82f6"
+    property color focusRingColor: "#3b82f6"
+    property color cursorColor: "#3b82f6"
 
     implicitHeight: 36
 
-    color: enabled ? "#1e293b" : "#94a3b8"
-    selectionColor: "#3b82f6"
-    selectedTextColor: "#ffffff"
-    placeholderTextColor: "#b0bec5"
+    color: enabled ? root.textColor : root.disabledTextColor
+    selectionColor: root.selColor
+    selectedTextColor: root.selTextColor
+    placeholderTextColor: root.phColor
     font.pixelSize: 13
     verticalAlignment: Text.AlignVCenter
     leftPadding: 12
@@ -24,12 +32,11 @@ TextField {
 
     background: Rectangle {
         radius: 6
-        color: root.enabled ? "#ffffff" : root.disabledBgColor
+        color: root.enabled ? root.bgColor : root.disabledBgColor
         border.width: root.activeFocus ? 1.5 : 1
         border.color: root.activeFocus ? root.focusBorderColor :
                       root.enabled ? root.borderColor : root.disabledBorderColor
 
-        // 焦点阴影
         Rectangle {
             anchors.fill: parent
             anchors.margins: -2
@@ -42,7 +49,7 @@ TextField {
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 10
-                color: "#3b82f6"
+                color: root.focusRingColor
                 opacity: 0.08
             }
         }
@@ -60,7 +67,7 @@ TextField {
 
     cursorDelegate: Rectangle {
         width: 1.5
-        color: "#3b82f6"
+        color: root.cursorColor
         visible: root.activeFocus
     }
 }

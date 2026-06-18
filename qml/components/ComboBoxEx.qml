@@ -4,20 +4,33 @@ import QtQuick.Controls
 ComboBox {
     id: root
 
+    property color bgColor: "#ffffff"
+    property color disabledBgColor: "#f8fafc"
+    property color textColor: "#1e293b"
+    property color disabledTextColor: "#94a3b8"
     property color borderColor: "#e2e8f0"
+    property color hoverBorderColor: "#cbd5e1"
     property color focusBorderColor: "#3b82f6"
+    property color focusRingColor: "#3b82f6"
+    property color arrowColor: "#64748b"
+    property color disabledArrowColor: "#cbd5e1"
+    property color popupBgColor: "#ffffff"
+    property color popupBorderColor: "#e2e8f0"
+    property color popupShadowColor: "#1e293b"
+    property color delegateTextColor: "#334155"
+    property color delegateHighlightTextColor: "#1e40af"
+    property color delegateHighlightBgColor: "#eff6ff"
 
     implicitHeight: 36
     font.pixelSize: 13
 
     background: Rectangle {
         radius: 6
-        color: root.enabled ? "#ffffff" : "#f8fafc"
+        color: root.enabled ? root.bgColor : root.disabledBgColor
         border.width: root.pressed || root.popup.visible ? 1.5 : 1
         border.color: root.pressed || root.popup.visible ? root.focusBorderColor :
-                      root.hovered ? "#cbd5e1" : root.borderColor
+                      root.hovered ? root.hoverBorderColor : root.borderColor
 
-        // 焦点/展开阴影
         Rectangle {
             anchors.fill: parent
             anchors.margins: -2
@@ -30,7 +43,7 @@ ComboBox {
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 10
-                color: "#3b82f6"
+                color: root.focusRingColor
                 opacity: 0.08
             }
         }
@@ -46,7 +59,7 @@ ComboBox {
     contentItem: Text {
         text: root.displayText
         font: root.font
-        color: root.enabled ? "#1e293b" : "#94a3b8"
+        color: root.enabled ? root.textColor : root.disabledTextColor
         verticalAlignment: Text.AlignVCenter
         leftPadding: 12
         rightPadding: root.indicator.width + 8
@@ -62,7 +75,7 @@ ComboBox {
 
         onPaint: {
             context.reset()
-            context.strokeStyle = root.enabled ? "#64748b" : "#cbd5e1"
+            context.strokeStyle = root.enabled ? root.arrowColor : root.disabledArrowColor
             context.lineWidth = 1.5
             context.lineCap = "round"
             context.lineJoin = "round"
@@ -91,15 +104,15 @@ ComboBox {
 
         background: Rectangle {
             radius: 6
-            color: "#ffffff"
-            border.color: "#e2e8f0"
+            color: root.popupBgColor
+            border.color: root.popupBorderColor
             border.width: 1
 
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: -3
                 radius: 8
-                color: "#1e293b"
+                color: root.popupShadowColor
                 opacity: 0.08
                 z: -1
             }
@@ -130,14 +143,14 @@ ComboBox {
         contentItem: Text {
             text: modelData
             font.pixelSize: 13
-            color: highlighted ? "#1e40af" : "#334155"
+            color: highlighted ? root.delegateHighlightTextColor : root.delegateTextColor
             verticalAlignment: Text.AlignVCenter
             leftPadding: 8
         }
 
         background: Rectangle {
             radius: 4
-            color: highlighted ? "#eff6ff" : "transparent"
+            color: highlighted ? root.delegateHighlightBgColor : "transparent"
         }
 
         highlighted: root.highlightedIndex === index

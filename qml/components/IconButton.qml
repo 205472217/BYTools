@@ -12,6 +12,11 @@ Item {
     property color hoverColor: "#eef4ff"
     property color pressColor: "#dce7fa"
     property color borderColor: "#d8dee9"
+    property color defaultBorderColor: "#e2e8f0"
+    property color disabledColor: "#f1f5f9"
+    property color disabledBorderColor: "#e2e8f0"
+    property color disabledTextColor: "#94a3b8"
+    property color shadowColor: "#1e3a5f"
     property bool enabled: true
 
     implicitWidth: text.length > 0 ? 76 : 38
@@ -24,12 +29,11 @@ Item {
         anchors.fill: parent
         radius: 8
         color: root.enabled ? (mouseArea.pressed ? root.pressColor :
-               mouseArea.containsMouse ? root.hoverColor : root.normalColor) : "#f1f5f9"
+               mouseArea.containsMouse ? root.hoverColor : root.normalColor) : root.disabledColor
         border.width: 1
         border.color: root.enabled ? (mouseArea.pressed ? root.borderColor :
-                      mouseArea.containsMouse ? root.borderColor : "#e2e8f0") : "#e2e8f0"
+                      mouseArea.containsMouse ? root.borderColor : root.defaultBorderColor) : root.disabledBorderColor
 
-        // 悬浮时的微妙阴影
         Rectangle {
             anchors.fill: parent
             anchors.margins: -1
@@ -43,7 +47,7 @@ Item {
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 10
-                color: "#1e3a5f"
+                color: root.shadowColor
                 opacity: 0.06
             }
         }
@@ -79,7 +83,7 @@ Item {
             id: labelText
             text: root.text
             visible: root.text.length > 0
-            color: root.enabled ? root.textColor : "#94a3b8"
+            color: root.enabled ? root.textColor : root.disabledTextColor
             font.pixelSize: 13
             font.bold: true
             anchors.verticalCenter: parent.verticalCenter

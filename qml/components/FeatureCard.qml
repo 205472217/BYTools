@@ -10,6 +10,24 @@ Item {
     property string iconText: ""
     property string iconSource: ""
 
+    property color bgColor: "#fafbfc"
+    property color hoverBgColor: "#ffffff"
+    property color borderColor: "#e5e9f0"
+    property color hoverBorderColor: "#3b82f6"
+    property color accentColor: "#c7d2e0"
+    property color hoverAccentColor: "#3b82f6"
+    property color shadowColor: "#0d1b2a"
+    property color iconGradientStart: "#6366f1"
+    property color iconGradientEnd: "#8b5cf6"
+    property color hoverIconGradientStart: "#3b82f6"
+    property color hoverIconGradientEnd: "#2563eb"
+    property color iconTextColor: "#ffffff"
+    property color titleColor: "#172033"
+    property color hoverTitleColor: "#1e40af"
+    property color descriptionColor: "#627086"
+    property color arrowColor: "#c7d2e0"
+    property color hoverArrowColor: "#3b82f6"
+
     implicitHeight: 140
 
     signal clicked()
@@ -18,16 +36,15 @@ Item {
         id: cardBg
         anchors.fill: parent
         radius: 12
-        color: mouseArea.containsMouse ? "#ffffff" : "#fafbfc"
-        border.color: mouseArea.containsMouse ? "#3b82f6" : "#e5e9f0"
+        color: mouseArea.containsMouse ? root.hoverBgColor : root.bgColor
+        border.color: mouseArea.containsMouse ? root.hoverBorderColor : root.borderColor
         border.width: 1
 
-        // 左侧彩色装饰条
         Rectangle {
             width: 3
             height: parent.height - 24
             radius: 1.5
-            color: mouseArea.containsMouse ? "#3b82f6" : "#c7d2e0"
+            color: mouseArea.containsMouse ? root.hoverAccentColor : root.accentColor
             anchors.left: parent.left
             anchors.leftMargin: 8
             anchors.verticalCenter: parent.verticalCenter
@@ -45,7 +62,6 @@ Item {
         }
     }
 
-    // 悬浮阴影
     Rectangle {
         anchors.fill: parent
         radius: 12
@@ -58,12 +74,11 @@ Item {
             NumberAnimation { duration: 200 }
         }
 
-        // 使用矩形模拟阴影效果
         Rectangle {
             anchors.fill: parent
             anchors.margins: -2
             radius: 14
-            color: "#0d1b2a"
+            color: root.shadowColor
             opacity: 0.06
             z: -1
         }
@@ -82,8 +97,8 @@ Item {
             Layout.preferredHeight: 50
             radius: 12
             gradient: Gradient {
-                GradientStop { position: 0.0; color: mouseArea.containsMouse ? "#3b82f6" : "#6366f1" }
-                GradientStop { position: 1.0; color: mouseArea.containsMouse ? "#2563eb" : "#8b5cf6" }
+                GradientStop { position: 0.0; color: mouseArea.containsMouse ? root.hoverIconGradientStart : root.iconGradientStart }
+                GradientStop { position: 1.0; color: mouseArea.containsMouse ? root.hoverIconGradientEnd : root.iconGradientEnd }
             }
 
             Image {
@@ -98,7 +113,7 @@ Item {
             Text {
                 anchors.centerIn: parent
                 text: root.iconText
-                color: "#ffffff"
+                color: root.iconTextColor
                 font.pixelSize: 22
                 font.bold: true
                 visible: root.iconSource.length === 0
@@ -111,7 +126,7 @@ Item {
 
             Label {
                 text: root.titleText
-                color: mouseArea.containsMouse ? "#1e40af" : "#172033"
+                color: mouseArea.containsMouse ? root.hoverTitleColor : root.titleColor
                 font.pixelSize: 18
                 font.bold: true
                 elide: Text.ElideRight
@@ -124,7 +139,7 @@ Item {
 
             Label {
                 text: root.descriptionText
-                color: "#627086"
+                color: root.descriptionColor
                 font.pixelSize: 13
                 lineHeight: 1.35
                 wrapMode: Text.WordWrap
@@ -132,11 +147,10 @@ Item {
             }
         }
 
-        // 箭头指示器
         Label {
             text: "\u203A"
             font.pixelSize: 24
-            color: mouseArea.containsMouse ? "#3b82f6" : "#c7d2e0"
+            color: mouseArea.containsMouse ? root.hoverArrowColor : root.arrowColor
             opacity: mouseArea.containsMouse ? 1 : 0
 
             Behavior on opacity {
