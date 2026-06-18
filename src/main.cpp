@@ -8,6 +8,7 @@
 #include "app/AppController.h"
 #include "core/PluginManager.h"
 #include "core/PluginInterface.h"
+#include "core/ThemeManager.h"
 
 int main(int argc, char *argv[])
 {
@@ -27,6 +28,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("appController", &appController);
     engine.rootContext()->setContextProperty("pluginManager", PluginManager::instance());
+    engine.rootContext()->setContextProperty("themeManager", ThemeManager::instance());
 
     QObject::connect(
         &engine,

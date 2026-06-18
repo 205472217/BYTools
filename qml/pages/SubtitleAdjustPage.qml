@@ -6,6 +6,7 @@ import "../components"
 
 Pane {
     id: root
+    property var pal: themeManager.palette
 
     signal backRequested
     property var controller: null
@@ -55,14 +56,10 @@ Pane {
 
     function player() { return videoDisplayLoader.item }
 
-    Component.onDestruction: {
-        if (controller && typeof controller.reset === 'function')
-            controller.reset()
-    }
-
     padding: 0
     background: Rectangle {
-        color: "#f4f6f9"
+        id: pageBg
+        color: pal.SubtitleAdjustPage_pageBg_color
     }
 
     // ── File Dialogs ──
@@ -117,8 +114,9 @@ Pane {
             Layout.margins: 4
 
             Label {
+                id: unsavedMsg
                 text: "当前字幕调整尚未导出，切换将丢失进度，是否继续？"
-                color: "#334155"
+                color: pal.SubtitleAdjustPage_unsavedMsg_color
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
@@ -131,24 +129,26 @@ Pane {
                 Item { Layout.fillWidth: true }
 
                 IconButton {
+                    id: cancelBtn
                     text: "取消"
                     tooltip: "不切换，继续当前调整"
-                    normalColor: "#e2e8f0"
-                    hoverColor: "#cbd5e1"
-                    borderColor: "#cbd5e1"
-                    textColor: "#475569"
+                    normalColor: pal.SubtitleAdjustPage_cancelBtn_normalColor
+                    hoverColor: pal.SubtitleAdjustPage_cancelBtn_hoverColor
+                    borderColor: pal.SubtitleAdjustPage_cancelBtn_borderColor
+                    textColor: pal.SubtitleAdjustPage_cancelBtn_textColor
                     implicitWidth: 100
                     implicitHeight: 38
                     onClicked: unsavedDialog.close()
                 }
 
                 IconButton {
+                    id: continueBtn
                     text: "继续切换"
                     tooltip: "放弃当前调整，切换到选中项"
-                    normalColor: "#dc2626"
-                    hoverColor: "#b91c1c"
-                    borderColor: "#b91c1c"
-                    textColor: "#ffffff"
+                    normalColor: pal.SubtitleAdjustPage_continueBtn_normalColor
+                    hoverColor: pal.SubtitleAdjustPage_continueBtn_hoverColor
+                    borderColor: pal.SubtitleAdjustPage_continueBtn_borderColor
+                    textColor: pal.SubtitleAdjustPage_continueBtn_textColor
                     implicitWidth: 120
                     implicitHeight: 38
                     onClicked: {
@@ -229,15 +229,17 @@ Pane {
                 spacing: 4
 
                 Label {
+                    id: titleLabel
                     text: "字幕时间调整"
-                    color: "#111827"
+                    color: pal.SubtitleAdjustPage_titleLabel_color
                     font.pixelSize: 26
                     font.bold: true
                 }
 
                 Label {
+                    id: descLabel
                     text: "实时调整字幕时间点以匹配视频"
-                    color: "#64748b"
+                    color: pal.SubtitleAdjustPage_descLabel_color
                     font.pixelSize: 14
                 }
             }
@@ -245,18 +247,20 @@ Pane {
 
         // ═══════════════ Top Panel: 模式 + 路径配置 ═══════════════
         Rectangle {
+            id: topPanel
             Layout.fillWidth: true
             implicitHeight: topPanelContent.implicitHeight + 36
             radius: 10
-            color: "#ffffff"
-            border.color: "#e5e9f0"
+            color: pal.SubtitleAdjustPage_topPanel_color
+            border.color: pal.SubtitleAdjustPage_topPanel_borderColor
             border.width: 1
 
             Rectangle {
+                id: topPanelShadow
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 12
-                color: "#1e3a5f"
+                color: pal.SubtitleAdjustPage_topPanelShadow_color
                 opacity: 0.04
                 z: -1
             }
@@ -303,8 +307,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: videoFileLabel
                         text: "视频文件"
-                        color: "#475569"
+                        color: pal.SubtitleAdjustPage_videoFileLabel_color
                         font.pixelSize: 12
                         font.bold: true
                         Layout.preferredWidth: 60
@@ -354,8 +359,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: subtitleFileLabel
                         text: "字幕文件"
-                        color: "#475569"
+                        color: pal.SubtitleAdjustPage_subtitleFileLabel_color
                         font.pixelSize: 12
                         font.bold: true
                         Layout.preferredWidth: 60
@@ -396,14 +402,15 @@ Pane {
                     }
 
                     IconButton {
+                        id: startMapBtn
                         text: "开始映射"
                         tooltip: isSingleMode ? "将单个文件加入映射列表" : "扫描文件夹并自动匹配视频与字幕文件"
                         implicitWidth: 100
                         implicitHeight: 30
-                        normalColor: "#2563eb"
-                        hoverColor: "#1d4ed8"
-                        borderColor: "#1d4ed8"
-                        textColor: "#ffffff"
+                        normalColor: pal.SubtitleAdjustPage_startMapBtn_normalColor
+                        hoverColor: pal.SubtitleAdjustPage_startMapBtn_hoverColor
+                        borderColor: pal.SubtitleAdjustPage_startMapBtn_borderColor
+                        textColor: pal.SubtitleAdjustPage_startMapBtn_textColor
                         enabled: {
                             if (!controller) return false
                             if (isSingleMode)
@@ -424,7 +431,7 @@ Pane {
             Layout.fillWidth: true
             Layout.preferredHeight: 28
             radius: 6
-            color: "#f1f5f9"
+            color: pal.SubtitleAdjustPage_logBar_color
 
             RowLayout {
                 anchors.fill: parent
@@ -433,9 +440,10 @@ Pane {
                 spacing: 12
 
                 Label {
+                    id: logText
                     Layout.fillWidth: true
                     text: root._lastLogLine.length > 0 ? root._lastLogLine : "就绪"
-                    color: root._lastLogLine.length > 0 ? "#334155" : "#94a3b8"
+                    color: root._lastLogLine.length > 0 ? pal.SubtitleAdjustPage_logText_color_log : pal.SubtitleAdjustPage_logText_color_idle
                     font.pixelSize: 11
                     font.family: "Consolas, 'Courier New', monospace"
                     elide: Text.ElideRight
@@ -451,11 +459,12 @@ Pane {
 
             // ── Left: Mapping Table ──
             Rectangle {
+                id: matchPanel
                 Layout.preferredWidth: 360
                 Layout.fillHeight: true
                 radius: 10
-                color: "#ffffff"
-                border.color: "#e5e9f0"
+                color: pal.SubtitleAdjustPage_matchPanel_color
+                border.color: pal.SubtitleAdjustPage_matchPanel_borderColor
                 border.width: 1
                 clip: true
 
@@ -471,42 +480,47 @@ Pane {
                         spacing: 0
 
                         Label {
+                            id: numHeader
                             Layout.preferredWidth: 20
                             text: "#"
-                            color: "#64748b"
+                            color: pal.SubtitleAdjustPage_numHeader_color
                             font.pixelSize: 11
                             font.bold: true
                         }
 
                         Label {
+                            id: videoHeader
                             Layout.preferredWidth: 128
                             text: "视频文件"
-                            color: "#64748b"
+                            color: pal.SubtitleAdjustPage_videoHeader_color
                             font.pixelSize: 11
                             font.bold: true
                         }
 
                         Label {
+                            id: subHeader
                             Layout.preferredWidth: 128
                             text: "字幕文件"
-                            color: "#64748b"
+                            color: pal.SubtitleAdjustPage_subHeader_color
                             font.pixelSize: 11
                             font.bold: true
                         }
 
                         Label {
+                            id: statusHeader
                             Layout.fillWidth: true
                             text: "状态"
-                            color: "#64748b"
+                            color: pal.SubtitleAdjustPage_statusHeader_color
                             font.pixelSize: 11
                             font.bold: true
                         }
                     }
 
                     Rectangle {
+                        id: headerSep
                         Layout.fillWidth: true
                         Layout.preferredHeight: 1
-                        color: "#e2e8f0"
+                        color: pal.SubtitleAdjustPage_headerSep_color
                     }
 
                     // Table body area
@@ -537,9 +551,9 @@ Pane {
                                 required property int status
 
                                 color: {
-                                    if (status === 1) return "#dcfce7"
-                                    if (ListView.isCurrentItem) return "#eff6ff"
-                                    return index % 2 === 0 ? "#ffffff" : "#fafbfc"
+                                    if (status === 1) return pal.SubtitleAdjustPage_delegateRoot_bg_matched
+                                    if (ListView.isCurrentItem) return pal.SubtitleAdjustPage_delegateRoot_bg_selected
+                                    return index % 2 === 0 ? pal.SubtitleAdjustPage_delegateRoot_bg_even : pal.SubtitleAdjustPage_delegateRoot_bg_odd
                                 }
 
                                 RowLayout {
@@ -549,32 +563,36 @@ Pane {
                                     spacing: 0
 
                                     Label {
+                                        id: indexLabel
                                         Layout.preferredWidth: 20
                                         text: delegateRoot.index + 1
-                                        color: "#94a3b8"
+                                        color: pal.SubtitleAdjustPage_indexLabel_color
                                         font.pixelSize: 11
                                     }
 
                                     Label {
+                                        id: videoDisplayLabel
                                         Layout.preferredWidth: 128
                                         text: delegateRoot.videoDisplay
-                                        color: "#334155"
+                                        color: pal.SubtitleAdjustPage_videoDisplayLabel_color
                                         font.pixelSize: 12
                                         elide: Text.ElideRight
                                     }
 
                                     Label {
+                                        id: subtitleDisplayLabel
                                         Layout.preferredWidth: 128
                                         text: delegateRoot.subtitleDisplay
-                                        color: "#334155"
+                                        color: pal.SubtitleAdjustPage_subtitleDisplayLabel_color
                                         font.pixelSize: 12
                                         elide: Text.ElideRight
                                     }
 
                                     Label {
+                                        id: statusDisplayLabel
                                         Layout.fillWidth: true
                                         text: delegateRoot.statusDisplay
-                                        color: delegateRoot.status === 1 ? "#059669" : "#94a3b8"
+                                        color: delegateRoot.status === 1 ? pal.SubtitleAdjustPage_statusDisplayLabel_color_matched : pal.SubtitleAdjustPage_statusDisplayLabel_color_normal
                                         font.pixelSize: 12
                                         font.bold: delegateRoot.status === 1
                                     }
@@ -593,9 +611,10 @@ Pane {
 
                         // Empty state
                         Label {
+                            id: emptyMatchLabel
                             anchors.centerIn: parent
                             text: "暂无映射，请选择文件后点击「开始映射」"
-                            color: "#94a3b8"
+                            color: pal.SubtitleAdjustPage_emptyMatchLabel_color
                             font.pixelSize: 13
                             visible: !controller || !controller.matchModel || controller.matchModel.count === 0
                         }
@@ -605,11 +624,12 @@ Pane {
 
             // ── Middle: Video Preview ──
             Rectangle {
+                id: videoPanel
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 10
-                color: "#ffffff"
-                border.color: "#e5e9f0"
+                color: pal.SubtitleAdjustPage_videoPanel_color
+                border.color: pal.SubtitleAdjustPage_videoPanel_borderColor
                 border.width: 1
 
                 ColumnLayout {
@@ -619,10 +639,11 @@ Pane {
 
                     // Video area
                     Rectangle {
+                        id: videoBg
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         radius: 6
-                        color: hasVideo ? "#000000" : "#f1f5f9"
+                        color: hasVideo ? pal.SubtitleAdjustPage_videoBg_color_active : pal.SubtitleAdjustPage_videoBg_color_normal
 
                         // Empty state
                         Column {
@@ -631,15 +652,17 @@ Pane {
                             visible: !hasVideo
 
                             Label {
+                                id: emptyVideoTitle
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: "请在左侧映射列表中点击一项以开始调整"
-                                color: "#94a3b8"
+                                color: pal.SubtitleAdjustPage_emptyVideoTitle_color
                                 font.pixelSize: 15
                             }
                             Label {
+                                id: emptyVideoDesc
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: "加载后将在此处实时预览视频"
-                                color: "#c7d2e0"
+                                color: pal.SubtitleAdjustPage_emptyVideoDesc_color
                                 font.pixelSize: 12
                             }
                         }
@@ -658,9 +681,10 @@ Pane {
 
                         // 视频未播放时的提示
                         Rectangle {
+                            id: videoOverlay
                             anchors.fill: parent
                             radius: 6
-                            color: "#000000"
+                            color: pal.SubtitleAdjustPage_videoOverlay_color
                             visible: {
                                 var p = videoDisplayLoader.item
                                 hasVideo && p && p.playbackState === 0
@@ -671,9 +695,10 @@ Pane {
                                 spacing: 8
 
                                 Label {
+                                    id: playPromptText
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "请点击播放，开始调整字幕"
-                                    color: "#e2e8f0"
+                                    color: pal.SubtitleAdjustPage_playPromptText_color
                                     font.pixelSize: 20
                                 }
                             }
@@ -690,14 +715,14 @@ Pane {
                             anchors.bottomMargin: 20
                             height: subtitleText.implicitHeight + 20
                             radius: 8
-                            color: "#C0000000"
+                            color: pal.SubtitleAdjustPage_subtitleOverlay_color
                             visible: hasVideo
 
                             Label {
                                 id: subtitleText
                                 anchors.centerIn: parent
                                 text: root._currentSubtitleText
-                                color: "#ffffff"
+                                color: pal.SubtitleAdjustPage_subtitleText_color
                                 font.pixelSize: 20
                                 font.bold: true
                                 horizontalAlignment: Text.AlignHCenter
@@ -709,11 +734,12 @@ Pane {
 
                     // Playback controls
                     Rectangle {
+                        id: playbackControls
                         Layout.fillWidth: true
                         Layout.preferredHeight: 40
                         radius: 6
-                        color: "#f8fafc"
-                        border.color: "#e2e8f0"
+                        color: pal.SubtitleAdjustPage_playbackControls_color
+                        border.color: pal.SubtitleAdjustPage_playbackControls_borderColor
                         border.width: 1
                         visible: hasVideo && videoDisplayLoader.active
 
@@ -724,13 +750,14 @@ Pane {
                             spacing: 8
 
                             IconButton {
+                                id: seekBackBtn
                                 implicitWidth: 26
                                 implicitHeight: 26
                                 iconSource: "qrc:/icons/video-seekdec.svg"
                                 tooltip: "快退 5 秒"
-                                normalColor: "#ffffff"
-                                hoverColor: "#f1f5f9"
-                                borderColor: "#cbd5e1"
+                                normalColor: pal.SubtitleAdjustPage_seekBackBtn_normalColor
+                                hoverColor: pal.SubtitleAdjustPage_seekBackBtn_hoverColor
+                                borderColor: pal.SubtitleAdjustPage_seekBackBtn_borderColor
                                 onClicked: {
                                     var p = videoDisplayLoader.item
                                     if (p) p.position = Math.max(0, p.position - 5000)
@@ -745,9 +772,9 @@ Pane {
                                 property bool isPlaying: p && p.playbackState === 1
                                 iconSource: isPlaying ? "qrc:/icons/video-pause.svg" : "qrc:/icons/video-play.svg"
                                 tooltip: isPlaying ? "暂停" : "播放"
-                                normalColor: "#ffffff"
-                                hoverColor: "#f1f5f9"
-                                borderColor: "#cbd5e1"
+                                normalColor: pal.SubtitleAdjustPage_playBtn_normalColor
+                                hoverColor: pal.SubtitleAdjustPage_playBtn_hoverColor
+                                borderColor: pal.SubtitleAdjustPage_playBtn_borderColor
                                 onClicked: {
                                     var p = videoDisplayLoader.item
                                     if (p) {
@@ -760,13 +787,14 @@ Pane {
                             }
 
                             IconButton {
+                                id: seekFwdBtn
                                 implicitWidth: 26
                                 implicitHeight: 26
                                 iconSource: "qrc:/icons/video-seekadd.svg"
                                 tooltip: "快进 5 秒"
-                                normalColor: "#ffffff"
-                                hoverColor: "#f1f5f9"
-                                borderColor: "#cbd5e1"
+                                normalColor: pal.SubtitleAdjustPage_seekFwdBtn_normalColor
+                                hoverColor: pal.SubtitleAdjustPage_seekFwdBtn_hoverColor
+                                borderColor: pal.SubtitleAdjustPage_seekFwdBtn_borderColor
                                 onClicked: {
                                     var p = videoDisplayLoader.item
                                     if (p) p.position = Math.min(p.duration, p.position + 5000)
@@ -774,11 +802,12 @@ Pane {
                             }
 
                             Label {
+                                id: positionLabel
                                 text: {
                                     var p = videoDisplayLoader.item
                                     root.fmtTime(p ? p.position : 0)
                                 }
-                                color: "#64748b"
+                                color: pal.SubtitleAdjustPage_positionLabel_color
                                 font.pixelSize: 12
                                 font.family: "Consolas, monospace"
                                 Layout.preferredWidth: 70
@@ -799,11 +828,12 @@ Pane {
                             }
 
                             Label {
+                                id: durationLabel
                                 text: {
                                     var p = videoDisplayLoader.item
                                     root.fmtTime(p ? p.duration : 0)
                                 }
-                                color: "#64748b"
+                                color: pal.SubtitleAdjustPage_durationLabel_color
                                 font.pixelSize: 12
                                 font.family: "Consolas, monospace"
                                 Layout.preferredWidth: 70
@@ -815,18 +845,20 @@ Pane {
 
             // ── Right: Adjustment Panel ──
             Rectangle {
+                id: adjPanel
                 Layout.preferredWidth: 280
                 Layout.fillHeight: true
                 radius: 10
-                color: "#ffffff"
-                border.color: "#e5e9f0"
+                color: pal.SubtitleAdjustPage_adjPanel_color
+                border.color: pal.SubtitleAdjustPage_adjPanel_borderColor
                 border.width: 1
 
                 Rectangle {
+                    id: adjPanelShadow
                     anchors.fill: parent
                     anchors.margins: -2
                     radius: 12
-                    color: "#1e3a5f"
+                    color: pal.SubtitleAdjustPage_adjPanelShadow_color
                     opacity: 0.04
                     z: -1
                 }
@@ -843,8 +875,9 @@ Pane {
                         spacing: 8
 
                         Label {
+                            id: offsetTitle
                             text: "偏移量"
-                            color: "#64748b"
+                            color: pal.SubtitleAdjustPage_offsetTitle_color
                             font.pixelSize: 11
                             font.bold: true
                         }
@@ -852,8 +885,9 @@ Pane {
                         Item { Layout.fillWidth: true }
 
                         Label {
+                            id: maxOffsetTitle
                             text: "最大偏移"
-                            color: "#64748b"
+                            color: pal.SubtitleAdjustPage_maxOffsetTitle_color
                             font.pixelSize: 11
                         }
 
@@ -878,10 +912,11 @@ Pane {
                     }
 
                     Label {
+                        id: offsetValue
                         Layout.fillWidth: true
                         Layout.topMargin: 4
                         text: controller ? root.fmtOffset(controller.offsetMs) : "±0.0s"
-                        color: controller && controller.offsetMs !== 0 ? (controller.offsetMs > 0 ? "#059669" : "#dc2626") : "#64748b"
+                        color: controller && controller.offsetMs !== 0 ? (controller.offsetMs > 0 ? pal.SubtitleAdjustPage_offsetValue_color_positive : pal.SubtitleAdjustPage_offsetValue_color_negative) : pal.SubtitleAdjustPage_offsetValue_color_neutral
                         font.pixelSize: 36
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
@@ -889,10 +924,11 @@ Pane {
 
                     // Offset slider
                     Rectangle {
+                        id: sliderPanel
                         Layout.fillWidth: true
                         Layout.topMargin: 16
                         Layout.preferredHeight: 40
-                        color: "#f8fafc"
+                        color: pal.SubtitleAdjustPage_sliderPanel_color
                         radius: 6
 
                         ColumnLayout {
@@ -918,24 +954,27 @@ Pane {
                                 spacing: 0
 
                                 Label {
+                                    id: sliderMinLabel
                                     text: "-" + (root.maxOffsetMs / 1000) + "s"
-                                    color: "#94a3b8"
+                                    color: pal.SubtitleAdjustPage_sliderMinLabel_color
                                     font.pixelSize: 10
                                 }
 
                                 Item { Layout.fillWidth: true }
 
                                 Label {
+                                    id: sliderZeroLabel
                                     text: "0"
-                                    color: "#94a3b8"
+                                    color: pal.SubtitleAdjustPage_sliderZeroLabel_color
                                     font.pixelSize: 10
                                 }
 
                                 Item { Layout.fillWidth: true }
 
                                 Label {
+                                    id: sliderMaxLabel
                                     text: "+" + (root.maxOffsetMs / 1000) + "s"
-                                    color: "#94a3b8"
+                                    color: pal.SubtitleAdjustPage_sliderMaxLabel_color
                                     font.pixelSize: 10
                                 }
                             }
@@ -949,14 +988,15 @@ Pane {
                         spacing: 12
 
                         IconButton {
+                            id: earlyBtn
                             text: "提前 " + (root.stepMs / 1000).toFixed(1) + "s"
                             tooltip: "字幕提前 " + root.stepMs + "ms"
                             Layout.fillWidth: true
                             implicitHeight: 36
-                            normalColor: "#fee2e2"
-                            hoverColor: "#fecaca"
-                            borderColor: "#fca5a5"
-                            textColor: "#dc2626"
+                            normalColor: pal.SubtitleAdjustPage_earlyBtn_normalColor
+                            hoverColor: pal.SubtitleAdjustPage_earlyBtn_hoverColor
+                            borderColor: pal.SubtitleAdjustPage_earlyBtn_borderColor
+                            textColor: pal.SubtitleAdjustPage_earlyBtn_textColor
                             enabled: hasVideo
                             onClicked: {
                                 if (controller) controller.shiftBackward(root.stepMs)
@@ -964,14 +1004,15 @@ Pane {
                         }
 
                         IconButton {
+                            id: delayBtn
                             text: "推迟 " + (root.stepMs / 1000).toFixed(1) + "s"
                             tooltip: "字幕推迟 " + root.stepMs + "ms"
                             Layout.fillWidth: true
                             implicitHeight: 36
-                            normalColor: "#dcfce7"
-                            hoverColor: "#bbf7d0"
-                            borderColor: "#86efac"
-                            textColor: "#059669"
+                            normalColor: pal.SubtitleAdjustPage_delayBtn_normalColor
+                            hoverColor: pal.SubtitleAdjustPage_delayBtn_hoverColor
+                            borderColor: pal.SubtitleAdjustPage_delayBtn_borderColor
+                            textColor: pal.SubtitleAdjustPage_delayBtn_textColor
                             enabled: hasVideo
                             onClicked: {
                                 if (controller) controller.shiftForward(root.stepMs)
@@ -980,10 +1021,11 @@ Pane {
                     }
 
                     Rectangle {
+                        id: stepSep
                         Layout.fillWidth: true
                         Layout.preferredHeight: 1
                         Layout.topMargin: 16
-                        color: "#e2e8f0"
+                        color: pal.SubtitleAdjustPage_stepSep_color
                     }
 
                     // Step size selector
@@ -992,8 +1034,9 @@ Pane {
                         spacing: 8
 
                         Label {
+                            id: stepSizeLabel
                             text: "步长"
-                            color: "#475569"
+                            color: pal.SubtitleAdjustPage_stepSizeLabel_color
                             font.pixelSize: 13
                             font.bold: true
                         }
@@ -1011,9 +1054,10 @@ Pane {
                     }
 
                     Rectangle {
+                        id: overwriteSep
                         Layout.fillWidth: true
                         Layout.preferredHeight: 1
-                        color: "#e2e8f0"
+                        color: pal.SubtitleAdjustPage_overwriteSep_color
                     }
 
                     CheckBox {
@@ -1028,6 +1072,7 @@ Pane {
                     }
 
                     IconButton {
+                        id: exportBtn
                         Layout.fillWidth: true
                         Layout.topMargin: 12
                         Layout.bottomMargin: 8
@@ -1036,10 +1081,10 @@ Pane {
                             ? "替换原字幕文件（将覆盖原文件）"
                             : "导出为 _adjusted.srt 文件"
                         implicitHeight: 42
-                        normalColor: "#2563eb"
-                        hoverColor: "#1d4ed8"
-                        borderColor: "#1d4ed8"
-                        textColor: "#ffffff"
+                        normalColor: pal.SubtitleAdjustPage_exportBtn_normalColor
+                        hoverColor: pal.SubtitleAdjustPage_exportBtn_hoverColor
+                        borderColor: pal.SubtitleAdjustPage_exportBtn_borderColor
+                        textColor: pal.SubtitleAdjustPage_exportBtn_textColor
                         enabled: hasVideo && controller && controller.isDirty
                         onClicked: {
                             if (controller) controller.exportSubtitle()
@@ -1048,6 +1093,7 @@ Pane {
                 }
             }
         }
-
     }
 }
+
+

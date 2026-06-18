@@ -11,11 +11,13 @@ Pane {
     padding: 0
     focusPolicy: Qt.NoFocus
 
-    background: Rectangle {
-        color: "#f4f6f9"
-    }
-
+    property var pal: themeManager.palette
     property bool showAll: true
+
+    background: Rectangle {
+        id: bgRect
+        color: pal.HomePage_bgRect_color
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -23,34 +25,111 @@ Pane {
         spacing: 20
 
         // 头部区域
-        ColumnLayout {
+        RowLayout {
             Layout.fillWidth: true
-            spacing: 4
+            spacing: 20
 
-            Label {
-                text: "功能集合"
-                color: "#111827"
-                font.pixelSize: 32
-                font.bold: true
-                font.letterSpacing: -0.5
-            }
-
-            Label {
-                text: "选择一个工具开始处理任务"
-                color: "#8492a6"
-                font.pixelSize: 15
-            }
-
-            // 分隔线
-            Rectangle {
+            ColumnLayout {
                 Layout.fillWidth: true
-                Layout.topMargin: 12
-                height: 1
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: "#3b82f6" }
-                    GradientStop { position: 0.3; color: "#8b5cf6" }
-                    GradientStop { position: 1.0; color: "transparent" }
+                spacing: 4
+
+                Label {
+                    id: titleLabel
+                    text: "功能集合"
+                    color: pal.HomePage_titleLabel_color
+                    font.pixelSize: 32
+                    font.bold: true
+                    font.letterSpacing: -0.5
+                }
+
+                Label {
+                    id: subtitleLabel
+                    text: "选择一个工具开始处理任务"
+                    color: pal.HomePage_subtitleLabel_color
+                    font.pixelSize: 15
+                }
+
+                // 分隔线
+                Rectangle {
+                    id: headerSeparator
+                    Layout.fillWidth: true
+                    Layout.topMargin: 12
+                    height: 1
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: pal.HomePage_headerSepStart_color }
+                        GradientStop { position: 0.3; color: pal.HomePage_headerSepMid_color }
+                        GradientStop { position: 1.0; color: "transparent" }
+                    }
+                }
+            }
+
+            // 主题切换
+            TabBar {
+                id: themeSwitcher
+                Layout.alignment: Qt.AlignTop
+                Layout.preferredHeight: 30
+                spacing: 0
+                clip: true
+
+                background: Rectangle {
+                    color: pal.HomePage_themeSwitcherBg_color
+                    radius: 6
+                    border.color: pal.HomePage_themeSwitcherBorder_color
+                    border.width: 1
+                }
+
+                TabButton {
+                    id: lightTab
+                    width: 60
+                    text: "Light"
+                    font.pixelSize: 12
+                    font.bold: themeSwitcher.currentIndex === 0
+                    padding: 8
+
+                    contentItem: Text {
+                        text: lightTab.text
+                        color: themeSwitcher.currentIndex === 0 ? pal.HomePage_themeTabLabel_color_active : pal.HomePage_themeTabLabel_color_normal
+                        font: lightTab.font
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        color: themeSwitcher.currentIndex === 0 ? pal.HomePage_themeTabBg_color_active : "transparent"
+                        radius: 5
+                        anchors.fill: parent
+                        anchors.margins: 3
+                    }
+                }
+
+                TabButton {
+                    id: darkTab
+                    width: 60
+                    text: "Dark"
+                    font.pixelSize: 12
+                    font.bold: themeSwitcher.currentIndex === 1
+                    padding: 8
+
+                    contentItem: Text {
+                        text: darkTab.text
+                        color: themeSwitcher.currentIndex === 1 ? pal.HomePage_themeTabLabel_color_active : pal.HomePage_themeTabLabel_color_normal
+                        font: darkTab.font
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        color: themeSwitcher.currentIndex === 1 ? pal.HomePage_themeTabBg_color_active : "transparent"
+                        radius: 5
+                        anchors.fill: parent
+                        anchors.margins: 3
+                    }
+                }
+
+                onCurrentIndexChanged: {
+                    if (currentIndex === 0) themeManager.setTheme("Light")
+                    else themeManager.setTheme("Dark")
                 }
             }
         }
@@ -61,8 +140,9 @@ Pane {
             spacing: 20
 
             Label {
+                id: modeLabel
                 text: "显示模式:"
-                color: "#627086"
+                color: pal.HomePage_modeLabel_color
                 font.pixelSize: 14
                 Layout.alignment: Qt.AlignVCenter
             }
@@ -72,12 +152,34 @@ Pane {
                 text: "全部插件"
                 checked: true
                 onCheckedChanged: { if (checked) root.showAll = true; }
+
+                contentItem: Text {
+                    text: parent.text
+                    color: pal.radioButton_textColor
+                    font: parent.font
+                    verticalAlignment: Text.AlignVCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.indicator ? parent.indicator.right : parent.left
+                    anchors.leftMargin: 8
+                    anchors.right: parent.right
+                }
             }
 
             RadioButton {
                 id: categoryRadio
                 text: "分类显示"
                 onCheckedChanged: { if (checked) root.showAll = false; }
+
+                contentItem: Text {
+                    text: parent.text
+                    color: pal.radioButton_textColor
+                    font: parent.font
+                    verticalAlignment: Text.AlignVCenter
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.indicator ? parent.indicator.right : parent.left
+                    anchors.leftMargin: 8
+                    anchors.right: parent.right
+                }
             }
         }
 
@@ -134,9 +236,10 @@ Pane {
                 spacing: 4
                 clip: true
                 background: Rectangle {
-                    color: "#ffffff"
+                    id: categoryTabBarBg
+                    color: pal.HomePage_categoryTabBarBg_color
                     radius: 8
-                    border.color: "#e5e9f0"
+                    border.color: pal.HomePage_categoryTabBarBorder_color
                     border.width: 1
                 }
 
@@ -151,14 +254,14 @@ Pane {
 
                         contentItem: Text {
                             text: tabBtn.text
-                            color: tabBar.currentIndex === index ? "#ffffff" : "#627086"
+                            color: tabBar.currentIndex === index ? pal.HomePage_categoryTabLabel_color_active : pal.HomePage_categoryTabLabel_color_normal
                             font: tabBtn.font
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
 
                         background: Rectangle {
-                            color: tabBar.currentIndex === index ? "#3b82f6" : tabBtn.hovered ? "#f0f4ff" : "transparent"
+                            color: tabBar.currentIndex === index ? pal.HomePage_categoryTabBg_color_active : tabBtn.hovered ? pal.HomePage_categoryTabBg_color_hover : "transparent"
                             radius: 6
                             anchors.fill: parent
                             anchors.margins: 3

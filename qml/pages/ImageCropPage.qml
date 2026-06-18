@@ -6,6 +6,7 @@ import "../components"
 
 Pane {
     id: root
+    property var pal: themeManager.palette
 
     signal backRequested
     property var controller: null
@@ -41,15 +42,10 @@ Pane {
         onTriggered: root.showTip = false
     }
 
-    Component.onDestruction: {
-        if (controller && typeof controller.reset === 'function') {
-            controller.reset();
-        }
-    }
-
     padding: 0
     background: Rectangle {
-        color: "#f4f6f9"
+        id: bgRect
+        color: pal.ImageCropPage_bgRect_color
     }
 
     FolderDialog {
@@ -98,7 +94,7 @@ Pane {
         contentItem: Label {
             text: "切换「递归子文件夹」将重新扫描图片列表。\n\n当前已浏览的进度将丢失，是否继续？"
             wrapMode: Text.WordWrap
-            color: "#334155"
+            color: pal.ImageCropPage_recursiveMsg_color
             font.pixelSize: 13
             lineHeight: 1.4
             padding: 16
@@ -132,9 +128,10 @@ Pane {
         property string detailText: ""
 
         contentItem: Label {
+            id: overflowMsg
             text: overflowWarnDialog.detailText
             wrapMode: Text.WordWrap
-            color: "#334155"
+            color: pal.ImageCropPage_overflowMsg_color
             font.pixelSize: 13
             lineHeight: 1.4
             padding: 16
@@ -253,7 +250,7 @@ Pane {
 
             Label {
                 text: "当前有图片裁剪任务正在处理中，返回首页将中断执行，是否继续？"
-                color: "#334155"
+                color: pal.ImageCropPage_confirmMsg_color
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
@@ -266,24 +263,26 @@ Pane {
                 Item { Layout.fillWidth: true }
 
                 IconButton {
+                    id: cancelBtn
                     text: "取消"
                     tooltip: "不返回，继续当前任务"
-                    normalColor: "#e2e8f0"
-                    hoverColor: "#cbd5e1"
-                    borderColor: "#cbd5e1"
-                    textColor: "#475569"
+                    normalColor: pal.ImageCropPage_cancelBtn_normalColor
+                    hoverColor: pal.ImageCropPage_cancelBtn_hoverColor
+                    borderColor: pal.ImageCropPage_cancelBtn_borderColor
+                    textColor: pal.ImageCropPage_cancelBtn_textColor
                     implicitWidth: 100
                     implicitHeight: 38
                     onClicked: backConfirmDialog.close()
                 }
 
                 IconButton {
+                    id: goBackBtn
                     text: "返回首页"
                     tooltip: "中断任务并返回首页"
-                    normalColor: "#dc2626"
-                    hoverColor: "#b91c1c"
-                    borderColor: "#b91c1c"
-                    textColor: "#ffffff"
+                    normalColor: pal.ImageCropPage_goBackBtn_normalColor
+                    hoverColor: pal.ImageCropPage_goBackBtn_hoverColor
+                    borderColor: pal.ImageCropPage_goBackBtn_borderColor
+                    textColor: pal.ImageCropPage_goBackBtn_textColor
                     implicitWidth: 120
                     implicitHeight: 38
                     onClicked: {
@@ -323,15 +322,17 @@ Pane {
                 spacing: 4
 
                 Label {
+                    id: pageTitle
                     text: "图片裁剪"
-                    color: "#111827"
+                    color: pal.ImageCropPage_pageTitle_color
                     font.pixelSize: 26
                     font.bold: true
                 }
 
                 Label {
+                    id: pageSubtitle
                     text: "按比例或指定像素尺寸裁剪图片"
-                    color: "#64748b"
+                    color: pal.ImageCropPage_pageSubtitle_color
                     font.pixelSize: 14
                 }
             }
@@ -339,11 +340,12 @@ Pane {
 
         // Folder selection row
         Rectangle {
+            id: folderRow
             Layout.fillWidth: true
             Layout.preferredHeight: 52
             radius: 10
-            color: "#ffffff"
-            border.color: "#e5e9f0"
+            color: pal.ImageCropPage_folderRow_color
+            border.color: pal.ImageCropPage_folderRow_borderColor
             border.width: 1
 
             RowLayout {
@@ -354,8 +356,9 @@ Pane {
                 spacing: 12
 
                 Label {
+                    id: folderLbl
                     text: "选择文件夹"
-                    color: "#475569"
+                    color: pal.ImageCropPage_folderLbl_color
                     font.pixelSize: 13
                     font.bold: true
                 }
@@ -376,9 +379,10 @@ Pane {
                 }
 
                 Rectangle {
+                    id: folderSep
                     width: 1
                     height: 24
-                    color: "#e2e8f0"
+                    color: pal.ImageCropPage_folderSep_color
                 }
 
                 CheckBox {
@@ -387,7 +391,7 @@ Pane {
                     checked: controller ? controller.recursive : false
                     onCheckedChanged: {
                         if (controller && controller.rootPath.length > 0 && checked !== controller.recursive) {
-                            // Has images loaded and value actually changed → confirm
+                            // Has images loaded and value actually changed 鈫?confirm
                             recursiveConfirmDialog.pendingRecursiveValue = checked;
                             recursiveConfirmDialog.open();
                         } else {
@@ -412,8 +416,8 @@ Pane {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 10
-                color: "#ffffff"
-                border.color: "#e5e9f0"
+                color: pal.ImageCropPage_imagePanel_color
+                border.color: pal.ImageCropPage_imagePanel_borderColor
                 border.width: 1
 
                 ColumnLayout {
@@ -448,9 +452,10 @@ Pane {
                         }
 
                         Rectangle {
+                            id: imgBg
                             anchors.fill: parent
                             radius: 6
-                            color: root.dispW > 0 && root.dispH > 0 ? "#f1f5f9" : "transparent"
+                            color: root.dispW > 0 && root.dispH > 0 ? pal.ImageCropPage_imgBg_color : "transparent"
 
                             // Centered image area — sized to dispW/dispH but centered in parent
                             Item {
@@ -717,43 +722,47 @@ Pane {
 
                                     // Corner handles (visual indicators)
                                     Rectangle {
+                                        id: handleTL
                                         x: root.cropX - 4
                                         y: root.cropY - 4
                                         width: 8
                                         height: 8
                                         radius: 2
-                                        color: "#ffffff"
-                                        border.color: "#4f46e5"
+                                        color: pal.ImageCropPage_handleTL_color
+                                        border.color: pal.ImageCropPage_handleTL_borderColor
                                         border.width: 1.5
                                     }
                                     Rectangle {
+                                        id: handleTR
                                         x: root.cropX + root.cropW - 4
                                         y: root.cropY - 4
                                         width: 8
                                         height: 8
                                         radius: 2
-                                        color: "#ffffff"
-                                        border.color: "#4f46e5"
+                                        color: pal.ImageCropPage_handleTR_color
+                                        border.color: pal.ImageCropPage_handleTR_borderColor
                                         border.width: 1.5
                                     }
                                     Rectangle {
+                                        id: handleBL
                                         x: root.cropX - 4
                                         y: root.cropY + root.cropH - 4
                                         width: 8
                                         height: 8
                                         radius: 2
-                                        color: "#ffffff"
-                                        border.color: "#4f46e5"
+                                        color: pal.ImageCropPage_handleBL_color
+                                        border.color: pal.ImageCropPage_handleBL_borderColor
                                         border.width: 1.5
                                     }
                                     Rectangle {
+                                        id: handleBR
                                         x: root.cropX + root.cropW - 4
                                         y: root.cropY + root.cropH - 4
                                         width: 8
                                         height: 8
                                         radius: 2
-                                        color: "#ffffff"
-                                        border.color: "#4f46e5"
+                                        color: pal.ImageCropPage_handleBR_color
+                                        border.color: pal.ImageCropPage_handleBR_borderColor
                                         border.width: 1.5
                                     }
                                 }
@@ -766,15 +775,17 @@ Pane {
                                 visible: !root.cropReady
 
                                 Label {
+                                    id: emptyTitle
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "请选择图片文件夹"
-                                    color: "#94a3b8"
+                                    color: pal.ImageCropPage_emptyTitle_color
                                     font.pixelSize: 15
                                 }
                                 Label {
+                                    id: emptySubtitle
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "支持 PNG、JPG、BMP、WebP、TIFF、GIF 格式"
-                                    color: "#c7d2e0"
+                                    color: pal.ImageCropPage_emptySubtitle_color
                                     font.pixelSize: 12
                                 }
                             }
@@ -789,7 +800,7 @@ Pane {
                             width: 36
                             height: 60
                             radius: 10
-                            color: prevBtnMouse.containsMouse ? "#DDE4EE" : "#80FFFFFF"
+                            color: prevBtnMouse.containsMouse ? pal.ImageCropPage_prevBtn_color_hover : pal.ImageCropPage_prevBtn_color_normal
                             visible: controller && controller.currentFileCount > 0
                             opacity: prevBtnMouse.containsMouse ? 1.0 : 0.55
 
@@ -800,9 +811,10 @@ Pane {
                             }
 
                             Label {
+                                id: prevBtnIcon
                                 anchors.centerIn: parent
                                 text: "‹"
-                                color: prevBtnMouse.containsMouse ? "#1e293b" : "#ffffff"
+                                color: prevBtnMouse.containsMouse ? pal.ImageCropPage_prevBtnIcon_color_hover : pal.ImageCropPage_prevBtnIcon_color_normal
                                 font.pixelSize: 26
                                 font.bold: true
                             }
@@ -825,7 +837,7 @@ Pane {
                             width: 36
                             height: 60
                             radius: 10
-                            color: nextBtnMouse.containsMouse ? "#DDE4EE" : "#80FFFFFF"
+                            color: nextBtnMouse.containsMouse ? pal.ImageCropPage_nextBtn_color_hover : pal.ImageCropPage_nextBtn_color_normal
                             visible: controller && controller.currentFileCount > 0
                             opacity: nextBtnMouse.containsMouse ? 1.0 : 0.55
 
@@ -836,9 +848,10 @@ Pane {
                             }
 
                             Label {
+                                id: nextBtnIcon
                                 anchors.centerIn: parent
                                 text: "›"
-                                color: nextBtnMouse.containsMouse ? "#1e293b" : "#ffffff"
+                                color: nextBtnMouse.containsMouse ? pal.ImageCropPage_nextBtnIcon_color_hover : pal.ImageCropPage_nextBtnIcon_color_normal
                                 font.pixelSize: 26
                                 font.bold: true
                             }
@@ -854,6 +867,7 @@ Pane {
 
                         // ── Page indicator ─────────────────────────
                         Rectangle {
+                            id: pageIndicator
                             anchors.top: parent.top
                             anchors.topMargin: 8
                             anchors.right: parent.right
@@ -861,7 +875,7 @@ Pane {
                             width: pageLabel.implicitWidth + 16
                             height: 22
                             radius: 11
-                            color: "#73000000"
+                            color: pal.ImageCropPage_pageIndicator_color
                             visible: controller && controller.currentFileCount > 0
 
                             Label {
@@ -874,7 +888,7 @@ Pane {
                                     var cur = controller.currentIndex + 1;
                                     return cur + "/" + total;
                                 }
-                                color: "#ffffff"
+                                color: pal.ImageCropPage_pageLabel_color
                                 font.pixelSize: 11
                                 font.bold: true
                             }
@@ -882,6 +896,7 @@ Pane {
 
                         // ── Crop info label ───────────────────────
                         Rectangle {
+                            id: cropInfoRect
                             anchors.bottom: parent.bottom
                             anchors.bottomMargin: 8
                             anchors.left: parent.left
@@ -889,7 +904,7 @@ Pane {
                             width: cropInfoLabel.implicitWidth + 16
                             height: 22
                             radius: 6
-                            color: "#fafafa"
+                            color: pal.ImageCropPage_cropInfoRect_color
                             visible: root.cropReady
 
                             Label {
@@ -906,27 +921,28 @@ Pane {
                                     }
                                     return "";
                                 }
-                                color: "#94a3b8"
+                                color: pal.ImageCropPage_cropInfoLabel_color
                                 font.pixelSize: 11
                             }
                         }
 
                         // ── Image filename label ────────────────────
                         Rectangle {
+                            id: fileNameRect
                             anchors.bottom: parent.bottom
                             anchors.bottomMargin: 8
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: fileNameLabel.implicitWidth + 16
                             height: 22
                             radius: 6
-                            color: "#fafafa"
+                            color: pal.ImageCropPage_fileNameRect_color
                             visible: root.cropReady && controller && controller.currentFilePath.length > 0
 
                             Label {
                                 id: fileNameLabel
                                 anchors.centerIn: parent
                                 text: controller ? controller.extractFileName(controller.currentFilePath) : ""
-                                color: "#94a3b8"
+                                color: pal.ImageCropPage_fileNameLabel_color
                                 font.pixelSize: 11
                                 elide: Text.ElideMiddle
                                 maximumLineCount: 1
@@ -940,7 +956,7 @@ Pane {
                             width: tipLabel.implicitWidth + 32
                             height: 36
                             radius: 18
-                            color: "#A6000000"
+                            color: pal.ImageCropPage_tipOverlay_color
                             z: 100
                             opacity: 0
 
@@ -961,7 +977,7 @@ Pane {
                                 id: tipLabel
                                 anchors.centerIn: parent
                                 text: root.tipText
-                                color: "#ffffff"
+                                color: pal.ImageCropPage_tipLabel_color
                                 font.pixelSize: 13
                             }
                         }
@@ -971,18 +987,20 @@ Pane {
 
             // ── Right Panel: Controls ──────────────────────────────────
             Rectangle {
+                id: rightPanel
                 Layout.preferredWidth: 310
                 Layout.fillHeight: true
                 radius: 10
-                color: "#ffffff"
-                border.color: "#e5e9f0"
+                color: pal.ImageCropPage_rightPanel_color
+                border.color: pal.ImageCropPage_rightPanel_borderColor
                 border.width: 1
 
                 Rectangle {
+                    id: rightPanelShadow
                     anchors.fill: parent
                     anchors.margins: -2
                     radius: 12
-                    color: "#1e3a5f"
+                    color: pal.ImageCropPage_rightPanelShadow_color
                     opacity: 0.04
                     z: -1
                 }
@@ -998,17 +1016,19 @@ Pane {
                         spacing: 0
 
                         Rectangle {
+                            id: ratioTab
                             Layout.fillWidth: true
                             height: 34
                             radius: 8
-                            color: controller && controller.cropMode === 0 ? "#4f46e5" : "#f1f5f9"
-                            border.color: controller && controller.cropMode === 0 ? "#4f46e5" : "#cbd5e1"
+                            color: controller && controller.cropMode === 0 ? pal.ImageCropPage_ratioTab_color_active : pal.ImageCropPage_ratioTab_color_normal
+                            border.color: controller && controller.cropMode === 0 ? pal.ImageCropPage_ratioTab_borderColor_active : pal.ImageCropPage_ratioTab_borderColor_normal
                             border.width: 1
 
                             Label {
+                                id: ratioTabLbl
                                 anchors.centerIn: parent
                                 text: "按比例裁剪"
-                                color: controller && controller.cropMode === 0 ? "#ffffff" : "#475569"
+                                color: controller && controller.cropMode === 0 ? pal.ImageCropPage_ratioTabLbl_color_active : pal.ImageCropPage_ratioTabLbl_color_normal
                                 font.pixelSize: 12
                                 font.bold: true
                             }
@@ -1026,17 +1046,19 @@ Pane {
                         }
 
                         Rectangle {
+                            id: pixelTab
                             Layout.fillWidth: true
                             height: 34
                             radius: 8
-                            color: controller && controller.cropMode === 1 ? "#4f46e5" : "#f1f5f9"
-                            border.color: controller && controller.cropMode === 1 ? "#4f46e5" : "#cbd5e1"
+                            color: controller && controller.cropMode === 1 ? pal.ImageCropPage_pixelTab_color_active : pal.ImageCropPage_pixelTab_color_normal
+                            border.color: controller && controller.cropMode === 1 ? pal.ImageCropPage_pixelTab_borderColor_active : pal.ImageCropPage_pixelTab_borderColor_normal
                             border.width: 1
 
                             Label {
+                                id: pixelTabLbl
                                 anchors.centerIn: parent
                                 text: "按像素裁剪"
-                                color: controller && controller.cropMode === 1 ? "#ffffff" : "#475569"
+                                color: controller && controller.cropMode === 1 ? pal.ImageCropPage_pixelTabLbl_color_active : pal.ImageCropPage_pixelTabLbl_color_normal
                                 font.pixelSize: 12
                                 font.bold: true
                             }
@@ -1062,12 +1084,13 @@ Pane {
 
                         // ── Section 1: Input Settings ─────────────
                         Rectangle {
+                            id: inputSection
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             Layout.topMargin: 8
                             radius: 6
-                            color: "#f8fafc"
-                            border.color: "#e2e8f0"
+                            color: pal.ImageCropPage_inputSection_color
+                            border.color: pal.ImageCropPage_inputSection_borderColor
                             border.width: 1
 
                             ColumnLayout {
@@ -1078,8 +1101,9 @@ Pane {
                                 spacing: 6
 
                                 Label {
+                                    id: inputSectionLbl
                                     text: "输入设置"
-                                    color: "#64748b"
+                                    color: pal.ImageCropPage_inputSectionLbl_color
                                     font.pixelSize: 11
                                     font.bold: true
                                 }
@@ -1096,19 +1120,21 @@ Pane {
                                             model: ["1:1", "4:3", "16:9", "9:16"]
 
                                             Rectangle {
+                                                id: ratioBtn
                                                 property int ratioIdx: index
                                                 property bool isSelected: controller && controller.usePresetRatio && controller.presetRatioIndex === ratioIdx
                                                 Layout.preferredWidth: 42
                                                 Layout.preferredHeight: 26
                                                 radius: 5
-                                                color: isSelected ? "#6366f1" : "#ffffff"
-                                                border.color: isSelected ? "#6366f1" : "#e2e8f0"
+                                                color: isSelected ? pal.ImageCropPage_ratioBtn_color_active : pal.ImageCropPage_ratioBtn_color_normal
+                                                border.color: isSelected ? pal.ImageCropPage_ratioBtn_borderColor_active : pal.ImageCropPage_ratioBtn_borderColor_normal
                                                 border.width: 1
 
                                                 Label {
+                                                    id: ratioBtnLbl
                                                     anchors.centerIn: parent
                                                     text: modelData
-                                                    color: isSelected ? "#ffffff" : "#475569"
+                                                    color: isSelected ? pal.ImageCropPage_ratioBtnLbl_color_active : pal.ImageCropPage_ratioBtnLbl_color_normal
                                                     font.pixelSize: 11
                                                     font.bold: true
                                                 }
@@ -1129,17 +1155,19 @@ Pane {
 
                                         // ── Free Ratio Button ─────────
                                         Rectangle {
+                                            id: freeBtn
                                             Layout.preferredWidth: 42
                                             Layout.preferredHeight: 26
                                             radius: 5
-                                            color: controller && controller.usePresetRatio && controller.presetRatioIndex === 4 ? "#6366f1" : "#ffffff"
-                                            border.color: controller && controller.usePresetRatio && controller.presetRatioIndex === 4 ? "#6366f1" : "#e2e8f0"
+                                            color: controller && controller.usePresetRatio && controller.presetRatioIndex === 4 ? pal.ImageCropPage_freeBtn_color_active : pal.ImageCropPage_freeBtn_color_normal
+                                            border.color: controller && controller.usePresetRatio && controller.presetRatioIndex === 4 ? pal.ImageCropPage_freeBtn_borderColor_active : pal.ImageCropPage_freeBtn_borderColor_normal
                                             border.width: 1
 
                                             Label {
+                                                id: freeBtnLbl
                                                 anchors.centerIn: parent
                                                 text: "自由"
-                                                color: controller && controller.usePresetRatio && controller.presetRatioIndex === 4 ? "#ffffff" : "#475569"
+                                                color: controller && controller.usePresetRatio && controller.presetRatioIndex === 4 ? pal.ImageCropPage_freeBtnLbl_color_active : pal.ImageCropPage_freeBtnLbl_color_normal
                                                 font.pixelSize: 11
                                                 font.bold: true
                                             }
@@ -1208,8 +1236,9 @@ Pane {
                                         }
 
                                         Label {
+                                            id: colonLbl
                                             text: ":"
-                                            color: "#94a3b8"
+                                            color: pal.ImageCropPage_colonLbl_color
                                             font.pixelSize: 14
                                             font.bold: true
                                         }
@@ -1287,8 +1316,9 @@ Pane {
                                         }
 
                                         Label {
-                                            text: "×"
-                                            color: "#94a3b8"
+                                            id: multiplyLbl
+                                            text: "x"
+                                            color: pal.ImageCropPage_multiplyLbl_color
                                             font.pixelSize: 16
                                         }
 
@@ -1330,27 +1360,30 @@ Pane {
 
                         // ── Section 2: Separator ─────────────────
                         Rectangle {
+                            id: sectionSep
                             Layout.fillWidth: true
                             Layout.preferredHeight: 16
                             color: "transparent"
 
                             Rectangle {
+                                id: sectionSepLine
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.left: parent.left
                                 anchors.right: parent.right
                                 height: 1
-                                color: "#e2e8f0"
+                                color: pal.ImageCropPage_sectionSepLine_color
                             }
                         }
 
                         // ── Section 3: Output Settings ───────────
                         Rectangle {
+                            id: outputSection
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             Layout.bottomMargin: 8
                             radius: 6
-                            color: "#f8fafc"
-                            border.color: "#e2e8f0"
+                            color: pal.ImageCropPage_outputSection_color
+                            border.color: pal.ImageCropPage_outputSection_borderColor
                             border.width: 1
 
                             ColumnLayout {
@@ -1361,8 +1394,9 @@ Pane {
                                 spacing: 6
 
                                 Label {
+                                    id: outputSectionLbl
                                     text: "输出设置"
-                                    color: "#64748b"
+                                    color: pal.ImageCropPage_outputSectionLbl_color
                                     font.pixelSize: 11
                                     font.bold: true
                                 }
@@ -1401,7 +1435,7 @@ Pane {
                                         Layout.fillWidth: true
                                         Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
                                         text: controller ? controller.outputDir : ""
-                                        placeholderText: controller ? (controller.rootPath ? controller.rootPath + "_cropped" : "输出到源目录_cropped") : ""
+                                        placeholderText: controller ? (controller.rootPath ? controller.rootPath + "_cropped" : "杈撳嚭鍒版簮鐩綍_cropped") : ""
                                         readOnly: false
                                         clip: true
                                         onTextChanged: {
@@ -1436,9 +1470,10 @@ Pane {
 
                     // ── Separator ───────────────────────────────
                     Rectangle {
+                        id: bottomSep
                         Layout.fillWidth: true
                         height: 1
-                        color: "#f1f5f9"
+                        color: pal.ImageCropPage_bottomSep_color
                         Layout.topMargin: 12
                         Layout.bottomMargin: 12
                     }
@@ -1449,13 +1484,14 @@ Pane {
                         spacing: 10
 
                         IconButton {
+                            id: execBtn
                             Layout.fillWidth: true
                             text: "执行裁剪"
                             iconSource: "qrc:/icons/play.svg"
                             tooltip: "执行裁剪操作"
-                            normalColor: "#4f46e5"
-                            hoverColor: "#4338ca"
-                            borderColor: "#4338ca"
+                            normalColor: pal.ImageCropPage_execBtn_normalColor
+                            hoverColor: pal.ImageCropPage_execBtn_hoverColor
+                            borderColor: pal.ImageCropPage_execBtn_borderColor
                             onClicked: {
                                 if (!controller || !root.cropReady)
                                     return;
@@ -1477,10 +1513,11 @@ Pane {
 
         // Status bar
         Rectangle {
+            id: statusBar
             Layout.fillWidth: true
             Layout.preferredHeight: statusText.implicitHeight + 12
             radius: 6
-            color: "#eff6ff"
+            color: pal.ImageCropPage_statusBar_color
             visible: controller ? controller.statusMessage.length > 0 : false
 
             Label {
@@ -1491,10 +1528,12 @@ Pane {
                 anchors.right: parent.right
                 anchors.rightMargin: 12
                 text: controller ? controller.statusMessage : ""
-                color: "#2563eb"
+                color: pal.ImageCropPage_statusText_color
                 font.pixelSize: 13
                 elide: Text.ElideRight
             }
         }
     }
 }
+
+

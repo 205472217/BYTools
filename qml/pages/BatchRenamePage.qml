@@ -10,6 +10,7 @@ Pane {
     signal backRequested()
 
     property var controller: null
+    property var pal: themeManager.palette
 
     readonly property int tableLeftPadding: 18
     readonly property int tableRightPadding: 20
@@ -30,15 +31,10 @@ Pane {
     readonly property int statusColumnX: newColumnX + textColumnWidth + columnGap
     readonly property int actionColumnX: statusColumnX + statusColumnWidth + columnGap
 
-    Component.onDestruction: {
-        if (controller && typeof controller.reset === 'function') {
-            controller.reset()
-        }
-    }
-
     padding: 0
     background: Rectangle {
-        color: "#f4f6f9"
+        id: rootBg
+        color: pal.BatchRenamePage_rootBg_color
     }
 
     FolderDialog {
@@ -66,8 +62,9 @@ Pane {
             Layout.margins: 4
 
             Label {
+                id: backConfirmMsg
                 text: "当前有批量重命名任务正在处理中，返回首页将中断执行，是否继续？"
-                color: "#334155"
+                color: pal.BatchRenamePage_backConfirmMsg_color
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
@@ -80,24 +77,26 @@ Pane {
                 Item { Layout.fillWidth: true }
 
                 IconButton {
+                    id: cancelBtn
                     text: "取消"
                     tooltip: "不返回，继续当前任务"
-                    normalColor: "#e2e8f0"
-                    hoverColor: "#cbd5e1"
-                    borderColor: "#cbd5e1"
-                    textColor: "#475569"
+                    normalColor: pal.BatchRenamePage_cancelBtn_normalColor
+                    hoverColor: pal.BatchRenamePage_cancelBtn_hoverColor
+                    borderColor: pal.BatchRenamePage_cancelBtn_borderColor
+                    textColor: pal.BatchRenamePage_cancelBtn_textColor
                     implicitWidth: 100
                     implicitHeight: 38
                     onClicked: backConfirmDialog.close()
                 }
 
                 IconButton {
+                    id: returnHomeBtn
                     text: "返回首页"
                     tooltip: "中断任务并返回首页"
-                    normalColor: "#dc2626"
-                    hoverColor: "#b91c1c"
-                    borderColor: "#b91c1c"
-                    textColor: "#ffffff"
+                    normalColor: pal.BatchRenamePage_returnHomeBtn_normalColor
+                    hoverColor: pal.BatchRenamePage_returnHomeBtn_hoverColor
+                    borderColor: pal.BatchRenamePage_returnHomeBtn_borderColor
+                    textColor: pal.BatchRenamePage_returnHomeBtn_textColor
                     implicitWidth: 120
                     implicitHeight: 38
                     onClicked: {
@@ -136,34 +135,38 @@ Pane {
                 spacing: 4
 
                 Label {
+                    id: titleLabel
                     text: "批量重命名"
-                    color: "#111827"
+                    color: pal.BatchRenamePage_titleLabel_color
                     font.pixelSize: 26
                     font.bold: true
                 }
 
                 Label {
+                    id: subtitleLabel
                     text: "设置规则后直接执行，支持逐条还原"
-                    color: "#64748b"
+                    color: pal.BatchRenamePage_subtitleLabel_color
                     font.pixelSize: 14
                 }
             }
         }
 
         Rectangle {
+            id: settingsPanel
             Layout.fillWidth: true
             Layout.preferredHeight: 280
             radius: 10
-            color: "#ffffff"
-            border.color: "#e5e9f0"
+            color: pal.BatchRenamePage_settingsPanel_color
+            border.color: pal.BatchRenamePage_settingsPanel_borderColor
             border.width: 1
 
             // 面板阴影
             Rectangle {
+                id: settingsShadow
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 12
-                color: "#1e3a5f"
+                color: pal.BatchRenamePage_settingsShadow_color
                 opacity: 0.04
                 z: -1
             }
@@ -178,8 +181,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: rootFolderLabel
                         text: "根文件夹"
-                        color: "#475569"
+                        color: pal.BatchRenamePage_rootFolderLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -204,8 +208,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: fileTypeLabel
                         text: "文件类型"
-                        color: "#475569"
+                        color: pal.BatchRenamePage_fileTypeLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -289,8 +294,9 @@ Pane {
                         }
 
                         Label {
+                            id: fileTipsLabel
                             text: controller ? controller.fileTips : ""
-                            color: "#64748b"
+                            color: pal.BatchRenamePage_fileTipsLabel_color
                             font.pixelSize: 12
                             visible: controller ? controller.fileType !== 5 : false
                         }
@@ -302,8 +308,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: renameModeLabel
                         text: "重命名方式"
-                        color: "#475569"
+                        color: pal.BatchRenamePage_renameModeLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -333,9 +340,10 @@ Pane {
                     }
 
                     Rectangle {
+                        id: modeSeparator
                         width: 1
                         height: 24
-                        color: "#e2e8f0"
+                        color: pal.BatchRenamePage_modeSeparator_color
                     }
 
                     RadioButton {
@@ -362,8 +370,9 @@ Pane {
                     }
 
                     Label {
+                        id: arrowLabel
                         text: "→"
-                        color: "#64748b"
+                        color: pal.BatchRenamePage_arrowLabel_color
                     }
 
                     TextFieldEx {
@@ -384,8 +393,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: advancedLabel
                         text: "高级选项"
-                        color: "#475569"
+                        color: pal.BatchRenamePage_advancedLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -418,12 +428,13 @@ Pane {
                         }
 
                         IconButton {
+                            id: executeBtn
                             text: "执行"
                             iconSource: "qrc:/icons/play.svg"
                             tooltip: "开始执行"
-                            normalColor: "#2563eb"
-                            hoverColor: "#1d4ed8"
-                            borderColor: "#1d4ed8"
+                            normalColor: pal.BatchRenamePage_executeBtn_normalColor
+                            hoverColor: pal.BatchRenamePage_executeBtn_hoverColor
+                            borderColor: pal.BatchRenamePage_executeBtn_borderColor
                             onClicked: {
                                 if (controller) {
                                     controller.executeRename()
@@ -441,10 +452,11 @@ Pane {
             visible: (controller && controller.statusMessage.length > 0) || (controller && controller.hasRecords)
 
             Rectangle {
+                id: statusPanel
                 Layout.fillWidth: true
                 height: statusText.implicitHeight + 12
                 radius: 6
-                color: controller && controller.statusMessage ? "#eff6ff" : "transparent"
+                color: controller && controller.statusMessage ? pal.BatchRenamePage_statusPanel_bg_active : "transparent"
                 visible: controller ? controller.statusMessage.length > 0 : false
 
                 Label {
@@ -455,7 +467,7 @@ Pane {
                     anchors.right: parent.right
                     anchors.rightMargin: 12
                     text: controller ? controller.statusMessage : ""
-                    color: "#2563eb"
+                    color: pal.BatchRenamePage_statusText_color
                     font.pixelSize: 13
                     elide: Text.ElideRight
                 }
@@ -474,20 +486,22 @@ Pane {
         }
 
         Rectangle {
+            id: tablePanel
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 10
-            color: "#ffffff"
-            border.color: "#e5e9f0"
+            color: pal.BatchRenamePage_tablePanel_color
+            border.color: pal.BatchRenamePage_tablePanel_borderColor
             border.width: 1
             clip: true
 
             // 面板阴影
             Rectangle {
+                id: tableShadow
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 12
-                color: "#1e3a5f"
+                color: pal.BatchRenamePage_tableShadow_color
                 opacity: 0.04
                 z: -1
             }
@@ -498,65 +512,72 @@ Pane {
                 spacing: 0
 
                 Rectangle {
+                    id: headerRow
                     Layout.fillWidth: true
                     Layout.preferredHeight: 40
-                    color: "#f8fafc"
+                    color: pal.BatchRenamePage_headerRow_color
                     radius: 0
 
                     // 底部分隔线
                     Rectangle {
+                        id: headerSeparator
                         anchors.bottom: parent.bottom
                         width: parent.width
                         height: 1
-                        color: "#e8ecf2"
+                        color: pal.BatchRenamePage_headerSeparator_color
                     }
 
                     Label {
+                        id: typeHeader
                         x: root.typeColumnX
                         width: root.typeColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "类型"
-                        color: "#64748b"
+                        color: pal.BatchRenamePage_typeHeader_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: originalHeader
                         x: root.originalColumnX
                         width: root.textColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "原名称"
-                        color: "#64748b"
+                        color: pal.BatchRenamePage_originalHeader_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: newHeader
                         x: root.newColumnX
                         width: root.textColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "新名称"
-                        color: "#64748b"
+                        color: pal.BatchRenamePage_newHeader_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: statusHeader
                         x: root.statusColumnX
                         width: root.statusColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "状态"
-                        color: "#64748b"
+                        color: pal.BatchRenamePage_statusHeader_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: actionHeader
                         x: root.actionColumnX
                         width: root.actionColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "操作"
-                        color: "#64748b"
+                        color: pal.BatchRenamePage_actionHeader_color
                         font.pixelSize: 12
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
@@ -578,15 +599,16 @@ Pane {
                         id: rowDelegate
                         width: recordsListView.width
                         height: 74
-                        color: rowMouseArea.containsMouse ? "#f0f7ff" :
-                               index % 2 === 0 ? "#ffffff" : "#fafbfc"
+                        color: rowMouseArea.containsMouse ? pal.BatchRenamePage_rowDelegate_bg_hover :
+                               index % 2 === 0 ? pal.BatchRenamePage_rowDelegate_bg_even : pal.BatchRenamePage_rowDelegate_bg_odd
 
                         // 底部分隔线
                         Rectangle {
+                            id: rowSeparator
                             anchors.bottom: parent.bottom
                             width: parent.width
                             height: 1
-                            color: "#f1f5f9"
+                            color: pal.BatchRenamePage_rowSeparator_color
                         }
 
                         // 类型标签（彩色标签）
@@ -614,21 +636,23 @@ Pane {
                         }
 
                         Label {
+                            id: originalNameLabel
                             x: root.originalColumnX
                             width: root.textColumnWidth
                             y: 14
                             text: modelData.originalName
-                            color: "#334155"
+                            color: pal.BatchRenamePage_originalNameLabel_color
                             font.pixelSize: 13
                             elide: Text.ElideMiddle
                         }
 
                         Label {
+                            id: newNameLabel
                             x: root.newColumnX
                             width: root.textColumnWidth
                             y: 14
                             text: modelData.newName
-                            color: "#059669"
+                            color: pal.BatchRenamePage_newNameLabel_color
                             font.bold: true
                             font.pixelSize: 13
                             elide: Text.ElideMiddle
@@ -636,28 +660,31 @@ Pane {
 
                         // 状态标签（彩色标签）
                         Rectangle {
+                            id: statusBadge
                             x: root.statusColumnX
                             width: root.statusColumnWidth
                             y: 14
                             height: 22
                             radius: 4
-                            color: modelData.success ? "#dbeafe" : "#fef2f2"
+                            color: modelData.success ? pal.BatchRenamePage_statusBadge_bg_active : pal.BatchRenamePage_statusBadge_bg_normal
 
                             Label {
+                                id: statusBadgeLabel
                                 anchors.centerIn: parent
                                 text: modelData.status
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: modelData.success ? "#2563eb" : "#dc2626"
+                                color: modelData.success ? pal.BatchRenamePage_statusBadgeLabel_color_active : pal.BatchRenamePage_statusBadgeLabel_color_normal
                             }
                         }
 
                         Label {
+                            id: pathLabel
                             x: root.originalColumnX
                             y: 40
                             width: root.statusColumnX - root.originalColumnX - root.columnGap
                             text: (modelData.success ? modelData.newPath : modelData.originalPath)
-                            color: "#94a3b8"
+                            color: pal.BatchRenamePage_pathLabel_color
                             font.pixelSize: 11
                             elide: Text.ElideMiddle
                         }
@@ -691,15 +718,17 @@ Pane {
                         visible: controller ? recordsListView.count === 0 : true
 
                         Label {
+                            id: emptyTitleLabel
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "暂无重命名记录"
-                            color: "#94a3b8"
+                            color: pal.BatchRenamePage_emptyTitleLabel_color
                             font.pixelSize: 15
                         }
                         Label {
+                            id: emptySubtitleLabel
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "设置规则后点击执行按钮开始"
-                            color: "#c7d2e0"
+                            color: pal.BatchRenamePage_emptySubtitleLabel_color
                             font.pixelSize: 12
                         }
                     }

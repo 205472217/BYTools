@@ -6,6 +6,7 @@ import "../components"
 
 Pane {
     id: root
+    property var pal: themeManager.palette
 
     signal backRequested()
 
@@ -30,15 +31,10 @@ Pane {
     readonly property int statusColumnX: newNameColumnX + textColumnWidth + columnGap
     readonly property int actionColumnX: statusColumnX + statusColumnWidth + columnGap
 
-    Component.onDestruction: {
-        if (controller && typeof controller.reset === 'function') {
-            controller.reset()
-        }
-    }
-
     padding: 0
     background: Rectangle {
-        color: "#f4f6f9"
+        id: rootBg
+        color: pal.NameConverter_rootBg_color
     }
 
     FolderDialog {
@@ -67,8 +63,9 @@ Pane {
             Layout.margins: 4
 
             Label {
+                id: confirmMsgLabel
                 text: "当前有繁转简任务正在处理中，返回首页将中断执行，是否继续？"
-                color: "#334155"
+                color: pal.NameConverter_confirmMsgLabel_color
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
@@ -81,24 +78,26 @@ Pane {
                 Item { Layout.fillWidth: true }
 
                 IconButton {
+                    id: cancelBtn
                     text: "取消"
                     tooltip: "不返回，继续当前任务"
-                    normalColor: "#e2e8f0"
-                    hoverColor: "#cbd5e1"
-                    borderColor: "#cbd5e1"
-                    textColor: "#475569"
+                    normalColor: pal.NameConverter_cancelBtn_normalColor
+                    hoverColor: pal.NameConverter_cancelBtn_hoverColor
+                    borderColor: pal.NameConverter_cancelBtn_borderColor
+                    textColor: pal.NameConverter_cancelBtn_textColor
                     implicitWidth: 100
                     implicitHeight: 38
                     onClicked: backConfirmDialog.close()
                 }
 
                 IconButton {
+                    id: confirmBackBtn
                     text: "返回首页"
                     tooltip: "中断任务并返回首页"
-                    normalColor: "#dc2626"
-                    hoverColor: "#b91c1c"
-                    borderColor: "#b91c1c"
-                    textColor: "#ffffff"
+                    normalColor: pal.NameConverter_confirmBackBtn_normalColor
+                    hoverColor: pal.NameConverter_confirmBackBtn_hoverColor
+                    borderColor: pal.NameConverter_confirmBackBtn_borderColor
+                    textColor: pal.NameConverter_confirmBackBtn_textColor
                     implicitWidth: 120
                     implicitHeight: 38
                     onClicked: {
@@ -137,34 +136,38 @@ Pane {
                 spacing: 4
 
                 Label {
+                    id: titleLabel
                     text: "文件名繁转简"
-                    color: "#111827"
+                    color: pal.NameConverter_titleLabel_color
                     font.pixelSize: 26
                     font.bold: true
                 }
 
                 Label {
+                    id: descLabel
                     text: "选择源文件夹后直接执行转换，完成后可按记录逐条还原"
-                    color: "#64748b"
+                    color: pal.NameConverter_descLabel_color
                     font.pixelSize: 14
                 }
             }
         }
 
         Rectangle {
+            id: sourcePanel
             Layout.fillWidth: true
             Layout.preferredHeight: 174
             radius: 10
-            color: "#ffffff"
-            border.color: "#e5e9f0"
+            color: pal.NameConverter_sourcePanel_color
+            border.color: pal.NameConverter_sourcePanel_borderColor
             border.width: 1
 
             // 面板阴影
             Rectangle {
+                id: sourceShadow
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 12
-                color: "#1e3a5f"
+                color: pal.NameConverter_sourceShadow_color
                 opacity: 0.04
                 z: -1
             }
@@ -179,8 +182,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: sourceFolderLabel
                         text: "源文件夹"
-                        color: "#475569"
+                        color: pal.NameConverter_sourceFolderLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -205,8 +209,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: processTypeLabel
                         text: "处理类型"
-                        color: "#475569"
+                        color: pal.NameConverter_processTypeLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -229,8 +234,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: advancedLabel
                         text: "高级选项"
-                        color: "#475569"
+                        color: pal.NameConverter_advancedLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -263,12 +269,13 @@ Pane {
                         }
 
                         IconButton {
+                            id: executeBtn
                             text: "执行"
                             iconSource: "qrc:/icons/play.svg"
                             tooltip: "执行转换"
-                            normalColor: "#2563eb"
-                            hoverColor: "#1d4ed8"
-                            borderColor: "#1d4ed8"
+                            normalColor: pal.NameConverter_executeBtn_normalColor
+                            hoverColor: pal.NameConverter_executeBtn_hoverColor
+                            borderColor: pal.NameConverter_executeBtn_borderColor
                             onClicked: {
                                 if (controller) {
                                     controller.executeRename()
@@ -282,10 +289,11 @@ Pane {
 
         // 状态栏
         Rectangle {
+            id: statusBar
             Layout.fillWidth: true
             height: statusText.implicitHeight + 12
             radius: 6
-            color: "#eff6ff"
+            color: pal.NameConverter_statusBar_color
             visible: controller ? controller.statusMessage.length > 0 : false
 
             Label {
@@ -296,27 +304,29 @@ Pane {
                 anchors.right: parent.right
                 anchors.rightMargin: 12
                 text: controller ? controller.statusMessage : ""
-                color: "#2563eb"
+                color: pal.NameConverter_statusText_color
                 font.pixelSize: 13
                 elide: Text.ElideRight
             }
         }
 
         Rectangle {
+            id: previewPanel
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 10
-            color: "#ffffff"
-            border.color: "#e5e9f0"
+            color: pal.NameConverter_previewPanel_color
+            border.color: pal.NameConverter_previewPanel_borderColor
             border.width: 1
             clip: true
 
             // 面板阴影
             Rectangle {
+                id: previewShadow
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 12
-                color: "#1e3a5f"
+                color: pal.NameConverter_previewShadow_color
                 opacity: 0.04
                 z: -1
             }
@@ -327,64 +337,71 @@ Pane {
                 spacing: 0
 
                 Rectangle {
+                    id: headerRow
                     Layout.fillWidth: true
                     Layout.preferredHeight: 40
-                    color: "#f8fafc"
+                    color: pal.NameConverter_headerRow_color
 
                     // 底部分隔线
                     Rectangle {
+                        id: headerSeparator
                         anchors.bottom: parent.bottom
                         width: parent.width
                         height: 1
-                        color: "#e8ecf2"
+                        color: pal.NameConverter_headerSeparator_color
                     }
 
                     Label {
+                        id: typeHeader
                         x: root.typeColumnX
                         width: root.typeColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "类型"
-                        color: "#64748b"
+                        color: pal.NameConverter_typeHeader_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: currentNameHeader
                         x: root.currentNameColumnX
                         width: root.textColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "原名称"
-                        color: "#64748b"
+                        color: pal.NameConverter_currentNameHeader_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: newNameHeader
                         x: root.newNameColumnX
                         width: root.textColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "新名称"
-                        color: "#64748b"
+                        color: pal.NameConverter_newNameHeader_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: statusHeader
                         x: root.statusColumnX
                         width: root.statusColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "状态"
-                        color: "#64748b"
+                        color: pal.NameConverter_statusHeader_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: actionHeader
                         x: root.actionColumnX
                         width: root.actionColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "操作"
-                        color: "#64748b"
+                        color: pal.NameConverter_actionHeader_color
                         font.pixelSize: 12
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
@@ -405,15 +422,16 @@ Pane {
                         id: rowDelegate
                         width: previewList.width
                         height: 74
-                        color: rowMouseArea.containsMouse ? "#f0f7ff" :
-                               index % 2 === 0 ? "#ffffff" : "#fafbfc"
+                        color: rowMouseArea.containsMouse ? pal.NameConverter_rowDelegate_bg_hover :
+                               index % 2 === 0 ? pal.NameConverter_rowDelegate_bg_even : pal.NameConverter_rowDelegate_bg_odd
 
                         // 底部分隔线
                         Rectangle {
+                            id: rowSeparator
                             anchors.bottom: parent.bottom
                             width: parent.width
                             height: 1
-                            color: "#f1f5f9"
+                            color: pal.NameConverter_rowSeparator_color
                         }
 
                         // 类型标签（彩色标签）
@@ -435,21 +453,23 @@ Pane {
                         }
 
                         Label {
+                            id: currentNameLabel
                             x: root.currentNameColumnX
                             width: root.textColumnWidth
                             y: 14
                             text: currentName
-                            color: "#334155"
+                            color: pal.NameConverter_currentNameLabel_color
                             font.pixelSize: 13
                             elide: Text.ElideMiddle
                         }
 
                         Label {
+                            id: newNameLabel
                             x: root.newNameColumnX
                             width: root.textColumnWidth
                             y: 14
                             text: newName
-                            color: "#059669"
+                            color: pal.NameConverter_newNameLabel_color
                             font.bold: true
                             font.pixelSize: 13
                             elide: Text.ElideMiddle
@@ -457,31 +477,34 @@ Pane {
 
                         // 状态标签（彩色标签）
                         Rectangle {
+                            id: statusRect
                             x: root.statusColumnX
                             width: root.statusColumnWidth
                             y: 14
                             height: 22
                             radius: 4
-                            color: status.indexOf("失败") === 0 ? "#fef2f2" :
-                                   status === "已还原" ? "#f1f5f9" : "#dbeafe"
+                            color: status.indexOf("失败") === 0 ? pal.NameConverter_statusRect_bg_fail :
+                                   status === "已还原" ? pal.NameConverter_statusRect_bg_restored : pal.NameConverter_statusRect_bg_done
 
                             Label {
+                                id: statusLabel
                                 anchors.centerIn: parent
                                 text: status
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: status.indexOf("失败") === 0 ? "#dc2626" :
-                                       status === "已还原" ? "#64748b" : "#2563eb"
+                                color: status.indexOf("失败") === 0 ? pal.NameConverter_statusLabel_color_fail :
+                                       status === "已还原" ? pal.NameConverter_statusLabel_color_restored : pal.NameConverter_statusLabel_color_done
                                 elide: Text.ElideRight
                             }
                         }
 
                         Label {
+                            id: pathLabel
                             x: root.currentNameColumnX
                             y: 40
                             width: root.statusColumnX - root.currentNameColumnX - root.columnGap
                             text: actualPath
-                            color: "#94a3b8"
+                            color: pal.NameConverter_pathLabel_color
                             font.pixelSize: 11
                             elide: Text.ElideMiddle
                         }
@@ -515,15 +538,17 @@ Pane {
                         visible: previewList.count === 0
 
                         Label {
+                            id: emptyTitleLabel
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "暂无转换记录"
-                            color: "#94a3b8"
+                            color: pal.NameConverter_emptyTitleLabel_color
                             font.pixelSize: 15
                         }
                         Label {
+                            id: emptyDescLabel
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "选择文件夹后点击执行按钮开始"
-                            color: "#c7d2e0"
+                            color: pal.NameConverter_emptyDescLabel_color
                             font.pixelSize: 12
                         }
                     }

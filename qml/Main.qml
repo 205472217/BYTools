@@ -5,15 +5,18 @@ import BYTools
 ApplicationWindow {
     id: window
 
+    property var pal: themeManager.palette
+
     width: 1120
     height: 720
     minimumWidth: 880
     minimumHeight: 560
     visible: true
     title: "BYTools"
-    color: "#f4f6f9"
+    color: pal.Main_window_color
 
     property string currentFeatureId: ""
+    property bool _navGuard: false
 
     // 关闭保护：有任务执行时确认是否退出
     onClosing: function(closeEvent) {
@@ -108,8 +111,11 @@ ApplicationWindow {
 
         HomePage {
             onOpenFeature: function(featureId) {
+                if (window._navGuard || window.currentFeatureId === featureId) return
+                window._navGuard = true
+
                 var controller = pluginManager.getPlugin(featureId)
-                if (!controller) return
+                if (!controller) { window._navGuard = false; return }
 
                 window.currentFeatureId = featureId
 
@@ -128,6 +134,8 @@ ApplicationWindow {
                 } else if (featureId === "subtitle-adjust") {
                     stackView.push(subtitleAdjustPageComponent, {controller: controller})
                 }
+
+                window._navGuard = false
             }
         }
     }

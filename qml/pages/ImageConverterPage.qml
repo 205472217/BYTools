@@ -6,6 +6,7 @@ import "../components"
 
 Pane {
     id: root
+    property var pal: themeManager.palette
 
     signal backRequested()
 
@@ -30,15 +31,10 @@ Pane {
     readonly property int statusColumnX: newColumnX + textColumnWidth + columnGap
     readonly property int actionColumnX: statusColumnX + statusColumnWidth + columnGap
 
-    Component.onDestruction: {
-        if (controller && typeof controller.reset === 'function') {
-            controller.reset()
-        }
-    }
-
     padding: 0
     background: Rectangle {
-        color: "#f4f6f9"
+        id: bgRect
+        color: pal.ImageConverterPage_bgRect_color
     }
 
     FolderDialog {
@@ -63,7 +59,7 @@ Pane {
 
     ColorDialog {
         id: colorDialog
-        selectedColor: controller ? controller.bgColor : "#ffffff"
+        selectedColor: controller ? controller.bgColor : pal.ImageConverterPage_colorDialog_defaultColor
         onAccepted: {
             if (controller) {
                 controller.bgColor = selectedColor.toString()
@@ -87,7 +83,7 @@ Pane {
 
             Label {
                 text: "当前有图片格式转换任务正在处理中，返回首页将中断执行，是否继续？"
-                color: "#334155"
+                color: pal.ImageConverterPage_msgLabel_color
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
@@ -102,22 +98,23 @@ Pane {
                 IconButton {
                     text: "取消"
                     tooltip: "不返回，继续当前任务"
-                    normalColor: "#e2e8f0"
-                    hoverColor: "#cbd5e1"
-                    borderColor: "#cbd5e1"
-                    textColor: "#475569"
+                    normalColor: pal.ImageConverterPage_cancelBtn_normalColor
+                    hoverColor: pal.ImageConverterPage_cancelBtn_hoverColor
+                    borderColor: pal.ImageConverterPage_cancelBtn_borderColor
+                    textColor: pal.ImageConverterPage_cancelBtn_textColor
                     implicitWidth: 100
                     implicitHeight: 38
                     onClicked: backConfirmDialog.close()
                 }
 
                 IconButton {
+                    id: goBackBtn
                     text: "返回首页"
                     tooltip: "中断任务并返回首页"
-                    normalColor: "#dc2626"
-                    hoverColor: "#b91c1c"
-                    borderColor: "#b91c1c"
-                    textColor: "#ffffff"
+                    normalColor: pal.ImageConverterPage_goBackBtn_normalColor
+                    hoverColor: pal.ImageConverterPage_goBackBtn_hoverColor
+                    borderColor: pal.ImageConverterPage_goBackBtn_borderColor
+                    textColor: pal.ImageConverterPage_goBackBtn_textColor
                     implicitWidth: 120
                     implicitHeight: 38
                     onClicked: {
@@ -156,33 +153,37 @@ Pane {
                 spacing: 4
 
                 Label {
+                    id: pageTitle
                     text: "图片格式转换"
-                    color: "#111827"
+                    color: pal.ImageConverterPage_pageTitle_color
                     font.pixelSize: 26
                     font.bold: true
                 }
 
                 Label {
+                    id: pageSubtitle
                     text: "批量转换图片格式，支持递归处理子文件夹"
-                    color: "#64748b"
+                    color: pal.ImageConverterPage_pageSubtitle_color
                     font.pixelSize: 14
                 }
             }
         }
 
         Rectangle {
+            id: settingsCard
             Layout.fillWidth: true
             Layout.preferredHeight: 310
             radius: 10
-            color: "#ffffff"
-            border.color: "#e5e9f0"
+            color: pal.ImageConverterPage_settingsCard_color
+            border.color: pal.ImageConverterPage_settingsCard_borderColor
             border.width: 1
 
             Rectangle {
+                id: settingsShadow
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 12
-                color: "#1e3a5f"
+                color: pal.ImageConverterPage_settingsShadow_color
                 opacity: 0.04
                 z: -1
             }
@@ -192,14 +193,14 @@ Pane {
                 anchors.margins: 18
                 spacing: 12
 
-                // 行1：源文件夹
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
 
                     Label {
+                        id: srcFolderLbl
                         text: "源文件夹"
-                        color: "#475569"
+                        color: pal.ImageConverterPage_srcFolderLbl_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -209,7 +210,7 @@ Pane {
                         Layout.fillWidth: true
                         text: controller ? controller.rootPath : ""
                         readOnly: true
-                        placeholderText: "点击选择文件夹"
+                        placeholderText: "点击选择文件"
                     }
 
                     IconButton {
@@ -219,14 +220,14 @@ Pane {
                     }
                 }
 
-                // 行2：目标格式 + 质量
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
 
                     Label {
+                        id: targetFormatLbl
                         text: "目标格式"
-                        color: "#475569"
+                        color: pal.ImageConverterPage_targetFormatLbl_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -244,14 +245,16 @@ Pane {
                     }
 
                     Rectangle {
+                        id: fmtSeparator
                         width: 1
                         height: 24
-                        color: "#e2e8f0"
+                        color: pal.ImageConverterPage_fmtSeparator_color
                     }
 
                     Label {
+                        id: qualityLbl
                         text: "质量"
-                        color: "#475569"
+                        color: pal.ImageConverterPage_qualityLbl_color
                         font.pixelSize: 13
                         font.bold: true
                     }
@@ -274,8 +277,9 @@ Pane {
                     }
 
                     Label {
+                        id: qualityValLbl
                         text: (controller ? controller.quality : 85)
-                        color: "#111827"
+                        color: pal.ImageConverterPage_qualityValLbl_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 28
@@ -283,15 +287,16 @@ Pane {
                     }
                 }
 
-                // 行3：JPG背景色（仅目标格式为JPG时显示）
+                // JPG背景色（仅目标格式为JPG时显示）
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
                     visible: controller ? controller.targetFormat === 1 : false
 
                     Label {
+                        id: bgColorLbl
                         text: "JPG背景色"
-                        color: "#475569"
+                        color: pal.ImageConverterPage_bgColorLbl_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -301,12 +306,13 @@ Pane {
                         spacing: 8
 
                         Rectangle {
+                            id: whiteSwatch
                             width: 28
                             height: 28
                             radius: 6
-                            color: "#ffffff"
+                            color: pal.ImageConverterPage_whiteSwatch_color
                             border.width: controller && controller.bgColor === "#ffffff" ? 2 : 1
-                            border.color: controller && controller.bgColor === "#ffffff" ? "#2563eb" : "#e2e8f0"
+                            border.color: controller && controller.bgColor === "#ffffff" ? pal.ImageConverterPage_whiteSwatch_borderColor_active : pal.ImageConverterPage_whiteSwatch_borderColor_normal
 
                             MouseArea {
                                 anchors.fill: parent
@@ -316,12 +322,13 @@ Pane {
                         }
 
                         Rectangle {
+                            id: blackSwatch
                             width: 28
                             height: 28
                             radius: 6
-                            color: "#000000"
+                            color: pal.ImageConverterPage_blackSwatch_color
                             border.width: controller && controller.bgColor === "#000000" ? 2 : 1
-                            border.color: controller && controller.bgColor === "#000000" ? "#2563eb" : "#e2e8f0"
+                            border.color: controller && controller.bgColor === "#000000" ? pal.ImageConverterPage_blackSwatch_borderColor_active : pal.ImageConverterPage_blackSwatch_borderColor_normal
 
                             MouseArea {
                                 anchors.fill: parent
@@ -331,12 +338,13 @@ Pane {
                         }
 
                         Rectangle {
+                            id: customSwatch
                             width: 28
                             height: 28
                             radius: 6
-                            color: controller ? controller.bgColor : "#ffffff"
+                            color: controller ? controller.bgColor : pal.ImageConverterPage_customSwatch_color
                             border.width: 2
-                            border.color: "#2563eb"
+                            border.color: pal.ImageConverterPage_customSwatch_borderColor
                             visible: controller
                                      && controller.bgColor !== "#ffffff"
                                      && controller.bgColor !== "#000000"
@@ -349,8 +357,9 @@ Pane {
                         }
 
                         Label {
+                            id: customLbl
                             text: "自定义"
-                            color: "#64748b"
+                            color: pal.ImageConverterPage_customLbl_color
                             font.pixelSize: 12
 
                             MouseArea {
@@ -362,22 +371,23 @@ Pane {
                     }
 
                     Label {
+                        id: fillTipLbl
                         text: "PNG转JPG时填充透明区域"
-                        color: "#94a3b8"
+                        color: pal.ImageConverterPage_fillTipLbl_color
                         font.pixelSize: 12
                     }
 
                     Item { Layout.fillWidth: true }
                 }
 
-                // 行4：输出方式
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
 
                     Label {
+                        id: outputModeLbl
                         text: "输出方式"
-                        color: "#475569"
+                        color: pal.ImageConverterPage_outputModeLbl_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -469,9 +479,9 @@ Pane {
                             text: "执行"
                             iconSource: "qrc:/icons/play.svg"
                             tooltip: "开始转换"
-                            normalColor: "#2563eb"
-                            hoverColor: "#1d4ed8"
-                            borderColor: "#1d4ed8"
+                            normalColor: pal.ImageConverterPage_execBtn_normalColor
+                            hoverColor: pal.ImageConverterPage_execBtn_hoverColor
+                            borderColor: pal.ImageConverterPage_execBtn_borderColor
                             onClicked: {
                                 if (controller) {
                                     controller.executeConvert()
@@ -485,10 +495,11 @@ Pane {
 
         // 状态栏
         Rectangle {
+            id: statusBar
             Layout.fillWidth: true
             height: statusText.implicitHeight + 12
             radius: 6
-            color: "#eff6ff"
+            color: pal.ImageConverterPage_statusBar_color
             visible: controller ? controller.statusMessage.length > 0 : false
 
             Label {
@@ -499,7 +510,7 @@ Pane {
                 anchors.right: parent.right
                 anchors.rightMargin: 12
                 text: controller ? controller.statusMessage : ""
-                color: "#2563eb"
+                color: pal.ImageConverterPage_statusTextLbl_color
                 font.pixelSize: 13
                 elide: Text.ElideRight
             }
@@ -507,19 +518,21 @@ Pane {
 
         // 结果列表
         Rectangle {
+            id: resultCard
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 10
-            color: "#ffffff"
-            border.color: "#e5e9f0"
+            color: pal.ImageConverterPage_resultCard_color
+            border.color: pal.ImageConverterPage_resultCard_borderColor
             border.width: 1
             clip: true
 
             Rectangle {
+                id: resultShadow
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 12
-                color: "#1e3a5f"
+                color: pal.ImageConverterPage_resultShadow_color
                 opacity: 0.04
                 z: -1
             }
@@ -530,63 +543,70 @@ Pane {
                 spacing: 0
 
                 Rectangle {
+                    id: headerRow
                     Layout.fillWidth: true
                     Layout.preferredHeight: 40
-                    color: "#f8fafc"
+                    color: pal.ImageConverterPage_headerRow_color
 
                     Rectangle {
+                        id: headerBorder
                         anchors.bottom: parent.bottom
                         width: parent.width
                         height: 1
-                        color: "#e8ecf2"
+                        color: pal.ImageConverterPage_headerBorder_color
                     }
 
                     Label {
+                        id: fmtHeaderLbl
                         x: root.typeColumnX
                         width: root.typeColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "格式"
-                        color: "#64748b"
+                        color: pal.ImageConverterPage_fmtHeaderLbl_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: origHeaderLbl
                         x: root.originalColumnX
                         width: root.textColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "原名称"
-                        color: "#64748b"
+                        color: pal.ImageConverterPage_origHeaderLbl_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: newHeaderLbl
                         x: root.newColumnX
                         width: root.textColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "新名称"
-                        color: "#64748b"
+                        color: pal.ImageConverterPage_newHeaderLbl_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: statusHeaderLbl
                         x: root.statusColumnX
                         width: root.statusColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "状态"
-                        color: "#64748b"
+                        color: pal.ImageConverterPage_statusHeaderLbl_color
                         font.pixelSize: 12
                         font.bold: true
                     }
 
                     Label {
+                        id: actionHeaderLbl
                         x: root.actionColumnX
                         width: root.actionColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "操作"
-                        color: "#64748b"
+                        color: pal.ImageConverterPage_actionHeaderLbl_color
                         font.pixelSize: 12
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
@@ -607,14 +627,15 @@ Pane {
                         id: rowDelegate
                         width: recordsListView.width
                         height: 74
-                        color: rowMouseArea.containsMouse ? "#f0f7ff" :
-                               index % 2 === 0 ? "#ffffff" : "#fafbfc"
+                        color: rowMouseArea.containsMouse ? pal.ImageConverterPage_rowDelegate_color_hover :
+                               index % 2 === 0 ? pal.ImageConverterPage_rowDelegate_color_even : pal.ImageConverterPage_rowDelegate_color_odd
 
                         Rectangle {
+                            id: rowBorder
                             anchors.bottom: parent.bottom
                             width: parent.width
                             height: 1
-                            color: "#f1f5f9"
+                            color: pal.ImageConverterPage_rowBorder_color
                         }
 
                         // 格式标签
@@ -646,21 +667,23 @@ Pane {
                         }
 
                         Label {
+                            id: origNameLbl
                             x: root.originalColumnX
                             width: root.textColumnWidth
                             y: 14
                             text: modelData.originalName
-                            color: "#334155"
+                            color: pal.ImageConverterPage_origNameLbl_color
                             font.pixelSize: 13
                             elide: Text.ElideMiddle
                         }
 
                         Label {
+                            id: newNameLbl
                             x: root.newColumnX
                             width: root.textColumnWidth
                             y: 14
                             text: modelData.status === "已跳过" ? modelData.originalName : modelData.newName
-                            color: modelData.status === "已跳过" ? "#94a3b8" : "#059669"
+                            color: modelData.status === "已跳过" ? pal.ImageConverterPage_newNameLbl_color_skipped : pal.ImageConverterPage_newNameLbl_color_done
                             font.bold: modelData.status !== "已跳过"
                             font.pixelSize: 13
                             elide: Text.ElideMiddle
@@ -668,31 +691,34 @@ Pane {
 
                         // 状态标签
                         Rectangle {
+                            id: statusBadge
                             x: root.statusColumnX
                             width: root.statusColumnWidth
                             y: 14
                             height: 22
                             radius: 4
-                            color: modelData.status === "已转换" ? "#dbeafe" :
-                                   modelData.status === "已跳过" ? "#f1f5f9" : "#fef2f2"
+                            color: modelData.status === "已转换" ? pal.ImageConverterPage_statusBadge_color_converted :
+                                   modelData.status === "已跳过" ? pal.ImageConverterPage_statusBadge_color_skipped : pal.ImageConverterPage_statusBadge_color_failed
 
                             Label {
+                                id: statusTagLbl
                                 anchors.centerIn: parent
                                 text: modelData.status
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: modelData.status === "已转换" ? "#2563eb" :
-                                       modelData.status === "已跳过" ? "#64748b" : "#dc2626"
+                                color: modelData.status === "已转换" ? pal.ImageConverterPage_statusTagLbl_color_converted :
+                                       modelData.status === "已跳过" ? pal.ImageConverterPage_statusTagLbl_color_skipped : pal.ImageConverterPage_statusTagLbl_color_failed
                                 elide: Text.ElideRight
                             }
                         }
 
                         Label {
+                            id: pathLbl
                             x: root.originalColumnX
                             y: 40
                             width: root.statusColumnX - root.originalColumnX - root.columnGap
                             text: modelData.success ? modelData.newPath : modelData.originalPath
-                            color: "#94a3b8"
+                            color: pal.ImageConverterPage_pathLbl_color
                             font.pixelSize: 11
                             elide: Text.ElideMiddle
                         }
@@ -713,15 +739,17 @@ Pane {
                         visible: controller ? recordsListView.count === 0 : true
 
                         Label {
+                            id: emptyTitleLbl
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "暂无转换记录"
-                            color: "#94a3b8"
+                            color: pal.ImageConverterPage_emptyTitleLbl_color
                             font.pixelSize: 15
                         }
                         Label {
+                            id: emptySubtitleLbl
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "设置参数后点击执行按钮开始"
-                            color: "#c7d2e0"
+                            color: pal.ImageConverterPage_emptySubtitleLbl_color
                             font.pixelSize: 12
                         }
                     }
@@ -730,3 +758,5 @@ Pane {
         }
     }
 }
+
+

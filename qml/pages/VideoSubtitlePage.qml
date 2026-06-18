@@ -1,4 +1,4 @@
-﻿import QtQuick
+import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
@@ -6,6 +6,8 @@ import "../components"
 
 Pane {
     id: root
+
+    property var pal: themeManager.palette
 
     signal backRequested
     signal openSettings
@@ -130,15 +132,10 @@ Pane {
         }
     }
 
-    Component.onDestruction: {
-        if (controller && typeof controller.reset === 'function') {
-            controller.reset();
-        }
-    }
-
     padding: 0
     background: Rectangle {
-        color: "#f4f6f9"
+        id: pageBg
+        color: pal.VideoSubtitlePage_pageBg_color
     }
 
     FolderDialog {
@@ -187,8 +184,9 @@ Pane {
             Layout.margins: 4
 
             Label {
+                id: confirmLabel
                 text: "当前有任务正在处理中，返回首页将中断执行，是否继续？"
-                color: "#334155"
+                color: pal.VideoSubtitlePage_confirmLabel_color
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
@@ -201,12 +199,13 @@ Pane {
                 Item { Layout.fillWidth: true }
 
                 IconButton {
+                    id: cancelBtn
                     text: "取消"
                     tooltip: "不返回，继续当前任务"
-                    normalColor: "#e2e8f0"
-                    hoverColor: "#cbd5e1"
-                    borderColor: "#cbd5e1"
-                    textColor: "#475569"
+                    normalColor: pal.VideoSubtitlePage_cancelBtn_normalColor
+                    hoverColor: pal.VideoSubtitlePage_cancelBtn_hoverColor
+                    borderColor: pal.VideoSubtitlePage_cancelBtn_borderColor
+                    textColor: pal.VideoSubtitlePage_cancelBtn_textColor
                     implicitWidth: 100
                     implicitHeight: 38
                     onClicked: {
@@ -215,12 +214,13 @@ Pane {
                 }
 
                 IconButton {
+                    id: backToHomeBtn
                     text: "返回首页"
                     tooltip: "中断任务并返回首页"
-                    normalColor: "#dc2626"
-                    hoverColor: "#b91c1c"
-                    borderColor: "#b91c1c"
-                    textColor: "#ffffff"
+                    normalColor: pal.VideoSubtitlePage_backToHomeBtn_normalColor
+                    hoverColor: pal.VideoSubtitlePage_backToHomeBtn_hoverColor
+                    borderColor: pal.VideoSubtitlePage_backToHomeBtn_borderColor
+                    textColor: pal.VideoSubtitlePage_backToHomeBtn_textColor
                     implicitWidth: 120
                     implicitHeight: 38
                     onClicked: {
@@ -260,15 +260,17 @@ Pane {
                 spacing: 4
 
                 Label {
+                    id: pageTitle
                     text: "视频字幕翻译"
-                    color: "#111827"
+                    color: pal.VideoSubtitlePage_pageTitle_color
                     font.pixelSize: 26
                     font.bold: true
                 }
 
                 Label {
+                    id: pageSubtitle
                     text: "可自定义处理步骤：分离音频 → 语音识别 → 翻译 → 烧录字幕"
-                    color: "#64748b"
+                    color: pal.VideoSubtitlePage_pageSubtitle_color
                     font.pixelSize: 14
                 }
             }
@@ -286,20 +288,22 @@ Pane {
 
         // Settings card
         Rectangle {
+            id: settingsCard
             Layout.fillWidth: true
             Layout.fillHeight: false
             implicitHeight: settingsColumn.implicitHeight + 36
             radius: 10
-            color: "#ffffff"
-            border.color: "#e5e9f0"
+            color: pal.VideoSubtitlePage_settingsCard_color
+            border.color: pal.VideoSubtitlePage_settingsCard_borderColor
             border.width: 1
 
             // 面板阴影
             Rectangle {
+                id: settingsCardShadow
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 12
-                color: "#1e3a5f"
+                color: pal.VideoSubtitlePage_settingsCardShadow_color
                 opacity: 0.04
                 z: -1
             }
@@ -316,8 +320,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: inputModeLabel
                         text: "输入模式"
-                        color: "#475569"
+                        color: pal.VideoSubtitlePage_inputModeLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -366,8 +371,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: inputPathLabel
                         text: "输入路径"
-                        color: "#475569"
+                        color: pal.VideoSubtitlePage_inputPathLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -399,8 +405,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: stepLabel
                         text: "处理步骤"
-                        color: "#475569"
+                        color: pal.VideoSubtitlePage_stepLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -489,16 +496,18 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: langLabel
                         text: "语种转换"
-                        color: "#475569"
+                        color: pal.VideoSubtitlePage_langLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
                     }
 
                     Label {
+                        id: sourceLangLabel
                         text: "源语言"
-                        color: "#475569"
+                        color: pal.VideoSubtitlePage_sourceLangLabel_color
                         font.pixelSize: 13
                         font.bold: true
                     }
@@ -528,8 +537,9 @@ Pane {
                     }
 
                     Label {
+                        id: targetLangLabel
                         text: "目标语言"
-                        color: "#475569"
+                        color: pal.VideoSubtitlePage_targetLangLabel_color
                         font.pixelSize: 13
                         font.bold: true
                     }
@@ -579,8 +589,9 @@ Pane {
                     Layout.fillWidth: true
 
                     Label {
+                        id: outputLabel
                         text: "输出方式"
-                        color: "#475569"
+                        color: pal.VideoSubtitlePage_outputLabel_color
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -620,15 +631,16 @@ Pane {
                     }
 
                     IconButton {
+                        id: startBtn
                         implicitWidth: 130
                         implicitHeight: 40
                         text: controller && controller.isProcessing ? "中止处理" : "开始处理"
                         iconSource: controller && controller.isProcessing ? "" : "qrc:/icons/play.svg"
                         tooltip: controller && controller.isProcessing ? "中止处理" : "开始处理"
-                        normalColor: controller && controller.isProcessing ? "#dc2626" : "#2563eb"
-                        hoverColor: controller && controller.isProcessing ? "#b91c1c" : "#1d4ed8"
-                        borderColor: controller && controller.isProcessing ? "#b91c1c" : "#1d4ed8"
-                        textColor: "#ffffff"
+                        normalColor: controller && controller.isProcessing ? pal.VideoSubtitlePage_startBtn_normalColor_active : pal.VideoSubtitlePage_startBtn_normalColor_normal
+                        hoverColor: controller && controller.isProcessing ? pal.VideoSubtitlePage_startBtn_hoverColor_active : pal.VideoSubtitlePage_startBtn_hoverColor_normal
+                        borderColor: controller && controller.isProcessing ? pal.VideoSubtitlePage_startBtn_borderColor_active : pal.VideoSubtitlePage_startBtn_borderColor_normal
+                        textColor: pal.VideoSubtitlePage_startBtn_textColor
                         enabled: true
                         onClicked: {
                             if (controller) {
@@ -646,10 +658,11 @@ Pane {
 
         // Merged status + progress bar (compact)
         Rectangle {
+            id: statusBar
             Layout.fillWidth: true
             Layout.preferredHeight: controller && controller.isProcessing ? 34 : 26
             radius: 6
-            color: controller && controller.statusMessage ? "#eff6ff" : "transparent"
+            color: controller && controller.statusMessage ? pal.VideoSubtitlePage_statusBar_color_active : "transparent"
             visible: controller ? (controller.isProcessing || controller.statusMessage.length > 0) : false
 
             ColumnLayout {
@@ -661,9 +674,10 @@ Pane {
                 spacing: 2
 
                 Label {
+                    id: statusMessage
                     Layout.fillWidth: true
                     text: controller ? controller.statusMessage : ""
-                    color: "#475569"
+                    color: pal.VideoSubtitlePage_statusMessage_color
                     font.pixelSize: 11
                     elide: Text.ElideRight
                 }
@@ -674,23 +688,26 @@ Pane {
                     visible: controller ? controller.isProcessing : false
 
                     Rectangle {
+                        id: progressTrack
                         Layout.fillWidth: true
                         Layout.preferredHeight: 4
                         Layout.alignment: Qt.AlignVCenter
                         radius: 2
-                        color: "#e2e8f0"
+                        color: pal.VideoSubtitlePage_progressTrack_color
 
                         Rectangle {
+                            id: progressFill
                             width: parent.width * (controller ? controller.progress : 0)
                             height: parent.height
                             radius: 2
-                            color: "#2563eb"
+                            color: pal.VideoSubtitlePage_progressFill_color
                         }
                     }
 
                     Label {
+                        id: progressPercent
                         text: controller ? Math.round(controller.progress * 100) + "%" : ""
-                        color: "#2563eb"
+                        color: pal.VideoSubtitlePage_progressPercent_color
                         font.pixelSize: 11
                         font.bold: true
                     }
@@ -700,19 +717,21 @@ Pane {
 
         // Real-time log output
         Rectangle {
+            id: logCard
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 10
-            color: "#ffffff"
-            border.color: "#e5e9f0"
+            color: pal.VideoSubtitlePage_logCard_color
+            border.color: pal.VideoSubtitlePage_logCard_borderColor
             border.width: 1
             clip: true
 
             Rectangle {
+                id: logCardShadow
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 12
-                color: "#1e3a5f"
+                color: pal.VideoSubtitlePage_logCardShadow_color
                 opacity: 0.04
                 z: -1
             }
@@ -723,19 +742,22 @@ Pane {
 
                 // Header row
                 Rectangle {
+                    id: logHeaderBg
                     Layout.fillWidth: true
                     Layout.preferredHeight: 40
-                    color: "#f8fafc"
+                    color: pal.VideoSubtitlePage_logHeaderBg_color
                     radius: 0
 
                     Rectangle {
+                        id: logHeaderDivider
                         anchors.bottom: parent.bottom
                         width: parent.width
                         height: 1
-                        color: "#e8ecf2"
+                        color: pal.VideoSubtitlePage_logHeaderDivider_color
                     }
 
                     Label {
+                        id: logHeaderTitle
                         anchors.left: parent.left
                         anchors.leftMargin: 18
                         anchors.verticalCenter: parent.verticalCenter
@@ -744,7 +766,7 @@ Pane {
                               : (elapsedTimer.finalElapsedString.length > 0 && logModel.count > 0
                                  ? "任务耗时（" + elapsedTimer.finalElapsedString + "）"
                                  : "")
-                        color: controller && controller.isProcessing ? "#2563eb" : "#64748b"
+                        color: controller && controller.isProcessing ? pal.VideoSubtitlePage_logHeaderTitle_color_active : pal.VideoSubtitlePage_logHeaderTitle_color_normal
                         font.pixelSize: 12
                         font.bold: true
                     }
@@ -777,15 +799,17 @@ Pane {
                     spacing: 0
 
                     delegate: Rectangle {
+                        id: logDelegate
                         width: logListView.width
                         height: Math.max(28, logText.implicitHeight + 10)
-                        color: index % 2 === 0 ? "#ffffff" : "#fafbfc"
+                        color: index % 2 === 0 ? pal.VideoSubtitlePage_logDelegate_color_even : pal.VideoSubtitlePage_logDelegate_color_odd
 
                         Rectangle {
+                            id: logDelegateDivider
                             anchors.bottom: parent.bottom
                             width: parent.width
                             height: 1
-                            color: "#f1f5f9"
+                            color: pal.VideoSubtitlePage_logDelegateDivider_color
                         }
 
                         Label {
@@ -800,15 +824,15 @@ Pane {
                             font.family: "Consolas, 'Courier New', monospace"
                             font.bold: {
                                 var c = model.text.charAt(0);
-                                return c === '=' || c === '✗';
+                                return c === '=' || c === '?';
                             }
                             color: {
                                 var c = model.text.charAt(0);
-                                if (c === '✗') return "#dc2626";
-                                if (c === '✓') return "#059669";
-                                if (c === '→') return "#2563eb";
-                                if (c === '=') return "#1e293b";
-                                return "#475569";
+                                if (c === '?') return pal.VideoSubtitlePage_logText_color_error;
+                                if (c === '?') return pal.VideoSubtitlePage_logText_color_success;
+                                if (c === '→') return pal.VideoSubtitlePage_logText_color_info;
+                                if (c === '=') return pal.VideoSubtitlePage_logText_color_heading;
+                                return pal.VideoSubtitlePage_logText_color_default;
                             }
                             wrapMode: Text.Wrap
                             verticalAlignment: Text.AlignVCenter
@@ -822,15 +846,17 @@ Pane {
                         visible: logModel.count === 0
 
                         Label {
+                            id: emptyTitle
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "暂无输出"
-                            color: "#94a3b8"
+                            color: pal.VideoSubtitlePage_emptyTitle_color
                             font.pixelSize: 15
                         }
                         Label {
+                            id: emptySubtitle
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "开始处理后这里将显示实时日志"
-                            color: "#c7d2e0"
+                            color: pal.VideoSubtitlePage_emptySubtitle_color
                             font.pixelSize: 12
                         }
                     }
@@ -839,3 +865,5 @@ Pane {
         }
     }
 }
+
+

@@ -26,6 +26,8 @@ qt_add_executable(BYTools
     src/core/PluginInterface.h
     src/core/PluginManager.h
     src/core/PluginManager.cpp
+    src/core/ThemeManager.h
+    src/core/ThemeManager.cpp
     ${BYTOOLS_PLATFORM_SOURCES}
 )
 
@@ -73,7 +75,7 @@ qt_add_qml_module(BYTools
 )
 
 target_link_libraries(BYTools
-    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Core
+    PRIVATE Qt6::Quick Qt6::QuickControls2 Qt6::Qml Qt6::Core
 )
 
 if(WIN32)
