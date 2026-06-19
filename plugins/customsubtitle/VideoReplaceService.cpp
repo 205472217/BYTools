@@ -34,7 +34,7 @@ VideoReplaceService::VideoReplaceService(PluginLogger *logger, QObject *parent)
     , m_logger(logger)
 {
     // Worker 线程启动后执行 doWork
-    connect(&m_workerThread, &QThread::started, this, &VideoReplaceService::doWork);
+    connect(&m_workerThread, &QThread::started, this, &VideoReplaceService::doWork, Qt::DirectConnection);
     connect(&m_workerThread, &QThread::finished, this, [this]() {
         m_workerRunning = false;
     });

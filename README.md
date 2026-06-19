@@ -14,7 +14,7 @@ Qt/QML + C++ PC 工具集合应用骨架。
 - **调整视频字幕**：根据视频内容自动调整字幕位置，支持手动微调。
 
 
-## 目录结构
+## 代码目录结构
 
 ```text
 src/
@@ -40,13 +40,15 @@ third/
 resources/                     图标、资源文件
 ```
 
-## 打包目录
+## 打包目录结构
+
+```text
 BYTools/
   BYTools.exe                  应用可执行文件
   plugins/                     插件目录
     card-customsubtitle/       自定义视频字幕插件
       python/                  自定义字幕插件访问字幕网站的python脚本（目前支持网站: subtitlecat）
-    card-adjustsubtitle/       调整视频字幕插件
+    card-adjustsubtitle/       调整字幕时码插件
     card-videosubtitle/        视频字幕翻译插件
     card-nameconverter/        繁简转换插件
     card-batchrename/          批量重命名插件
@@ -57,7 +59,7 @@ BYTools/
     model/                     模型存放目录（whisper语音识别模型，模型太大未上传,需手动下载）
     whisper_amd/               支持AMD显卡的whisper程序(加快语音识别速度，本地编译)
     whisper_cpu/               官网下载的whisper程序（只支持CPU，速度较慢）
-  ```
+```
 
 ## 插件架构
 

@@ -6,6 +6,8 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QPair>
+#include <QThread>
+#include <QAtomicInt>
 
 class PluginLogger;
 
@@ -14,6 +16,7 @@ class SubtitleMatcher : public QObject
     Q_OBJECT
 public:
     explicit SubtitleMatcher(PluginLogger *logger, QObject *parent = nullptr);
+    ~SubtitleMatcher();
 
     /// Extract key code from filename, e.g. "aaa-304" → "aaa-304", "abc123" → "abc-123"
     static QString extractKey(const QString &fileName);
@@ -27,32 +30,46 @@ public:
         bool matched = false;
     };
 
-    /// Run matching: scan subtitle dir and video dir, match by key code
-    /// @param subtitleDir   Where downloaded .srt files are
-    /// @param videoDir      Where video files are
-    /// @param recursive     Whether to scan video dir recursively
-    /// @param videoExts     List of video file extensions to match
-    /// @return List of match results (only matched ones)
-    QList<MatchResult> matchSubtitles(const QString &subtitleDir,
-                                       const QString &videoDir,
-                                       bool recursive,
-                                       const QStringList &videoExts);
+    /// Start async operation: match → rename → move → preprocess
+    void startMatchAsync(const QString &subtitleDir,
+                          const QString &videoDir,
+                          bool recursive,
+                          const QStringList &videoExts,
+                          const QStringList &preprocessors);
 
-    /// Execute rename: rename subtitle files in place
-    /// @param results  Match results to act upon
-    /// @return Number of successfully renamed files
-    int executeRename(QList<MatchResult> &results);
-
-    /// Execute move: move renamed subtitles to video directories
-    /// @param results  Match results to act upon
-    /// @return Number of successfully moved files
-    int executeMove(const QList<MatchResult> &results);
+    void cancel();
 
 signals:
     void logMessage(const QString &message);
     void progress(double value);
     void finished(bool success, const QString &error);
+    void scanFinished(int matchedCount);
 
 private:
+    void doWork();
+    QList<MatchResult> doMatch();
+
+    // SRT preprocessing
+    struct SrtEntry {
+        int index = 0;
+        qint64 startMs = 0;
+        qint64 endMs = 0;
+        QStringList textLines;
+    };
+    QList<SrtEntry> parseSrtFile(const QString &filePath);
+    bool writeSrtFile(const QString &filePath, const QList<SrtEntry> &entries);
+    void processSrtFile(const QString &filePath, const QStringList &ops);
+
     PluginLogger *m_logger;
+
+    QThread m_workerThread;
+    bool m_workerRunning = false;
+    QAtomicInt m_cancelled{0};
+
+    // Parameters for async operation
+    QString m_subtitleDir;
+    QString m_videoDir;
+    bool m_recursive = false;
+    QStringList m_videoExts;
+    QStringList m_preprocessors;
 };

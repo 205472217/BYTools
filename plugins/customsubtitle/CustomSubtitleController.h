@@ -117,17 +117,6 @@ private slots:
     void onReplaceFinished(bool success, const QString &error);
 
 private:
-    // SRT 条目
-    struct SrtEntry {
-        int index = 0;
-        qint64 startMs = 0;
-        qint64 endMs = 0;
-        QStringList textLines;
-    };
-    QList<SrtEntry> parseSrtFile(const QString &filePath);
-    bool writeSrtFile(const QString &filePath, const QList<SrtEntry> &entries);
-    void processSrtFile(const QString &filePath, const QStringList &ops);
-
     void setStatusMessage(const QString &msg);
     void setCurrentStep(const QString &step);
     void setProgress(double value);

@@ -669,11 +669,15 @@ Pane {
                                 running: browserCtrl ? browserCtrl.searching : false
                                 visible: running
                             }
-                            Item {
-                                id: searchBusyIndicatorKeepSize
+                            IconButton {
+                                id: clearSearchRecords
                                 Layout.preferredWidth: 30
                                 Layout.preferredHeight: 30
+                                iconSource: "qrc:/icons/trash.svg"
+                                tooltip: "清空记录"
                                 visible: !searchBusyIndicator.visible
+                                enabled: !searchBusyIndicator.visible && searchResultsModel.count > 0
+                                onClicked: searchResultsModel.clear()
                             }
                         }
                     }
