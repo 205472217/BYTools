@@ -9,6 +9,7 @@ BatchNameController::BatchNameController(PluginLogger *logger, QObject *parent)
     , m_logger(logger)
     , m_service(m_converter, logger)
 {
+    m_previewModel = new NamePreviewModel(this);
 }
 
 QString BatchNameController::rootPath() const
@@ -66,7 +67,7 @@ QString BatchNameController::statusMessage() const
 
 bool BatchNameController::hasRecords() const
 {
-    return m_previewModel.rowCount() > 0;
+    return m_previewModel->rowCount() > 0;
 }
 
 bool BatchNameController::isProcessing() const
@@ -83,15 +84,15 @@ void BatchNameController::cancel()
     }
 }
 
-QObject* BatchNameController::previewModel()
+NamePreviewModel* BatchNameController::previewModel() const
 {
-    return &m_previewModel;
+    return m_previewModel;
 }
 
 void BatchNameController::buildPreview()
 {
     if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
-        m_previewModel.clear();
+        m_previewModel->clear();
         emit hasRecordsChanged();
         setStatusMessage(QStringLiteral("请选择有效的根文件夹"));
         return;
@@ -99,7 +100,7 @@ void BatchNameController::buildPreview()
 
     m_logger->info(QString("预览繁转简: %1 (递归=%2)").arg(m_rootPath).arg(m_recursive));
     const auto items = m_service.preview(m_rootPath, currentTargetType(), m_recursive);
-    m_previewModel.setItems(items);
+    m_previewModel->setItems(items);
     emit hasRecordsChanged();
 
     if (items.isEmpty()) {
@@ -114,7 +115,7 @@ void BatchNameController::buildPreview()
 void BatchNameController::executeRename()
 {
     if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
-        m_previewModel.clear();
+        m_previewModel->clear();
         emit hasRecordsChanged();
         setStatusMessage(QStringLiteral("请选择有效的根文件夹"));
         m_logger->warn("繁转简失败: 源文件夹无效");
@@ -126,7 +127,7 @@ void BatchNameController::executeRename()
 
     setIsProcessing(true);
     const auto execution = m_service.execute(m_rootPath, currentTargetType(), m_recursive);
-    m_previewModel.setItems(execution.records);
+    m_previewModel->setItems(execution.records);
     emit hasRecordsChanged();
     setStatusMessage(execution.result.message);
     m_logger->info("繁转简完成: " + execution.result.message);
@@ -135,11 +136,11 @@ void BatchNameController::executeRename()
 
 void BatchNameController::restoreRecord(int row)
 {
-    const auto item = m_previewModel.itemAt(row);
+    const auto item = m_previewModel->itemAt(row);
     const auto result = m_service.restore(item);
-    m_previewModel.updateStatus(row, result.success ? QStringLiteral("已还原") : QStringLiteral("还原失败"));
+    m_previewModel->updateStatus(row, result.success ? QStringLiteral("已还原") : QStringLiteral("还原失败"));
     if (result.success && item.directory) {
-        m_previewModel.replacePathPrefix(item.newPath, item.currentPath);
+        m_previewModel->replacePathPrefix(item.newPath, item.currentPath);
     }
     setStatusMessage(result.message);
     m_logger->info(QString("还原: %1 → %2 — %3")
@@ -148,7 +149,7 @@ void BatchNameController::restoreRecord(int row)
 
 void BatchNameController::clearRecords()
 {
-    m_previewModel.clear();
+    m_previewModel->clear();
     emit hasRecordsChanged();
     setStatusMessage({});
 }

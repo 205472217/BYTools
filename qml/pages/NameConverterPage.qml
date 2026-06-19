@@ -412,7 +412,7 @@ Pane {
                     id: previewList
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    model: controller ? controller.previewModel() : null
+                    model: controller ? controller.previewModel : null
                     clip: true
                     ScrollBar.vertical: ScrollBar {
                         policy: ScrollBar.AlwaysOn

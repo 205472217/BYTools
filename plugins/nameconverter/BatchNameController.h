@@ -18,6 +18,7 @@ class BatchNameController : public QObject
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
     Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
+    Q_PROPERTY(NamePreviewModel* previewModel READ previewModel CONSTANT)
 
 public:
     explicit BatchNameController(PluginLogger *logger, QObject *parent = nullptr);
@@ -34,7 +35,7 @@ public:
     QString statusMessage() const;
     bool hasRecords() const;
     bool isProcessing() const;
-    Q_INVOKABLE QObject* previewModel();
+    NamePreviewModel* previewModel() const;
 
     Q_INVOKABLE void buildPreview();
     Q_INVOKABLE void executeRename();
@@ -65,5 +66,5 @@ private:
     ChineseTextConverter m_converter;
     PluginLogger *m_logger = nullptr;
     NameService m_service;
-    NamePreviewModel m_previewModel;
+    NamePreviewModel *m_previewModel = nullptr;
 };
