@@ -55,11 +55,11 @@ void PluginLogger::ensureFileOpen()
     closeFile();
 
     const QString logDir = QCoreApplication::applicationDirPath() + QStringLiteral("/log");
-    QDir().mkpath(logDir);
-
     const QString dateStr = today.toString(QStringLiteral("yyyy-MM-dd"));
-    const QString filePath = logDir + QStringLiteral("/") + m_prefix + QStringLiteral("_")
-                             + dateStr + QStringLiteral(".log");
+    const QString dateDir = logDir + QStringLiteral("/") + dateStr;
+    QDir().mkpath(dateDir);
+
+    const QString filePath = dateDir + QStringLiteral("/") + m_prefix + QStringLiteral(".log");
 
 #ifdef Q_OS_WIN
     // Windows: 用 CreateFileW 独占打开，不设 FILE_SHARE_DELETE
