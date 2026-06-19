@@ -48,17 +48,6 @@ Item {
             anchors.left: parent.left
             anchors.leftMargin: 8
             anchors.verticalCenter: parent.verticalCenter
-
-            Behavior on color {
-                ColorAnimation { duration: 200; easing.type: Easing.OutCubic }
-            }
-        }
-
-        Behavior on color {
-            ColorAnimation { duration: 200; easing.type: Easing.OutCubic }
-        }
-        Behavior on border.color {
-            ColorAnimation { duration: 200; easing.type: Easing.OutCubic }
         }
     }
 
@@ -69,10 +58,6 @@ Item {
         border.width: 0
         visible: mouseArea.containsMouse
         opacity: mouseArea.containsMouse ? 1 : 0
-
-        Behavior on opacity {
-            NumberAnimation { duration: 200 }
-        }
 
         Rectangle {
             anchors.fill: parent
@@ -132,9 +117,6 @@ Item {
                 elide: Text.ElideRight
                 Layout.fillWidth: true
 
-                Behavior on color {
-                    ColorAnimation { duration: 200 }
-                }
             }
 
             Label {
@@ -153,12 +135,6 @@ Item {
             color: mouseArea.containsMouse ? root.hoverArrowColor : root.arrowColor
             opacity: mouseArea.containsMouse ? 1 : 0
 
-            Behavior on opacity {
-                NumberAnimation { duration: 200 }
-            }
-            Behavior on color {
-                ColorAnimation { duration: 200 }
-            }
         }
     }
 

@@ -61,76 +61,23 @@ ApplicationWindow {
         anchors.fill: parent
         initialItem: homePage
 
-        pushEnter: Transition {
-            PropertyAnimation {
-                property: "opacity"
-                from: 0
-                to: 1
-                duration: 200
-                easing.type: Easing.OutCubic
-            }
-            PropertyAnimation {
-                property: "x"
-                from: stackView.width * 0.08
-                to: 0
-                duration: 250
-                easing.type: Easing.OutCubic
-            }
-        }
-        pushExit: Transition {
-            PropertyAnimation {
-                property: "opacity"
-                from: 1
-                to: 0
-                duration: 150
-                easing.type: Easing.InCubic
-            }
-        }
-        popEnter: Transition {
-            PropertyAnimation {
-                property: "opacity"
-                from: 0
-                to: 1
-                duration: 200
-                easing.type: Easing.OutCubic
-            }
-        }
-        popExit: Transition {
-            PropertyAnimation {
-                property: "opacity"
-                from: 1
-                to: 0
-                duration: 150
-                easing.type: Easing.InCubic
-            }
-        }
-
-        // 页面切换动画完成后才释放导航守卫
         onBusyChanged: {
             if (!busy)
                 window._navGuard = false
         }
     }
 
-    // 页面切换遮罩：防止切换过程中点击穿透，同时提供视觉反馈
+    // 页面切换遮罩：防止切换过程中点击穿透
     Rectangle {
         id: transitionOverlay
         anchors.fill: stackView
         z: stackView.z + 1
         color: "#40000000"
         visible: stackView.busy
-        opacity: visible ? 1.0 : 0.0
-        Behavior on opacity { NumberAnimation { duration: 150 } }
-
-        BusyIndicator {
-            anchors.centerIn: parent
-            running: parent.visible
-        }
 
         MouseArea {
             anchors.fill: parent
             enabled: parent.visible
-            // 吞掉所有鼠标事件，防止切换中再次点击
         }
     }
 

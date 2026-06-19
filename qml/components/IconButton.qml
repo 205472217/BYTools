@@ -52,12 +52,7 @@ Item {
             }
         }
 
-        Behavior on color {
-            ColorAnimation { duration: 150; easing.type: Easing.OutCubic }
-        }
-        Behavior on border.color {
-            ColorAnimation { duration: 150; easing.type: Easing.OutCubic }
-        }
+
     }
 
     Row {
@@ -65,9 +60,7 @@ Item {
         anchors.centerIn: parent
         spacing: 6
         scale: mouseArea.pressed ? 0.9 : 1.0
-        Behavior on scale {
-            NumberAnimation { duration: 100; easing.type: Easing.OutCubic }
-        }
+
 
         Image {
             id: iconImg

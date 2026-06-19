@@ -54,15 +54,7 @@ TextField {
             }
         }
 
-        Behavior on border.color {
-            ColorAnimation { duration: 150; easing.type: Easing.OutCubic }
-        }
-        Behavior on border.width {
-            NumberAnimation { duration: 100 }
-        }
-        Behavior on color {
-            ColorAnimation { duration: 150 }
-        }
+
     }
 
     cursorDelegate: Rectangle {

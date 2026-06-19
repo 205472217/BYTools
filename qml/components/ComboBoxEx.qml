@@ -48,12 +48,7 @@ ComboBox {
             }
         }
 
-        Behavior on border.color {
-            ColorAnimation { duration: 150; easing.type: Easing.OutCubic }
-        }
-        Behavior on border.width {
-            NumberAnimation { duration: 100 }
-        }
+
     }
 
     contentItem: Text {
@@ -89,9 +84,7 @@ ComboBox {
         onRotationChanged: requestPaint()
 
         rotation: root.popup.visible ? 180 : 0
-        Behavior on rotation {
-            NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
-        }
+
     }
 
     popup: Popup {
@@ -127,13 +120,7 @@ ComboBox {
             ScrollIndicator.vertical: ScrollIndicator {}
         }
 
-        enter: Transition {
-            NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 120 }
-        }
 
-        exit: Transition {
-            NumberAnimation { property: "opacity"; from: 1; to: 0; duration: 100 }
-        }
     }
 
     delegate: ItemDelegate {
