@@ -86,7 +86,8 @@ void ProcessRunner::handleReadyRead()
     if (!m_process) return;
 
     // 空闲超时重置
-    m_timer->start(m_idleTimeoutMs);
+    if (m_timer)
+        m_timer->start(m_idleTimeoutMs);
 
     // 累积输出（限制 64KB）
     QByteArray chunk = m_process->readAllStandardError();
@@ -101,7 +102,8 @@ void ProcessRunner::handleReadyRead()
 
 void ProcessRunner::handleFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-    m_timer->stop();
+    if (m_timer)
+        m_timer->stop();
     onProcessFinished(exitCode, exitStatus);
     // 若子类在 onProcessFinished 中没有重启新进程，则自动清理
     if (m_process && m_process->state() == QProcess::NotRunning) {
@@ -112,7 +114,8 @@ void ProcessRunner::handleFinished(int exitCode, QProcess::ExitStatus exitStatus
 
 void ProcessRunner::handleError(QProcess::ProcessError error)
 {
-    m_timer->stop();
+    if (m_timer)
+        m_timer->stop();
     onProcessError(error);
     // 若子类没有重启新进程，则自动清理
     if (m_process && m_process->state() == QProcess::NotRunning) {

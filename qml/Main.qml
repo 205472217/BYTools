@@ -104,6 +104,34 @@ ApplicationWindow {
                 easing.type: Easing.InCubic
             }
         }
+
+        // 页面切换动画完成后才释放导航守卫
+        onBusyChanged: {
+            if (!busy)
+                window._navGuard = false
+        }
+    }
+
+    // 页面切换遮罩：防止切换过程中点击穿透，同时提供视觉反馈
+    Rectangle {
+        id: transitionOverlay
+        anchors.fill: stackView
+        z: stackView.z + 1
+        color: "#40000000"
+        visible: stackView.busy
+        opacity: visible ? 1.0 : 0.0
+        Behavior on opacity { NumberAnimation { duration: 150 } }
+
+        BusyIndicator {
+            anchors.centerIn: parent
+            running: parent.visible
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            enabled: parent.visible
+            // 吞掉所有鼠标事件，防止切换中再次点击
+        }
     }
 
     Component {
@@ -111,7 +139,7 @@ ApplicationWindow {
 
         HomePage {
             onOpenFeature: function(featureId) {
-                if (window._navGuard || window.currentFeatureId === featureId) return
+                if (window._navGuard || window.currentFeatureId === featureId || stackView.busy) return
                 window._navGuard = true
 
                 var controller = pluginManager.getPlugin(featureId)
@@ -134,8 +162,6 @@ ApplicationWindow {
                 } else if (featureId === "subtitle-adjust") {
                     stackView.push(subtitleAdjustPageComponent, {controller: controller})
                 }
-
-                window._navGuard = false
             }
         }
     }
@@ -145,6 +171,8 @@ ApplicationWindow {
 
         NameConverterPage {
             onBackRequested: {
+                if (stackView.busy || window._navGuard) return
+                window._navGuard = true
                 stackView.pop()
                 window.currentFeatureId = ""
             }
@@ -156,6 +184,8 @@ ApplicationWindow {
 
         BatchRenamePage {
             onBackRequested: {
+                if (stackView.busy || window._navGuard) return
+                window._navGuard = true
                 stackView.pop()
                 window.currentFeatureId = ""
             }
@@ -167,6 +197,8 @@ ApplicationWindow {
 
         ImageConverterPage {
             onBackRequested: {
+                if (stackView.busy || window._navGuard) return
+                window._navGuard = true
                 stackView.pop()
                 window.currentFeatureId = ""
             }
@@ -178,6 +210,8 @@ ApplicationWindow {
 
         ImageCropPage {
             onBackRequested: {
+                if (stackView.busy || window._navGuard) return
+                window._navGuard = true
                 stackView.pop()
                 window.currentFeatureId = ""
             }
@@ -189,10 +223,14 @@ ApplicationWindow {
 
         VideoSubtitlePage {
             onBackRequested: {
+                if (stackView.busy || window._navGuard) return
+                window._navGuard = true
                 stackView.pop()
                 window.currentFeatureId = ""
             }
             onOpenSettings: {
+                if (stackView.busy || window._navGuard) return
+                window._navGuard = true
                 stackView.push(videoSubtitleSettingsPageComponent)
             }
         }
@@ -204,6 +242,8 @@ ApplicationWindow {
         VideoSubtitleSettingsPage {
             settings: pluginManager.getPluginSettings("video-subtitle")
             onBackRequested: {
+                if (stackView.busy || window._navGuard) return
+                window._navGuard = true
                 stackView.pop()
             }
         }
@@ -214,6 +254,8 @@ ApplicationWindow {
 
         CustomSubtitlePage {
             onBackRequested: {
+                if (stackView.busy || window._navGuard) return
+                window._navGuard = true
                 stackView.pop()
                 window.currentFeatureId = ""
             }
@@ -225,6 +267,8 @@ ApplicationWindow {
 
         SubtitleAdjustPage {
             onBackRequested: {
+                if (stackView.busy || window._navGuard) return
+                window._navGuard = true
                 stackView.pop()
                 window.currentFeatureId = ""
             }

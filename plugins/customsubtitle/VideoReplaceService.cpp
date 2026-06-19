@@ -71,7 +71,7 @@ void VideoReplaceService::startReplace(const QString &videoDir,
 
     m_logger->info(QString("========== 步骤4：替换原视频 =========="));
 
-    // === 扫描匹配（在主线程完成，同 Python 的 scan_videos_recursive + rglob）===
+    // 基本校验：合成目录必须存在
     QDir mDir(mergedDir);
     if (!mDir.exists()) {
         QString err = "✗ 合成视频目录不存在: " + mergedDir;
@@ -85,12 +85,33 @@ void VideoReplaceService::startReplace(const QString &videoDir,
     m_logger->info(QString("原视频目录: %1 (递归=%2)").arg(videoDir).arg(recursive));
     m_logger->info(QString("合成视频目录: %1").arg(mergedDir));
 
-    // 统计：原视频总数（不考虑是否有合成文件）
-    m_totalVideoCount = 0;
+    // 扫描+替换全部在后台线程执行，不阻塞 UI
+    m_workerRunning = true;
+    m_workerThread.start();
+}
+
+void VideoReplaceService::cancel()
+{
+    m_cancelled.storeRelaxed(1);
+    if (m_workerRunning) {
+        m_workerThread.quit();
+        m_workerThread.wait(3000);
+        // 等待超时后强制终止
+        if (m_workerRunning) {
+            m_workerThread.terminate();
+            m_workerThread.wait(3000);
+        }
+    }
+}
+
+void VideoReplaceService::doWork()
+{
+    m_logger->info(QString("开始扫描原视频目录..."));
+
+    // ── 扫描阶段（原在 startReplace 中阻塞 UI，现移入工作线程）──
+    int matchedCount = 0;
     int srtCount = 0;
 
-    // 递归扫描原视频目录，按文件夹名称+文件名称排序
-    int matchedCount = 0;
     std::function<void(const QString &)> collectDir;
     collectDir = [&](const QString &dirPath) {
         QDir dir(dirPath);
@@ -102,7 +123,7 @@ void VideoReplaceService::startReplace(const QString &videoDir,
             m_totalVideoCount++;
 
             // 在 mergedDir 中递归搜索同名文件
-            QString mergedPath = findFileRecursive(mergedDir, fi.fileName());
+            QString mergedPath = findFileRecursive(m_mergedDir, fi.fileName());
             if (mergedPath.isEmpty()) {
                 m_logger->info(QString("  [无合成] %1 (%2 MB) — FFOutput 中未找到同名文件")
                     .arg(fi.absoluteFilePath())
@@ -139,20 +160,20 @@ void VideoReplaceService::startReplace(const QString &videoDir,
             }
             emit logMessage(log);
             m_logger->info(log.replace('\n', " | "));
-            QCoreApplication::processEvents();
         }
 
-        if (!recursive) return;
+        if (!m_recursive) return;
 
         // 子目录按自然名称排序后递归
         QFileInfoList subdirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
         naturalSort(subdirs);
         for (const QFileInfo &subdir : subdirs) {
+            if (m_cancelled.loadRelaxed()) return;
             collectDir(subdir.absoluteFilePath());
         }
     };
 
-    collectDir(videoDir);
+    collectDir(m_videoDir);
 
     if (m_items.isEmpty()) {
         QString msg = QString("✗ 未找到可替换的视频文件（原视频 %1 个，但合成目录中无匹配文件）")
@@ -160,6 +181,7 @@ void VideoReplaceService::startReplace(const QString &videoDir,
         emit logMessage(msg);
         m_logger->error(msg);
         emit finished(false, "未找到可替换的视频");
+        m_workerThread.quit();
         return;
     }
 
@@ -170,22 +192,7 @@ void VideoReplaceService::startReplace(const QString &videoDir,
 
     emit scanFinished(matchedCount);
 
-    // 后台线程执行替换操作，不阻塞 UI
-    m_workerRunning = true;
-    m_workerThread.start();
-}
-
-void VideoReplaceService::cancel()
-{
-    m_cancelled.storeRelaxed(1);
-    if (m_workerRunning) {
-        m_workerThread.quit();
-        m_workerThread.wait(3000);
-    }
-}
-
-void VideoReplaceService::doWork()
-{
+    // ── 替换阶段（原 doWork 逻辑） ──
     m_logger->info(QString("========== 开始替换 %1 个文件 ==========").arg(m_items.size()));
 
     // 在线程中迭代处理（非递归！），同 Python 的 for 循环

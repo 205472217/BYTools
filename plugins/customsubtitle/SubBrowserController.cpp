@@ -51,11 +51,13 @@ SubBrowserController::SubBrowserController(PluginLogger *logger, QObject *parent
 SubBrowserController::~SubBrowserController()
 {
     if (m_searchProcess) {
+        m_searchProcess->disconnect();
         m_searchProcess->kill();
         m_searchProcess->waitForFinished(3000);
         m_searchProcess->deleteLater();
     }
     if (m_downloadProcess) {
+        m_downloadProcess->disconnect();
         m_downloadProcess->kill();
         m_downloadProcess->waitForFinished(3000);
         m_downloadProcess->deleteLater();
@@ -311,6 +313,7 @@ void SubBrowserController::search()
     QByteArray jsonData = QJsonDocument(req).toJson(QJsonDocument::Compact);
 
     if (m_searchProcess) {
+        m_searchProcess->disconnect();
         m_searchProcess->kill();
         m_searchProcess->waitForFinished(3000);
         m_searchProcess->deleteLater();
@@ -546,6 +549,7 @@ void SubBrowserController::download(int index)
     QByteArray jsonData = QJsonDocument(req).toJson(QJsonDocument::Compact);
 
     if (m_downloadProcess) {
+        m_downloadProcess->disconnect();
         m_downloadProcess->kill();
         m_downloadProcess->waitForFinished(3000);
         m_downloadProcess->deleteLater();

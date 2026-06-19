@@ -118,7 +118,9 @@ void TranslateService::cancel()
     m_cancelled = true;
     m_requestTimer->stop();
     if (m_currentReply) {
+        m_currentReply->disconnect();
         m_currentReply->abort();
+        m_currentReply->deleteLater();
         m_currentReply = nullptr;
     }
 }

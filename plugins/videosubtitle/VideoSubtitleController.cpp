@@ -350,11 +350,14 @@ void VideoSubtitleController::cancel()
 {
     if (!m_isProcessing) return;
 
+    // 先设状态为 false，防止 cancel 过程中 waitForFinished 阻塞处理事件
+    // 导致异步信号回调（onTranscribeFinished/onTranslateFinished）重新进入处理流程
+    setIsProcessing(false);
+
     m_whisperService->cancel();
     m_translateService->cancel();
     m_ffmpegService->cancel();
 
-    setIsProcessing(false);
     setStatusMessage("已取消处理");
     setCurrentStep("");
     setProgress(0.0);
@@ -385,6 +388,12 @@ void VideoSubtitleController::reset()
 
 void VideoSubtitleController::processNextFile()
 {
+    // 如果已取消，不再继续处理后续文件
+    if (!m_isProcessing) {
+        m_logger->info("处理已取消，跳过后续文件");
+        return;
+    }
+
     m_currentFileIndex++;
 
     if (m_currentFileIndex >= m_pendingFiles.size()) {
