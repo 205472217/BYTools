@@ -28,7 +28,7 @@ plugins/                       插件目录
   imagecrop/                   图片裁剪插件
   videosubtitle/               视频字幕翻译插件
   customsubtitle/              自定义视频字幕插件
-  adjustsubtitle/              调整视频字幕插件
+  adjustsubtitle/              调整字幕时码插件
 qml/
   components/                  可复用界面组件
   pages/                       页面
