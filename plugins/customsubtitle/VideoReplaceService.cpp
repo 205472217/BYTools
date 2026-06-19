@@ -147,19 +147,19 @@ void VideoReplaceService::doWork()
             m_items.append(item);
             matchedCount++;
 
-            QString log = QString("  [匹配] %1\n"
-                                  "         原视频: %2 (%3 MB)\n"
-                                  "         合成后: %4 (%5 MB)")
+            QString log = QString("  [匹配] %1 | "
+                                  "  原视频: %2 (%3 MB) | "
+                                  "  合成后: %4 (%5 MB) | ")
                 .arg(fi.fileName(),
                      fi.absoluteFilePath(),
                      QString::number(fi.size() / 1024.0 / 1024.0, 'f', 2),
                      mergedPath,
                      QString::number(mergedFi.size() / 1024.0 / 1024.0, 'f', 2));
             if (!item.srtPath.isEmpty()) {
-                log += QString("\n         字幕: %1").arg(item.srtPath);
+                log += QString("  字幕: %1 ").arg(item.srtPath);
             }
             emit logMessage(log);
-            m_logger->info(log.replace('\n', " | "));
+            m_logger->info(log);
         }
 
         if (!m_recursive) return;
@@ -355,7 +355,7 @@ void VideoReplaceService::doWork()
         .arg(m_removeSrt ? "是" : "否");
 
     emit logMessage(summary);
-    m_logger->info(summary.replace('\n', " | "));
+    m_logger->info(summary);
 
     emit finished(m_cancelled.loadRelaxed() == 0,
                   QString("替换完成: 成功 %1, 失败 %2, 总计 %3")
