@@ -170,8 +170,20 @@ void FFmpegMergeService::cancel()
 
 void FFmpegMergeService::requestStopAfterCount(int count)
 {
-    m_stopTargetIndex = m_currentIndex + count;
-    emit logMessage(QString("  ⏹ 已预约停止，再完成 %1 个文件后退出").arg(count));
+    if (count <= 0) {
+        m_stopTargetIndex = -1;
+        emit logMessage("  ⏹ 已取消预约停止，将处理全部文件");
+        return;
+    }
+
+    // 绝对语义：总共完成 count 个文件后停止
+    int targetIndex = count - 1;
+    if (targetIndex < m_currentIndex) {
+        // 已超过目标数，处理完当前文件后立即停止
+        targetIndex = m_currentIndex;
+    }
+    m_stopTargetIndex = targetIndex;
+    emit logMessage(QString("  ⏹ 已预约停止，总共完成 %1 个文件后退出").arg(count));
 }
 
 void FFmpegMergeService::processNextFile()

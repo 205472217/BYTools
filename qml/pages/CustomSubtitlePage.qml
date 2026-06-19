@@ -1175,8 +1175,12 @@ Pane {
                                             // 选中即生效，无需额外点击按钮
                                             if (controller && controller.isProcessing) {
                                                 var val = currentValue;
-                                                if (typeof val === "number")
+                                                if (typeof val === "number") {
                                                     controller.requestStopAfterCount(val);
+                                                } else {
+                                                    // "全部" → 取消预约停止
+                                                    controller.requestStopAfterCount(0);
+                                                }
                                             }
                                         }
                                     }
