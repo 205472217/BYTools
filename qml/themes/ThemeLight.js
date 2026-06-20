@@ -40,6 +40,7 @@ var palette = {
     textFieldDisabled: "#94a3b8",
     textPlaceholderField: "#b0bec5",
     radioButton_textColor: "#475569",
+    checkBox_textColor: "#475569",
 
     selColor: "#3b82f6",
     selTextColor: "#ffffff",

@@ -163,17 +163,6 @@ Pane {
             border.color: pal.NameConverter_sourcePanel_borderColor
             border.width: 1
 
-            // 面板阴影
-            Rectangle {
-                id: sourceShadow
-                anchors.fill: parent
-                anchors.margins: -2
-                radius: 12
-                color: pal.NameConverter_sourceShadow_color
-                opacity: 0.04
-                z: -1
-            }
-
             ColumnLayout {
                 id: settingsColumn
                 anchors.fill: parent
@@ -200,10 +189,11 @@ Pane {
                         placeholderText: "尚未选择"
                     }
 
-                    CheckBox {
+                    CheckBoxEx {
                         id: recursiveCheck
-                        Layout.preferredWidth: 110
+                        implicitWidth: 110
                         text: "递归子文件夹"
+                        textColor: pal.checkBox_textColor
                         checked: controller ? controller.recursive : false
                         onCheckedChanged: {
                             if (controller) {
@@ -308,17 +298,6 @@ Pane {
             border.color: pal.NameConverter_previewPanel_borderColor
             border.width: 1
             clip: true
-
-            // 面板阴影
-            Rectangle {
-                id: previewShadow
-                anchors.fill: parent
-                anchors.margins: -2
-                radius: 12
-                color: pal.NameConverter_previewShadow_color
-                opacity: 0.04
-                z: -1
-            }
 
             ColumnLayout {
                 anchors.fill: parent

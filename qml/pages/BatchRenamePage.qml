@@ -162,17 +162,6 @@ Pane {
             border.color: pal.BatchRenamePage_settingsPanel_borderColor
             border.width: 1
 
-            // 面板阴影
-            Rectangle {
-                id: settingsShadow
-                anchors.fill: parent
-                anchors.margins: -2
-                radius: 12
-                color: pal.BatchRenamePage_settingsShadow_color
-                opacity: 0.04
-                z: -1
-            }
-
             ColumnLayout {
                 id: settingsColumn
                 anchors.fill: parent
@@ -199,10 +188,11 @@ Pane {
                         placeholderText: "点击选择文件夹"
                     }
 
-                    CheckBox {
+                    CheckBoxEx {
                         id: recursiveCheck
-                        Layout.preferredWidth: 110
+                        implicitWidth: 110
                         text: "递归子文件夹"
+                        textColor: pal.checkBox_textColor
                         checked: controller ? controller.recursive : false
                         onCheckedChanged: {
                             if (controller) {
@@ -235,8 +225,10 @@ Pane {
                         spacing: 12
                         Layout.fillWidth: true
 
-                        RadioButton {
+                        RadioButtonEx {
+                            implicitWidth: 40
                             text: "所有"
+                            textColor: pal.radioButton_textColor
                             checked: controller ? controller.fileType === 0 : true
                             onCheckedChanged: {
                                 if (checked && controller) {
@@ -245,8 +237,10 @@ Pane {
                             }
                         }
 
-                        RadioButton {
+                        RadioButtonEx {
+                            implicitWidth: 40
                             text: "视频"
+                            textColor: pal.radioButton_textColor
                             checked: controller ? controller.fileType === 1 : false
                             onCheckedChanged: {
                                 if (checked && controller) {
@@ -255,8 +249,10 @@ Pane {
                             }
                         }
 
-                        RadioButton {
+                        RadioButtonEx {
+                            implicitWidth: 40
                             text: "音频"
+                            textColor: pal.radioButton_textColor
                             checked: controller ? controller.fileType === 2 : false
                             onCheckedChanged: {
                                 if (checked && controller) {
@@ -265,8 +261,10 @@ Pane {
                             }
                         }
 
-                        RadioButton {
+                        RadioButtonEx {
+                            implicitWidth: 40
                             text: "文本"
+                            textColor: pal.radioButton_textColor
                             checked: controller ? controller.fileType === 3 : false
                             onCheckedChanged: {
                                 if (checked && controller) {
@@ -275,8 +273,10 @@ Pane {
                             }
                         }
 
-                        RadioButton {
+                        RadioButtonEx {
+                            implicitWidth: 40
                             text: "图片"
+                            textColor: pal.radioButton_textColor
                             checked: controller ? controller.fileType === 4 : false
                             onCheckedChanged: {
                                 if (checked && controller) {
@@ -285,9 +285,11 @@ Pane {
                             }
                         }
 
-                        RadioButton {
+                        RadioButtonEx {
                             id: customRadio
+                            implicitWidth: 60
                             text: "自定义"
+                            textColor: pal.radioButton_textColor
                             checked: controller ? controller.fileType === 5 : false
                             onCheckedChanged: {
                                 if (checked && controller) {
@@ -331,9 +333,11 @@ Pane {
                         Layout.preferredWidth: 80
                     }
 
-                    RadioButton {
+                    RadioButtonEx {
                         id: specifyRadio
+                        implicitWidth: 80
                         text: "指定名称"
+                        textColor: pal.radioButton_textColor
                         checked: controller ? controller.renameMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller) {
@@ -361,9 +365,11 @@ Pane {
                         color: pal.BatchRenamePage_modeSeparator_color
                     }
 
-                    RadioButton {
+                    RadioButtonEx {
                         id: replaceRadio
+                        implicitWidth: 80
                         text: "替换文本"
+                        textColor: pal.radioButton_textColor
                         checked: controller ? controller.renameMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller) {
@@ -482,17 +488,6 @@ Pane {
             border.color: pal.BatchRenamePage_tablePanel_borderColor
             border.width: 1
             clip: true
-
-            // 面板阴影
-            Rectangle {
-                id: tableShadow
-                anchors.fill: parent
-                anchors.margins: -2
-                radius: 12
-                color: pal.BatchRenamePage_tableShadow_color
-                opacity: 0.04
-                z: -1
-            }
 
             ColumnLayout {
                 anchors.fill: parent

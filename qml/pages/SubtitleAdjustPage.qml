@@ -256,16 +256,6 @@ Pane {
             border.color: pal.SubtitleAdjustPage_topPanel_borderColor
             border.width: 1
 
-            Rectangle {
-                id: topPanelShadow
-                anchors.fill: parent
-                anchors.margins: -2
-                radius: 12
-                color: pal.SubtitleAdjustPage_topPanelShadow_color
-                opacity: 0.04
-                z: -1
-            }
-
             ColumnLayout {
                 id: topPanelContent
                 anchors.fill: parent
@@ -277,9 +267,11 @@ Pane {
                     spacing: 0
                     Layout.fillWidth: true
 
-                    RadioButton {
+                    RadioButtonEx {
                         id: singleModeRadio
+                        implicitWidth: 120
                         text: "单文件模式"
+                        textColor: pal.radioButton_textColor
                         checked: isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
@@ -288,9 +280,11 @@ Pane {
                         }
                     }
 
-                    RadioButton {
+                    RadioButtonEx {
                         id: batchModeRadio
+                        implicitWidth: 120
                         text: "批量处理模式"
+                        textColor: pal.radioButton_textColor
                         checked: !isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
@@ -327,10 +321,11 @@ Pane {
                         clip: true
                     }
 
-                    CheckBox {
+                    CheckBoxEx {
                         id: recursiveCheck1
-                        Layout.preferredWidth: 110
+                        implicitWidth: 110
                         text: "递归子文件夹"
+                        textColor: pal.checkBox_textColor
                         font.pixelSize: 12
                         visible: !isSingleMode
                         checked: controller ? controller.recursiveVideo : false
@@ -371,10 +366,11 @@ Pane {
                         clip: true
                     }
 
-                    CheckBox {
+                    CheckBoxEx {
                         id: recursiveCheck2
-                        Layout.preferredWidth: 110
+                        implicitWidth: 110
                         text: "递归子文件夹"
+                        textColor: pal.checkBox_textColor
                         font.pixelSize: 12
                         visible: !isSingleMode
                         checked: controller ? controller.recursiveSubtitle : false
@@ -424,26 +420,31 @@ Pane {
         // ═══════════════ Log Row + Shortcut Hints ═══════════════
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 36
+            Layout.preferredHeight: 50
             radius: 6
             color: pal.SubtitleAdjustPage_logBar_color
 
-            RowLayout {
+            ColumnLayout {
                 anchors.fill: parent
                 anchors.leftMargin: 12
                 anchors.rightMargin: 12
-                spacing: 12
+                spacing: 2
 
-                Label {
-                    id: logText
+                RowLayout {
                     Layout.fillWidth: true
-                    text: root._lastLogLine.length > 0 ? root._lastLogLine : "就绪"
-                    color: root._lastLogLine.length > 0 ? pal.SubtitleAdjustPage_logText_color_log : pal.SubtitleAdjustPage_logText_color_idle
-                    font.pixelSize: 11
-                    font.family: "Consolas, 'Courier New', monospace"
-                    elide: Text.ElideRight
+                    spacing: 6
+
+                    Label {
+                        id: logText
+                        Layout.fillWidth: true
+                        text: root._lastLogLine.length > 0 ? root._lastLogLine : "就绪"
+                        color: root._lastLogLine.length > 0 ? pal.SubtitleAdjustPage_logText_color_log : pal.SubtitleAdjustPage_logText_color_idle
+                        font.pixelSize: 11
+                        font.family: "Consolas, 'Courier New', monospace"
+                        elide: Text.ElideRight
+                    }
                 }
-            }
+            } 
         }
 
         // ═══════════════ Bottom: 3-Column Layout ═══════════════
@@ -845,25 +846,14 @@ Pane {
                 border.color: pal.SubtitleAdjustPage_adjPanel_borderColor
                 border.width: 1
 
-                Rectangle {
-                    id: adjPanelShadow
-                    anchors.fill: parent
-                    anchors.margins: -2
-                    radius: 12
-                    color: pal.SubtitleAdjustPage_adjPanelShadow_color
-                    opacity: 0.04
-                    z: -1
-                }
-
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: 18
-                    spacing: 0
+                    spacing: 10
 
-                    // 最大偏移选择
+                    // Max Offset value
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.topMargin: 4
                         spacing: 8
 
                         Label {
@@ -902,6 +892,7 @@ Pane {
                         }
                     }
 
+                    // OffsetValue Text
                     Label {
                         id: offsetValue
                         Layout.fillWidth: true
@@ -917,7 +908,6 @@ Pane {
                     Rectangle {
                         id: sliderPanel
                         Layout.fillWidth: true
-                        Layout.topMargin: 16
                         Layout.preferredHeight: 40
                         color: pal.SubtitleAdjustPage_sliderPanel_color
                         radius: 6
@@ -975,7 +965,6 @@ Pane {
                     // Quick adjust buttons
                     RowLayout {
                         Layout.fillWidth: true
-                        Layout.topMargin: 16
                         spacing: 12
 
                         IconButton {
@@ -1011,14 +1000,6 @@ Pane {
                         }
                     }
 
-                    Rectangle {
-                        id: stepSep
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 1
-                        Layout.topMargin: 16
-                        color: pal.SubtitleAdjustPage_stepSep_color
-                    }
-
                     // Step size selector
                     RowLayout {
                         Layout.fillWidth: true
@@ -1044,17 +1025,11 @@ Pane {
                         }
                     }
 
-                    Rectangle {
-                        id: overwriteSep
+                    // Replace original srt
+                    CheckBoxEx {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 1
-                        color: pal.SubtitleAdjustPage_overwriteSep_color
-                    }
-
-                    CheckBox {
-                        Layout.fillWidth: true
-                        Layout.topMargin: 8
                         text: "替换原字幕文件"
+                        textColor: pal.checkBox_textColor
                         font.pixelSize: 12
                         checked: controller ? controller.overwriteOriginal : false
                         onCheckedChanged: {
@@ -1062,11 +1037,10 @@ Pane {
                         }
                     }
 
+                    // Export srt
                     IconButton {
                         id: exportBtn
                         Layout.fillWidth: true
-                        Layout.topMargin: 12
-                        Layout.bottomMargin: 8
                         text: "导出字幕文件"
                         tooltip: controller && controller.overwriteOriginal
                             ? "替换原字幕文件（将覆盖原文件）"
@@ -1081,6 +1055,8 @@ Pane {
                             if (controller) controller.exportSubtitle()
                         }
                     }
+
+                    Item { Layout.fillHeight: true }
                 }
             }
         }

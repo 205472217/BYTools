@@ -21,6 +21,7 @@ ComboBox {
     property color delegateHighlightTextColor: "#1e40af"
     property color delegateHighlightBgColor: "#eff6ff"
 
+    implicitWidth: 76
     implicitHeight: 26
     font.pixelSize: 13
 

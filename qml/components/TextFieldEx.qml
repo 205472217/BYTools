@@ -17,6 +17,7 @@ TextField {
     property color focusRingColor: "#3b82f6"
     property color cursorColor: "#3b82f6"
 
+    implicitWidth: 76
     implicitHeight: 26
 
     color: enabled ? root.textColor : root.disabledTextColor

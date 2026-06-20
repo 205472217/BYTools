@@ -299,17 +299,6 @@ Pane {
             border.color: pal.VideoSubtitlePage_settingsCard_borderColor
             border.width: 1
 
-            // 面板阴影
-            Rectangle {
-                id: settingsCardShadow
-                anchors.fill: parent
-                anchors.margins: -2
-                radius: 12
-                color: pal.VideoSubtitlePage_settingsCardShadow_color
-                opacity: 0.04
-                z: -1
-            }
-
             ColumnLayout {
                 id: settingsColumn
                 anchors.fill: parent
@@ -330,8 +319,10 @@ Pane {
                         Layout.preferredWidth: 80
                     }
 
-                    RadioButton {
+                    RadioButtonEx {
+                        implicitWidth: 100
                         text: "单个视频"
+                        textColor: pal.radioButton_textColor
                         checked: controller ? controller.inputMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller) {
@@ -341,8 +332,10 @@ Pane {
                         }
                     }
 
-                    RadioButton {
+                    RadioButtonEx {
+                        implicitWidth: 100
                         text: "文件夹批量"
+                        textColor: pal.radioButton_textColor
                         checked: controller ? controller.inputMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller) {
@@ -352,10 +345,11 @@ Pane {
                         }
                     }
 
-                    CheckBox {
+                    CheckBoxEx {
                         id: recursiveCheck
-                        Layout.preferredWidth: 110
+                        implicitWidth: 110
                         text: "递归子文件夹"
+                        textColor: pal.checkBox_textColor
                         checked: controller ? controller.recursive : false
                         visible: controller ? controller.inputMode === 1 : false
                         onCheckedChanged: {
@@ -425,9 +419,11 @@ Pane {
                         Layout.fillWidth: true
                         spacing: 4
 
-                        CheckBox {
+                        CheckBoxEx {
                             id: stepAudio
+                            implicitWidth: 90
                             text: "1. 分离音频"
+                            textColor: pal.checkBox_textColor
                             checked: controller ? controller.enableAudioExtraction : true
                             opacity: 1.0
                             onCheckedChanged: {
@@ -441,9 +437,11 @@ Pane {
                             }
                         }
 
-                        CheckBox {
+                        CheckBoxEx {
                             id: stepTranscribe
+                            implicitWidth: 160
                             text: "2. 语音识别(音频→SRT)"
+                            textColor: pal.checkBox_textColor
                             checked: controller ? controller.enableTranscribe : true
                             enabled: stepAudio.checked
                             opacity: 1.0
@@ -462,9 +460,11 @@ Pane {
                             }
                         }
 
-                        CheckBox {
+                        CheckBoxEx {
                             id: stepTranslate
+                            implicitWidth: 90
                             text: "3. 翻译字幕"
+                            textColor: pal.checkBox_textColor
                             checked: controller ? controller.enableTranslate : true
                             enabled: stepAudio.checked && stepTranscribe.checked
                             opacity: 1.0
@@ -479,9 +479,11 @@ Pane {
                             }
                         }
 
-                        CheckBox {
+                        CheckBoxEx {
                             id: stepBurn
                             text: "4. 烧录字幕"
+                            implicitWidth: 90
+                            textColor: pal.checkBox_textColor
                             checked: controller ? controller.enableBurnSubtitle : true
                             enabled: stepAudio.checked && stepTranscribe.checked
                             opacity: 1.0
@@ -522,7 +524,7 @@ Pane {
 
                     ComboBoxEx {
                         enabled: stepTranslate.checked
-                        Layout.preferredWidth: 120
+                        Layout.preferredWidth: 110
                         model: ["自动检测", "英文", "中文", "日文", "韩文", "俄语"]
                         currentIndex: {
                             if (!controller)
@@ -573,9 +575,11 @@ Pane {
                         }
                     }
 
-                    CheckBox {
+                    CheckBoxEx {
                         id: musicCheck
+                        implicitWidth: 110
                         text: "背景音乐(翻译+烧录)"
+                        textColor: pal.checkBox_textColor
                         checked: controller ? controller.translateMusic : false
                         font.pixelSize: 11
                         Layout.fillWidth: true
@@ -605,8 +609,10 @@ Pane {
                         Layout.preferredWidth: 80
                     }
 
-                    RadioButton {
+                    RadioButtonEx {
+                        implicitWidth: 80
                         text: "同目录"
+                        textColor: pal.radioButton_textColor
                         checked: controller ? controller.outputMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller)
@@ -614,8 +620,10 @@ Pane {
                         }
                     }
 
-                    RadioButton {
+                    RadioButtonEx {
+                        implicitWidth: 80
                         text: "指定目录"
+                        textColor: pal.radioButton_textColor
                         checked: controller ? controller.outputMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller)
@@ -667,7 +675,7 @@ Pane {
         Rectangle {
             id: statusBar
             Layout.fillWidth: true
-            Layout.preferredHeight: 36
+            Layout.preferredHeight: 50
             radius: 6
             color: controller && controller.statusMessage ? pal.VideoSubtitlePage_statusBar_color_active : pal.VideoSubtitlePage_statusBar_color_idle
             visible: true
@@ -676,8 +684,6 @@ Pane {
                 anchors.fill: parent
                 anchors.leftMargin: 12
                 anchors.rightMargin: 12
-                anchors.topMargin: 4
-                anchors.bottomMargin: 4
                 spacing: 2
                 
                 RowLayout {
@@ -765,16 +771,6 @@ Pane {
             border.color: pal.VideoSubtitlePage_logCard_borderColor
             border.width: 1
             clip: true
-
-            Rectangle {
-                id: logCardShadow
-                anchors.fill: parent
-                anchors.margins: -2
-                radius: 12
-                color: pal.VideoSubtitlePage_logCardShadow_color
-                opacity: 0.04
-                z: -1
-            }
 
             ColumnLayout {
                 anchors.fill: parent

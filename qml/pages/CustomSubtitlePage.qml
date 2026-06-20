@@ -180,17 +180,6 @@ Pane {
             border.color: pal.CustomSubtitlePage_settingsPanel_borderColor
             border.width: 1
 
-            // 面板阴影
-            Rectangle {
-                id: settingsShadow
-                anchors.fill: parent
-                anchors.margins: -2
-                radius: 12
-                color: pal.CustomSubtitlePage_settingsShadow_color
-                opacity: 0.04
-                z: -1
-            }
-
             // 路径配置
             ColumnLayout {
                 id: settingsColumn
@@ -249,10 +238,11 @@ Pane {
                         font.pixelSize: 11
                     }
 
-                    CheckBox {
+                    CheckBoxEx {
                         id: recursiveCheck
-                        Layout.preferredWidth: 110
+                        implicitWidth: 110
                         text: "递归子文件夹"
+                        textColor: pal.checkBox_textColor
                         checked: controller ? controller.recursive : false
                         font.pixelSize: 11
                         onCheckedChanged: {
@@ -351,7 +341,7 @@ Pane {
         Rectangle {
             id: statusBar
             Layout.fillWidth: true
-            Layout.preferredHeight: 36
+            Layout.preferredHeight: 50
             radius: 6
             color: (controller && controller.statusMessage) ? pal.CustomSubtitlePage_statusBar_color_active : pal.CustomSubtitlePage_statusBar_color_idle
 
@@ -359,14 +349,12 @@ Pane {
                 anchors.fill: parent
                 anchors.leftMargin: 12
                 anchors.rightMargin: 12
-                anchors.topMargin: 4
-                anchors.bottomMargin: 4
                 spacing: 2
 
                 // Row 1: real-time log + current file
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 8
+                    spacing: 6
 
                     Label {
                         id: statusMsgLabel
@@ -1110,11 +1098,12 @@ Pane {
                                 spacing: 5
 
                                 // 空闲状态：执行按钮
-                                CheckBox {
+                                CheckBoxEx {
+                                    Layout.fillWidth: true
                                     text: "GPU加速"
+                                    textColor: pal.checkBox_textColor
                                     checked: controller ? controller.gpuAccel : false
                                     font.pixelSize: 11
-                                    Layout.fillWidth: true
                                     visible: !controller || !controller.isProcessing
                                     onCheckedChanged: {
                                         if (controller)
@@ -1252,11 +1241,12 @@ Pane {
                                 Layout.fillWidth: true
                                 spacing: 6
 
-                                CheckBox {
+                                CheckBoxEx {
+                                    Layout.fillWidth: true
                                     text: "备份原文件"
+                                    textColor: pal.checkBox_textColor
                                     checked: controller ? controller.backupOriginal : false
                                     font.pixelSize: 11
-                                    Layout.fillWidth: true
                                     visible: !controller || !controller.isProcessing
                                     onCheckedChanged: {
                                         if (controller)

@@ -44,6 +44,8 @@ set(BYTOOLS_QML_FILES
     qml/components/IconButton.qml
     qml/components/TextFieldEx.qml
     qml/components/ComboBoxEx.qml
+    qml/components/CheckBoxEx.qml
+    qml/components/RadioButtonEx.qml
     qml/pages/HomePage.qml
     qml/pages/NameConverterPage.qml
     qml/pages/BatchRenamePage.qml

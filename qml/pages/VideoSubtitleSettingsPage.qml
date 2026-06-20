@@ -131,16 +131,6 @@ Pane {
             border.color: pal.VideoSubtitleSettingsPage_settingsCard_borderColor
             border.width: 1
 
-            Rectangle {
-                id: settingsCardShadow
-                anchors.fill: parent
-                anchors.margins: -2
-                radius: 12
-                color: pal.VideoSubtitleSettingsPage_settingsCardShadow_color
-                opacity: 0.04
-                z: -1
-            }
-
             ScrollView {
                 id: contentScrollView
                 anchors.fill: parent
@@ -864,7 +854,6 @@ Pane {
                         }
 
                         Rectangle {
-                            id: sizeDivider
                             width: 1
                             height: 24
                             color: pal.VideoSubtitleSettingsPage_sizeDivider_color
@@ -904,7 +893,7 @@ Pane {
                         }
 
                         ComboBoxEx {
-                            Layout.preferredWidth: 120
+                            Layout.preferredWidth: 100
                             model: ["白色", "蓝色", "红色"]
                             currentIndex: settings ? settings.subtitleStyle : 0
                             onActivated: {
@@ -926,13 +915,18 @@ Pane {
                             }
                         }
 
+                        Rectangle {
+                            width: 1
+                            height: 24
+                            color: pal.VideoSubtitleSettingsPage_sizeDivider_color
+                        }
+
                         Label {
                             id: fontColorLabel
                             text: "字体颜色"
                             color: pal.VideoSubtitleSettingsPage_fontColorLabel_color
                             font.pixelSize: 13
                             font.bold: true
-                            Layout.preferredWidth: 80
                         }
 
                         Rectangle {
@@ -959,7 +953,6 @@ Pane {
                         }
 
                         Rectangle {
-                            id: styleDivider
                             width: 1
                             height: 24
                             color: pal.VideoSubtitleSettingsPage_styleDivider_color
@@ -1039,8 +1032,10 @@ Pane {
                             Layout.preferredWidth: 80
                         }
 
-                        CheckBox {
+                        CheckBoxEx {
+                            implicitWidth: 250
                             text: "启用硬件加速（NVENC / QSV / AMF）"
+                            textColor: pal.checkBox_textColor
                             checked: settings ? settings.useGpuAccel : false
                             enabled: settings ? (settings.ffmpegPath.length > 0 && (settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0)) : false
                             onCheckedChanged: {
@@ -1085,8 +1080,10 @@ Pane {
                             bottomPadding: 4
                         }
 
-                        CheckBox {
+                        CheckBoxEx {
+                            implicitWidth: 150
                             text: "保留 WAV 音频文件"
+                            textColor: pal.checkBox_textColor
                             checked: settings ? settings.keepWav : true
                             onCheckedChanged: {
                                 if (settings)
@@ -1094,8 +1091,10 @@ Pane {
                             }
                         }
 
-                        CheckBox {
+                        CheckBoxEx {
+                            implicitWidth: 150
                             text: "保留原始 SRT 字幕"
+                            textColor: pal.checkBox_textColor
                             checked: settings ? settings.keepOriginalSrt : true
                             onCheckedChanged: {
                                 if (settings)
@@ -1103,8 +1102,10 @@ Pane {
                             }
                         }
 
-                        CheckBox {
+                        CheckBoxEx {
+                            implicitWidth: 150
                             text: "保留翻译后 SRT"
+                            textColor: pal.checkBox_textColor
                             checked: settings ? settings.keepTranslatedSrt : true
                             onCheckedChanged: {
                                 if (settings)

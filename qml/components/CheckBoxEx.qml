@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 
-RadioButton {
+CheckBox {
     id: root
     property color textColor: "#000000"
 
@@ -9,7 +9,7 @@ RadioButton {
     implicitHeight: 26
 
     contentItem: Text {
-        id: radioText
+        id: checkText
         text: root.text
         color: root.textColor
         font: root.font

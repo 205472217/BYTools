@@ -147,39 +147,21 @@ Pane {
                 Layout.alignment: Qt.AlignVCenter
             }
 
-            RadioButton {
+            RadioButtonEx {
                 id: showAllRadio
+                implicitWidth: 80
                 text: "全部插件"
+                textColor: pal.radioButton_textColor
                 checked: true
                 onCheckedChanged: { if (checked) root.showAll = true; }
-
-                contentItem: Text {
-                    text: parent.text
-                    color: pal.radioButton_textColor
-                    font: parent.font
-                    verticalAlignment: Text.AlignVCenter
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.indicator ? parent.indicator.right : parent.left
-                    anchors.leftMargin: 8
-                    anchors.right: parent.right
-                }
             }
 
-            RadioButton {
+            RadioButtonEx {
                 id: categoryRadio
+                implicitWidth: 80
                 text: "分类显示"
+                textColor: pal.radioButton_textColor
                 onCheckedChanged: { if (checked) root.showAll = false; }
-
-                contentItem: Text {
-                    text: parent.text
-                    color: pal.radioButton_textColor
-                    font: parent.font
-                    verticalAlignment: Text.AlignVCenter
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.indicator ? parent.indicator.right : parent.left
-                    anchors.leftMargin: 8
-                    anchors.right: parent.right
-                }
             }
         }
 

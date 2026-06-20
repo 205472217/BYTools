@@ -180,16 +180,6 @@ Pane {
             border.color: pal.ImageConverterPage_settingsCard_borderColor
             border.width: 1
 
-            Rectangle {
-                id: settingsShadow
-                anchors.fill: parent
-                anchors.margins: -2
-                radius: 12
-                color: pal.ImageConverterPage_settingsShadow_color
-                opacity: 0.04
-                z: -1
-            }
-
             ColumnLayout {
                 id: settingsColumn
                 anchors.fill: parent
@@ -216,10 +206,11 @@ Pane {
                         placeholderText: "点击选择文件"
                     }
 
-                    CheckBox {
+                    CheckBoxEx {
                         id: recursiveCheck
-                        Layout.preferredWidth: 110
+                        implicitWidth: 110
                         text: "递归子文件夹"
+                        textColor: pal.checkBox_textColor
                         checked: controller ? controller.recursive : false
                         onCheckedChanged: {
                             if (controller) {
@@ -420,9 +411,11 @@ Pane {
                         Layout.preferredWidth: 80
                     }
 
-                    RadioButton {
+                    RadioButtonEx {
                         id: replaceRadio
+                        implicitWidth: 120
                         text: "替换原文件"
+                        textColor: pal.radioButton_textColor
                         checked: controller ? controller.outputMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller) {
@@ -431,9 +424,11 @@ Pane {
                         }
                     }
 
-                    RadioButton {
+                    RadioButtonEx {
                         id: newDirRadio
+                        implicitWidth: 120
                         text: "输出到新目录"
+                        textColor: pal.radioButton_textColor
                         checked: controller ? controller.outputMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller) {
@@ -516,16 +511,6 @@ Pane {
             border.color: pal.ImageConverterPage_resultCard_borderColor
             border.width: 1
             clip: true
-
-            Rectangle {
-                id: resultShadow
-                anchors.fill: parent
-                anchors.margins: -2
-                radius: 12
-                color: pal.ImageConverterPage_resultShadow_color
-                opacity: 0.04
-                z: -1
-            }
 
             ColumnLayout {
                 anchors.fill: parent

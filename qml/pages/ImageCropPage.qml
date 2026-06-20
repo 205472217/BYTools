@@ -373,10 +373,11 @@ Pane {
                     clip: true
                 }
 
-                CheckBox {
+                CheckBoxEx {
                     id: recursiveCheck
-                    Layout.preferredWidth: 110
+                    implicitWidth: 110
                     text: "递归子文件夹"
+                    textColor: pal.checkBox_textColor
                     checked: controller ? controller.recursive : false
                     onCheckedChanged: {
                         if (controller && controller.rootPath.length > 0 && checked !== controller.recursive) {
@@ -990,16 +991,6 @@ Pane {
                 border.color: pal.ImageCropPage_rightPanel_borderColor
                 border.width: 1
 
-                Rectangle {
-                    id: rightPanelShadow
-                    anchors.fill: parent
-                    anchors.margins: -2
-                    radius: 12
-                    color: pal.ImageCropPage_rightPanelShadow_color
-                    opacity: 0.04
-                    z: -1
-                }
-
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: 18
@@ -1188,9 +1179,11 @@ Pane {
                                     RowLayout {
                                         spacing: 8
 
-                                        RadioButton {
+                                        RadioButtonEx {
                                             id: customRatioRadio
+                                            implicitWidth: 60
                                             text: "自定义"
+                                            textColor: pal.radioButton_textColor
                                             checked: controller ? !controller.usePresetRatio : false
                                             font.pixelSize: 12
                                             onCheckedChanged: {
@@ -1397,8 +1390,10 @@ Pane {
                                 RowLayout {
                                     spacing: 12
 
-                                    RadioButton {
+                                    RadioButtonEx {
+                                        implicitWidth: 120
                                         text: "覆盖源文件"
+                                        textColor: pal.radioButton_textColor
                                         checked: controller ? controller.outputMode === 0 : true
                                         font.pixelSize: 12
                                         onCheckedChanged: {
@@ -1407,9 +1402,11 @@ Pane {
                                         }
                                     }
 
-                                    RadioButton {
+                                    RadioButtonEx {
                                         id: newDirRadio
+                                        implicitWidth: 120
                                         text: "输出到新目录"
+                                        textColor: pal.radioButton_textColor
                                         checked: controller ? controller.outputMode === 1 : false
                                         font.pixelSize: 12
                                         onCheckedChanged: {
