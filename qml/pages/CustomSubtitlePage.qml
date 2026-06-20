@@ -1134,7 +1134,7 @@ Pane {
 
                                     Label {
                                         id: step3CompleteLabel
-                                        text: "完成"
+                                        text: "再完成"
                                         color: pal.CustomSubtitlePage_step3CompleteLabel_color
                                         font.pixelSize: 11
                                         Layout.alignment: Qt.AlignVCenter
