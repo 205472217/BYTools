@@ -8,20 +8,20 @@ ComboBox {
     property color disabledBgColor: "#f8fafc"
     property color textColor: "#1e293b"
     property color disabledTextColor: "#94a3b8"
-    property color borderColor: "#e2e8f0"
+    property color borderColor: "#BDBDBD"
     property color hoverBorderColor: "#cbd5e1"
     property color focusBorderColor: "#3b82f6"
     property color focusRingColor: "#3b82f6"
     property color arrowColor: "#64748b"
     property color disabledArrowColor: "#cbd5e1"
     property color popupBgColor: "#ffffff"
-    property color popupBorderColor: "#e2e8f0"
+    property color popupBorderColor: "#BDBDBD"
     property color popupShadowColor: "#1e293b"
     property color delegateTextColor: "#334155"
     property color delegateHighlightTextColor: "#1e40af"
     property color delegateHighlightBgColor: "#eff6ff"
 
-    implicitHeight: 36
+    implicitHeight: 26
     font.pixelSize: 13
 
     background: Rectangle {

@@ -12,7 +12,7 @@ Item {
     property color hoverColor: "#eef4ff"
     property color pressColor: "#dce7fa"
     property color borderColor: "#d8dee9"
-    property color defaultBorderColor: "#e2e8f0"
+    property color defaultBorderColor: "#BDBDBD"
     property color disabledColor: "#f1f5f9"
     property color disabledBorderColor: "#e2e8f0"
     property color disabledTextColor: "#94a3b8"
@@ -20,7 +20,7 @@ Item {
     property bool enabled: true
 
     implicitWidth: text.length > 0 ? 76 : 38
-    implicitHeight: 38
+    implicitHeight: 26
 
     signal clicked()
 

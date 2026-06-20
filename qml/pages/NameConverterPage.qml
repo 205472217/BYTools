@@ -113,7 +113,7 @@ Pane {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 28
-        spacing: 18
+        spacing: 14
 
         RowLayout {
             Layout.fillWidth: true
@@ -121,6 +121,7 @@ Pane {
 
             IconButton {
                 iconSource: "qrc:/icons/arrow-left.svg"
+                implicitHeight: 38
                 tooltip: "返回"
                 onClicked: {
                     if (controller && controller.isProcessing) {
@@ -155,7 +156,8 @@ Pane {
         Rectangle {
             id: sourcePanel
             Layout.fillWidth: true
-            Layout.preferredHeight: 174
+            Layout.fillHeight: false
+            implicitHeight: settingsColumn.implicitHeight + 36
             radius: 10
             color: pal.NameConverter_sourcePanel_color
             border.color: pal.NameConverter_sourcePanel_borderColor
@@ -173,6 +175,7 @@ Pane {
             }
 
             ColumnLayout {
+                id: settingsColumn
                 anchors.fill: parent
                 anchors.margins: 18
                 spacing: 12
@@ -197,6 +200,18 @@ Pane {
                         placeholderText: "尚未选择"
                     }
 
+                    CheckBox {
+                        id: recursiveCheck
+                        Layout.preferredWidth: 110
+                        text: "递归子文件夹"
+                        checked: controller ? controller.recursive : false
+                        onCheckedChanged: {
+                            if (controller) {
+                                controller.recursive = checked
+                            }
+                        }
+                    }
+
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择源文件夹"
@@ -210,15 +225,16 @@ Pane {
 
                     Label {
                         id: processTypeLabel
+                        Layout.preferredWidth: 80
                         text: "处理类型"
                         color: pal.NameConverter_processTypeLabel_color
                         font.pixelSize: 13
                         font.bold: true
-                        Layout.preferredWidth: 80
                     }
 
                     ComboBoxEx {
-                        Layout.fillWidth: true
+                        id: processTypeCombo
+                        Layout.preferredWidth: 140
                         model: ["仅文件", "仅文件夹", "文件和文件夹"]
                         currentIndex: controller ? controller.targetType : 2
                         onActivated: {
@@ -227,59 +243,32 @@ Pane {
                             }
                         }
                     }
-                }
-
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        id: advancedLabel
-                        text: "高级选项"
-                        color: pal.NameConverter_advancedLabel_color
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    CheckBox {
-                        text: "递归处理子文件夹"
-                        checked: controller ? controller.recursive : false
-                        onCheckedChanged: {
-                            if (controller) {
-                                controller.recursive = checked
-                            }
-                        }
-                    }
 
                     Item { Layout.fillWidth: true }
 
-                    RowLayout {
-                        spacing: 8
-
-                        IconButton {
-                            iconSource: "qrc:/icons/trash.svg"
-                            tooltip: "清空记录"
-                            visible: controller ? controller.hasRecords : false
-                            onClicked: {
-                                if (controller) {
-                                    controller.clearRecords()
-                                }
+                    IconButton {
+                        iconSource: "qrc:/icons/trash.svg"
+                        tooltip: "清空记录"
+                        visible: controller ? controller.hasRecords : false
+                        onClicked: {
+                            if (controller) {
+                                controller.clearRecords()
                             }
                         }
+                    }
 
-                        IconButton {
-                            id: executeBtn
-                            text: "执行"
-                            iconSource: "qrc:/icons/play.svg"
-                            tooltip: "执行转换"
-                            normalColor: pal.NameConverter_executeBtn_normalColor
-                            hoverColor: pal.NameConverter_executeBtn_hoverColor
-                            borderColor: pal.NameConverter_executeBtn_borderColor
-                            onClicked: {
-                                if (controller) {
-                                    controller.executeRename()
-                                }
+                    IconButton {
+                        id: executeBtn
+                        implicitWidth: 150
+                        text: "开始处理"
+                        iconSource: "qrc:/icons/play.svg"
+                        tooltip: "开始文本繁简转换"
+                        normalColor: pal.NameConverter_executeBtn_normalColor
+                        hoverColor: pal.NameConverter_executeBtn_hoverColor
+                        borderColor: pal.NameConverter_executeBtn_borderColor
+                        onClicked: {
+                            if (controller) {
+                                controller.executeRename()
                             }
                         }
                     }

@@ -11,13 +11,13 @@ TextField {
     property color phColor: "#b0bec5"
     property color selColor: "#3b82f6"
     property color selTextColor: "#ffffff"
-    property color borderColor: "#e2e8f0"
-    property color disabledBorderColor: "#f1f5f9"
+    property color borderColor: "#BDBDBD"
+    property color disabledBorderColor: "#e2e8f0"
     property color focusBorderColor: "#3b82f6"
     property color focusRingColor: "#3b82f6"
     property color cursorColor: "#3b82f6"
 
-    implicitHeight: 36
+    implicitHeight: 26
 
     color: enabled ? root.textColor : root.disabledTextColor
     selectionColor: root.selColor

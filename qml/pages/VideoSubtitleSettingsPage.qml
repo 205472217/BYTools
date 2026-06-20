@@ -86,7 +86,7 @@ Pane {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 28
-        spacing: 18
+        spacing: 14
 
         // Header
         RowLayout {
@@ -95,6 +95,7 @@ Pane {
 
             IconButton {
                 iconSource: "qrc:/icons/arrow-left.svg"
+                implicitHeight: 38
                 tooltip: "返回"
                 onClicked: root.backRequested()
             }
@@ -1003,6 +1004,8 @@ Pane {
                         height: 56
                         radius: 6
                         color: pal.VideoSubtitleSettingsPage_previewBg_color
+                        border.width: 1
+                        border.color: pal.VideoSubtitleSettingsPage_settingsCard_borderColor
 
                         Label {
                             anchors.centerIn: parent
@@ -1153,7 +1156,6 @@ Pane {
             IconButton {
                 id: saveBtn
                 implicitWidth: 120
-                implicitHeight: 40
                 text: "保存设置"
                 normalColor: pal.VideoSubtitleSettingsPage_saveBtn_normalColor
                 hoverColor: pal.VideoSubtitleSettingsPage_saveBtn_hoverColor

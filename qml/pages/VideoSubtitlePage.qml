@@ -236,7 +236,7 @@ Pane {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 28
-        spacing: 18
+        spacing: 14
 
         // Header
         RowLayout {
@@ -245,6 +245,7 @@ Pane {
 
             IconButton {
                 iconSource: "qrc:/icons/arrow-left.svg"
+                implicitHeight: 38
                 tooltip: "返回"
                 onClicked: {
                     if (controller && controller.isProcessing) {
@@ -281,6 +282,7 @@ Pane {
             
             IconButton {
                 iconSource: "qrc:/icons/settings.svg"
+                implicitHeight: 38
                 tooltip: "设置"
                 onClicked: root.openSettings()
             }
@@ -321,7 +323,7 @@ Pane {
 
                     Label {
                         id: inputModeLabel
-                        text: "输入模式"
+                        text: "选择模式"
                         color: pal.VideoSubtitlePage_inputModeLabel_color
                         font.pixelSize: 13
                         font.bold: true
@@ -351,6 +353,8 @@ Pane {
                     }
 
                     CheckBox {
+                        id: recursiveCheck
+                        Layout.preferredWidth: 110
                         text: "递归子文件夹"
                         checked: controller ? controller.recursive : false
                         visible: controller ? controller.inputMode === 1 : false
@@ -372,7 +376,7 @@ Pane {
 
                     Label {
                         id: inputPathLabel
-                        text: "输入路径"
+                        text: "选择路径"
                         color: pal.VideoSubtitlePage_inputPathLabel_color
                         font.pixelSize: 13
                         font.bold: true
@@ -396,6 +400,10 @@ Pane {
                                 inputFolderDialog.open();
                             }
                         }
+                    }
+
+                    Item {
+                        Layout.preferredWidth: startBtn.width
                     }
                 }
 
@@ -632,8 +640,7 @@ Pane {
 
                     IconButton {
                         id: startBtn
-                        implicitWidth: 130
-                        implicitHeight: 40
+                        implicitWidth: 150
                         text: controller && controller.isProcessing ? "中止处理" : "开始处理"
                         iconSource: controller && controller.isProcessing ? "" : "qrc:/icons/play.svg"
                         tooltip: controller && controller.isProcessing ? "中止处理" : "开始处理"
@@ -660,10 +667,10 @@ Pane {
         Rectangle {
             id: statusBar
             Layout.fillWidth: true
-            Layout.preferredHeight: controller && controller.isProcessing ? 34 : 26
+            Layout.preferredHeight: 36
             radius: 6
-            color: controller && controller.statusMessage ? pal.VideoSubtitlePage_statusBar_color_active : "transparent"
-            visible: controller ? (controller.isProcessing || controller.statusMessage.length > 0) : false
+            color: controller && controller.statusMessage ? pal.VideoSubtitlePage_statusBar_color_active : pal.VideoSubtitlePage_statusBar_color_idle
+            visible: true
 
             ColumnLayout {
                 anchors.fill: parent
@@ -672,14 +679,47 @@ Pane {
                 anchors.topMargin: 4
                 anchors.bottomMargin: 4
                 spacing: 2
-
-                Label {
-                    id: statusMessage
+                
+                RowLayout {
                     Layout.fillWidth: true
-                    text: controller ? controller.statusMessage : ""
-                    color: pal.VideoSubtitlePage_statusMessage_color
-                    font.pixelSize: 11
-                    elide: Text.ElideRight
+                    spacing: 6
+
+                    Label {
+                        id: statusMessage
+                        Layout.fillWidth: true
+                        text: controller && controller.statusMessage.length > 0
+                            ? controller.statusMessage.replace(/[\r\n]+/g, " ")
+                            : "就绪"
+                        color: controller && controller.statusMessage.length > 0
+                            ? pal.VideoSubtitlePage_statusMessage_color_log
+                            : pal.VideoSubtitlePage_statusMessage_color_idle
+                        font.pixelSize: 11
+                        elide: Text.ElideRight
+                    }
+
+                    Item { Layout.fillWidth: true}
+
+                    Label {
+                        id: totalTimeLabel
+                        text: elapsedTimer.totalElapsedString
+                        visible: controller && controller.isProcessing
+                        color: pal.VideoSubtitlePage_logHeaderTitle_color_active
+                        font.pixelSize: 11
+                        font.bold: true
+                    }
+
+                    IconButton {
+                        id: clearLogButton
+                        iconSource: "qrc:/icons/trash.svg"
+                        tooltip: "清空日志"
+                        visible: !controller.isProcessing && logModel.count > 0
+                        onClicked: {
+                            logModel.clear();
+                            elapsedTimer.finalElapsedString = "";
+                            if (controller)
+                                controller.clearRecords();
+                        }
+                    }
                 }
 
                 RowLayout {
@@ -739,51 +779,6 @@ Pane {
             ColumnLayout {
                 anchors.fill: parent
                 spacing: 0
-
-                // Header row
-                Rectangle {
-                    id: logHeaderBg
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 40
-                    color: pal.VideoSubtitlePage_logHeaderBg_color
-                    radius: 0
-
-                    Rectangle {
-                        id: logHeaderDivider
-                        anchors.bottom: parent.bottom
-                        width: parent.width
-                        height: 1
-                        color: pal.VideoSubtitlePage_logHeaderDivider_color
-                    }
-
-                    Label {
-                        id: logHeaderTitle
-                        anchors.left: parent.left
-                        anchors.leftMargin: 18
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: controller && controller.isProcessing
-                              ? "任务执行中（已耗时 " + elapsedTimer.totalElapsedString + "）"
-                              : (elapsedTimer.finalElapsedString.length > 0 && logModel.count > 0
-                                 ? "任务耗时（" + elapsedTimer.finalElapsedString + "）"
-                                 : "")
-                        color: controller && controller.isProcessing ? pal.VideoSubtitlePage_logHeaderTitle_color_active : pal.VideoSubtitlePage_logHeaderTitle_color_normal
-                        font.pixelSize: 12
-                        font.bold: true
-                    }
-
-                    IconButton {
-                        anchors.right: parent.right
-                        iconSource: "qrc:/icons/trash.svg"
-                        tooltip: "清空日志"
-                        visible: logModel.count > 0 || elapsedTimer.finalElapsedString.length > 0
-                        onClicked: {
-                            logModel.clear();
-                            elapsedTimer.finalElapsedString = "";
-                            if (controller)
-                                controller.clearRecords();
-                        }
-                    }
-                }
 
                 // Log entries
                 ListView {

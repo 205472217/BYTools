@@ -298,7 +298,7 @@ Pane {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 28
-        spacing: 18
+        spacing: 14
 
         // Header
         RowLayout {
@@ -307,6 +307,7 @@ Pane {
 
             IconButton {
                 iconSource: "qrc:/icons/arrow-left.svg"
+                implicitHeight: 38
                 tooltip: "返回"
                 onClicked: {
                     if (controller && controller.isProcessing) {
@@ -342,7 +343,7 @@ Pane {
         Rectangle {
             id: folderRow
             Layout.fillWidth: true
-            Layout.preferredHeight: 52
+            implicitHeight: 52
             radius: 10
             color: pal.ImageCropPage_folderRow_color
             border.color: pal.ImageCropPage_folderRow_borderColor
@@ -357,7 +358,7 @@ Pane {
 
                 Label {
                     id: folderLbl
-                    text: "选择文件夹"
+                    text: "源文件夹"
                     color: pal.ImageCropPage_folderLbl_color
                     font.pixelSize: 13
                     font.bold: true
@@ -372,21 +373,9 @@ Pane {
                     clip: true
                 }
 
-                IconButton {
-                    iconSource: "qrc:/icons/folder.svg"
-                    tooltip: "选择源文件夹"
-                    onClicked: sourceFolderDialog.open()
-                }
-
-                Rectangle {
-                    id: folderSep
-                    width: 1
-                    height: 24
-                    color: pal.ImageCropPage_folderSep_color
-                }
-
                 CheckBox {
                     id: recursiveCheck
+                    Layout.preferredWidth: 110
                     text: "递归子文件夹"
                     checked: controller ? controller.recursive : false
                     onCheckedChanged: {
@@ -401,6 +390,12 @@ Pane {
                         }
                     }
                 }
+
+                IconButton {
+                    iconSource: "qrc:/icons/folder.svg"
+                    tooltip: "选择源文件夹"
+                    onClicked: sourceFolderDialog.open()
+                }  
             }
         }
 
@@ -1208,7 +1203,6 @@ Pane {
 
                                         TextFieldEx {
                                             Layout.preferredWidth: 50
-                                            Layout.preferredHeight: 26
                                             placeholderText: "宽"
                                             enabled: controller ? !controller.usePresetRatio : false
                                             text: controller ? controller.customRatioW.toString() : "1"
@@ -1245,7 +1239,6 @@ Pane {
 
                                         TextFieldEx {
                                             Layout.preferredWidth: 50
-                                            Layout.preferredHeight: 26
                                             placeholderText: "高"
                                             enabled: controller ? !controller.usePresetRatio : false
                                             text: controller ? controller.customRatioH.toString() : "1"
@@ -1485,10 +1478,11 @@ Pane {
 
                         IconButton {
                             id: execBtn
+                            implicitWidth: 150
                             Layout.fillWidth: true
-                            text: "执行裁剪"
+                            text: "开始处理"
                             iconSource: "qrc:/icons/play.svg"
-                            tooltip: "执行裁剪操作"
+                            tooltip: "开始裁剪图片"
                             normalColor: pal.ImageCropPage_execBtn_normalColor
                             hoverColor: pal.ImageCropPage_execBtn_hoverColor
                             borderColor: pal.ImageCropPage_execBtn_borderColor

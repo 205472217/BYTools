@@ -137,6 +137,7 @@ Pane {
 
             IconButton {
                 iconSource: "qrc:/icons/arrow-left.svg"
+                implicitHeight: 38
                 tooltip: "返回"
                 onClicked: root.backRequested()
             }
@@ -155,7 +156,7 @@ Pane {
 
                 Label {
                     id: descLabel
-                    text: "从网站下载字幕，匹配视频并合成，替换原视频 — 一站式完成"
+                    text: "下载字幕->匹配视频字幕->合成视频+字幕->替换原视频，一站式完成"
                     color: pal.CustomSubtitlePage_descLabel_color
                     font.pixelSize: 14
                 }
@@ -204,7 +205,7 @@ Pane {
 
                     Label {
                         id: subtitleDownloadLabel
-                        text: "字幕下载"
+                        text: "字幕下载路径"
                         color: pal.CustomSubtitlePage_subtitleDownloadLabel_color
                         font.pixelSize: 12
                         font.bold: true
@@ -213,7 +214,6 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        implicitHeight: 26
                         text: controller ? controller.subtitleDownloadPath : ""
                         readOnly: true
                         placeholderText: "字幕文件下载后保存的目录路径"
@@ -221,8 +221,6 @@ Pane {
                     }
 
                     IconButton {
-                        implicitWidth: 26
-                        implicitHeight: 26
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择下载路径"
                         onClicked: subtitleDownloadFolderDialog.open()
@@ -236,7 +234,7 @@ Pane {
 
                     Label {
                         id: videoSourceLabel
-                        text: "原视频"
+                        text: "原视频路径"
                         color: pal.CustomSubtitlePage_videoSourceLabel_color
                         font.pixelSize: 12
                         font.bold: true
@@ -245,7 +243,6 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        implicitHeight: 26
                         text: controller ? controller.videoSourcePath : ""
                         readOnly: true
                         placeholderText: "存放原视频的目录路径"
@@ -253,10 +250,11 @@ Pane {
                     }
 
                     CheckBox {
-                        text: "递归"
+                        id: recursiveCheck
+                        Layout.preferredWidth: 110
+                        text: "递归子文件夹"
                         checked: controller ? controller.recursive : false
                         font.pixelSize: 11
-                        Layout.preferredWidth: 60
                         onCheckedChanged: {
                             if (controller)
                                 controller.recursive = checked;
@@ -264,8 +262,6 @@ Pane {
                     }
 
                     IconButton {
-                        implicitWidth: 26
-                        implicitHeight: 26
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择视频目录"
                         onClicked: videoSourceFolderDialog.open()
@@ -279,7 +275,7 @@ Pane {
 
                     Label {
                         id: mergedOutputLabel
-                        text: "合成输出"
+                        text: "合成输出路径"
                         color: pal.CustomSubtitlePage_mergedOutputLabel_color
                         font.pixelSize: 12
                         font.bold: true
@@ -288,18 +284,15 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        implicitHeight: 26
                         text: controller ? controller.mergedOutputPath : ""
                         readOnly: true
-                        placeholderText: "合成后视频文件的输出目录路径"
+                        placeholderText: "合成视频+字幕后，文件的输出路径"
                         font.pixelSize: 11
                     }
 
                     IconButton {
-                        implicitWidth: 26
-                        implicitHeight: 26
                         iconSource: "qrc:/icons/folder.svg"
-                        tooltip: "选择输出目录"
+                        tooltip: "选择合成输出路径"
                         onClicked: mergedOutputFolderDialog.open()
                     }
                 }
@@ -311,7 +304,7 @@ Pane {
 
                     Label {
                         id: ffmpegLabel
-                        text: "FFmpeg"
+                        text: "FFmpeg路径"
                         color: pal.CustomSubtitlePage_ffmpegLabel_color
                         font.pixelSize: 12
                         font.bold: true
@@ -320,7 +313,6 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        implicitHeight: 26
                         text: controller ? controller.ffmpegPath : ""
                         readOnly: true
                         placeholderText: "选择 ffmpeg.exe 路径（用于合成视频+字幕）"
@@ -345,8 +337,6 @@ Pane {
                     }
 
                     IconButton {
-                        implicitWidth: 26
-                        implicitHeight: 26
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择 ffmpeg.exe"
                         onClicked: ffmpegFileDialog.open()
@@ -363,7 +353,7 @@ Pane {
             Layout.fillWidth: true
             Layout.preferredHeight: 36
             radius: 6
-            color: (controller && controller.statusMessage) ? pal.CustomSubtitlePage_statusBar_color_active : "transparent"
+            color: (controller && controller.statusMessage) ? pal.CustomSubtitlePage_statusBar_color_active : pal.CustomSubtitlePage_statusBar_color_idle
 
             ColumnLayout {
                 anchors.fill: parent
@@ -381,13 +371,15 @@ Pane {
                     Label {
                         id: statusMsgLabel
                         Layout.fillWidth: true
-                        text: controller && controller.isProcessing
-                              ? (_lastLogLine.length > 0 ? _lastLogLine : "")
-                        : (_lastLogLine.length > 0
-                                 ? _lastLogLine
-                                 : (controller && controller.statusMessage.length > 0
-                                    ? controller.statusMessage : ""))
-                        color: pal.CustomSubtitlePage_statusMsgLabel_color
+                        text: {
+                            var msg = _lastLogLine.length > 0 ? _lastLogLine
+                                   : (controller && controller.statusMessage.length > 0 ? controller.statusMessage : "");
+                            return msg.length > 0 ? msg.replace(/[\r\n]+/g, " ") : "就绪";
+                        }
+                        color: {
+                            var hasMsg = _lastLogLine.length > 0 || (controller && controller.statusMessage.length > 0);
+                            return hasMsg ? pal.CustomSubtitlePage_statusMsgLabel_color_log : pal.CustomSubtitlePage_statusMsgLabel_color_idle;
+                        }
                         font.pixelSize: 11
                         font.family: "Consolas, 'Courier New', monospace"
                         elide: Text.ElideRight
@@ -553,10 +545,9 @@ Pane {
                             spacing: 8
 
                             // 网站下拉框
-                            ComboBox {
+                            ComboBoxEx {
                                 id: siteCombo
                                 Layout.preferredWidth: 140
-                                implicitHeight: 32
                                 font.pixelSize: 12
                                 currentIndex: 0
 
@@ -576,10 +567,9 @@ Pane {
                             }
 
                             // 语言筛选下拉框
-                            ComboBox {
+                            ComboBoxEx {
                                 id: langFilterCombo
                                 Layout.preferredWidth: 120
-                                implicitHeight: 32
                                 font.pixelSize: 12
                                 currentIndex: 0
 
@@ -639,7 +629,6 @@ Pane {
                             IconButton {
                                 id: searchBtn
                                 Layout.preferredWidth: 90
-                                implicitHeight: 32
                                 text: browserCtrl && browserCtrl.searching ? "停止搜索" : "搜索"
                                 tooltip: browserCtrl && browserCtrl.searching ? "停止搜索" : "搜索字幕"
                                 normalColor: browserCtrl && browserCtrl.searching ? pal.CustomSubtitlePage_searchBtn_normalColor_active : pal.CustomSubtitlePage_searchBtn_normalColor_normal
@@ -672,7 +661,6 @@ Pane {
                             IconButton {
                                 id: clearSearchRecords
                                 Layout.preferredWidth: 30
-                                Layout.preferredHeight: 30
                                 iconSource: "qrc:/icons/trash.svg"
                                 tooltip: "清空记录"
                                 visible: !searchBusyIndicator.visible
@@ -912,7 +900,6 @@ Pane {
                                     IconButton {
                                         id: downloadBtn
                                         Layout.preferredWidth: 64
-                                        implicitHeight: 28
                                         text: "下载"
                                         tooltip: "下载此字幕文件"
                                         normalColor: pal.CustomSubtitlePage_downloadBtn_normalColor
@@ -1012,10 +999,9 @@ Pane {
                                 Layout.fillWidth: true
                                 spacing: 5
 
-                                ComboBox {
+                                ComboBoxEx {
                                     id: preprocessCombo
                                     Layout.fillWidth: true
-                                    implicitHeight: 28
                                     font.pixelSize: 11
                                     model: _preprocessModel
                                     visible: !controller || !controller.isProcessing
@@ -1056,7 +1042,6 @@ Pane {
                                 IconButton {
                                     id: step2ExecBtn
                                     Layout.preferredWidth: 64
-                                    implicitHeight: 28
                                     text: "执行"
                                     tooltip: "匹配并移动字幕"
                                     normalColor: controller && controller.isProcessing ? pal.CustomSubtitlePage_step2ExecBtn_normalColor_disabled : pal.CustomSubtitlePage_step2ExecBtn_normalColor_normal
@@ -1140,7 +1125,6 @@ Pane {
                                 IconButton {
                                     id: step3ExecBtn
                                     Layout.preferredWidth: 72
-                                    implicitHeight: 28
                                     text: "执行"
                                     tooltip: "合成视频+字幕"
                                     normalColor: pal.CustomSubtitlePage_step3ExecBtn_normalColor
@@ -1167,12 +1151,11 @@ Pane {
                                         Layout.alignment: Qt.AlignVCenter
                                     }
 
-                                    ComboBox {
+                                    ComboBoxEx {
                                         id: stopAfterCombo
                                         model: ["全部", 1, 2, 3, 5, 10, 20, 30, 40, 50]
                                         currentIndex: 0
-                                        implicitWidth: 60
-                                        implicitHeight: 26
+                                        implicitWidth: 70
                                         font.pixelSize: 11
                                         Layout.alignment: Qt.AlignVCenter
                                         onActivated: {
@@ -1202,7 +1185,6 @@ Pane {
                                 IconButton {
                                     id: step3StopBtn
                                     Layout.preferredWidth: 72
-                                    implicitHeight: 28
                                     text: "立即停止"
                                     tooltip: "强制终止当前合成任务"
                                     normalColor: pal.CustomSubtitlePage_step3StopBtn_normalColor
@@ -1285,7 +1267,6 @@ Pane {
                                 IconButton {
                                     id: step4ExecBtn
                                     Layout.preferredWidth: 72
-                                    implicitHeight: 28
                                     text: "执行"
                                     tooltip: "替换原视频"
                                     normalColor: pal.CustomSubtitlePage_step4ExecBtn_normalColor

@@ -211,7 +211,7 @@ Pane {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 28
-        spacing: 18
+        spacing: 14
 
         // ═══════════════ Header ═══════════════
         RowLayout {
@@ -220,6 +220,7 @@ Pane {
 
             IconButton {
                 iconSource: "qrc:/icons/arrow-left.svg"
+                implicitHeight: 38
                 tooltip: "返回"
                 onClicked: root.backRequested()
             }
@@ -269,7 +270,7 @@ Pane {
                 id: topPanelContent
                 anchors.fill: parent
                 anchors.margins: 18
-                spacing: 10
+                spacing: 12
 
                 // Row 1: Mode Switch
                 RowLayout {
@@ -308,16 +309,15 @@ Pane {
 
                     Label {
                         id: videoFileLabel
-                        text: "视频文件"
+                        text: "视频文件路径"
                         color: pal.SubtitleAdjustPage_videoFileLabel_color
                         font.pixelSize: 12
                         font.bold: true
-                        Layout.preferredWidth: 60
+                        Layout.preferredWidth: 72
                     }
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        implicitHeight: 26
                         font.pixelSize: 11
                         text: isSingleMode
                             ? (controller ? controller.videoPath : "")
@@ -327,49 +327,41 @@ Pane {
                         clip: true
                     }
 
+                    CheckBox {
+                        id: recursiveCheck1
+                        Layout.preferredWidth: 110
+                        text: "递归子文件夹"
+                        font.pixelSize: 12
+                        visible: !isSingleMode
+                        checked: controller ? controller.recursiveVideo : false
+                        onCheckedChanged: {
+                            if (controller) controller.recursiveVideo = checked
+                        }
+                    }
+
                     IconButton {
-                        implicitWidth: 26
-                        implicitHeight: 26
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: isSingleMode ? "选择视频文件" : "选择视频文件夹"
                         onClicked: isSingleMode ? videoFileDialog.open() : videoFolderDialog.open()
                     }
-
-                    Item {
-                        Layout.preferredWidth: 70
-                        CheckBox {
-                            anchors.centerIn: parent
-                            text: "递归"
-                            font.pixelSize: 12
-                            visible: !isSingleMode
-                            checked: controller ? controller.recursiveVideo : false
-                            onCheckedChanged: {
-                                if (controller) controller.recursiveVideo = checked
-                            }
-                        }
-                    }
-
-                    // 与第3行右侧按钮同宽
-                    Item { Layout.preferredWidth: 100 }
                 }
 
-                // Row 3: Subtitle Path + 开始映射
+                // Row 3: Subtitle Path
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
 
                     Label {
                         id: subtitleFileLabel
-                        text: "字幕文件"
+                        text: "字幕文件路径"
                         color: pal.SubtitleAdjustPage_subtitleFileLabel_color
                         font.pixelSize: 12
                         font.bold: true
-                        Layout.preferredWidth: 60
+                        Layout.preferredWidth: 72
                     }
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        implicitHeight: 26
                         font.pixelSize: 11
                         text: isSingleMode
                             ? (controller ? controller.subtitlePath : "")
@@ -379,34 +371,37 @@ Pane {
                         clip: true
                     }
 
-                    IconButton {
-                        implicitWidth: 26
-                        implicitHeight: 26
-                        iconSource: "qrc:/icons/folder.svg"
-                        tooltip: isSingleMode ? "选择字幕文件" : "选择字幕文件夹"
-                        onClicked: isSingleMode ? subtitleFileDialog.open() : subtitleFolderDialog.open()
-                    }
-
-                    Item {
-                        Layout.preferredWidth: 70
-                        CheckBox {
-                            anchors.centerIn: parent
-                            text: "递归"
-                            font.pixelSize: 12
-                            visible: !isSingleMode
-                            checked: controller ? controller.recursiveSubtitle : false
-                            onCheckedChanged: {
-                                if (controller) controller.recursiveSubtitle = checked
-                            }
+                    CheckBox {
+                        id: recursiveCheck2
+                        Layout.preferredWidth: 110
+                        text: "递归子文件夹"
+                        font.pixelSize: 12
+                        visible: !isSingleMode
+                        checked: controller ? controller.recursiveSubtitle : false
+                        onCheckedChanged: {
+                            if (controller) controller.recursiveSubtitle = checked
                         }
                     }
 
                     IconButton {
+                        iconSource: "qrc:/icons/folder.svg"
+                        tooltip: isSingleMode ? "选择字幕文件" : "选择字幕文件夹"
+                        onClicked: isSingleMode ? subtitleFileDialog.open() : subtitleFolderDialog.open()
+                    }
+                }
+
+                // Row 4: 开始映射
+                RowLayout {
+                    spacing: 12
+                    Layout.fillWidth: true
+
+                    Item { Layout.fillWidth: true }
+
+                    IconButton {
                         id: startMapBtn
-                        text: "开始映射"
-                        tooltip: isSingleMode ? "将单个文件加入映射列表" : "扫描文件夹并自动匹配视频与字幕文件"
-                        implicitWidth: 100
-                        implicitHeight: 30
+                        implicitWidth: 150
+                        text: "开始处理"
+                        tooltip: isSingleMode ? "将单个文件加入列表" : "扫描文件夹并自动匹配视频与字幕文件"
                         normalColor: pal.SubtitleAdjustPage_startMapBtn_normalColor
                         hoverColor: pal.SubtitleAdjustPage_startMapBtn_hoverColor
                         borderColor: pal.SubtitleAdjustPage_startMapBtn_borderColor
@@ -429,7 +424,7 @@ Pane {
         // ═══════════════ Log Row + Shortcut Hints ═══════════════
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 28
+            Layout.preferredHeight: 36
             radius: 6
             color: pal.SubtitleAdjustPage_logBar_color
 
@@ -752,7 +747,6 @@ Pane {
                             IconButton {
                                 id: seekBackBtn
                                 implicitWidth: 26
-                                implicitHeight: 26
                                 iconSource: "qrc:/icons/video-seekdec.svg"
                                 tooltip: "快退 5 秒"
                                 normalColor: pal.SubtitleAdjustPage_seekBackBtn_normalColor
@@ -767,7 +761,6 @@ Pane {
                             IconButton {
                                 id: playBtn
                                 implicitWidth: 32
-                                implicitHeight: 32
                                 property var p: videoDisplayLoader.item
                                 property bool isPlaying: p && p.playbackState === 1
                                 iconSource: isPlaying ? "qrc:/icons/video-pause.svg" : "qrc:/icons/video-play.svg"
@@ -789,7 +782,6 @@ Pane {
                             IconButton {
                                 id: seekFwdBtn
                                 implicitWidth: 26
-                                implicitHeight: 26
                                 iconSource: "qrc:/icons/video-seekadd.svg"
                                 tooltip: "快进 5 秒"
                                 normalColor: pal.SubtitleAdjustPage_seekFwdBtn_normalColor
@@ -891,7 +883,7 @@ Pane {
                             font.pixelSize: 11
                         }
 
-                        ComboBox {
+                        ComboBoxEx {
                             id: maxOffsetCombo
                             model: [
                                 { text: "30 秒", value: 30000 },
@@ -904,7 +896,6 @@ Pane {
                             currentIndex: 1
                             font.pixelSize: 11
                             implicitWidth: 120
-                            implicitHeight: 26
                             onActivated: {
                                 root.maxOffsetMs = currentValue
                             }

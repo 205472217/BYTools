@@ -20,7 +20,7 @@ QString ImageConverterPlugin::name() const
 
 QString ImageConverterPlugin::description() const
 {
-    return QStringLiteral("批量转换图片格式，支持递归处理");
+    return QStringLiteral("批量转换图片格式，支持递归子文件夹");
 }
 
 QString ImageConverterPlugin::iconName() const

@@ -130,7 +130,7 @@ Pane {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 28
-        spacing: 18
+        spacing: 14
 
         RowLayout {
             Layout.fillWidth: true
@@ -138,6 +138,7 @@ Pane {
 
             IconButton {
                 iconSource: "qrc:/icons/arrow-left.svg"
+                implicitHeight: 38
                 tooltip: "返回"
                 onClicked: {
                     if (controller && controller.isProcessing) {
@@ -162,7 +163,7 @@ Pane {
 
                 Label {
                     id: pageSubtitle
-                    text: "批量转换图片格式，支持递归处理子文件夹"
+                    text: "批量转换图片格式，支持递归子文件夹"
                     color: pal.ImageConverterPage_pageSubtitle_color
                     font.pixelSize: 14
                 }
@@ -172,7 +173,8 @@ Pane {
         Rectangle {
             id: settingsCard
             Layout.fillWidth: true
-            Layout.preferredHeight: 310
+            Layout.fillHeight: false
+            implicitHeight: settingsColumn.implicitHeight + 36
             radius: 10
             color: pal.ImageConverterPage_settingsCard_color
             border.color: pal.ImageConverterPage_settingsCard_borderColor
@@ -189,6 +191,7 @@ Pane {
             }
 
             ColumnLayout {
+                id: settingsColumn
                 anchors.fill: parent
                 anchors.margins: 18
                 spacing: 12
@@ -213,6 +216,18 @@ Pane {
                         placeholderText: "点击选择文件"
                     }
 
+                    CheckBox {
+                        id: recursiveCheck
+                        Layout.preferredWidth: 110
+                        text: "递归子文件夹"
+                        checked: controller ? controller.recursive : false
+                        onCheckedChanged: {
+                            if (controller) {
+                                controller.recursive = checked
+                            }
+                        }
+                    }
+
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择源文件夹"
@@ -234,7 +249,7 @@ Pane {
                     }
 
                     ComboBoxEx {
-                        Layout.preferredWidth: 140
+                        Layout.preferredWidth: 150
                         model: ["PNG", "JPG", "BMP", "WebP", "TIFF"]
                         currentIndex: controller ? controller.targetFormat : 1
                         onActivated: {
@@ -303,11 +318,11 @@ Pane {
                     }
 
                     RowLayout {
-                        spacing: 8
+                        spacing: 12
 
                         Rectangle {
                             id: whiteSwatch
-                            width: 28
+                            width: 42
                             height: 28
                             radius: 6
                             color: pal.ImageConverterPage_whiteSwatch_color
@@ -323,7 +338,7 @@ Pane {
 
                         Rectangle {
                             id: blackSwatch
-                            width: 28
+                            width: 42
                             height: 28
                             radius: 6
                             color: pal.ImageConverterPage_blackSwatch_color
@@ -339,35 +354,33 @@ Pane {
 
                         Rectangle {
                             id: customSwatch
-                            width: 28
+                            width: 42
                             height: 28
                             radius: 6
-                            color: controller ? controller.bgColor : pal.ImageConverterPage_customSwatch_color
-                            border.width: 2
-                            border.color: pal.ImageConverterPage_customSwatch_borderColor
-                            visible: controller
-                                     && controller.bgColor !== "#ffffff"
-                                     && controller.bgColor !== "#000000"
+                            color: pal.ImageConverterPage_customSwatch_color
+                            border.width: (controller && controller.bgColor !== "#ffffff" && controller.bgColor !== "#000000") ? 2 : 1
+                            border.color: (controller && controller.bgColor !== "#ffffff" && controller.bgColor !== "#000000") ? pal.ImageConverterPage_customSwatch_borderColor_active : pal.ImageConverterPage_customSwatch_borderColor_normal
+
+                            Label {
+                                anchors.centerIn: parent
+                                text: "自定义"
+                                color: pal.ImageConverterPage_customSwatch_textColor_normal
+                                font.pixelSize: 9
+                            }
 
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: colorDialog.open()
+                                onClicked: { colorDialog.open() }
                             }
                         }
+                    }
 
-                        Label {
-                            id: customLbl
-                            text: "自定义"
-                            color: pal.ImageConverterPage_customLbl_color
-                            font.pixelSize: 12
-
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: colorDialog.open()
-                            }
-                        }
+                    Rectangle {
+                        id: bgColorSeparator
+                        width: 1
+                        height: 24
+                        color: pal.ImageConverterPage_fmtSeparator_color
                     }
 
                     Label {
@@ -375,6 +388,20 @@ Pane {
                         text: "PNG转JPG时填充透明区域"
                         color: pal.ImageConverterPage_fillTipLbl_color
                         font.pixelSize: 12
+                    }
+
+                    Rectangle {
+                        id: customSwatchPreview
+                        width: 100
+                        height: 28
+                        radius: 6
+                        color: controller ? controller.bgColor : pal.ImageConverterPage_customSwatch_color
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: colorDialog.open()
+                        }
                     }
 
                     Item { Layout.fillWidth: true }
@@ -434,58 +461,21 @@ Pane {
                         enabled: newDirRadio.checked
                         onClicked: outputFolderDialog.open()
                     }
-                }
-
-                // 行5：高级选项
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        text: "高级选项"
-                        color: "#475569"
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    CheckBox {
-                        text: "递归处理子文件夹"
-                        checked: controller ? controller.recursive : false
-                        onCheckedChanged: {
-                            if (controller) {
-                                controller.recursive = checked
-                            }
-                        }
-                    }
 
                     Item { Layout.fillWidth: true }
 
-                    RowLayout {
-                        spacing: 8
-
-                        IconButton {
-                            iconSource: "qrc:/icons/trash.svg"
-                            tooltip: "清空记录"
-                            visible: controller ? controller.hasRecords : false
-                            onClicked: {
-                                if (controller) {
-                                    controller.clearRecords()
-                                }
-                            }
-                        }
-
-                        IconButton {
-                            text: "执行"
-                            iconSource: "qrc:/icons/play.svg"
-                            tooltip: "开始转换"
-                            normalColor: pal.ImageConverterPage_execBtn_normalColor
-                            hoverColor: pal.ImageConverterPage_execBtn_hoverColor
-                            borderColor: pal.ImageConverterPage_execBtn_borderColor
-                            onClicked: {
-                                if (controller) {
-                                    controller.executeConvert()
-                                }
+                    IconButton {
+                        id: execBtn
+                        implicitWidth: 150
+                        text: "开始处理"
+                        iconSource: "qrc:/icons/play.svg"
+                        tooltip: "开始转换图片格式"
+                        normalColor: pal.ImageConverterPage_execBtn_normalColor
+                        hoverColor: pal.ImageConverterPage_execBtn_hoverColor
+                        borderColor: pal.ImageConverterPage_execBtn_borderColor
+                        onClicked: {
+                            if (controller) {
+                                controller.executeConvert()
                             }
                         }
                     }

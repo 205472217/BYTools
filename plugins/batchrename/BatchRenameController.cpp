@@ -174,7 +174,7 @@ QVariantList BatchRenameController::records() const
 void BatchRenameController::executeRename()
 {
     if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
-        setStatusMessage(QStringLiteral("请选择有效的根文件夹"));
+        setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
         return;
     }
 

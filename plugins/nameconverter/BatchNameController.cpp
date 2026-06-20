@@ -94,7 +94,7 @@ void BatchNameController::buildPreview()
     if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
         m_previewModel->clear();
         emit hasRecordsChanged();
-        setStatusMessage(QStringLiteral("请选择有效的根文件夹"));
+        setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
         return;
     }
 
@@ -117,7 +117,7 @@ void BatchNameController::executeRename()
     if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
         m_previewModel->clear();
         emit hasRecordsChanged();
-        setStatusMessage(QStringLiteral("请选择有效的根文件夹"));
+        setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
         m_logger->warn("繁转简失败: 源文件夹无效");
         return;
     }

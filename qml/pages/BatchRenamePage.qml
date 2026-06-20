@@ -39,7 +39,7 @@ Pane {
 
     FolderDialog {
         id: folderDialog
-        title: "选择根文件夹"
+        title: "选择源文件夹"
         onAccepted: {
             if (controller) {
                 controller.rootPath = selectedFolder
@@ -112,7 +112,7 @@ Pane {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 28
-        spacing: 18
+        spacing: 14
 
         RowLayout {
             Layout.fillWidth: true
@@ -120,6 +120,7 @@ Pane {
 
             IconButton {
                 iconSource: "qrc:/icons/arrow-left.svg"
+                implicitHeight: 38
                 tooltip: "返回"
                 onClicked: {
                     if (controller && controller.isProcessing) {
@@ -154,7 +155,8 @@ Pane {
         Rectangle {
             id: settingsPanel
             Layout.fillWidth: true
-            Layout.preferredHeight: 280
+            Layout.fillHeight: false
+            implicitHeight: settingsColumn.implicitHeight + 36
             radius: 10
             color: pal.BatchRenamePage_settingsPanel_color
             border.color: pal.BatchRenamePage_settingsPanel_borderColor
@@ -172,6 +174,7 @@ Pane {
             }
 
             ColumnLayout {
+                id: settingsColumn
                 anchors.fill: parent
                 anchors.margins: 18
                 spacing: 12
@@ -182,7 +185,7 @@ Pane {
 
                     Label {
                         id: rootFolderLabel
-                        text: "根文件夹"
+                        text: "源文件夹"
                         color: pal.BatchRenamePage_rootFolderLabel_color
                         font.pixelSize: 13
                         font.bold: true
@@ -196,9 +199,21 @@ Pane {
                         placeholderText: "点击选择文件夹"
                     }
 
+                    CheckBox {
+                        id: recursiveCheck
+                        Layout.preferredWidth: 110
+                        text: "递归子文件夹"
+                        checked: controller ? controller.recursive : false
+                        onCheckedChanged: {
+                            if (controller) {
+                                controller.recursive = checked
+                            }
+                        }
+                    }
+
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
-                        tooltip: "选择根文件夹"
+                        tooltip: "选择源文件夹"
                         onClicked: folderDialog.open()
                     }
                 }
@@ -386,59 +401,32 @@ Pane {
                             }
                         }
                     }
-                }
-
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-
-                    Label {
-                        id: advancedLabel
-                        text: "高级选项"
-                        color: pal.BatchRenamePage_advancedLabel_color
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    CheckBox {
-                        text: "递归处理子文件夹"
-                        checked: controller ? controller.recursive : false
-                        onCheckedChanged: {
-                            if (controller) {
-                                controller.recursive = checked
-                            }
-                        }
-                    }
 
                     Item { Layout.fillWidth: true }
 
-                    RowLayout {
-                        spacing: 8
-
-                        IconButton {
-                            iconSource: "qrc:/icons/trash.svg"
-                            tooltip: "清空记录"
-                            visible: controller ? controller.hasRecords : false
-                            onClicked: {
-                                if (controller) {
-                                    controller.clearRecords()
-                                }
+                    IconButton {
+                        iconSource: "qrc:/icons/trash.svg"
+                        tooltip: "清空记录"
+                        visible: controller ? controller.hasRecords : false
+                        onClicked: {
+                            if (controller) {
+                                controller.clearRecords()
                             }
                         }
+                    }
 
-                        IconButton {
-                            id: executeBtn
-                            text: "执行"
-                            iconSource: "qrc:/icons/play.svg"
-                            tooltip: "开始执行"
-                            normalColor: pal.BatchRenamePage_executeBtn_normalColor
-                            hoverColor: pal.BatchRenamePage_executeBtn_hoverColor
-                            borderColor: pal.BatchRenamePage_executeBtn_borderColor
-                            onClicked: {
-                                if (controller) {
-                                    controller.executeRename()
-                                }
+                    IconButton {
+                        id: executeBtn
+                        implicitWidth: 150
+                        text: "开始处理"
+                        iconSource: "qrc:/icons/play.svg"
+                        tooltip: "开始批量重命名"
+                        normalColor: pal.BatchRenamePage_executeBtn_normalColor
+                        hoverColor: pal.BatchRenamePage_executeBtn_hoverColor
+                        borderColor: pal.BatchRenamePage_executeBtn_borderColor
+                        onClicked: {
+                            if (controller) {
+                                controller.executeRename()
                             }
                         }
                     }
