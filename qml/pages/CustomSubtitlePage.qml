@@ -212,6 +212,7 @@ Pane {
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择下载路径"
+                        enabled: !controller || controller.currentStep === controller.stepNone
                         onClicked: subtitleDownloadFolderDialog.open()
                     }
                 }
@@ -245,6 +246,7 @@ Pane {
                         textColor: pal.checkBox_textColor
                         checked: controller ? controller.recursive : false
                         font.pixelSize: 11
+                        enabled: !controller || controller.currentStep === controller.stepNone
                         onCheckedChanged: {
                             if (controller)
                                 controller.recursive = checked;
@@ -254,6 +256,7 @@ Pane {
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择视频目录"
+                        enabled: !controller || controller.currentStep === controller.stepNone
                         onClicked: videoSourceFolderDialog.open()
                     }
                 }
@@ -283,6 +286,7 @@ Pane {
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择合成输出路径"
+                        enabled: !controller || controller.currentStep === controller.stepNone
                         onClicked: mergedOutputFolderDialog.open()
                     }
                 }
@@ -329,6 +333,7 @@ Pane {
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择 ffmpeg.exe"
+                        enabled: !controller || controller.currentStep === controller.stepNone
                         onClicked: ffmpegFileDialog.open()
                     }
                 }
@@ -494,9 +499,9 @@ Pane {
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.leftMargin: 14
-                            anchors.rightMargin: 14
-                            spacing: 8
+                            anchors.leftMargin: 10
+                            anchors.rightMargin: 10
+                            spacing: 5
 
                             Label {
                                 id: step1Title
@@ -545,6 +550,7 @@ Pane {
                                 Layout.preferredWidth: 140
                                 font.pixelSize: 12
                                 currentIndex: 0
+                                enabled: !controller || controller.currentStep === controller.stepNone
 
                                 model: browserCtrl ? browserCtrl.availableSites : []
 
@@ -567,6 +573,7 @@ Pane {
                                 Layout.preferredWidth: 120
                                 font.pixelSize: 12
                                 currentIndex: 0
+                                enabled: !controller || controller.currentStep === controller.stepNone
 
                                 model: browserCtrl ? browserCtrl.languageFilterOptions : []
                                 textRole: "display"
@@ -613,6 +620,7 @@ Pane {
                                     color: pal.CustomSubtitlePage_keywordField_color
                                     placeholderText: "输入关键字搜索字幕..."
                                     selectByMouse: true
+                                    enabled: !controller || controller.currentStep === controller.stepNone
                                     onTextChanged: {
                                         if (browserCtrl) browserCtrl.keyword = text;
                                     }
@@ -630,6 +638,7 @@ Pane {
                                 hoverColor: browserCtrl && browserCtrl.searching ? pal.CustomSubtitlePage_searchBtn_hoverColor_active : pal.CustomSubtitlePage_searchBtn_hoverColor_normal
                                 borderColor: normalColor
                                 textColor: pal.CustomSubtitlePage_searchBtn_textColor
+                                enabled: !controller || (controller.currentStep === controller.stepNone || controller.currentStep === controller.stepSearch)
                                 onClicked: {
                                     if (browserCtrl && browserCtrl.searching) {
                                         browserCtrl.stopSearch();
@@ -659,7 +668,7 @@ Pane {
                                 iconSource: "qrc:/icons/trash.svg"
                                 tooltip: "清空记录"
                                 visible: !searchBusyIndicator.visible
-                                enabled: !searchBusyIndicator.visible && searchResultsModel.count > 0
+                                enabled: !searchBusyIndicator.visible && searchResultsModel.count > 0 && (!controller || controller.currentStep === controller.stepNone)
                                 onClicked: searchResultsModel.clear()
                             }
                         }
@@ -768,6 +777,7 @@ Pane {
                                 Button {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "检查安装"
+                                    enabled: !controller || controller.currentStep === controller.stepNone
                                     onClicked: browserCtrl.checkDependencies()
                                     background: Rectangle {
                                         id: installBtnBg
@@ -901,7 +911,7 @@ Pane {
                                         hoverColor: pal.CustomSubtitlePage_downloadBtn_hoverColor
                                         borderColor: pal.CustomSubtitlePage_downloadBtn_borderColor
                                         textColor: pal.CustomSubtitlePage_downloadBtn_textColor
-                                        enabled: browserCtrl && !browserCtrl.downloading
+                                        enabled: browserCtrl && !browserCtrl.downloading && (!controller || controller.currentStep === controller.stepNone)
                                         onClicked: {
                                             if (browserCtrl) browserCtrl.download(index);
                                         }
@@ -948,7 +958,7 @@ Pane {
                     Rectangle {
                         id: step2Panel
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 110
+                        Layout.preferredHeight: 100
                         radius: 8
                         color: pal.CustomSubtitlePage_step2Panel_color
                         border.color: pal.CustomSubtitlePage_step2Panel_borderColor
@@ -956,28 +966,37 @@ Pane {
 
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors.margins: 10
+                            anchors { topMargin: 2; leftMargin: 10; rightMargin: 10; bottomMargin: 10 }
                             spacing: 5
 
-                            RowLayout {
-                                spacing: 5
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 40
+                                color: "transparent"
 
-                                Label {
-                                    id: step2Title
-                                    text: "步骤2：匹配并移动字幕"
-                                    color: pal.CustomSubtitlePage_step2Title_color
-                                    font.pixelSize: 13
-                                    font.bold: true
-                                    Layout.fillWidth: true
-                                }
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 0
+                                    anchors.rightMargin: 0
+                                    spacing: 5
 
-                                BusyIndicator {
-                                    width: 30
-                                    height: 30
-                                    implicitWidth: 30
-                                    implicitHeight: 30
-                                    running: controller && controller.currentStep === controller.stepMatch
-                                    visible: running
+                                    Label {
+                                        id: step2Title
+                                        text: "步骤2：匹配并移动字幕"
+                                        color: pal.CustomSubtitlePage_step2Title_color
+                                        font.pixelSize: 14
+                                        font.bold: true
+                                        Layout.fillWidth: true
+                                    }
+
+                                    BusyIndicator {
+                                        width: 30
+                                        height: 30
+                                        implicitWidth: 30
+                                        implicitHeight: 30
+                                        running: controller && controller.currentStep === controller.stepMatch
+                                        visible: running
+                                    }
                                 }
                             }
 
@@ -992,6 +1011,7 @@ Pane {
 
                             RowLayout {
                                 Layout.fillWidth: true
+                                Layout.leftMargin: 0
                                 spacing: 5
 
                                 ComboBoxEx {
@@ -999,8 +1019,8 @@ Pane {
                                     Layout.fillWidth: true
                                     font.pixelSize: 11
                                     model: _preprocessModel
-                                    visible: !controller || !controller.isProcessing
-
+                                    enabled: !controller || controller.currentStep === controller.stepNone
+ 
                                     delegate: ItemDelegate {
                                         width: parent.width
                                         contentItem: RowLayout {
@@ -1035,45 +1055,24 @@ Pane {
                                 }
 
                                 IconButton {
-                                    id: step2ExecBtn
+                                    id: step2Btn
                                     Layout.preferredWidth: 64
-                                    text: "执行"
-                                    tooltip: "匹配并移动字幕"
-                                    normalColor: controller && controller.isProcessing ? pal.CustomSubtitlePage_step2ExecBtn_normalColor_disabled : pal.CustomSubtitlePage_step2ExecBtn_normalColor_normal
-                                    hoverColor: pal.CustomSubtitlePage_step2ExecBtn_hoverColor
-                                    borderColor: pal.CustomSubtitlePage_step2ExecBtn_borderColor
-                                    textColor: pal.CustomSubtitlePage_step2ExecBtn_textColor
-                                    visible: !controller || !controller.isProcessing
+                                    text: controller && controller.currentStep === controller.stepMatch ? "立即停止" : "执行"
+                                    tooltip: controller && controller.currentStep === controller.stepMatch ? "完成当前字幕的匹配、移动和预处理后停止" : "匹配并移动字幕"
+                                    normalColor: controller && controller.currentStep === controller.stepMatch ? pal.CustomSubtitlePage_step3StopBtn_normalColor : pal.CustomSubtitlePage_step2ExecBtn_normalColor_normal
+                                    hoverColor: controller && controller.currentStep === controller.stepMatch ? pal.CustomSubtitlePage_step3StopBtn_hoverColor : pal.CustomSubtitlePage_step2ExecBtn_hoverColor
+                                    borderColor: controller && controller.currentStep === controller.stepMatch ? pal.CustomSubtitlePage_step3StopBtn_borderColor : pal.CustomSubtitlePage_step2ExecBtn_borderColor
+                                    textColor: controller && controller.currentStep === controller.stepMatch ? pal.CustomSubtitlePage_step3StopBtn_textColor : pal.CustomSubtitlePage_step2ExecBtn_textColor
+                                    enabled: !controller || controller.currentStep === controller.stepNone || (controller.currentStep === controller.stepMatch && !controller.stopRequested)
                                     onClicked: {
-                                        if (controller)
+                                        if (!controller) return;
+                                        if (controller.currentStep === controller.stepMatch)
+                                            controller.cancel();
+                                        else
                                             controller.matchAndMoveSubtitles();
                                     }
                                 }
-
-                                Item {
-                                    id: setp2KeepSpace
-                                    Layout.fillWidth: true
-                                    visible: controller && controller.isProcessing && controller.currentStep === controller.stepMatch
-                                }
-
-                                IconButton {
-                                    id: step2StopBtn
-                                    Layout.preferredWidth: 64
-                                    text: "立即停止"
-                                    tooltip: "完成当前字幕的匹配、移动和预处理后停止"
-                                    normalColor: pal.CustomSubtitlePage_step3StopBtn_normalColor
-                                    hoverColor: pal.CustomSubtitlePage_step3StopBtn_hoverColor
-                                    borderColor: pal.CustomSubtitlePage_step3StopBtn_borderColor
-                                    textColor: pal.CustomSubtitlePage_step3StopBtn_textColor
-                                    enabled: controller && controller.isProcessing && controller.currentStep === controller.stepMatch && !controller.stopRequested
-                                    visible: enabled
-                                    onClicked: {
-                                        if (controller)
-                                            controller.cancel();
-                                    }
-                                }
-                             }
-
+                            }
                         }
                     }
 
@@ -1081,7 +1080,7 @@ Pane {
                     Rectangle {
                         id: step3Panel
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 110
+                        Layout.preferredHeight: 100
                         radius: 8
                         color: pal.CustomSubtitlePage_step3Panel_color
                         border.color: pal.CustomSubtitlePage_step3Panel_borderColor
@@ -1089,28 +1088,37 @@ Pane {
 
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors.margins: 10
+                            anchors { topMargin: 2; leftMargin: 10; rightMargin: 10; bottomMargin: 10 }
                             spacing: 5
 
-                            RowLayout {
-                                spacing: 5
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 40
+                                color: "transparent"
 
-                                Label {
-                                    id: step3Title
-                                    text: "步骤3：合成视频+字幕"
-                                    color: pal.CustomSubtitlePage_step3Title_color
-                                    font.pixelSize: 13
-                                    font.bold: true
-                                    Layout.fillWidth: true
-                                }
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 0
+                                    anchors.rightMargin: 0
+                                    spacing: 5
 
-                                BusyIndicator {
-                                    width: 30
-                                    height: 30
-                                    implicitWidth: 30
-                                    implicitHeight: 30
-                                    running: controller && controller.currentStep === controller.stepMerge
-                                    visible: running
+                                    Label {
+                                        id: step3Title
+                                        text: "步骤3：合成视频+字幕"
+                                        color: pal.CustomSubtitlePage_step3Title_color
+                                        font.pixelSize: 14
+                                        font.bold: true
+                                        Layout.fillWidth: true
+                                    }
+
+                                    BusyIndicator {
+                                        width: 30
+                                        height: 30
+                                        implicitWidth: 30
+                                        implicitHeight: 30
+                                        running: controller && controller.currentStep === controller.stepMerge
+                                        visible: running
+                                    }
                                 }
                             }
 
@@ -1125,6 +1133,7 @@ Pane {
 
                             RowLayout {
                                 Layout.fillWidth: true
+                                Layout.leftMargin: 0
                                 spacing: 5
 
                                 // 空闲状态：执行按钮
@@ -1134,33 +1143,19 @@ Pane {
                                     textColor: pal.checkBox_textColor
                                     checked: controller ? controller.gpuAccel : false
                                     font.pixelSize: 11
-                                    visible: !controller || !controller.isProcessing
+                                    enabled: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
                                         if (controller)
                                             controller.gpuAccel = checked;
                                     }
                                 }
 
-                                IconButton {
-                                    id: step3ExecBtn
-                                    Layout.preferredWidth: 72
-                                    text: "执行"
-                                    tooltip: "合成视频+字幕"
-                                    normalColor: pal.CustomSubtitlePage_step3ExecBtn_normalColor
-                                    hoverColor: pal.CustomSubtitlePage_step3ExecBtn_hoverColor
-                                    borderColor: pal.CustomSubtitlePage_step3ExecBtn_borderColor
-                                    textColor: pal.CustomSubtitlePage_step3ExecBtn_textColor
-                                    visible: !controller || !controller.isProcessing
-                                    onClicked: {
-                                        if (controller)
-                                            controller.mergeSubtitleToVideo();
-                                    }
-                                }
-
                                 // 预约停止
                                 RowLayout {
-                                    spacing: 4
-                                    visible: controller && controller.isProcessing && controller.currentStep === controller.stepMerge
+                                    Layout.fillWidth: true
+                                    Layout.leftMargin: 0
+                                    spacing: 6
+                                    visible: controller && controller.currentStep === controller.stepMerge
 
                                     Label {
                                         id: step3CompleteLabel
@@ -1201,21 +1196,22 @@ Pane {
                                     }
                                 }
 
-                                // 立即停止
                                 IconButton {
-                                    id: step3StopBtn
+                                    id: step3Btn
                                     Layout.preferredWidth: 72
-                                    text: "立即停止"
-                                    tooltip: "强制终止当前合成任务"
-                                    normalColor: pal.CustomSubtitlePage_step3StopBtn_normalColor
-                                    hoverColor: pal.CustomSubtitlePage_step3StopBtn_hoverColor
-                                    borderColor: pal.CustomSubtitlePage_step3StopBtn_borderColor
-                                    textColor: pal.CustomSubtitlePage_step3StopBtn_textColor
-                                    enabled: controller && controller.isProcessing && controller.currentStep === controller.stepMerge
-                                    visible: enabled
+                                    text: controller && controller.currentStep === controller.stepMerge ? "立即停止" : "执行"
+                                    tooltip: controller && controller.currentStep === controller.stepMerge ? "强制终止当前合成任务" : "合成视频+字幕"
+                                    normalColor: controller && controller.currentStep === controller.stepMerge ? pal.CustomSubtitlePage_step3StopBtn_normalColor : pal.CustomSubtitlePage_step3ExecBtn_normalColor
+                                    hoverColor: controller && controller.currentStep === controller.stepMerge ? pal.CustomSubtitlePage_step3StopBtn_hoverColor : pal.CustomSubtitlePage_step3ExecBtn_hoverColor
+                                    borderColor: controller && controller.currentStep === controller.stepMerge ? pal.CustomSubtitlePage_step3StopBtn_borderColor : pal.CustomSubtitlePage_step3ExecBtn_borderColor
+                                    textColor: controller && controller.currentStep === controller.stepMerge ? pal.CustomSubtitlePage_step3StopBtn_textColor : pal.CustomSubtitlePage_step3ExecBtn_textColor
+                                    enabled: !controller || controller.currentStep === controller.stepNone || controller.currentStep === controller.stepMerge
                                     onClicked: {
-                                        if (controller)
+                                        if (!controller) return;
+                                        if (controller.currentStep === controller.stepMerge)
                                             controller.cancel();
+                                        else
+                                            controller.mergeSubtitleToVideo();
                                     }
                                 }
                             }
@@ -1226,7 +1222,7 @@ Pane {
                     Rectangle {
                         id: step4Panel
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 110
+                        Layout.preferredHeight: 100
                         radius: 8
                         color: pal.CustomSubtitlePage_step4Panel_color
                         border.color: pal.CustomSubtitlePage_step4Panel_borderColor
@@ -1234,28 +1230,37 @@ Pane {
 
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors.margins: 10
+                            anchors { topMargin: 2; leftMargin: 10; rightMargin: 10; bottomMargin: 10 }
                             spacing: 5
 
-                            RowLayout {
-                                spacing: 5
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 40
+                                color: "transparent"
 
-                                Label {
-                                    id: step4Title
-                                    text: "步骤4：匹配+替换原视频"
-                                    color: pal.CustomSubtitlePage_step4Title_color
-                                    font.pixelSize: 13
-                                    font.bold: true
-                                    Layout.fillWidth: true
-                                }
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 0
+                                    anchors.rightMargin: 0
+                                    spacing: 5
 
-                                BusyIndicator {
-                                    width: 30
-                                    height: 30
-                                    implicitWidth: 30
-                                    implicitHeight: 30
-                                    running: controller && controller.currentStep === controller.stepReplace
-                                    visible: running
+                                    Label {
+                                        id: step4Title
+                                        text: "步骤4：匹配+替换原视频"
+                                        color: pal.CustomSubtitlePage_step4Title_color
+                                        font.pixelSize: 14
+                                        font.bold: true
+                                        Layout.fillWidth: true
+                                    }
+
+                                    BusyIndicator {
+                                        width: 30
+                                        height: 30
+                                        implicitWidth: 30
+                                        implicitHeight: 30
+                                        running: controller && controller.currentStep === controller.stepReplace
+                                        visible: running
+                                    }
                                 }
                             }
 
@@ -1270,7 +1275,8 @@ Pane {
 
                             RowLayout {
                                 Layout.fillWidth: true
-                                spacing: 6
+                                Layout.leftMargin: 0
+                                spacing: 5
 
                                 CheckBoxEx {
                                     Layout.fillWidth: true
@@ -1278,7 +1284,7 @@ Pane {
                                     textColor: pal.checkBox_textColor
                                     checked: controller ? controller.backupOriginal : false
                                     font.pixelSize: 11
-                                    visible: !controller || !controller.isProcessing
+                                    enabled: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
                                         if (controller)
                                             controller.backupOriginal = checked;
@@ -1286,41 +1292,21 @@ Pane {
                                 }
 
                                 IconButton {
-                                    id: step4ExecBtn
+                                    id: step4Btn
                                     Layout.preferredWidth: 72
-                                    text: "执行"
-                                    tooltip: "替换原视频"
-                                    normalColor: pal.CustomSubtitlePage_step4ExecBtn_normalColor
-                                    hoverColor: pal.CustomSubtitlePage_step4ExecBtn_hoverColor
-                                    borderColor: pal.CustomSubtitlePage_step4ExecBtn_borderColor
-                                    textColor: pal.CustomSubtitlePage_step4ExecBtn_textColor
-                                    visible: !controller || !controller.isProcessing
+                                    text: controller && controller.currentStep === controller.stepReplace ? "立即停止" : "执行"
+                                    tooltip: controller && controller.currentStep === controller.stepReplace ? "完成当前视频的备份、替换和清理字幕文件后停止" : "替换原视频"
+                                    normalColor: controller && controller.currentStep === controller.stepReplace ? pal.CustomSubtitlePage_step3StopBtn_normalColor : pal.CustomSubtitlePage_step4ExecBtn_normalColor
+                                    hoverColor: controller && controller.currentStep === controller.stepReplace ? pal.CustomSubtitlePage_step3StopBtn_hoverColor : pal.CustomSubtitlePage_step4ExecBtn_hoverColor
+                                    borderColor: controller && controller.currentStep === controller.stepReplace ? pal.CustomSubtitlePage_step3StopBtn_borderColor : pal.CustomSubtitlePage_step4ExecBtn_borderColor
+                                    textColor: controller && controller.currentStep === controller.stepReplace ? pal.CustomSubtitlePage_step3StopBtn_textColor : pal.CustomSubtitlePage_step4ExecBtn_textColor
+                                    enabled: !controller || controller.currentStep === controller.stepNone || (controller.currentStep === controller.stepReplace && !controller.stopRequested)
                                     onClicked: {
-                                        if (controller)
-                                            controller.replaceOriginalVideo();
-                                    }
-                                }
-
-                                Item {
-                                    id: setp4KeepSpace
-                                    Layout.fillWidth: true
-                                    visible: controller && controller.isProcessing && controller.currentStep === controller.stepReplace
-                                }
-
-                                IconButton {
-                                    id: step4StopBtn
-                                    Layout.preferredWidth: 72
-                                    text: "立即停止"
-                                    tooltip: "完成当前视频的备份、替换和清理字幕文件后停止"
-                                    normalColor: pal.CustomSubtitlePage_step3StopBtn_normalColor
-                                    hoverColor: pal.CustomSubtitlePage_step3StopBtn_hoverColor
-                                    borderColor: pal.CustomSubtitlePage_step3StopBtn_borderColor
-                                    textColor: pal.CustomSubtitlePage_step3StopBtn_textColor
-                                    enabled: controller && controller.isProcessing && controller.currentStep === controller.stepReplace && !controller.stopRequested
-                                    visible: enabled
-                                    onClicked: {
-                                        if (controller)
+                                        if (!controller) return;
+                                        if (controller.currentStep === controller.stepReplace)
                                             controller.cancel();
+                                        else
+                                            controller.replaceOriginalVideo();
                                     }
                                 }
                              }

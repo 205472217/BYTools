@@ -29,6 +29,13 @@ CustomSubtitleController::CustomSubtitleController(PluginLogger *logger, QObject
         // 同步下载路径到 SubBrowserController
         m_browserController->setDownloadPath(m_subtitleDownloadPath);
     });
+    connect(m_browserController, &SubBrowserController::searchingChanged,
+            this, [this]() {
+        if (m_browserController->searching())
+            setCurrentStep(StepSearch);
+        else if (m_currentStep == StepSearch)
+            setCurrentStep(StepNone);
+    });
 
     // Connect matcher signals
     connect(m_matcher, &SubtitleMatcher::logMessage,
@@ -224,7 +231,6 @@ void CustomSubtitleController::matchAndMoveSubtitles()
     }
 
     setCurrentStep(StepMatch);
-    setIsProcessing(true);
     setProgress(0.0);
     setProcessedCount(0);
     setTotalCount(0);
@@ -257,7 +263,6 @@ void CustomSubtitleController::mergeSubtitleToVideo()
     QDir().mkpath(m_mergedOutputPath);
 
     setCurrentStep(StepMerge);
-    setIsProcessing(true);
     setProgress(0.0);
     emit logMessage("========== 步骤3：合成视频+字幕 ==========");
     m_logger->info(QString("合成: %1 → %2 (GPU=%3)")
@@ -277,7 +282,6 @@ void CustomSubtitleController::replaceOriginalVideo()
     }
 
     setCurrentStep(StepReplace);
-    setIsProcessing(true);
     setProgress(0.0);
     setProcessedCount(0);
     setTotalCount(0);
@@ -320,7 +324,6 @@ void CustomSubtitleController::cancel()
         m_mergeService->cancel();
         m_replaceService->cancel();
 
-        setIsProcessing(false);
         setStatusMessage("已取消");
         setCurrentStep(StepNone);
         setProcessedCount(0);
@@ -370,7 +373,6 @@ void CustomSubtitleController::onMatchFinished(bool success, const QString &erro
         emit logMessage("✓ 步骤2：匹配并移动字幕完成");
         m_logger->info("步骤2完成 ✓");
     }
-    setIsProcessing(false);
     setCurrentStep(StepNone);
 }
 
@@ -385,7 +387,6 @@ void CustomSubtitleController::onMergeFinished(bool success, const QString &erro
         emit logMessage("✗ 步骤3失败: " + error);
         m_logger->error(QString("步骤3失败: %1").arg(error));
     }
-    setIsProcessing(false);
     setCurrentStep(StepNone);
 }
 
@@ -406,7 +407,6 @@ void CustomSubtitleController::onReplaceFinished(bool success, const QString &er
         emit logMessage("✗ 步骤4失败: " + error);
         m_logger->error(QString("步骤4失败: %1").arg(error));
     }
-    setIsProcessing(false);
     setCurrentStep(StepNone);
 }
 
@@ -425,6 +425,12 @@ void CustomSubtitleController::setCurrentStep(int step)
     if (m_currentStep != step) {
         m_currentStep = step;
         emit currentStepChanged();
+    }
+    // isProcessing derives from currentStep: StepNone → false, anything else → true
+    bool processing = (step != StepNone);
+    if (m_isProcessing != processing) {
+        m_isProcessing = processing;
+        emit isProcessingChanged();
     }
 }
 

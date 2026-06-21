@@ -47,12 +47,13 @@ class CustomSubtitleController : public QObject
 
     // === Step enum constants for QML ===
     Q_PROPERTY(int stepNone READ stepNone CONSTANT)
+    Q_PROPERTY(int stepSearch READ stepSearch CONSTANT)
     Q_PROPERTY(int stepMatch READ stepMatch CONSTANT)
     Q_PROPERTY(int stepMerge READ stepMerge CONSTANT)
     Q_PROPERTY(int stepReplace READ stepReplace CONSTANT)
 
 public:
-    enum Step { StepNone = 0, StepMatch, StepMerge, StepReplace };
+    enum Step { StepNone = 0, StepSearch, StepMatch, StepMerge, StepReplace };
     explicit CustomSubtitleController(PluginLogger *logger, QObject *parent = nullptr);
     ~CustomSubtitleController();
 
@@ -78,6 +79,7 @@ public:
 
     // Step enum read-only access for QML
     int stepNone() const { return StepNone; }
+    int stepSearch() const { return StepSearch; }
     int stepMatch() const { return StepMatch; }
     int stepMerge() const { return StepMerge; }
     int stepReplace() const { return StepReplace; }
