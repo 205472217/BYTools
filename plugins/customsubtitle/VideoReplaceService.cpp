@@ -125,9 +125,8 @@ void VideoReplaceService::doWork()
             // 在 mergedDir 中递归搜索同名文件
             QString mergedPath = findFileRecursive(m_mergedDir, fi.fileName());
             if (mergedPath.isEmpty()) {
-                m_logger->info(QString("  [无合成] %1 (%2 MB) — FFOutput 中未找到同名文件")
-                    .arg(fi.absoluteFilePath())
-                    .arg(fi.size() / 1024.0 / 1024.0, 0, 'f', 2));
+                // 不记录详细文件名，减少日志文件大小
+                //m_logger->info(QString("  [无合成] %1 (%2 MB) — FFOutput 中未找到同名文件") .arg(fi.absoluteFilePath()) .arg(fi.size() / 1024.0 / 1024.0, 0, 'f', 2));
                 continue;
             }
 
