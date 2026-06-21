@@ -11,6 +11,7 @@ Pane {
 
     property var controller: null
     property var pal: themeManager.palette
+    property QtObject settings: pluginManager.getPluginSettings("batch-rename")
 
     readonly property int tableLeftPadding: 18
     readonly property int tableRightPadding: 20
@@ -41,8 +42,8 @@ Pane {
         id: folderDialog
         title: "选择源文件夹"
         onAccepted: {
-            if (controller) {
-                controller.rootPath = selectedFolder
+            if (settings) {
+                settings.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
             }
         }
     }
@@ -183,7 +184,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? controller.rootPath : ""
+                        text: settings ? settings.rootPath : ""
                         readOnly: true
                         placeholderText: "点击选择文件夹"
                     }
@@ -193,10 +194,10 @@ Pane {
                         implicitWidth: 110
                         text: "递归子文件夹"
                         textColor: pal.checkBox_textColor
-                        checked: controller ? controller.recursive : false
+                        checked: settings ? settings.recursive : false
                         onCheckedChanged: {
-                            if (controller) {
-                                controller.recursive = checked
+                            if (settings) {
+                                settings.recursive = checked
                             }
                         }
                     }
@@ -229,10 +230,10 @@ Pane {
                             implicitWidth: 40
                             text: "所有"
                             textColor: pal.radioButton_textColor
-                            checked: controller ? controller.fileType === 0 : true
+                            checked: settings ? settings.fileType === 0 : true
                             onCheckedChanged: {
-                                if (checked && controller) {
-                                    controller.fileType = 0
+                                if (checked && settings) {
+                                    settings.fileType = 0
                                 }
                             }
                         }
@@ -241,10 +242,10 @@ Pane {
                             implicitWidth: 40
                             text: "视频"
                             textColor: pal.radioButton_textColor
-                            checked: controller ? controller.fileType === 1 : false
+                            checked: settings ? settings.fileType === 1 : false
                             onCheckedChanged: {
-                                if (checked && controller) {
-                                    controller.fileType = 1
+                                if (checked && settings) {
+                                    settings.fileType = 1
                                 }
                             }
                         }
@@ -253,10 +254,10 @@ Pane {
                             implicitWidth: 40
                             text: "音频"
                             textColor: pal.radioButton_textColor
-                            checked: controller ? controller.fileType === 2 : false
+                            checked: settings ? settings.fileType === 2 : false
                             onCheckedChanged: {
-                                if (checked && controller) {
-                                    controller.fileType = 2
+                                if (checked && settings) {
+                                    settings.fileType = 2
                                 }
                             }
                         }
@@ -265,10 +266,10 @@ Pane {
                             implicitWidth: 40
                             text: "文本"
                             textColor: pal.radioButton_textColor
-                            checked: controller ? controller.fileType === 3 : false
+                            checked: settings ? settings.fileType === 3 : false
                             onCheckedChanged: {
-                                if (checked && controller) {
-                                    controller.fileType = 3
+                                if (checked && settings) {
+                                    settings.fileType = 3
                                 }
                             }
                         }
@@ -277,10 +278,10 @@ Pane {
                             implicitWidth: 40
                             text: "图片"
                             textColor: pal.radioButton_textColor
-                            checked: controller ? controller.fileType === 4 : false
+                            checked: settings ? settings.fileType === 4 : false
                             onCheckedChanged: {
-                                if (checked && controller) {
-                                    controller.fileType = 4
+                                if (checked && settings) {
+                                    settings.fileType = 4
                                 }
                             }
                         }
@@ -290,32 +291,32 @@ Pane {
                             implicitWidth: 60
                             text: "自定义"
                             textColor: pal.radioButton_textColor
-                            checked: controller ? controller.fileType === 5 : false
+                            checked: settings ? settings.fileType === 5 : false
                             onCheckedChanged: {
-                                if (checked && controller) {
-                                    controller.fileType = 5
+                                if (checked && settings) {
+                                    settings.fileType = 5
                                 }
                             }
                         }
 
                         TextFieldEx {
                             Layout.preferredWidth: 80
-                            text: controller ? controller.customExtension : ""
+                            text: settings ? settings.customExtension : ""
                             placeholderText: ".txt"
-                            enabled: controller ? controller.fileType === 5 : false
+                            enabled: settings ? settings.fileType === 5 : false
                             onTextChanged: {
-                                if (controller) {
-                                    controller.customExtension = text
+                                if (settings) {
+                                    settings.customExtension = text
                                 }
                             }
                         }
 
                         Label {
                             id: fileTipsLabel
-                            text: controller ? controller.fileTips : ""
+                            text: ""
                             color: pal.BatchRenamePage_fileTipsLabel_color
                             font.pixelSize: 12
-                            visible: controller ? controller.fileType !== 5 : false
+                            visible: settings ? settings.fileType !== 5 : false
                         }
                     }
                 }
@@ -338,22 +339,22 @@ Pane {
                         implicitWidth: 80
                         text: "指定名称"
                         textColor: pal.radioButton_textColor
-                        checked: controller ? controller.renameMode === 0 : true
+                        checked: settings ? settings.renameMode === 0 : true
                         onCheckedChanged: {
-                            if (checked && controller) {
-                                controller.renameMode = 0
+                            if (checked && settings) {
+                                settings.renameMode = 0
                             }
                         }
                     }
 
                     TextFieldEx {
                         Layout.preferredWidth: 150
-                        text: controller ? controller.baseName : ""
+                        text: settings ? settings.baseName : ""
                         placeholderText: "输入文件名"
                         enabled: specifyRadio.checked
                         onTextChanged: {
-                            if (controller) {
-                                controller.baseName = text
+                            if (settings) {
+                                settings.baseName = text
                             }
                         }
                     }
@@ -370,22 +371,22 @@ Pane {
                         implicitWidth: 80
                         text: "替换文本"
                         textColor: pal.radioButton_textColor
-                        checked: controller ? controller.renameMode === 1 : false
+                        checked: settings ? settings.renameMode === 1 : false
                         onCheckedChanged: {
-                            if (checked && controller) {
-                                controller.renameMode = 1
+                            if (checked && settings) {
+                                settings.renameMode = 1
                             }
                         }
                     }
 
                     TextFieldEx {
                         Layout.preferredWidth: 120
-                        text: controller ? controller.searchText : ""
+                        text: settings ? settings.searchText : ""
                         placeholderText: "查找"
                         enabled: replaceRadio.checked
                         onTextChanged: {
-                            if (controller) {
-                                controller.searchText = text
+                            if (settings) {
+                                settings.searchText = text
                             }
                         }
                     }
@@ -398,12 +399,12 @@ Pane {
 
                     TextFieldEx {
                         Layout.preferredWidth: 120
-                        text: controller ? controller.replaceText : ""
+                        text: settings ? settings.replaceText : ""
                         placeholderText: "替换"
                         enabled: replaceRadio.checked
                         onTextChanged: {
-                            if (controller) {
-                                controller.replaceText = text
+                            if (settings) {
+                                settings.replaceText = text
                             }
                         }
                     }
@@ -442,8 +443,9 @@ Pane {
 
         RowLayout {
             Layout.fillWidth: true
+            Layout.preferredHeight: 50
             spacing: 12
-            visible: (controller && controller.statusMessage.length > 0) || (controller && controller.hasRecords)
+            visible: true
 
             Rectangle {
                 id: statusPanel
@@ -451,7 +453,7 @@ Pane {
                 height: statusText.implicitHeight + 12
                 radius: 6
                 color: controller && controller.statusMessage ? pal.BatchRenamePage_statusPanel_bg_active : "transparent"
-                visible: controller ? controller.statusMessage.length > 0 : false
+                visible: true
 
                 Label {
                     id: statusText
@@ -460,7 +462,9 @@ Pane {
                     anchors.leftMargin: 12
                     anchors.right: parent.right
                     anchors.rightMargin: 12
-                    text: controller ? controller.statusMessage : ""
+                    text: controller && controller.statusMessage.length > 0
+                        ? controller.statusMessage
+                        : "就绪"
                     color: pal.BatchRenamePage_statusText_color
                     font.pixelSize: 13
                     elide: Text.ElideRight

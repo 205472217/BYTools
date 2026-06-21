@@ -13,6 +13,8 @@ add_library(CustomSubtitlePlugin MODULE
     CustomSubtitlePlugin.h
     CustomSubtitleController.cpp
     CustomSubtitleController.h
+    CustomSubtitleSettings.cpp
+    CustomSubtitleSettings.h
     SubBrowserController.cpp
     SubBrowserController.h
     SubSearchResult.h

@@ -13,6 +13,8 @@ add_library(ImageConverterPlugin MODULE
     ImageConverterPlugin.h
     ImageConverterController.cpp
     ImageConverterController.h
+    ImageConverterSettings.cpp
+    ImageConverterSettings.h
     plugin.json
 )
 

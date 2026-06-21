@@ -3,6 +3,7 @@
 #include "../../src/core/PluginInterface.h"
 
 class ImageCropController;
+class ImageCropSettings;
 class PluginLogger;
 
 class ImageCropPlugin : public QObject, public PluginInterface
@@ -12,6 +13,8 @@ class ImageCropPlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
+    static constexpr const char* kIniSection = "image-crop";
+
     ImageCropPlugin(QObject *parent = nullptr);
 
     QString id() const override;
@@ -25,8 +28,10 @@ public:
     void cleanup() override;
 
     QObject* getController() override;
+    QObject* getSettings() override;
 
 private:
     PluginLogger *m_logger = nullptr;
     ImageCropController *m_controller;
+    ImageCropSettings *m_settings = nullptr;
 };

@@ -11,6 +11,7 @@ Pane {
     signal backRequested()
 
     property var controller: null
+    property QtObject settings: pluginManager.getPluginSettings("name-converter")
 
     readonly property int tableLeftPadding: 18
     readonly property int tableRightPadding: 20
@@ -41,9 +42,9 @@ Pane {
         id: folderDialog
         title: "选择源文件夹"
         onAccepted: {
-            if (controller) {
-                controller.rootPath = selectedFolder
-                controller.clearRecords()
+            if (settings) {
+                settings.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
+                if (controller) controller.clearRecords()
             }
         }
     }
@@ -184,7 +185,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? controller.rootPath : ""
+                        text: settings ? settings.rootPath : ""
                         readOnly: true
                         placeholderText: "尚未选择"
                     }
@@ -194,10 +195,10 @@ Pane {
                         implicitWidth: 110
                         text: "递归子文件夹"
                         textColor: pal.checkBox_textColor
-                        checked: controller ? controller.recursive : false
+                        checked: settings ? settings.recursive : false
                         onCheckedChanged: {
-                            if (controller) {
-                                controller.recursive = checked
+                            if (settings) {
+                                settings.recursive = checked
                             }
                         }
                     }
@@ -226,10 +227,10 @@ Pane {
                         id: processTypeCombo
                         Layout.preferredWidth: 140
                         model: ["仅文件", "仅文件夹", "文件和文件夹"]
-                        currentIndex: controller ? controller.targetType : 2
+                        currentIndex: settings ? settings.targetType : 2
                         onActivated: {
-                            if (controller) {
-                                controller.targetType = currentIndex
+                            if (settings) {
+                                settings.targetType = currentIndex
                             }
                         }
                     }
@@ -266,26 +267,45 @@ Pane {
             }
         }
 
-        // 状态栏
-        Rectangle {
-            id: statusBar
+        // 状态栏 + 批量还原
+        RowLayout {
             Layout.fillWidth: true
-            height: statusText.implicitHeight + 12
-            radius: 6
-            color: pal.NameConverter_statusBar_color
-            visible: controller ? controller.statusMessage.length > 0 : false
+            Layout.preferredHeight: 50
+            spacing: 12
+            visible: true
 
-            Label {
-                id: statusText
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
-                anchors.leftMargin: 12
-                anchors.right: parent.right
-                anchors.rightMargin: 12
-                text: controller ? controller.statusMessage : ""
-                color: pal.NameConverter_statusText_color
-                font.pixelSize: 13
-                elide: Text.ElideRight
+            Rectangle {
+                id: statusBar
+                Layout.fillWidth: true
+                height: statusText.implicitHeight + 12
+                radius: 6
+                color: pal.NameConverter_statusBar_color
+
+                Label {
+                    id: statusText
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.left
+                    anchors.leftMargin: 12
+                    anchors.right: parent.right
+                    anchors.rightMargin: 12
+                    text: controller && controller.statusMessage.length > 0
+                        ? controller.statusMessage
+                        : "就绪"
+                    color: pal.NameConverter_statusText_color
+                    font.pixelSize: 13
+                    elide: Text.ElideRight
+                }
+            }
+
+            IconButton {
+                iconSource: "qrc:/icons/undo.svg"
+                tooltip: "批量还原"
+                visible: controller ? controller.hasRecords : false
+                onClicked: {
+                    if (controller) {
+                        controller.restoreAllRecords()
+                    }
+                }
             }
         }
 

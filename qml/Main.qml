@@ -187,7 +187,6 @@ ApplicationWindow {
         id: videoSubtitleSettingsPageComponent
 
         VideoSubtitleSettingsPage {
-            settings: pluginManager.getPluginSettings("video-subtitle")
             onBackRequested: {
                 if (stackView.busy || window._navGuard) return
                 window._navGuard = true

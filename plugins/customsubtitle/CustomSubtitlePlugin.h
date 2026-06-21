@@ -3,6 +3,7 @@
 #include "../../src/core/PluginInterface.h"
 
 class CustomSubtitleController;
+class CustomSubtitleSettings;
 class PluginLogger;
 
 class CustomSubtitlePlugin : public QObject, public PluginInterface
@@ -27,8 +28,10 @@ public:
     void cleanup() override;
 
     QObject* getController() override;
+    QObject* getSettings() override;
 
 private:
     PluginLogger *m_logger = nullptr;
     CustomSubtitleController *m_controller = nullptr;
+    CustomSubtitleSettings *m_settings = nullptr;
 };

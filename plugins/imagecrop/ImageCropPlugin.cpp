@@ -1,5 +1,6 @@
 #include "ImageCropPlugin.h"
 #include "ImageCropController.h"
+#include "ImageCropSettings.h"
 #include "Logger.h"
 
 ImageCropPlugin::ImageCropPlugin(QObject *parent)
@@ -42,8 +43,11 @@ void ImageCropPlugin::initialize()
 {
     if (!m_logger)
         m_logger = new PluginLogger("image-crop");
+    if (!m_settings) {
+        m_settings = new ImageCropSettings(this);
+    }
     if (!m_controller) {
-        m_controller = new ImageCropController(m_logger, this);
+        m_controller = new ImageCropController(m_logger, m_settings, this);
     }
     m_logger->info(QStringLiteral("图片裁剪插件已初始化"));
 }
@@ -53,6 +57,10 @@ void ImageCropPlugin::cleanup()
     if (m_controller) {
         delete m_controller;
         m_controller = nullptr;
+    }
+    if (m_settings) {
+        delete m_settings;
+        m_settings = nullptr;
     }
     delete m_logger;
     m_logger = nullptr;
@@ -64,4 +72,9 @@ QObject* ImageCropPlugin::getController()
         m_controller->reset();
     }
     return m_controller;
+}
+
+QObject* ImageCropPlugin::getSettings()
+{
+    return m_settings;
 }

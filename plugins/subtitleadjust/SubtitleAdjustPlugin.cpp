@@ -1,4 +1,5 @@
 #include "SubtitleAdjustPlugin.h"
+#include "SubtitleAdjustSettings.h"
 #include "Logger.h"
 
 SubtitleAdjustPlugin::SubtitleAdjustPlugin(QObject *parent)
@@ -40,8 +41,11 @@ void SubtitleAdjustPlugin::initialize()
 {
     if (!m_logger)
         m_logger = new PluginLogger("subtitle-adjust");
+    if (!m_settings) {
+        m_settings = new SubtitleAdjustSettings(this);
+    }
     if (!m_controller) {
-        m_controller = new SubtitleAdjustController(m_logger, this);
+        m_controller = new SubtitleAdjustController(m_logger, m_settings, this);
     }
     m_logger->info(QStringLiteral("字幕时间调整插件已初始化"));
 }
@@ -52,6 +56,10 @@ void SubtitleAdjustPlugin::cleanup()
         delete m_controller;
         m_controller = nullptr;
     }
+    if (m_settings) {
+        delete m_settings;
+        m_settings = nullptr;
+    }
     delete m_logger;
     m_logger = nullptr;
 }
@@ -59,4 +67,9 @@ void SubtitleAdjustPlugin::cleanup()
 QObject* SubtitleAdjustPlugin::getController()
 {
     return m_controller;
+}
+
+QObject* SubtitleAdjustPlugin::getSettings()
+{
+    return m_settings;
 }

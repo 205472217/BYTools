@@ -13,6 +13,7 @@ Pane {
     signal openSettings
 
     property var controller: null
+    property QtObject settings: pluginManager.getPluginSettings("video-subtitle")
 
     // Real-time log model — auto-scrolls to end when new items arrive
     ListModel {
@@ -53,7 +54,7 @@ Pane {
             seconds = 0;
             elapsedIndex = -1;
             elapsedString = "00:00:00";
-            lastStep = controller ? controller.currentStep : "";
+            lastStep = controller ? controller.currentStepName : "";
             if (controller && controller.isProcessing && lastStep.length > 0) {
                 logModel.append({ "text": lastStep + "...(已耗时 00:00:00)" });
                 elapsedIndex = logModel.count - 1;
@@ -77,7 +78,7 @@ Pane {
             }
 
             // If step changed, start fresh per-step counter, keep total
-            var step = controller.currentStep;
+            var step = controller.currentStepName;
             if (step.length === 0) return;  // not in a step yet
             if (step !== lastStep) {
                 resetStep();
@@ -142,8 +143,8 @@ Pane {
         id: inputFolderDialog
         title: "选择输入路径"
         onAccepted: {
-            if (controller) {
-                controller.inputPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
+            if (settings) {
+                settings.inputPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
             }
         }
     }
@@ -153,8 +154,8 @@ Pane {
         title: "选择视频文件"
         nameFilters: ["视频文件 (*.mp4 *.mkv *.avi *.mov *.wmv *.flv *.ts)", "所有文件 (*)"]
         onAccepted: {
-            if (controller) {
-                controller.inputPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
+            if (settings) {
+                settings.inputPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
             }
         }
     }
@@ -164,7 +165,7 @@ Pane {
         title: "选择输出目录"
         onAccepted: {
             if (controller) {
-                controller.outputDir = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
+                settings.outputDir = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
             }
         }
     }
@@ -323,11 +324,11 @@ Pane {
                         implicitWidth: 100
                         text: "单个视频"
                         textColor: pal.radioButton_textColor
-                        checked: controller ? controller.inputMode === 0 : true
+                        checked: controller ? settings.inputMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller) {
-                                controller.inputMode = 0;
-                                controller.inputPath = "";
+                                settings.inputMode = 0;
+                                settings.inputPath = "";
                             }
                         }
                     }
@@ -336,11 +337,11 @@ Pane {
                         implicitWidth: 100
                         text: "文件夹批量"
                         textColor: pal.radioButton_textColor
-                        checked: controller ? controller.inputMode === 1 : false
+                        checked: controller ? settings.inputMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller) {
-                                controller.inputMode = 1;
-                                controller.inputPath = "";
+                                settings.inputMode = 1;
+                                settings.inputPath = "";
                             }
                         }
                     }
@@ -350,11 +351,11 @@ Pane {
                         implicitWidth: 110
                         text: "递归子文件夹"
                         textColor: pal.checkBox_textColor
-                        checked: controller ? controller.recursive : false
-                        visible: controller ? controller.inputMode === 1 : false
+                        checked: controller ? settings.recursive : false
+                        visible: controller ? settings.inputMode === 1 : false
                         onCheckedChanged: {
                             if (controller)
-                                controller.recursive = checked;
+                                settings.recursive = checked;
                         }
                     }
 
@@ -379,7 +380,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? controller.inputPath : ""
+                        text: settings ? settings.inputPath : ""
                         readOnly: true
                         placeholderText: "选择视频文件或文件夹"
                     }
@@ -388,7 +389,7 @@ Pane {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择文件"
                         onClicked: {
-                            if (controller && controller.inputMode === 0) {
+                            if (controller && settings.inputMode === 0) {
                                 inputFileDialog.open();
                             } else {
                                 inputFolderDialog.open();
@@ -424,15 +425,15 @@ Pane {
                             implicitWidth: 90
                             text: "1. 分离音频"
                             textColor: pal.checkBox_textColor
-                            checked: controller ? controller.enableAudioExtraction : true
+                            checked: controller ? settings.enableAudioExtraction : true
                             opacity: 1.0
                             onCheckedChanged: {
                                 if (controller)
-                                    controller.enableAudioExtraction = checked;
+                                    settings.enableAudioExtraction = checked;
                                 if (!checked && controller) {
-                                    controller.enableTranscribe = false;
-                                    controller.enableTranslate = false;
-                                    controller.enableBurnSubtitle = false;
+                                    settings.enableTranscribe = false;
+                                    settings.enableTranslate = false;
+                                    settings.enableBurnSubtitle = false;
                                 }
                             }
                         }
@@ -442,15 +443,15 @@ Pane {
                             implicitWidth: 160
                             text: "2. 语音识别(音频→SRT)"
                             textColor: pal.checkBox_textColor
-                            checked: controller ? controller.enableTranscribe : true
+                            checked: controller ? settings.enableTranscribe : true
                             enabled: stepAudio.checked
                             opacity: 1.0
                             onCheckedChanged: {
                                 if (controller)
-                                    controller.enableTranscribe = checked;
+                                    settings.enableTranscribe = checked;
                                 if (!checked && controller) {
-                                    controller.enableTranslate = false;
-                                    controller.enableBurnSubtitle = false;
+                                    settings.enableTranslate = false;
+                                    settings.enableBurnSubtitle = false;
                                 }
                             }
                             ToolTip {
@@ -465,12 +466,12 @@ Pane {
                             implicitWidth: 90
                             text: "3. 翻译字幕"
                             textColor: pal.checkBox_textColor
-                            checked: controller ? controller.enableTranslate : true
+                            checked: controller ? settings.enableTranslate : true
                             enabled: stepAudio.checked && stepTranscribe.checked
                             opacity: 1.0
                             onCheckedChanged: {
                                 if (controller)
-                                    controller.enableTranslate = checked;
+                                    settings.enableTranslate = checked;
                             }
                             ToolTip {
                                 text: "请先勾选「1. 分离音频」和「2. 语音识别」"
@@ -484,12 +485,12 @@ Pane {
                             text: "4. 烧录字幕"
                             implicitWidth: 90
                             textColor: pal.checkBox_textColor
-                            checked: controller ? controller.enableBurnSubtitle : true
+                            checked: controller ? settings.enableBurnSubtitle : true
                             enabled: stepAudio.checked && stepTranscribe.checked
                             opacity: 1.0
                             onCheckedChanged: {
                                 if (controller)
-                                    controller.enableBurnSubtitle = checked;
+                                    settings.enableBurnSubtitle = checked;
                             }
                             ToolTip {
                                 text: "请先勾选「1. 分离音频」和「2. 语音识别」"
@@ -529,7 +530,7 @@ Pane {
                         currentIndex: {
                             if (!controller)
                                 return 0;
-                            switch (controller.sourceLanguage) {
+                            switch (settings.sourceLanguage) {
                             case "auto": return 0;
                             case "en":   return 1;
                             case "zh":   return 2;
@@ -542,7 +543,7 @@ Pane {
                         onActivated: {
                             if (!controller) return;
                             var langs = ["auto", "en", "zh", "ja", "ko", "ru"];
-                            controller.sourceLanguage = langs[currentIndex];
+                            settings.sourceLanguage = langs[currentIndex];
                         }
                     }
 
@@ -560,7 +561,7 @@ Pane {
                         model: ["中文", "英文", "日文", "韩文"]
                         currentIndex: {
                             if (!controller) return 0;
-                            switch (controller.targetLanguage) {
+                            switch (settings.targetLanguage) {
                             case "zh": return 0;
                             case "en": return 1;
                             case "ja": return 2;
@@ -571,7 +572,7 @@ Pane {
                         onActivated: {
                             if (!controller) return;
                             var langs = ["zh", "en", "ja", "ko"];
-                            controller.targetLanguage = langs[currentIndex];
+                            settings.targetLanguage = langs[currentIndex];
                         }
                     }
 
@@ -580,13 +581,13 @@ Pane {
                         implicitWidth: 110
                         text: "背景音乐(翻译+烧录)"
                         textColor: pal.checkBox_textColor
-                        checked: controller ? controller.translateMusic : false
+                        checked: controller ? settings.translateMusic : false
                         font.pixelSize: 11
                         Layout.fillWidth: true
                         enabled: stepTranslate.checked
                         onCheckedChanged: {
                             if (controller)
-                                controller.translateMusic = checked;
+                                settings.translateMusic = checked;
                         }
                     }
 
@@ -613,10 +614,10 @@ Pane {
                         implicitWidth: 80
                         text: "同目录"
                         textColor: pal.radioButton_textColor
-                        checked: controller ? controller.outputMode === 0 : true
+                        checked: controller ? settings.outputMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller)
-                                controller.outputMode = 0;
+                                settings.outputMode = 0;
                         }
                     }
 
@@ -624,25 +625,25 @@ Pane {
                         implicitWidth: 80
                         text: "指定目录"
                         textColor: pal.radioButton_textColor
-                        checked: controller ? controller.outputMode === 1 : false
+                        checked: controller ? settings.outputMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller)
-                                controller.outputMode = 1;
+                                settings.outputMode = 1;
                         }
                     }
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? controller.outputDir : ""
+                        text: controller ? settings.outputDir : ""
                         placeholderText: "输出目录"
                         readOnly: true
-                        enabled: controller ? controller.outputMode === 1 : false
+                        enabled: controller ? settings.outputMode === 1 : false
                     }
 
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择输出目录"
-                        enabled: controller ? controller.outputMode === 1 : false
+                        enabled: controller ? settings.outputMode === 1 : false
                         onClicked: outputFolderDialog.open()
                     }
 
@@ -757,6 +758,39 @@ Pane {
                         font.pixelSize: 11
                         font.bold: true
                     }
+
+                    Label {
+                        text: "再完成"
+                        color: pal.VideoSubtitlePage_statusMessage_color_log
+                        font.pixelSize: 11
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+
+                    ComboBoxEx {
+                        id: stopAfterCombo
+                        model: ["全部", 1, 2, 3, 5, 10, 20, 30, 40, 50]
+                        currentIndex: 0
+                        implicitWidth: 70
+                        font.pixelSize: 11
+                        Layout.alignment: Qt.AlignVCenter
+                        onActivated: {
+                            if (controller && controller.isProcessing) {
+                                var val = currentValue;
+                                if (typeof val === "number") {
+                                    controller.requestStopAfterCount(val);
+                                } else {
+                                    controller.requestStopAfterCount(0);
+                                }
+                            }
+                        }
+                    }
+
+                    Label {
+                        text: "个后停止"
+                        color: pal.VideoSubtitlePage_statusMessage_color_log
+                        font.pixelSize: 11
+                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                    }
                 }
             }
         }
@@ -774,6 +808,7 @@ Pane {
 
             ColumnLayout {
                 anchors.fill: parent
+                anchors.margins: 2
                 spacing: 0
 
                 // Log entries

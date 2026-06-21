@@ -11,6 +11,7 @@ Pane {
     signal backRequested
 
     property var controller: null
+    property QtObject settings: pluginManager.getPluginSettings("custom-subtitle")
 
     padding: 0
     background: Rectangle {
@@ -24,7 +25,7 @@ Pane {
         title: "选择字幕下载路径"
         onAccepted: {
             if (controller)
-                controller.subtitleDownloadPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
+                settings.subtitleDownloadPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
         }
     }
 
@@ -33,7 +34,7 @@ Pane {
         title: "选择原视频路径"
         onAccepted: {
             if (controller)
-                controller.videoSourcePath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
+                settings.videoSourcePath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
         }
     }
 
@@ -42,7 +43,7 @@ Pane {
         title: "选择合成视频路径"
         onAccepted: {
             if (controller)
-                controller.mergedOutputPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
+                settings.mergedOutputPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
         }
     }
 
@@ -52,7 +53,7 @@ Pane {
         nameFilters: ["ffmpeg (ffmpeg.exe)", "All Files (*)"]
         onAccepted: {
             if (controller)
-                controller.ffmpegPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
+                settings.ffmpegPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
         }
     }
 
@@ -70,12 +71,12 @@ Pane {
             if (_preprocessModel.get(i).checked)
                 list.push(_preprocessModel.get(i).key);
         }
-        controller.enabledPreprocessors = list;
+        settings.enabledPreprocessors = list;
     }
 
     function _loadPreprocessors() {
         if (!controller) return;
-        var stored = controller.enabledPreprocessors;
+        var stored = settings.enabledPreprocessors;
         for (var i = 0; i < _preprocessModel.count; ++i) {
             _preprocessModel.get(i).checked = stored.indexOf(_preprocessModel.get(i).key) >= 0;
         }
@@ -203,7 +204,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? controller.subtitleDownloadPath : ""
+                        text: controller ? settings.subtitleDownloadPath : ""
                         readOnly: true
                         placeholderText: "字幕文件下载后保存的目录路径"
                         font.pixelSize: 11
@@ -233,7 +234,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? controller.videoSourcePath : ""
+                        text: controller ? settings.videoSourcePath : ""
                         readOnly: true
                         placeholderText: "存放原视频的目录路径"
                         font.pixelSize: 11
@@ -244,12 +245,12 @@ Pane {
                         implicitWidth: 110
                         text: "递归子文件夹"
                         textColor: pal.checkBox_textColor
-                        checked: controller ? controller.recursive : false
+                        checked: controller ? settings.recursive : false
                         font.pixelSize: 11
                         enabled: !controller || controller.currentStep === controller.stepNone
                         onCheckedChanged: {
                             if (controller)
-                                controller.recursive = checked;
+                                settings.recursive = checked;
                         }
                     }
 
@@ -277,7 +278,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? controller.mergedOutputPath : ""
+                        text: controller ? settings.mergedOutputPath : ""
                         readOnly: true
                         placeholderText: "合成视频+字幕后，文件的输出路径"
                         font.pixelSize: 11
@@ -307,7 +308,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? controller.ffmpegPath : ""
+                        text: controller ? settings.ffmpegPath : ""
                         readOnly: true
                         placeholderText: "选择 ffmpeg.exe 路径（用于合成视频+字幕）"
                         font.pixelSize: 11
@@ -1141,12 +1142,12 @@ Pane {
                                     Layout.fillWidth: true
                                     text: "GPU加速"
                                     textColor: pal.checkBox_textColor
-                                    checked: controller ? controller.gpuAccel : false
+                                    checked: controller ? settings.gpuAccel : false
                                     font.pixelSize: 11
                                     visible: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
                                         if (controller)
-                                            controller.gpuAccel = checked;
+                                            settings.gpuAccel = checked;
                                     }
                                 }
 
@@ -1282,12 +1283,12 @@ Pane {
                                     Layout.fillWidth: true
                                     text: "备份原文件"
                                     textColor: pal.checkBox_textColor
-                                    checked: controller ? controller.backupOriginal : false
+                                    checked: controller ? settings.backupOriginal : false
                                     font.pixelSize: 11
                                     enabled: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
                                         if (controller)
-                                            controller.backupOriginal = checked;
+                                            settings.backupOriginal = checked;
                                     }
                                 }
 

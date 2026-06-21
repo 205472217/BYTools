@@ -1,4 +1,4 @@
-﻿#include "VideoSubtitleSettings.h"
+#include "VideoSubtitleSettings.h"
 #include "VideoSubtitlePlugin.h"
 #include "Logger.h"
 #include "FFmpegService.h"
@@ -38,20 +38,13 @@ VideoSubtitleSettings::VideoSubtitleSettings(PluginLogger *logger, QObject *pare
     m_logger->info("插件设置已加载");
 }
 
-// Getters
+// ── 设置页 getter ──
 QString VideoSubtitleSettings::ffmpegPath() const { return m_ffmpegPath; }
 QString VideoSubtitleSettings::ffmpegStatus() const { return m_ffmpegStatus; }
 QString VideoSubtitleSettings::whisperPath() const { return m_whisperPath; }
 QString VideoSubtitleSettings::whisperStatus() const { return m_whisperStatus; }
 int VideoSubtitleSettings::whisperModel() const { return m_whisperModel; }
 QString VideoSubtitleSettings::whisperModelDir() const { return m_whisperModelDir; }
-QString VideoSubtitleSettings::localModelPath() const { return m_localModelPath; }
-int VideoSubtitleSettings::audioSegmentDuration() const { return m_audioSegmentDuration; }
-int VideoSubtitleSettings::subtitleStyle() const { return m_subtitleStyle; }
-bool VideoSubtitleSettings::keepWav() const { return m_keepWav; }
-bool VideoSubtitleSettings::keepOriginalSrt() const { return m_keepOriginalSrt; }
-bool VideoSubtitleSettings::keepTranslatedSrt() const { return m_keepTranslatedSrt; }
-
 QVariantList VideoSubtitleSettings::availableModels() const
 {
     QVariantList list;
@@ -65,28 +58,51 @@ QVariantList VideoSubtitleSettings::availableModels() const
     }
     return list;
 }
+QString VideoSubtitleSettings::localModelPath() const { return m_localModelPath; }
+int VideoSubtitleSettings::audioSegmentDuration() const { return m_audioSegmentDuration; }
 int VideoSubtitleSettings::translateEngine() const { return m_translateEngine; }
 QString VideoSubtitleSettings::apiKey() const { return m_apiKey; }
 QString VideoSubtitleSettings::baiduAppId() const { return m_baiduAppId; }
 QString VideoSubtitleSettings::apiUrl() const { return m_apiUrl; }
 QString VideoSubtitleSettings::apiTestResult() const { return m_apiTestResult; }
 bool VideoSubtitleSettings::apiTesting() const { return m_apiTesting; }
+QStringList VideoSubtitleSettings::translateEngineNames() const
+{
+    return {"百度翻译", "LibreTranslate"};
+}
+QString VideoSubtitleSettings::libreTranslateUrl() const { return m_libreTranslateUrl; }
+QString VideoSubtitleSettings::libreTranslateStatus() const { return m_libreTranslateStatus; }
+int VideoSubtitleSettings::subtitleStyle() const { return m_subtitleStyle; }
+bool VideoSubtitleSettings::keepWav() const { return m_keepWav; }
+bool VideoSubtitleSettings::keepOriginalSrt() const { return m_keepOriginalSrt; }
+bool VideoSubtitleSettings::keepTranslatedSrt() const { return m_keepTranslatedSrt; }
 int VideoSubtitleSettings::defaultFontSize() const { return m_defaultFontSize; }
 QString VideoSubtitleSettings::defaultFontColor() const { return m_defaultFontColor; }
 QString VideoSubtitleSettings::defaultBorderColor() const { return m_defaultBorderColor; }
 int VideoSubtitleSettings::defaultBorderWidth() const { return m_defaultBorderWidth; }
 bool VideoSubtitleSettings::useGpuAccel() const { return m_useGpuAccel; }
 QString VideoSubtitleSettings::gpuAccelInfo() const { return m_gpuAccelInfo; }
-QString VideoSubtitleSettings::libreTranslateUrl() const { return m_libreTranslateUrl; }
-QString VideoSubtitleSettings::libreTranslateStatus() const { return m_libreTranslateStatus; }
 
-// Setters
+// ── 主页面 getter ──
+QString VideoSubtitleSettings::inputPath() const { return m_inputPath; }
+int VideoSubtitleSettings::inputMode() const { return m_inputMode; }
+bool VideoSubtitleSettings::recursive() const { return m_recursive; }
+QString VideoSubtitleSettings::sourceLanguage() const { return m_sourceLanguage; }
+QString VideoSubtitleSettings::targetLanguage() const { return m_targetLanguage; }
+bool VideoSubtitleSettings::translateMusic() const { return m_translateMusic; }
+int VideoSubtitleSettings::outputMode() const { return m_outputMode; }
+QString VideoSubtitleSettings::outputDir() const { return m_outputDir; }
+bool VideoSubtitleSettings::enableAudioExtraction() const { return m_enableAudioExtraction; }
+bool VideoSubtitleSettings::enableTranscribe() const { return m_enableTranscribe; }
+bool VideoSubtitleSettings::enableTranslate() const { return m_enableTranslate; }
+bool VideoSubtitleSettings::enableBurnSubtitle() const { return m_enableBurnSubtitle; }
+
+// ── 设置页 setter ──
 void VideoSubtitleSettings::setFfmpegPath(const QString &path)
 {
     if (m_ffmpegPath != path) {
         m_ffmpegPath = path;
         emit ffmpegPathChanged();
-        // Auto-detect version
         if (isFFmpegAvailable(path, m_logger)) {
             QString ver = ffmpegVersion(path);
             m_ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
@@ -94,8 +110,6 @@ void VideoSubtitleSettings::setFfmpegPath(const QString &path)
             m_ffmpegStatus = path.isEmpty() ? "未配置" : "无法找到 FFmpeg";
         }
         emit ffmpegStatusChanged();
-
-        // 刷新 GPU 加速检测信息
         if (isFFmpegAvailable(path, m_logger)) {
             m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(path);
         } else {
@@ -104,13 +118,11 @@ void VideoSubtitleSettings::setFfmpegPath(const QString &path)
         emit gpuAccelInfoChanged();
     }
 }
-
 void VideoSubtitleSettings::setWhisperPath(const QString &path)
 {
     if (m_whisperPath != path) {
         m_whisperPath = path;
         emit whisperPathChanged();
-        // Auto-detect
         if (!path.isEmpty() && QFileInfo::exists(path)) {
             m_whisperStatus = "已检测到 whisper.cpp";
         } else {
@@ -119,7 +131,6 @@ void VideoSubtitleSettings::setWhisperPath(const QString &path)
         emit whisperStatusChanged();
     }
 }
-
 void VideoSubtitleSettings::setWhisperModel(int model)
 {
     if (m_whisperModel != model && model >= 0 && model < MODEL_INFOS.size()) {
@@ -127,7 +138,6 @@ void VideoSubtitleSettings::setWhisperModel(int model)
         emit whisperModelChanged();
     }
 }
-
 void VideoSubtitleSettings::setWhisperModelDir(const QString &path)
 {
     if (m_whisperModelDir != path) {
@@ -136,7 +146,6 @@ void VideoSubtitleSettings::setWhisperModelDir(const QString &path)
         emit availableModelsChanged();
     }
 }
-
 void VideoSubtitleSettings::setLocalModelPath(const QString &path)
 {
     if (m_localModelPath != path) {
@@ -144,7 +153,6 @@ void VideoSubtitleSettings::setLocalModelPath(const QString &path)
         emit localModelPathChanged();
     }
 }
-
 void VideoSubtitleSettings::setAudioSegmentDuration(int seconds)
 {
     if (m_audioSegmentDuration != seconds) {
@@ -152,7 +160,6 @@ void VideoSubtitleSettings::setAudioSegmentDuration(int seconds)
         emit audioSegmentDurationChanged();
     }
 }
-
 void VideoSubtitleSettings::setTranslateEngine(int engine)
 {
     if (m_translateEngine != engine) {
@@ -162,7 +169,6 @@ void VideoSubtitleSettings::setTranslateEngine(int engine)
         emit apiUrlChanged();
     }
 }
-
 void VideoSubtitleSettings::setApiKey(const QString &key)
 {
     if (m_apiKey != key) {
@@ -170,7 +176,6 @@ void VideoSubtitleSettings::setApiKey(const QString &key)
         emit apiKeyChanged();
     }
 }
-
 void VideoSubtitleSettings::setBaiduAppId(const QString &appId)
 {
     if (m_baiduAppId != appId) {
@@ -178,7 +183,6 @@ void VideoSubtitleSettings::setBaiduAppId(const QString &appId)
         emit baiduAppIdChanged();
     }
 }
-
 void VideoSubtitleSettings::setApiUrl(const QString &url)
 {
     if (m_apiUrl != url) {
@@ -186,7 +190,6 @@ void VideoSubtitleSettings::setApiUrl(const QString &url)
         emit apiUrlChanged();
     }
 }
-
 void VideoSubtitleSettings::setSubtitleStyle(int style)
 {
     if (m_subtitleStyle != style) {
@@ -194,7 +197,6 @@ void VideoSubtitleSettings::setSubtitleStyle(int style)
         emit subtitleStyleChanged();
     }
 }
-
 void VideoSubtitleSettings::setKeepWav(bool keep)
 {
     if (m_keepWav != keep) {
@@ -202,7 +204,6 @@ void VideoSubtitleSettings::setKeepWav(bool keep)
         emit keepWavChanged();
     }
 }
-
 void VideoSubtitleSettings::setKeepOriginalSrt(bool keep)
 {
     if (m_keepOriginalSrt != keep) {
@@ -210,7 +211,6 @@ void VideoSubtitleSettings::setKeepOriginalSrt(bool keep)
         emit keepOriginalSrtChanged();
     }
 }
-
 void VideoSubtitleSettings::setKeepTranslatedSrt(bool keep)
 {
     if (m_keepTranslatedSrt != keep) {
@@ -218,7 +218,6 @@ void VideoSubtitleSettings::setKeepTranslatedSrt(bool keep)
         emit keepTranslatedSrtChanged();
     }
 }
-
 void VideoSubtitleSettings::setDefaultFontSize(int size)
 {
     if (m_defaultFontSize != size) {
@@ -226,7 +225,6 @@ void VideoSubtitleSettings::setDefaultFontSize(int size)
         emit defaultFontSizeChanged();
     }
 }
-
 void VideoSubtitleSettings::setDefaultFontColor(const QString &color)
 {
     if (m_defaultFontColor != color) {
@@ -234,7 +232,6 @@ void VideoSubtitleSettings::setDefaultFontColor(const QString &color)
         emit defaultFontColorChanged();
     }
 }
-
 void VideoSubtitleSettings::setDefaultBorderColor(const QString &color)
 {
     if (m_defaultBorderColor != color) {
@@ -242,7 +239,6 @@ void VideoSubtitleSettings::setDefaultBorderColor(const QString &color)
         emit defaultBorderColorChanged();
     }
 }
-
 void VideoSubtitleSettings::setDefaultBorderWidth(int width)
 {
     if (m_defaultBorderWidth != width) {
@@ -250,7 +246,6 @@ void VideoSubtitleSettings::setDefaultBorderWidth(int width)
         emit defaultBorderWidthChanged();
     }
 }
-
 void VideoSubtitleSettings::setUseGpuAccel(bool enable)
 {
     if (m_useGpuAccel != enable) {
@@ -258,7 +253,6 @@ void VideoSubtitleSettings::setUseGpuAccel(bool enable)
         emit useGpuAccelChanged();
     }
 }
-
 void VideoSubtitleSettings::setLibreTranslateUrl(const QString &url)
 {
     if (m_libreTranslateUrl != url) {
@@ -267,7 +261,117 @@ void VideoSubtitleSettings::setLibreTranslateUrl(const QString &url)
     }
 }
 
-// Actions
+// ── 主页面 setter ──
+void VideoSubtitleSettings::setInputPath(const QString &path)
+{
+    if (m_inputPath != path) {
+        m_inputPath = path;
+        emit inputPathChanged();
+        m_settings.setValue("inputPath", path);
+        m_settings.sync();
+    }
+}
+void VideoSubtitleSettings::setInputMode(int mode)
+{
+    if (m_inputMode != mode) {
+        m_inputMode = mode;
+        emit inputModeChanged();
+        m_settings.setValue("inputMode", mode);
+        m_settings.sync();
+    }
+}
+void VideoSubtitleSettings::setRecursive(bool recursive)
+{
+    if (m_recursive != recursive) {
+        m_recursive = recursive;
+        emit recursiveChanged();
+        m_settings.setValue("recursive", recursive);
+        m_settings.sync();
+    }
+}
+void VideoSubtitleSettings::setSourceLanguage(const QString &lang)
+{
+    if (m_sourceLanguage != lang) {
+        m_sourceLanguage = lang;
+        emit sourceLanguageChanged();
+        m_settings.setValue("sourceLanguage", lang);
+        m_settings.sync();
+    }
+}
+void VideoSubtitleSettings::setTargetLanguage(const QString &lang)
+{
+    if (m_targetLanguage != lang) {
+        m_targetLanguage = lang;
+        emit targetLanguageChanged();
+        m_settings.setValue("targetLanguage", lang);
+        m_settings.sync();
+    }
+}
+void VideoSubtitleSettings::setTranslateMusic(bool enabled)
+{
+    if (m_translateMusic != enabled) {
+        m_translateMusic = enabled;
+        emit translateMusicChanged();
+        m_settings.setValue("translateMusic", enabled);
+        m_settings.sync();
+    }
+}
+void VideoSubtitleSettings::setOutputMode(int mode)
+{
+    if (m_outputMode != mode) {
+        m_outputMode = mode;
+        emit outputModeChanged();
+        m_settings.setValue("outputMode", mode);
+        m_settings.sync();
+    }
+}
+void VideoSubtitleSettings::setOutputDir(const QString &dir)
+{
+    if (m_outputDir != dir) {
+        m_outputDir = dir;
+        emit outputDirChanged();
+        m_settings.setValue("outputDir", dir);
+        m_settings.sync();
+    }
+}
+void VideoSubtitleSettings::setEnableAudioExtraction(bool enabled)
+{
+    if (m_enableAudioExtraction != enabled) {
+        m_enableAudioExtraction = enabled;
+        emit enableAudioExtractionChanged();
+        m_settings.setValue("enableAudioExtraction", enabled);
+        m_settings.sync();
+    }
+}
+void VideoSubtitleSettings::setEnableTranscribe(bool enabled)
+{
+    if (m_enableTranscribe != enabled) {
+        m_enableTranscribe = enabled;
+        emit enableTranscribeChanged();
+        m_settings.setValue("enableTranscribe", enabled);
+        m_settings.sync();
+    }
+}
+void VideoSubtitleSettings::setEnableTranslate(bool enabled)
+{
+    if (m_enableTranslate != enabled) {
+        m_enableTranslate = enabled;
+        emit enableTranslateChanged();
+        m_settings.setValue("enableTranslate", enabled);
+        m_settings.sync();
+    }
+}
+void VideoSubtitleSettings::setEnableBurnSubtitle(bool enabled)
+{
+    if (m_enableBurnSubtitle != enabled) {
+        m_enableBurnSubtitle = enabled;
+        emit enableBurnSubtitleChanged();
+        m_settings.setValue("enableBurnSubtitle", enabled);
+        m_settings.sync();
+    }
+}
+
+// ── 其他功能函数 ──
 void VideoSubtitleSettings::loadSettings()
 {
     m_settings.sync();
@@ -292,8 +396,19 @@ void VideoSubtitleSettings::loadSettings()
     m_defaultBorderWidth = m_settings.value("defaultBorderWidth", 2).toInt();
     m_useGpuAccel = m_settings.value("useGpuAccel", false).toBool();
     m_libreTranslateUrl = m_settings.value("libreTranslateUrl", "http://localhost:5000").toString();
+    m_inputPath = m_settings.value("inputPath").toString();
+    m_inputMode = m_settings.value("inputMode", 0).toInt();
+    m_recursive = m_settings.value("recursive", false).toBool();
+    m_sourceLanguage = m_settings.value("sourceLanguage", "auto").toString();
+    m_targetLanguage = m_settings.value("targetLanguage", "zh").toString();
+    m_translateMusic = m_settings.value("translateMusic", false).toBool();
+    m_outputMode = m_settings.value("outputMode", 0).toInt();
+    m_outputDir = m_settings.value("outputDir").toString();
+    m_enableAudioExtraction = m_settings.value("enableAudioExtraction", true).toBool();
+    m_enableTranscribe = m_settings.value("enableTranscribe", true).toBool();
+    m_enableTranslate = m_settings.value("enableTranslate", true).toBool();
+    m_enableBurnSubtitle = m_settings.value("enableBurnSubtitle", true).toBool();
 
-    // 检测 GPU 加速能力（基于当前 ffmpegPath）
     if (!m_ffmpegPath.isEmpty() && isFFmpegAvailable(m_ffmpegPath, m_logger)) {
         m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(m_ffmpegPath);
     } else {
@@ -328,8 +443,19 @@ void VideoSubtitleSettings::loadSettings()
     emit gpuAccelInfoChanged();
     emit libreTranslateUrlChanged();
     emit libreTranslateStatusChanged();
+    emit inputPathChanged();
+    emit inputModeChanged();
+    emit recursiveChanged();
+    emit sourceLanguageChanged();
+    emit targetLanguageChanged();
+    emit translateMusicChanged();
+    emit outputModeChanged();
+    emit outputDirChanged();
+    emit enableAudioExtractionChanged();
+    emit enableTranscribeChanged();
+    emit enableTranslateChanged();
+    emit enableBurnSubtitleChanged();
 }
-
 void VideoSubtitleSettings::saveSettings()
 {
     m_settings.setValue("ffmpegPath", m_ffmpegPath);
@@ -352,11 +478,22 @@ void VideoSubtitleSettings::saveSettings()
     m_settings.setValue("defaultBorderWidth", m_defaultBorderWidth);
     m_settings.setValue("useGpuAccel", m_useGpuAccel);
     m_settings.setValue("libreTranslateUrl", m_libreTranslateUrl);
+    m_settings.setValue("inputPath", m_inputPath);
+    m_settings.setValue("inputMode", m_inputMode);
+    m_settings.setValue("recursive", m_recursive);
+    m_settings.setValue("sourceLanguage", m_sourceLanguage);
+    m_settings.setValue("targetLanguage", m_targetLanguage);
+    m_settings.setValue("translateMusic", m_translateMusic);
+    m_settings.setValue("outputMode", m_outputMode);
+    m_settings.setValue("outputDir", m_outputDir);
+    m_settings.setValue("enableAudioExtraction", m_enableAudioExtraction);
+    m_settings.setValue("enableTranscribe", m_enableTranscribe);
+    m_settings.setValue("enableTranslate", m_enableTranslate);
+    m_settings.setValue("enableBurnSubtitle", m_enableBurnSubtitle);
     m_settings.sync();
 
     emit settingsChanged();
 }
-
 void VideoSubtitleSettings::resetDefaults()
 {
     m_ffmpegPath.clear();
@@ -379,10 +516,22 @@ void VideoSubtitleSettings::resetDefaults()
     m_defaultFontColor = "#FFFFFF";
     m_defaultBorderColor = "#000000";
     m_defaultBorderWidth = 2;
-    m_useGpuAccel = false;  // 默认关闭 GPU 加速
+    m_useGpuAccel = false;
     m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
     m_libreTranslateUrl = "http://localhost:5000";
     m_libreTranslateStatus.clear();
+    m_inputPath.clear();
+    m_inputMode = 0;
+    m_recursive = false;
+    m_sourceLanguage = "auto";
+    m_targetLanguage = "zh";
+    m_translateMusic = false;
+    m_outputMode = 0;
+    m_outputDir.clear();
+    m_enableAudioExtraction = true;
+    m_enableTranscribe = true;
+    m_enableTranslate = true;
+    m_enableBurnSubtitle = true;
 
     detectTools();
 
@@ -410,8 +559,19 @@ void VideoSubtitleSettings::resetDefaults()
     emit gpuAccelInfoChanged();
     emit libreTranslateUrlChanged();
     emit libreTranslateStatusChanged();
+    emit inputPathChanged();
+    emit inputModeChanged();
+    emit recursiveChanged();
+    emit sourceLanguageChanged();
+    emit targetLanguageChanged();
+    emit translateMusicChanged();
+    emit outputModeChanged();
+    emit outputDirChanged();
+    emit enableAudioExtractionChanged();
+    emit enableTranscribeChanged();
+    emit enableTranslateChanged();
+    emit enableBurnSubtitleChanged();
 }
-
 void VideoSubtitleSettings::testFfmpeg()
 {
     if (isFFmpegAvailable(m_ffmpegPath, m_logger)) {
@@ -422,7 +582,6 @@ void VideoSubtitleSettings::testFfmpeg()
     }
     emit ffmpegStatusChanged();
 }
-
 void VideoSubtitleSettings::testWhisper()
 {
     if (!m_whisperPath.isEmpty() && WhisperService::isWhisperAvailable(m_whisperPath, m_logger)) {
@@ -432,7 +591,6 @@ void VideoSubtitleSettings::testWhisper()
     }
     emit whisperStatusChanged();
 }
-
 void VideoSubtitleSettings::testApiConnection()
 {
     switch (m_translateEngine) {
@@ -448,17 +606,6 @@ void VideoSubtitleSettings::testApiConnection()
         break;
     }
 }
-
-QStringList VideoSubtitleSettings::translateEngineNames() const
-{
-    // [extension]: 后续新增翻译引擎只需在此追加名称, 如 << "DeepL 翻译", "Google 翻译"
-    return {"百度翻译", "LibreTranslate"};
-}
-
-// --- Engine-specific test methods ---
-// [extension]: 新增翻译引擎时在此下方添加对应的 testXxxConnection() 方法,
-//              并在 testApiConnection() 的 switch 中注册分发。
-
 void VideoSubtitleSettings::testBaiduConnection()
 {
     if (m_apiKey.isEmpty()) {
@@ -476,20 +623,16 @@ void VideoSubtitleSettings::testBaiduConnection()
     m_apiTesting = true;
     emit apiTestingChanged();
 
-    // Baidu Translate 签名规则: appid + q + salt + 密钥
-    // 参数全部放入 URL（匹配已验证可用的 MFC 代码方式）
     QString query = "Hello";
     QString salt = QString::number(QRandomGenerator::global()->generate());
     QString signStr = m_baiduAppId + query + salt + m_apiKey;
     QString sign = QCryptographicHash::hash(signStr.toUtf8(), QCryptographicHash::Md5).toHex().toLower();
 
-    // 对 q 做 URL encode（拼接 sign 时用的是原始 q）
     QString encodedQ = QString::fromUtf8(QUrl::toPercentEncoding(query));
     QString fullUrl = QString("http://api.fanyi.baidu.com/api/trans/vip/translate"
                               "?q=%1&from=auto&to=zh&appid=%2&salt=%3&sign=%4")
                           .arg(encodedQ, m_baiduAppId, salt, sign);
 
-    // 日志记录完整签名信息（调试阶段全部打印）
     m_logger->info(QString("测试百度翻译 API 连接"));
     m_logger->info(QString("  appid=%1").arg(m_baiduAppId));
     m_logger->info(QString("  q=%1").arg(query));
@@ -499,7 +642,6 @@ void VideoSubtitleSettings::testBaiduConnection()
     m_logger->info(QString("  计算 sign=%1").arg(sign));
     m_logger->info(QString("  完整URL=%1").arg(fullUrl));
 
-    // 使用 GET 请求（与工作代码的 Http_POST 空 body 方式等效）
     m_logger->restRequest("GET", fullUrl);
 
     QNetworkRequest request{QUrl(fullUrl)};
@@ -509,7 +651,6 @@ void VideoSubtitleSettings::testBaiduConnection()
         emit apiTestingChanged();
 
         if (m_testReply->error() == QNetworkReply::NoError) {
-            // Check response for valid translation result
             QByteArray data = m_testReply->readAll();
             m_logger->restResponse(m_testReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt(),
                                        QString::fromUtf8(data));
@@ -534,7 +675,6 @@ void VideoSubtitleSettings::testBaiduConnection()
         emit apiTestResultChanged();
     });
 }
-
 void VideoSubtitleSettings::testLibreTranslateConnection()
 {
     if (m_libreTranslateUrl.isEmpty()) {
@@ -547,7 +687,6 @@ void VideoSubtitleSettings::testLibreTranslateConnection()
     emit apiTestingChanged();
 
     QString baseUrl = m_libreTranslateUrl;
-    // Remove trailing slash if present
     if (baseUrl.endsWith('/'))
         baseUrl.chop(1);
 
@@ -585,14 +724,22 @@ void VideoSubtitleSettings::testLibreTranslateConnection()
         emit apiTestResultChanged();
     });
 }
-
+QString VideoSubtitleSettings::whisperModelPath() const
+{
+    if (!m_localModelPath.isEmpty() && QFileInfo::exists(m_localModelPath))
+        return m_localModelPath;
+    QStringList modelFiles = {"ggml-tiny.bin", "ggml-base.bin", "ggml-small.bin",
+                              "ggml-medium.bin", "ggml-large-v3.bin"};
+    if (m_whisperModel >= 0 && m_whisperModel < modelFiles.size())
+        return m_whisperModelDir + "/" + modelFiles[m_whisperModel];
+    return {};
+}
 bool VideoSubtitleSettings::isModelDownloaded(int modelIndex) const
 {
     if (modelIndex < 0 || modelIndex >= MODEL_INFOS.size()) return false;
     QString filePath = m_whisperModelDir + "/" + MODEL_INFOS[modelIndex].fileName;
     return QFileInfo::exists(filePath);
 }
-
 void VideoSubtitleSettings::deleteModel(int modelIndex)
 {
     if (modelIndex < 0 || modelIndex >= MODEL_INFOS.size()) return;
@@ -600,25 +747,22 @@ void VideoSubtitleSettings::deleteModel(int modelIndex)
     QFile::remove(filePath);
     emit availableModelsChanged();
 }
-
 QString VideoSubtitleSettings::modelFileName(int modelIndex) const
 {
     if (modelIndex < 0 || modelIndex >= MODEL_INFOS.size()) return QString();
     return MODEL_INFOS[modelIndex].fileName;
 }
-
 qint64 VideoSubtitleSettings::modelFileSize(int modelIndex) const
 {
     if (modelIndex < 0 || modelIndex >= MODEL_INFOS.size()) return 0;
     return MODEL_INFOS[modelIndex].fileSize;
 }
 
-// Private
+// ── Private ──
 void VideoSubtitleSettings::detectTools()
 {
     bool changed = false;
 
-    // ---------- Helper: recursively find a bundled tool under exe同级/plugins/videosubtitle/ ----------
     auto findBundled = [](const QString &fileName) -> QString {
         QString basePath = QCoreApplication::applicationDirPath() + "/plugins/videosubtitle";
         QDirIterator it(basePath, QStringList() << fileName, QDir::Files, QDirIterator::Subdirectories);
@@ -629,9 +773,7 @@ void VideoSubtitleSettings::detectTools()
         return QString();
     };
 
-    // ---------- FFmpeg ----------
     if (!m_ffmpegPath.isEmpty()) {
-        // ini 有路径，以 ini 为准，验证可用性但不回退到自动检测
         if (isFFmpegAvailable(m_ffmpegPath, m_logger)) {
             QString ver = ffmpegVersion(m_ffmpegPath);
             m_ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
@@ -641,7 +783,6 @@ void VideoSubtitleSettings::detectTools()
         }
         emit ffmpegStatusChanged();
     } else {
-        // ini 无路径，exe同级/plugins/videosubtitle/ 下递归查找 ffmpeg.exe
         QString found = findBundled("ffmpeg.exe");
         if (!found.isEmpty()) {
             m_ffmpegPath = found;
@@ -657,19 +798,13 @@ void VideoSubtitleSettings::detectTools()
         emit ffmpegStatusChanged();
     }
 
-    // 更新 GPU 加速检测信息
     if (!m_ffmpegPath.isEmpty() && isFFmpegAvailable(m_ffmpegPath, m_logger)) {
         m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(m_ffmpegPath);
     } else {
         m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
     }
 
-    // ---------- Whisper ----------
-    // 注意: 只检查文件是否存在，不启动进程验证。
-    // whisper-cli.exe 依赖 whisper.dll / ggml.dll，启动时会触发 Windows DLL 加载，
-    // BYTools 不应因外部工具的运行时环境而报错。
     if (!m_whisperPath.isEmpty()) {
-        // ini 有路径，以 ini 为准
         if (QFileInfo::exists(m_whisperPath)) {
             m_whisperStatus = "已找到 whisper.cpp";
         } else {
@@ -678,7 +813,6 @@ void VideoSubtitleSettings::detectTools()
         }
         emit whisperStatusChanged();
     } else {
-        // ini 无路径，exe同级/plugins/videosubtitle/ 下递归查找 whisper-cli.exe
         QString found = findBundled("whisper-cli.exe");
         if (!found.isEmpty()) {
             m_whisperPath = found;
@@ -689,17 +823,14 @@ void VideoSubtitleSettings::detectTools()
         emit whisperStatusChanged();
     }
 
-    // 自动保存检测到的路径，确保 Controller 可以读取到
     if (changed) {
         saveSettings();
     }
 }
-
 void VideoSubtitleSettings::updateApiUrlForEngine(int engine)
 {
     m_apiUrl = defaultApiUrl(engine);
 }
-
 QString VideoSubtitleSettings::defaultApiUrl(int engine) const
 {
     switch (engine) {

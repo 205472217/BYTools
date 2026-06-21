@@ -13,6 +13,8 @@ set(PLUGIN_SOURCES
     SubtitleAdjustPlugin.h
     SubtitleAdjustController.cpp
     SubtitleAdjustController.h
+    SubtitleAdjustSettings.cpp
+    SubtitleAdjustSettings.h
     MatchPairModel.cpp
     MatchPairModel.h
 )

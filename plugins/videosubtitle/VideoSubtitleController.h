@@ -2,12 +2,12 @@
 
 #include <QObject>
 #include <QVariantList>
-#include <QDir>
 
 class PluginLogger;
 class WhisperService;
 class TranslateService;
 class FFmpegService;
+class VideoSubtitleSettings;
 
 class VideoSubtitleController : public QObject
 {
@@ -44,10 +44,19 @@ class VideoSubtitleController : public QObject
     Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
     Q_PROPERTY(QVariantList records READ records NOTIFY recordsChanged)
-    Q_PROPERTY(QString currentStep READ currentStep NOTIFY currentStepChanged)
+    Q_PROPERTY(int currentStep READ currentStep NOTIFY currentStepChanged)
+    Q_PROPERTY(QString currentStepName READ currentStepName NOTIFY currentStepChanged)
+
+    // === Step enum constants for QML ===
+    Q_PROPERTY(int stepNone READ stepNone CONSTANT)
+    Q_PROPERTY(int stepExtractAudio READ stepExtractAudio CONSTANT)
+    Q_PROPERTY(int stepTranscribe READ stepTranscribe CONSTANT)
+    Q_PROPERTY(int stepTranslate READ stepTranslate CONSTANT)
+    Q_PROPERTY(int stepBurnSubtitle READ stepBurnSubtitle CONSTANT)
 
 public:
-    explicit VideoSubtitleController(PluginLogger *logger, QObject *parent = nullptr);
+    enum Step { StepNone = 0, StepExtractAudio, StepTranscribe, StepTranslate, StepBurnSubtitle };
+    explicit VideoSubtitleController(PluginLogger *logger, VideoSubtitleSettings *settings, QObject *parent = nullptr);
 
     // Getters
     QString inputPath() const;
@@ -67,7 +76,15 @@ public:
     bool isProcessing() const;
     bool hasRecords() const;
     QVariantList records() const;
-    QString currentStep() const;
+    int currentStep() const;
+    QString currentStepName() const;
+
+    // Step enum read-only access for QML
+    int stepNone() const { return StepNone; }
+    int stepExtractAudio() const { return StepExtractAudio; }
+    int stepTranscribe() const { return StepTranscribe; }
+    int stepTranslate() const { return StepTranslate; }
+    int stepBurnSubtitle() const { return StepBurnSubtitle; }
 
     // Setters
     void setInputPath(const QString &path);
@@ -99,6 +116,7 @@ public:
     Q_INVOKABLE void cancel();
     Q_INVOKABLE void clearRecords();
     Q_INVOKABLE void reset();
+    Q_INVOKABLE void requestStopAfterCount(int count);
 
 signals:
     void inputPathChanged();
@@ -141,12 +159,13 @@ private:
     void processSingleFile(const QString &videoPath);
     void finalizeCurrentFile();
     void setStatusMessage(const QString &message);
-    void setCurrentStep(const QString &step);
+    void setCurrentStep(int step, const QString &stepName);
     void setProgress(double value);
     void setIsProcessing(bool processing);
     void addRecord(const QString &originalPath, const QString &outputPath,
                    bool success, const QString &status);
-    // Read settings from QSettings
+    static QString stepNameForStep(int step);
+    // Read settings through VideoSubtitleSettings
     QString ffmpegPath() const;
     QString whisperPath() const;
     QString whisperModelPath() const;
@@ -160,28 +179,18 @@ private:
     int defaultBorderWidth() const;
     int audioSegmentDuration() const;
 
-    QString m_inputPath;
-    int m_inputMode = 0;
-    bool m_recursive = false;
-    QString m_sourceLanguage = "auto";
-    QString m_targetLanguage = "zh";
-    bool m_translateMusic = false;
-    int m_outputMode = 0;
-    QString m_outputDir;
+    VideoSubtitleSettings *m_settings = nullptr;
+
     QString m_statusMessage;
-    QString m_currentStep;
+    int m_currentStep = StepNone;
+    QString m_currentStepName;
     double m_progress = 0.0;
     bool m_isProcessing = false;
     QList<QVariantMap> m_records;
 
-    // Step control flags
-    bool m_enableAudioExtraction = true;
-    bool m_enableTranscribe = true;
-    bool m_enableTranslate = true;
-    bool m_enableBurnSubtitle = true;
-
     QStringList m_pendingFiles;
     int m_currentFileIndex = -1;
+    int m_stopTargetIndex = -1;
 
     PluginLogger *m_logger = nullptr;
     WhisperService *m_whisperService;

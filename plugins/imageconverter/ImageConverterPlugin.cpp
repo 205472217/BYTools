@@ -1,5 +1,6 @@
 #include "ImageConverterPlugin.h"
 #include "ImageConverterController.h"
+#include "ImageConverterSettings.h"
 #include "Logger.h"
 
 ImageConverterPlugin::ImageConverterPlugin(QObject *parent)
@@ -42,8 +43,11 @@ void ImageConverterPlugin::initialize()
 {
     if (!m_logger)
         m_logger = new PluginLogger("image-converter");
+    if (!m_settings) {
+        m_settings = new ImageConverterSettings(this);
+    }
     if (!m_controller) {
-        m_controller = new ImageConverterController(m_logger, this);
+        m_controller = new ImageConverterController(m_logger, m_settings, this);
     }
     m_logger->info(QStringLiteral("图片格式转换插件已初始化"));
 }
@@ -53,6 +57,10 @@ void ImageConverterPlugin::cleanup()
     if (m_controller) {
         delete m_controller;
         m_controller = nullptr;
+    }
+    if (m_settings) {
+        delete m_settings;
+        m_settings = nullptr;
     }
     delete m_logger;
     m_logger = nullptr;
@@ -64,4 +72,9 @@ QObject* ImageConverterPlugin::getController()
         m_controller->reset();
     }
     return m_controller;
+}
+
+QObject* ImageConverterPlugin::getSettings()
+{
+    return m_settings;
 }

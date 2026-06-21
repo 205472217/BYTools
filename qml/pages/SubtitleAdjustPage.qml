@@ -10,9 +10,10 @@ Pane {
 
     signal backRequested
     property var controller: null
+    property QtObject settings: pluginManager.getPluginSettings("subtitle-adjust")
 
     property bool hasVideo: controller && controller.currentVideoPath.length > 0
-    property bool isSingleMode: controller ? controller.mode === 0 : true
+    property bool isSingleMode: controller ? settings.mode === 0 : true
 
     property int stepMs: 100
     property int maxOffsetMs: 60000 // 默认 ±1 分钟
@@ -85,7 +86,7 @@ Pane {
         id: videoFolderDialog
         title: "选择视频文件夹"
         onAccepted: {
-            if (controller) controller.videoFolder = selectedFileUrl(selectedFolder)
+            if (controller) settings.videoFolder = selectedFileUrl(selectedFolder)
         }
     }
 
@@ -93,7 +94,7 @@ Pane {
         id: subtitleFolderDialog
         title: "选择字幕文件夹"
         onAccepted: {
-            if (controller) controller.subtitleFolder = selectedFileUrl(selectedFolder)
+            if (controller) settings.subtitleFolder = selectedFileUrl(selectedFolder)
         }
     }
 
@@ -275,8 +276,8 @@ Pane {
                         checked: isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
-                            if (checked && controller && controller.mode !== 0)
-                                controller.mode = 0
+                            if (checked && controller && settings.mode !== 0)
+                                settings.mode = 0
                         }
                     }
 
@@ -288,8 +289,8 @@ Pane {
                         checked: !isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
-                            if (checked && controller && controller.mode !== 1)
-                                controller.mode = 1
+                            if (checked && controller && settings.mode !== 1)
+                                settings.mode = 1
                         }
                     }
 
@@ -315,7 +316,7 @@ Pane {
                         font.pixelSize: 11
                         text: isSingleMode
                             ? (controller ? controller.videoPath : "")
-                            : (controller ? controller.videoFolder : "")
+                            : (controller ? settings.videoFolder : "")
                         readOnly: true
                         placeholderText: isSingleMode ? "选择视频文件" : "选择视频文件夹"
                         clip: true
@@ -328,9 +329,9 @@ Pane {
                         textColor: pal.checkBox_textColor
                         font.pixelSize: 12
                         visible: !isSingleMode
-                        checked: controller ? controller.recursiveVideo : false
+                        checked: controller ? settings.recursiveVideo : false
                         onCheckedChanged: {
-                            if (controller) controller.recursiveVideo = checked
+                            if (controller) settings.recursiveVideo = checked
                         }
                     }
 
@@ -360,7 +361,7 @@ Pane {
                         font.pixelSize: 11
                         text: isSingleMode
                             ? (controller ? controller.subtitlePath : "")
-                            : (controller ? controller.subtitleFolder : "")
+                            : (controller ? settings.subtitleFolder : "")
                         readOnly: true
                         placeholderText: isSingleMode ? "选择字幕文件" : "选择字幕文件夹"
                         clip: true
@@ -373,9 +374,9 @@ Pane {
                         textColor: pal.checkBox_textColor
                         font.pixelSize: 12
                         visible: !isSingleMode
-                        checked: controller ? controller.recursiveSubtitle : false
+                        checked: controller ? settings.recursiveSubtitle : false
                         onCheckedChanged: {
-                            if (controller) controller.recursiveSubtitle = checked
+                            if (controller) settings.recursiveSubtitle = checked
                         }
                     }
 
@@ -407,7 +408,7 @@ Pane {
                             if (isSingleMode)
                                 return controller.videoPath.length > 0 && controller.subtitlePath.length > 0
                             else
-                                return controller.videoFolder.length > 0 && controller.subtitleFolder.length > 0
+                                return settings.videoFolder.length > 0 && settings.subtitleFolder.length > 0
                         }
                         onClicked: {
                             if (controller) controller.startMatch()
@@ -1031,9 +1032,9 @@ Pane {
                         text: "替换原字幕文件"
                         textColor: pal.checkBox_textColor
                         font.pixelSize: 12
-                        checked: controller ? controller.overwriteOriginal : false
+                        checked: controller ? settings.overwriteOriginal : false
                         onCheckedChanged: {
-                            if (controller) controller.overwriteOriginal = checked
+                            if (controller) settings.overwriteOriginal = checked
                         }
                     }
 

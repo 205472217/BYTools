@@ -4,6 +4,7 @@
 #include "SubtitleAdjustController.h"
 
 class PluginLogger;
+class SubtitleAdjustSettings;
 
 class SubtitleAdjustPlugin : public QObject, public PluginInterface
 {
@@ -25,8 +26,10 @@ public:
     void cleanup() override;
 
     QObject* getController() override;
+    QObject* getSettings() override;
 
 private:
     PluginLogger *m_logger = nullptr;
     SubtitleAdjustController *m_controller = nullptr;
+    SubtitleAdjustSettings *m_settings = nullptr;
 };

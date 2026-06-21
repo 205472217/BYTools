@@ -8,29 +8,18 @@
 #include "TextConverter.h"
 
 class PluginLogger;
+class NameConverterSettings;
 
-class BatchNameController : public QObject
+class NameConverterController : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString rootPath READ rootPath WRITE setRootPath NOTIFY rootPathChanged)
-    Q_PROPERTY(int targetType READ targetType WRITE setTargetType NOTIFY targetTypeChanged)
-    Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
     Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
     Q_PROPERTY(NamePreviewModel* previewModel READ previewModel CONSTANT)
 
 public:
-    explicit BatchNameController(PluginLogger *logger, QObject *parent = nullptr);
-
-    QString rootPath() const;
-    void setRootPath(const QString &rootPath);
-
-    int targetType() const;
-    void setTargetType(int targetType);
-
-    bool recursive() const;
-    void setRecursive(bool recursive);
+    explicit NameConverterController(PluginLogger *logger, NameConverterSettings *settings, QObject *parent = nullptr);
 
     QString statusMessage() const;
     bool hasRecords() const;
@@ -41,13 +30,11 @@ public:
     Q_INVOKABLE void executeRename();
     Q_INVOKABLE void cancel();
     Q_INVOKABLE void restoreRecord(int row);
+    Q_INVOKABLE void restoreAllRecords();
     Q_INVOKABLE void clearRecords();
     Q_INVOKABLE void reset();
 
 signals:
-    void rootPathChanged();
-    void targetTypeChanged();
-    void recursiveChanged();
     void statusMessageChanged();
     void hasRecordsChanged();
     void isProcessingChanged();
@@ -55,16 +42,13 @@ signals:
 private:
     NameService::TargetType currentTargetType() const;
     void setStatusMessage(const QString &message);
-
     void setIsProcessing(bool processing);
 
-    QString m_rootPath;
-    int m_targetType = 2;
-    bool m_recursive = false;
     bool m_isProcessing = false;
     QString m_statusMessage;
     ChineseTextConverter m_converter;
     PluginLogger *m_logger = nullptr;
     NameService m_service;
     NamePreviewModel *m_previewModel = nullptr;
+    NameConverterSettings *m_settings = nullptr;
 };

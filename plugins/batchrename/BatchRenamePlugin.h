@@ -3,6 +3,7 @@
 #include "../../src/core/PluginInterface.h"
 
 class BatchRenameController;
+class BatchRenameSettings;
 class PluginLogger;
 
 class BatchRenamePlugin : public QObject, public PluginInterface
@@ -12,6 +13,8 @@ class BatchRenamePlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
+    static constexpr const char* kIniSection = "batch-rename";
+
     BatchRenamePlugin(QObject *parent = nullptr);
 
     QString id() const override;
@@ -25,8 +28,10 @@ public:
     void cleanup() override;
 
     QObject* getController() override;
+    QObject* getSettings() override;
 
 private:
     PluginLogger *m_logger = nullptr;
     BatchRenameController *m_controller;
+    BatchRenameSettings *m_settings = nullptr;
 };

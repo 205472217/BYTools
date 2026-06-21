@@ -7,23 +7,15 @@
 #include "MatchPairModel.h"
 
 class PluginLogger;
+class SubtitleAdjustSettings;
 
 class SubtitleAdjustController : public QObject
 {
     Q_OBJECT
 
-    // ── 模式 ──
-    Q_PROPERTY(int mode READ mode WRITE setMode NOTIFY modeChanged)
-
     // ── 单文件模式 ──
     Q_PROPERTY(QString videoPath READ videoPath WRITE setVideoPath NOTIFY videoPathChanged)
     Q_PROPERTY(QString subtitlePath READ subtitlePath WRITE setSubtitlePath NOTIFY subtitlePathChanged)
-
-    // ── 批量模式 ──
-    Q_PROPERTY(QString videoFolder READ videoFolder WRITE setVideoFolder NOTIFY videoFolderChanged)
-    Q_PROPERTY(QString subtitleFolder READ subtitleFolder WRITE setSubtitleFolder NOTIFY subtitleFolderChanged)
-    Q_PROPERTY(bool recursiveVideo READ recursiveVideo WRITE setRecursiveVideo NOTIFY recursiveVideoChanged)
-    Q_PROPERTY(bool recursiveSubtitle READ recursiveSubtitle WRITE setRecursiveSubtitle NOTIFY recursiveSubtitleChanged)
 
     // ── 调整状态 ──
     Q_PROPERTY(qint64 offsetMs READ offsetMs WRITE setOffsetMs NOTIFY offsetMsChanged)
@@ -33,10 +25,7 @@ class SubtitleAdjustController : public QObject
     Q_PROPERTY(QString currentVideoPath READ currentVideoPath NOTIFY currentVideoPathChanged)
     Q_PROPERTY(QString currentSubtitlePath READ currentSubtitlePath NOTIFY currentSubtitlePathChanged)
 
-    // ── 导出选项 ──
-    Q_PROPERTY(bool overwriteOriginal READ overwriteOriginal WRITE setOverwriteOriginal NOTIFY overwriteOriginalChanged)
-
-    // ── 映射表模型 ──
+    // === 映射表模型 ===
     Q_PROPERTY(MatchPairModel* matchModel READ matchModel CONSTANT)
 
 public:
@@ -46,27 +35,17 @@ public:
         QString text;
     };
 
-    explicit SubtitleAdjustController(PluginLogger *logger, QObject *parent = nullptr);
+    explicit SubtitleAdjustController(PluginLogger *logger, SubtitleAdjustSettings *settings, QObject *parent = nullptr);
 
-    // ── mode ──
-    int mode() const;
-    void setMode(int mode);
+    // ── Config properties (delegated to Settings) ──
+    bool overwriteOriginal() const;
+    void setOverwriteOriginal(bool overwrite);
 
     // ── 单文件模式 ──
     QString videoPath() const;
     void setVideoPath(const QString &path);
     QString subtitlePath() const;
     void setSubtitlePath(const QString &path);
-
-    // ── 批量模式 ──
-    QString videoFolder() const;
-    void setVideoFolder(const QString &path);
-    QString subtitleFolder() const;
-    void setSubtitleFolder(const QString &path);
-    bool recursiveVideo() const;
-    void setRecursiveVideo(bool recursive);
-    bool recursiveSubtitle() const;
-    void setRecursiveSubtitle(bool recursive);
 
     // ── 调整状态 ──
     qint64 offsetMs() const;
@@ -93,19 +72,11 @@ public:
 
     Q_INVOKABLE QString getSubtitleTextAt(qint64 positionMs);
 
-    // ── 导出选项 ──
-    bool overwriteOriginal() const;
-    void setOverwriteOriginal(bool overwrite);
-
 signals:
+    void overwriteOriginalChanged();
     void logMessage(const QString &message);
-    void modeChanged();
     void videoPathChanged();
     void subtitlePathChanged();
-    void videoFolderChanged();
-    void subtitleFolderChanged();
-    void recursiveVideoChanged();
-    void recursiveSubtitleChanged();
     void offsetMsChanged();
     void isDirtyChanged();
     void currentMatchIndexChanged();
@@ -115,7 +86,6 @@ signals:
     void matchCompleted();
     void videoReady(const QString &videoPath, const QString &subtitlePath);
     void exportFinished(bool success, const QString &message);
-    void overwriteOriginalChanged();
 
 private:
     void setCurrentSubtitleText(const QString &text);
@@ -144,16 +114,10 @@ private:
     QString recordsFilePath() const;
 
     PluginLogger *m_logger = nullptr;
-
-    int m_mode = 0;
+    SubtitleAdjustSettings *m_settings = nullptr;
 
     QString m_videoPath;
     QString m_subtitlePath;
-
-    QString m_videoFolder;
-    QString m_subtitleFolder;
-    bool m_recursiveVideo = false;
-    bool m_recursiveSubtitle = false;
 
     qint64 m_offsetMs = 0;
     bool m_isDirty = false;
@@ -161,8 +125,6 @@ private:
     QString m_currentSubtitleText;
     QString m_currentVideoPath;
     QString m_currentSubtitlePath;
-
-    bool m_overwriteOriginal = false;
 
     MatchPairModel *m_matchModel = nullptr;
 

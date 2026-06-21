@@ -1,4 +1,7 @@
 #include "ImageConverterController.h"
+#include "ImageConverterPlugin.h"
+#include "ImageConverterSettings.h"
+#include "Config.h"
 #include "Logger.h"
 #include <QDir>
 #include <QFileInfo>
@@ -6,72 +9,11 @@
 #include <QPainter>
 #include <QUrl>
 
-ImageConverterController::ImageConverterController(PluginLogger *logger, QObject *parent)
+ImageConverterController::ImageConverterController(PluginLogger *logger, ImageConverterSettings *settings, QObject *parent)
     : QObject(parent)
     , m_logger(logger)
+    , m_settings(settings)
 {
-}
-
-QString ImageConverterController::rootPath() const { return m_rootPath; }
-
-void ImageConverterController::setRootPath(const QString &rootPath)
-{
-    QString normalizedPath = rootPath;
-    const QUrl url(rootPath);
-    if (url.isLocalFile()) {
-        normalizedPath = url.toLocalFile();
-    }
-    if (m_rootPath == normalizedPath) return;
-    m_rootPath = normalizedPath;
-    emit rootPathChanged();
-}
-
-int ImageConverterController::targetFormat() const { return m_targetFormat; }
-void ImageConverterController::setTargetFormat(int format)
-{
-    if (m_targetFormat == format) return;
-    m_targetFormat = format;
-    emit targetFormatChanged();
-}
-
-int ImageConverterController::quality() const { return m_quality; }
-void ImageConverterController::setQuality(int quality)
-{
-    if (m_quality == quality) return;
-    m_quality = quality;
-    emit qualityChanged();
-}
-
-QString ImageConverterController::bgColor() const { return m_bgColor; }
-void ImageConverterController::setBgColor(const QString &color)
-{
-    if (m_bgColor == color) return;
-    m_bgColor = color;
-    emit bgColorChanged();
-}
-
-int ImageConverterController::outputMode() const { return m_outputMode; }
-void ImageConverterController::setOutputMode(int mode)
-{
-    if (m_outputMode == mode) return;
-    m_outputMode = mode;
-    emit outputModeChanged();
-}
-
-QString ImageConverterController::outputDir() const { return m_outputDir; }
-void ImageConverterController::setOutputDir(const QString &dir)
-{
-    if (m_outputDir == dir) return;
-    m_outputDir = dir;
-    emit outputDirChanged();
-}
-
-bool ImageConverterController::recursive() const { return m_recursive; }
-void ImageConverterController::setRecursive(bool recursive)
-{
-    if (m_recursive == recursive) return;
-    m_recursive = recursive;
-    emit recursiveChanged();
 }
 
 QString ImageConverterController::statusMessage() const { return m_statusMessage; }
@@ -96,7 +38,15 @@ QVariantList ImageConverterController::records() const
 
 void ImageConverterController::executeConvert()
 {
-    if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
+    QString rootPath = m_settings->rootPath();
+    int targetFormat = m_settings->targetFormat();
+    int quality = m_settings->quality();
+    QString bgColor = m_settings->bgColor();
+    int outputMode = m_settings->outputMode();
+    QString outputDir = m_settings->outputDir();
+    bool recursive = m_settings->recursive();
+
+    if (rootPath.isEmpty() || !QDir(rootPath).exists()) {
         setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
         m_logger->warn("转换失败: 源文件夹无效");
         return;
@@ -104,7 +54,7 @@ void ImageConverterController::executeConvert()
 
     m_logger->info(QString("===== 开始图片格式转换 ====="));
     m_logger->info(QString("源目录: %1, 目标格式: %2, 递归=%3")
-        .arg(m_rootPath).arg(formatExtension(m_targetFormat)).arg(m_recursive));
+        .arg(rootPath).arg(formatExtension(targetFormat)).arg(recursive));
 
     m_records.clear();
     emit recordsChanged();
@@ -116,7 +66,8 @@ void ImageConverterController::executeConvert()
     int failCount = 0;
     int skipCount = 0;
 
-    processDirectory(QDir(m_rootPath), QString(), successCount, failCount, skipCount);
+    processDirectory(QDir(rootPath), QString(), successCount, failCount, skipCount,
+                     rootPath, targetFormat, outputMode, outputDir, quality, bgColor, recursive);
 
     QStringList parts;
     if (successCount > 0) parts << QStringLiteral("成功 %1 个").arg(successCount);
@@ -138,7 +89,10 @@ void ImageConverterController::executeConvert()
 }
 
 void ImageConverterController::processDirectory(const QDir &currentDir, const QString &relativePath,
-                                                 int &successCount, int &failCount, int &skipCount)
+                                                 int &successCount, int &failCount, int &skipCount,
+                                                 const QString &rootPath, int targetFormat,
+                                                 int outputMode, const QString &outputDir,
+                                                 int quality, const QString &bgColor, bool recursive)
 {
     m_logger->info(QString("处理目录: %1").arg(currentDir.absolutePath()));
     int dirSuccess = 0, dirFail = 0, dirSkip = 0;
@@ -146,14 +100,13 @@ void ImageConverterController::processDirectory(const QDir &currentDir, const QS
     QFileInfoList entries = currentDir.entryInfoList(
         QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
 
-    QString targetExt = formatExtension(m_targetFormat);
-    QByteArray targetFmt = formatForQImage(m_targetFormat);
+    QString targetExt = formatExtension(targetFormat);
+    QByteArray targetFmt = formatForQImage(targetFormat);
 
     for (const QFileInfo &entry : entries) {
         if (!isImageFile(entry.fileName())) continue;
 
         QString srcExt = entry.suffix().toLower();
-        // 同格式自动跳过
         if (QStringLiteral(".") + srcExt == targetExt) {
             addRecord(entry.absoluteFilePath(), entry.absoluteFilePath(),
                       formatTagForExt(srcExt), true, QStringLiteral("已跳过"));
@@ -166,14 +119,12 @@ void ImageConverterController::processDirectory(const QDir &currentDir, const QS
         QString newBaseName = entry.completeBaseName() + targetExt;
         QString destPath;
 
-        if (m_outputMode == 0) {
-            // 替换原文件
+        if (outputMode == 0) {
             destPath = currentDir.absoluteFilePath(newBaseName);
         } else {
-            // 输出到新目录
-            QString outRoot = m_outputDir.isEmpty()
-                ? m_rootPath + "_converted"
-                : m_outputDir;
+            QString outRoot = outputDir.isEmpty()
+                ? rootPath + "_converted"
+                : outputDir;
             QString destDir = relativePath.isEmpty() ? outRoot : outRoot + "/" + relativePath;
             QDir().mkpath(destDir);
             destPath = destDir + "/" + newBaseName;
@@ -191,20 +142,18 @@ void ImageConverterController::processDirectory(const QDir &currentDir, const QS
             continue;
         }
 
-        // JPG 不支持 alpha，需要填充背景色
-        if (m_targetFormat == 1 && image.hasAlphaChannel()) {
+        if (targetFormat == 1 && image.hasAlphaChannel()) {
             QImage filled(image.size(), QImage::Format_RGB32);
-            filled.fill(m_bgColor);
+            filled.fill(bgColor);
             QPainter painter(&filled);
             painter.drawImage(0, 0, image);
             painter.end();
             image = filled;
         }
 
-        bool ok = image.save(destPath, targetFmt, m_quality);
+        bool ok = image.save(destPath, targetFmt, quality);
         if (ok) {
-            // 替换模式下，转换成功后删除原文件
-            if (m_outputMode == 0) {
+            if (outputMode == 0) {
                 QFile::remove(entry.absoluteFilePath());
             }
             addRecord(entry.absoluteFilePath(), destPath,
@@ -224,7 +173,7 @@ void ImageConverterController::processDirectory(const QDir &currentDir, const QS
     m_logger->info(QString("目录处理完成: %1 (成功=%2, 失败=%3, 跳过=%4)")
         .arg(currentDir.absolutePath()).arg(dirSuccess).arg(dirFail).arg(dirSkip));
 
-    if (m_recursive) {
+    if (recursive) {
         QFileInfoList dirs = currentDir.entryInfoList(
             QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
         for (const QFileInfo &dirEntry : dirs) {
@@ -232,7 +181,9 @@ void ImageConverterController::processDirectory(const QDir &currentDir, const QS
                 ? dirEntry.fileName()
                 : relativePath + "/" + dirEntry.fileName();
             processDirectory(QDir(dirEntry.absoluteFilePath()), subRelative,
-                             successCount, failCount, skipCount);
+                             successCount, failCount, skipCount,
+                             rootPath, targetFormat, outputMode, outputDir,
+                             quality, bgColor, recursive);
         }
     }
 }
@@ -243,6 +194,111 @@ void ImageConverterController::clearRecords()
     emit recordsChanged();
     emit hasRecordsChanged();
     setStatusMessage(QString());
+}
+
+void ImageConverterController::restoreRecord(int index)
+{
+    if (index < 0 || index >= m_records.size())
+        return;
+
+    ConvertRecord &record = m_records[index];
+    if (!record.success)
+        return;
+
+    if (!QFileInfo::exists(record.newPath)) {
+        record.status = QStringLiteral("失败：文件不存在");
+        record.success = false;
+        setStatusMessage(QStringLiteral("还原失败：文件不存在"));
+        m_logger->warn(QString("还原失败: %1 — 文件不存在").arg(record.newPath));
+        emit recordsChanged();
+        return;
+    }
+
+    if (QFileInfo::exists(record.originalPath)) {
+        // Original still exists (outputMode 1): remove the converted copy
+        if (QFile::remove(record.newPath)) {
+            record.status = QStringLiteral("已还原");
+            record.success = false;
+            setStatusMessage(QStringLiteral("已还原：%1").arg(record.originalName));
+            m_logger->info(QString("已还原: %1").arg(record.originalName));
+        } else {
+            record.status = QStringLiteral("失败：删除失败");
+            record.success = false;
+            setStatusMessage(QStringLiteral("还原失败：%1").arg(record.newName));
+            m_logger->error(QString("还原失败: %1 — 删除失败").arg(record.newName));
+        }
+    } else {
+        // Original was deleted (outputMode 0): rename converted file back to original name
+        QDir parentDir = QFileInfo(record.newPath).absoluteDir();
+        if (parentDir.rename(QFileInfo(record.newPath).fileName(),
+                             QFileInfo(record.originalPath).fileName())) {
+            record.status = QStringLiteral("已还原");
+            record.success = false;
+            setStatusMessage(QStringLiteral("已还原：%1").arg(record.originalName));
+            m_logger->info(QString("已还原: %1 → %2").arg(record.newName, record.originalName));
+        } else {
+            record.status = QStringLiteral("失败：还原失败");
+            record.success = false;
+            setStatusMessage(QStringLiteral("还原失败：%1").arg(record.newName));
+            m_logger->error(QString("还原失败: %1").arg(record.newName));
+        }
+    }
+
+    emit recordsChanged();
+}
+
+void ImageConverterController::restoreAllRecords()
+{
+    m_logger->info("===== 开始批量还原 =====");
+    int successCount = 0;
+    int failCount = 0;
+
+    for (int i = 0; i < m_records.size(); ++i) {
+        ConvertRecord &record = m_records[i];
+        if (!record.success)
+            continue;
+
+        if (!QFileInfo::exists(record.newPath)) {
+            record.status = QStringLiteral("失败：文件不存在");
+            record.success = false;
+            failCount++;
+            continue;
+        }
+
+        bool ok = false;
+        if (QFileInfo::exists(record.originalPath)) {
+            // Original exists → delete converted copy
+            ok = QFile::remove(record.newPath);
+        } else {
+            // Original gone → rename converted file back
+            QDir parentDir = QFileInfo(record.newPath).absoluteDir();
+            ok = parentDir.rename(QFileInfo(record.newPath).fileName(),
+                                  QFileInfo(record.originalPath).fileName());
+        }
+
+        if (ok) {
+            record.status = QStringLiteral("已还原");
+            record.success = false;
+            successCount++;
+        } else {
+            record.status = QStringLiteral("失败：还原失败");
+            record.success = false;
+            failCount++;
+        }
+    }
+
+    if (successCount == 0 && failCount == 0) {
+        setStatusMessage(QStringLiteral("没有可还原的记录"));
+        m_logger->info("批量还原完成: 没有可还原的记录");
+    } else if (failCount == 0) {
+        setStatusMessage(QStringLiteral("已全部还原"));
+        m_logger->info(QString("批量还原完成: 成功还原 %1 个").arg(successCount));
+    } else {
+        setStatusMessage(QStringLiteral("成功还原 %1 个，失败 %2 个").arg(successCount).arg(failCount));
+        m_logger->info(QString("批量还原完成: 成功 %1 个，失败 %2 个").arg(successCount).arg(failCount));
+    }
+
+    emit recordsChanged();
 }
 
 bool ImageConverterController::isProcessing() const
@@ -270,24 +326,10 @@ void ImageConverterController::reset()
 {
     cancel();
     m_records.clear();
-    m_rootPath.clear();
-    m_targetFormat = 1;
-    m_quality = 85;
-    m_bgColor = "#ffffff";
-    m_outputMode = 0;
-    m_outputDir.clear();
-    m_recursive = false;
     setStatusMessage(QString());
 
     emit recordsChanged();
     emit hasRecordsChanged();
-    emit rootPathChanged();
-    emit targetFormatChanged();
-    emit qualityChanged();
-    emit bgColorChanged();
-    emit outputModeChanged();
-    emit outputDirChanged();
-    emit recursiveChanged();
 }
 
 void ImageConverterController::addRecord(const QString &originalPath, const QString &newPath,

@@ -13,6 +13,8 @@ add_library(ImageCropPlugin MODULE
     ImageCropPlugin.h
     ImageCropController.cpp
     ImageCropController.h
+    ImageCropSettings.cpp
+    ImageCropSettings.h
     plugin.json
 )
 

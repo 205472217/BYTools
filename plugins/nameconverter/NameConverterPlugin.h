@@ -1,8 +1,9 @@
 #pragma once
 
 #include "../../src/core/PluginInterface.h"
-#include "BatchNameController.h"
+#include "NameConverterController.h"
 
+class NameConverterSettings;
 class PluginLogger;
 
 class NameConverterPlugin : public QObject, public PluginInterface
@@ -12,6 +13,8 @@ class NameConverterPlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
+    static constexpr const char* kIniSection = "name-converter";
+
     NameConverterPlugin(QObject *parent = nullptr);
 
     QString id() const override;
@@ -25,8 +28,10 @@ public:
     void cleanup() override;
 
     QObject* getController() override;
+    QObject* getSettings() override;
 
 private:
     PluginLogger *m_logger = nullptr;
-    BatchNameController *m_controller;
+    NameConverterController *m_controller;
+    NameConverterSettings *m_settings = nullptr;
 };

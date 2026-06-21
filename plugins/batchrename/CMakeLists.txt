@@ -13,6 +13,8 @@ add_library(BatchRenamePlugin MODULE
     BatchRenamePlugin.h
     BatchRenameController.cpp
     BatchRenameController.h
+    BatchRenameSettings.cpp
+    BatchRenameSettings.h
     plugin.json
 )
 

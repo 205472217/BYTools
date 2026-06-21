@@ -11,6 +11,7 @@ Pane {
     signal backRequested()
 
     property var controller: null
+    property QtObject settings: pluginManager.getPluginSettings("image-converter")
 
     readonly property int tableLeftPadding: 18
     readonly property int tableRightPadding: 20
@@ -41,8 +42,8 @@ Pane {
         id: sourceFolderDialog
         title: "选择源文件夹"
         onAccepted: {
-            if (controller) {
-                controller.rootPath = selectedFolder
+            if (settings) {
+                settings.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
             }
         }
     }
@@ -51,18 +52,18 @@ Pane {
         id: outputFolderDialog
         title: "选择输出目录"
         onAccepted: {
-            if (controller) {
-                controller.outputDir = selectedFolder
+            if (settings) {
+                settings.outputDir = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
             }
         }
     }
 
     ColorDialog {
         id: colorDialog
-        selectedColor: controller ? controller.bgColor : pal.ImageConverterPage_colorDialog_defaultColor
+        selectedColor: settings ? settings.bgColor : pal.ImageConverterPage_colorDialog_defaultColor
         onAccepted: {
-            if (controller) {
-                controller.bgColor = selectedColor.toString()
+            if (settings) {
+                settings.bgColor = selectedColor.toString()
             }
         }
     }
@@ -201,7 +202,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? controller.rootPath : ""
+                        text: controller ? settings.rootPath : ""
                         readOnly: true
                         placeholderText: "点击选择文件"
                     }
@@ -211,10 +212,10 @@ Pane {
                         implicitWidth: 110
                         text: "递归子文件夹"
                         textColor: pal.checkBox_textColor
-                        checked: controller ? controller.recursive : false
+                        checked: controller ? settings.recursive : false
                         onCheckedChanged: {
                             if (controller) {
-                                controller.recursive = checked
+                                settings.recursive = checked
                             }
                         }
                     }
@@ -242,10 +243,10 @@ Pane {
                     ComboBoxEx {
                         Layout.preferredWidth: 150
                         model: ["PNG", "JPG", "BMP", "WebP", "TIFF"]
-                        currentIndex: controller ? controller.targetFormat : 1
+                        currentIndex: controller ? settings.targetFormat : 1
                         onActivated: {
                             if (controller) {
-                                controller.targetFormat = currentIndex
+                                settings.targetFormat = currentIndex
                             }
                         }
                     }
@@ -273,18 +274,18 @@ Pane {
                         to: 100
                         stepSize: 1
                         Component.onCompleted: {
-                            if (controller) value = controller.quality
+                            if (controller) value = settings.quality
                         }
                         onValueChanged: {
                             if (pressed && controller) {
-                                controller.quality = Math.round(value)
+                                settings.quality = Math.round(value)
                             }
                         }
                     }
 
                     Label {
                         id: qualityValLbl
-                        text: (controller ? controller.quality : 85)
+                        text: (controller ? settings.quality : 85)
                         color: pal.ImageConverterPage_qualityValLbl_color
                         font.pixelSize: 13
                         font.bold: true
@@ -297,7 +298,7 @@ Pane {
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
-                    visible: controller ? controller.targetFormat === 1 : false
+                    visible: controller ? settings.targetFormat === 1 : false
 
                     Label {
                         id: bgColorLbl
@@ -317,13 +318,13 @@ Pane {
                             height: 28
                             radius: 6
                             color: pal.ImageConverterPage_whiteSwatch_color
-                            border.width: controller && controller.bgColor === "#ffffff" ? 2 : 1
-                            border.color: controller && controller.bgColor === "#ffffff" ? pal.ImageConverterPage_whiteSwatch_borderColor_active : pal.ImageConverterPage_whiteSwatch_borderColor_normal
+                            border.width: controller && settings.bgColor === "#ffffff" ? 2 : 1
+                            border.color: controller && settings.bgColor === "#ffffff" ? pal.ImageConverterPage_whiteSwatch_borderColor_active : pal.ImageConverterPage_whiteSwatch_borderColor_normal
 
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: { if (controller) controller.bgColor = "#ffffff" }
+                                onClicked: { if (controller) settings.bgColor = "#ffffff" }
                             }
                         }
 
@@ -333,13 +334,13 @@ Pane {
                             height: 28
                             radius: 6
                             color: pal.ImageConverterPage_blackSwatch_color
-                            border.width: controller && controller.bgColor === "#000000" ? 2 : 1
-                            border.color: controller && controller.bgColor === "#000000" ? pal.ImageConverterPage_blackSwatch_borderColor_active : pal.ImageConverterPage_blackSwatch_borderColor_normal
+                            border.width: controller && settings.bgColor === "#000000" ? 2 : 1
+                            border.color: controller && settings.bgColor === "#000000" ? pal.ImageConverterPage_blackSwatch_borderColor_active : pal.ImageConverterPage_blackSwatch_borderColor_normal
 
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
-                                onClicked: { if (controller) controller.bgColor = "#000000" }
+                                onClicked: { if (controller) settings.bgColor = "#000000" }
                             }
                         }
 
@@ -349,8 +350,8 @@ Pane {
                             height: 28
                             radius: 6
                             color: pal.ImageConverterPage_customSwatch_color
-                            border.width: (controller && controller.bgColor !== "#ffffff" && controller.bgColor !== "#000000") ? 2 : 1
-                            border.color: (controller && controller.bgColor !== "#ffffff" && controller.bgColor !== "#000000") ? pal.ImageConverterPage_customSwatch_borderColor_active : pal.ImageConverterPage_customSwatch_borderColor_normal
+                            border.width: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? 2 : 1
+                            border.color: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? pal.ImageConverterPage_customSwatch_borderColor_active : pal.ImageConverterPage_customSwatch_borderColor_normal
 
                             Label {
                                 anchors.centerIn: parent
@@ -386,7 +387,7 @@ Pane {
                         width: 100
                         height: 28
                         radius: 6
-                        color: controller ? controller.bgColor : pal.ImageConverterPage_customSwatch_color
+                        color: controller ? settings.bgColor : pal.ImageConverterPage_customSwatch_color
 
                         MouseArea {
                             anchors.fill: parent
@@ -416,10 +417,10 @@ Pane {
                         implicitWidth: 120
                         text: "替换原文件"
                         textColor: pal.radioButton_textColor
-                        checked: controller ? controller.outputMode === 0 : true
+                        checked: controller ? settings.outputMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller) {
-                                controller.outputMode = 0
+                                settings.outputMode = 0
                             }
                         }
                     }
@@ -429,23 +430,23 @@ Pane {
                         implicitWidth: 120
                         text: "输出到新目录"
                         textColor: pal.radioButton_textColor
-                        checked: controller ? controller.outputMode === 1 : false
+                        checked: controller ? settings.outputMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller) {
-                                controller.outputMode = 1
+                                settings.outputMode = 1
                             }
                         }
                     }
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? controller.outputDir : ""
-                        placeholderText: controller ? (controller.rootPath ? controller.rootPath + "_converted" : "自动在源目录后添加 _converted") : ""
-                        readOnly: false
+                        text: controller ? settings.outputDir : ""
+                        placeholderText: controller ? (settings.rootPath ? settings.rootPath + "_converted" : "自动在源目录后添加 _converted") : ""
+                        readOnly: true
                         enabled: newDirRadio.checked
                         onTextChanged: {
                             if (controller) {
-                                controller.outputDir = text
+                                settings.outputDir = text
                             }
                         }
                     }
@@ -478,26 +479,45 @@ Pane {
             }
         }
 
-        // 状态栏
-        Rectangle {
-            id: statusBar
+        // 状态栏 + 批量还原
+        RowLayout {
             Layout.fillWidth: true
-            height: statusText.implicitHeight + 12
-            radius: 6
-            color: pal.ImageConverterPage_statusBar_color
-            visible: controller ? controller.statusMessage.length > 0 : false
+            Layout.preferredHeight: 50
+            spacing: 12
+            visible: true
 
-            Label {
-                id: statusText
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
-                anchors.leftMargin: 12
-                anchors.right: parent.right
-                anchors.rightMargin: 12
-                text: controller ? controller.statusMessage : ""
-                color: pal.ImageConverterPage_statusTextLbl_color
-                font.pixelSize: 13
-                elide: Text.ElideRight
+            Rectangle {
+                id: statusBar
+                Layout.fillWidth: true
+                height: statusText.implicitHeight + 12
+                radius: 6
+                color: pal.ImageConverterPage_statusBar_color
+
+                Label {
+                    id: statusText
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.left
+                    anchors.leftMargin: 12
+                    anchors.right: parent.right
+                    anchors.rightMargin: 12
+                    text: controller && controller.statusMessage.length > 0
+                        ? controller.statusMessage
+                        : "就绪"
+                    color: pal.ImageConverterPage_statusTextLbl_color
+                    font.pixelSize: 13
+                    elide: Text.ElideRight
+                }
+            }
+
+            IconButton {
+                iconSource: "qrc:/icons/undo.svg"
+                tooltip: "批量还原"
+                visible: controller ? controller.hasRecords : false
+                onClicked: {
+                    if (controller) {
+                        controller.restoreAllRecords()
+                    }
+                }
             }
         }
 
@@ -698,6 +718,19 @@ Pane {
                             elide: Text.ElideMiddle
                         }
 
+                        IconButton {
+                            x: root.actionColumnX
+                            width: root.actionColumnWidth
+                            anchors.verticalCenter: parent.verticalCenter
+                            iconSource: "qrc:/icons/undo.svg"
+                            tooltip: modelData.success ? "还原" : "失败项无法还原"
+                            enabled: modelData.success
+                            onClicked: {
+                                if (controller) {
+                                    controller.restoreRecord(index)
+                                }
+                            }
+                        }
 
                         MouseArea {
                             id: rowMouseArea

@@ -1,4 +1,7 @@
 #include "ImageCropController.h"
+#include "ImageCropPlugin.h"
+#include "ImageCropSettings.h"
+#include "Config.h"
 #include "Logger.h"
 #include <QDir>
 #include <QFileInfo>
@@ -6,103 +9,14 @@
 #include <QImageReader>
 #include <QUrl>
 
-ImageCropController::ImageCropController(PluginLogger *logger, QObject *parent)
+ImageCropController::ImageCropController(PluginLogger *logger, ImageCropSettings *settings, QObject *parent)
     : QObject(parent)
     , m_logger(logger)
+    , m_settings(settings)
 {
 }
 
 // ── Getters / Setters ──────────────────────────────────────────────────
-
-QString ImageCropController::rootPath() const { return m_rootPath; }
-
-void ImageCropController::setRootPath(const QString &path)
-{
-    QString normalizedPath = path;
-    const QUrl url(path);
-    if (url.isLocalFile()) {
-        normalizedPath = url.toLocalFile();
-    }
-    if (m_rootPath == normalizedPath) return;
-    m_rootPath = normalizedPath;
-    emit rootPathChanged();
-}
-
-bool ImageCropController::recursive() const { return m_recursive; }
-
-void ImageCropController::setRecursive(bool recursive)
-{
-    if (m_recursive == recursive) return;
-    m_recursive = recursive;
-    emit recursiveChanged();
-}
-
-int ImageCropController::cropMode() const { return m_cropMode; }
-
-void ImageCropController::setCropMode(int mode)
-{
-    if (m_cropMode == mode) return;
-    m_cropMode = mode;
-    emit cropModeChanged();
-}
-
-int ImageCropController::presetRatioIndex() const { return m_presetRatioIndex; }
-
-void ImageCropController::setPresetRatioIndex(int index)
-{
-    if (m_presetRatioIndex == index) return;
-    m_presetRatioIndex = index;
-    emit presetRatioIndexChanged();
-}
-
-bool ImageCropController::usePresetRatio() const { return m_usePresetRatio; }
-
-void ImageCropController::setUsePresetRatio(bool use)
-{
-    if (m_usePresetRatio == use) return;
-    m_usePresetRatio = use;
-    emit usePresetRatioChanged();
-}
-
-int ImageCropController::customRatioW() const { return m_customRatioW; }
-
-void ImageCropController::setCustomRatioW(int w)
-{
-    if (w < 1) w = 1;
-    if (m_customRatioW == w) return;
-    m_customRatioW = w;
-    emit customRatioWChanged();
-}
-
-int ImageCropController::customRatioH() const { return m_customRatioH; }
-
-void ImageCropController::setCustomRatioH(int h)
-{
-    if (h < 1) h = 1;
-    if (m_customRatioH == h) return;
-    m_customRatioH = h;
-    emit customRatioHChanged();
-}
-
-int ImageCropController::targetWidth() const { return m_targetWidth; }
-
-void ImageCropController::setTargetWidth(int w)
-{
-    if (w < 1) w = 1;
-    if (m_targetWidth == w) return;
-    m_targetWidth = w;
-    emit targetWidthChanged();
-}
-
-int ImageCropController::targetHeight() const { return m_targetHeight; }
-
-void ImageCropController::setTargetHeight(int h)
-{
-    if (h < 1) h = 1;
-    if (m_targetHeight == h) return;
-    m_targetHeight = h;
-    emit targetHeightChanged();
-}
 
 int ImageCropController::cropX() const { return m_cropX; }
 
@@ -140,33 +54,6 @@ void ImageCropController::setCropH(int h)
     emit cropHChanged();
 }
 
-int ImageCropController::outputMode() const { return m_outputMode; }
-
-void ImageCropController::setOutputMode(int mode)
-{
-    if (m_outputMode == mode) return;
-    m_outputMode = mode;
-    emit outputModeChanged();
-}
-
-QString ImageCropController::outputDir() const { return m_outputDir; }
-
-void ImageCropController::setOutputDir(const QString &dir)
-{
-    if (m_outputDir == dir) return;
-    m_outputDir = dir;
-    emit outputDirChanged();
-}
-
-QString ImageCropController::suffix() const { return m_suffix; }
-
-void ImageCropController::setSuffix(const QString &suffix)
-{
-    if (m_suffix == suffix) return;
-    m_suffix = suffix;
-    emit suffixChanged();
-}
-
 QString ImageCropController::statusMessage() const { return m_statusMessage; }
 bool ImageCropController::hasRecords() const { return !m_records.isEmpty(); }
 
@@ -199,14 +86,28 @@ QString ImageCropController::currentFilePath() const
     return {};
 }
 
+int ImageCropController::imageVersion() const
+{
+    return m_imageVersion;
+}
+
+bool ImageCropController::canRestoreCurrent() const
+{
+    return !m_backups.isEmpty();
+}
+
 // ── Image Scanning ─────────────────────────────────────────────────────
 
 void ImageCropController::scanImages()
 {
+    QString rootPath = m_settings->rootPath();
+    bool recursive = m_settings->recursive();
+
+    m_backups.clear();
     m_imageFiles.clear();
     m_currentIndex = -1;
 
-    if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
+    if (rootPath.isEmpty() || !QDir(rootPath).exists()) {
         setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
         m_logger->warn("扫描图片失败: 源文件夹无效");
         emit currentIndexChanged();
@@ -215,9 +116,9 @@ void ImageCropController::scanImages()
         return;
     }
 
-    m_logger->info(QString("扫描图片目录: %1 (递归=%2)").arg(m_rootPath).arg(m_recursive));
+    m_logger->info(QString("扫描图片目录: %1 (递归=%2)").arg(rootPath).arg(recursive));
 
-    QDir dir(m_rootPath);
+    QDir dir(rootPath);
     QFileInfoList entries = dir.entryInfoList(
         QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
 
@@ -227,7 +128,7 @@ void ImageCropController::scanImages()
         }
     }
 
-    if (m_recursive) {
+    if (recursive) {
         QFileInfoList dirs = dir.entryInfoList(
             QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
         for (const QFileInfo &dirEntry : dirs) {
@@ -254,6 +155,7 @@ void ImageCropController::scanImages()
     emit currentIndexChanged();
     emit currentFileCountChanged();
     emit currentFilePathChanged();
+    emit canRestoreCurrentChanged();
 }
 
 // ── Navigation ─────────────────────────────────────────────────────────
@@ -261,18 +163,22 @@ void ImageCropController::scanImages()
 bool ImageCropController::navigateNext()
 {
     if (m_imageFiles.isEmpty()) return false;
+    m_backups.clear();
     m_currentIndex = (m_currentIndex + 1) % m_imageFiles.size();
     emit currentIndexChanged();
     emit currentFilePathChanged();
+    emit canRestoreCurrentChanged();
     return true;
 }
 
 bool ImageCropController::navigatePrev()
 {
     if (m_imageFiles.isEmpty()) return false;
+    m_backups.clear();
     m_currentIndex = (m_currentIndex - 1 + m_imageFiles.size()) % m_imageFiles.size();
     emit currentIndexChanged();
     emit currentFilePathChanged();
+    emit canRestoreCurrentChanged();
     return true;
 }
 
@@ -320,7 +226,12 @@ int ImageCropController::getFileCount() const
 
 bool ImageCropController::executeCrop(int cropX, int cropY, int cropW, int cropH)
 {
-    if (m_rootPath.isEmpty() || m_imageFiles.isEmpty() || m_currentIndex < 0) {
+    QString rootPath = m_settings->rootPath();
+    int outputMode = m_settings->outputMode();
+    QString outputDir = m_settings->outputDir();
+    QString suffix = buildCropSuffix();
+
+    if (rootPath.isEmpty() || m_imageFiles.isEmpty() || m_currentIndex < 0) {
         setStatusMessage(QStringLiteral("没有可裁剪的图片"));
         m_logger->warn("裁剪失败: 没有可裁剪的图片");
         return false;
@@ -365,21 +276,26 @@ bool ImageCropController::executeCrop(int cropX, int cropY, int cropW, int cropH
     QString destPath;
     QString newName;
 
-    if (m_outputMode == 0) {
+    if (outputMode == 0) {
         // Overwrite source file directly
         destPath = srcPath;
         newName = fi.fileName();
     } else {
-        QString cropSuffix = buildCropSuffix();
+        QString cropSuffix = suffix.isEmpty() ? "_cropped" : suffix;
         QString baseName = fi.completeBaseName();
         QString ext = QStringLiteral(".") + fi.suffix().toLower();
         newName = baseName + cropSuffix + ext;
-        QString outRoot = m_outputDir.isEmpty()
-            ? m_rootPath + "_cropped"
-            : m_outputDir;
+        QString outRoot = outputDir.isEmpty()
+            ? rootPath + "_cropped"
+            : outputDir;
         QDir().mkpath(outRoot);
         destPath = outRoot + "/" + newName;
     }
+
+    // Keep an in-memory backup before the file state changes
+    if (m_backups.size() >= MAX_BACKUPS)
+        m_backups.removeLast();
+    m_backups.prepend(image.copy());
 
     QImage cropped = image.copy(clampedX, clampedY, clampedW, clampedH);
     bool ok = cropped.save(destPath);
@@ -388,6 +304,10 @@ bool ImageCropController::executeCrop(int cropX, int cropY, int cropW, int cropH
         addRecord(srcPath, destPath, clampedW, clampedH, true, QStringLiteral("已裁剪"));
         setStatusMessage(QStringLiteral("裁剪成功：%1").arg(newName));
         m_logger->info(QString("裁剪成功: %1 → %2").arg(fi.fileName(), newName));
+
+        // Bump version to force QML to reload preview (always needed after a crop)
+        ++m_imageVersion;
+        emit imageVersionChanged();
     } else {
         addRecord(srcPath, destPath, clampedW, clampedH, false, QStringLiteral("失败：保存失败"));
         setStatusMessage(QStringLiteral("裁剪失败：%1").arg(fi.fileName()));
@@ -396,6 +316,7 @@ bool ImageCropController::executeCrop(int cropX, int cropY, int cropW, int cropH
 
     emit recordsChanged();
     emit hasRecordsChanged();
+    emit canRestoreCurrentChanged();
     setIsProcessing(false);
     return ok;
 }
@@ -407,54 +328,62 @@ void ImageCropController::clearRecords()
     m_records.clear();
     emit recordsChanged();
     emit hasRecordsChanged();
+    emit canRestoreCurrentChanged();
     setStatusMessage(QString());
+}
+
+void ImageCropController::restoreCurrentFile()
+{
+    QString curPath = currentFilePath();
+    if (curPath.isEmpty() || m_backups.isEmpty()) {
+        setStatusMessage(QStringLiteral("没有可还原的记录"));
+        return;
+    }
+
+    QImage backup = m_backups.takeFirst();
+    if (backup.save(curPath)) {
+        ++m_imageVersion;
+        emit imageVersionChanged();
+        emit canRestoreCurrentChanged();
+        setStatusMessage(QStringLiteral("已还原"));
+        m_logger->info(QString("已还原: %1").arg(QFileInfo(curPath).fileName()));
+    } else {
+        setStatusMessage(QStringLiteral("还原失败"));
+        m_logger->error(QString("还原失败: %1").arg(curPath));
+    }
 }
 
 void ImageCropController::reset()
 {
     cancel();
+    m_backups.clear();
     m_records.clear();
     m_imageFiles.clear();
     m_currentIndex = -1;
-    m_rootPath.clear();
-    m_recursive = false;
-    m_cropMode = 0;
-    m_presetRatioIndex = 0;
-    m_usePresetRatio = true;
-    m_customRatioW = 1;
-    m_customRatioH = 1;
-    m_targetWidth = 800;
-    m_targetHeight = 600;
     m_cropX = 0;
     m_cropY = 0;
     m_cropW = 0;
     m_cropH = 0;
-    m_outputMode = 0;
-    m_outputDir.clear();
-    m_suffix = "_cropped";
     setStatusMessage(QString());
 
     emit recordsChanged();
     emit hasRecordsChanged();
-    emit rootPathChanged();
-    emit recursiveChanged();
-    emit cropModeChanged();
-    emit presetRatioIndexChanged();
-    emit usePresetRatioChanged();
-    emit customRatioWChanged();
-    emit customRatioHChanged();
-    emit targetWidthChanged();
-    emit targetHeightChanged();
+    emit canRestoreCurrentChanged();
     emit cropXChanged();
     emit cropYChanged();
     emit cropWChanged();
     emit cropHChanged();
-    emit outputModeChanged();
-    emit outputDirChanged();
-    emit suffixChanged();
     emit currentIndexChanged();
     emit currentFileCountChanged();
     emit currentFilePathChanged();
+}
+
+void ImageCropController::resetCropRect()
+{
+    m_cropX = 0;
+    m_cropY = 0;
+    m_cropW = 0;
+    m_cropH = 0;
 }
 
 // ── Private Helpers ────────────────────────────────────────────────────
@@ -510,24 +439,29 @@ void ImageCropController::addRecord(const QString &originalPath, const QString &
 
 QString ImageCropController::buildCropSuffix() const
 {
-    if (m_suffix.isEmpty()) return "_cropped";
-    return m_suffix;
+    return QStringLiteral("_cropped");
 }
 
 // ── Crop Calculation Helpers (moved from QML) ──────────────────────────
 
 double ImageCropController::calcEffectiveRatio() const
 {
-    if (m_cropMode == 0) {
-        if (m_usePresetRatio) {
-            if (m_presetRatioIndex == 4)
+    int cropMode = m_settings->cropMode();
+    int presetRatioIndex = m_settings->presetRatioIndex();
+    bool usePresetRatio = m_settings->usePresetRatio();
+    int customRatioW = m_settings->customRatioW();
+    int customRatioH = m_settings->customRatioH();
+
+    if (cropMode == 0) {
+        if (usePresetRatio) {
+            if (presetRatioIndex == 4)
                 return 0;
-            if (m_presetRatioIndex >= 0 && m_presetRatioIndex < RATIO_COUNT)
-                return PRESET_RATIOS[m_presetRatioIndex][0] / PRESET_RATIOS[m_presetRatioIndex][1];
+            if (presetRatioIndex >= 0 && presetRatioIndex < RATIO_COUNT)
+                return PRESET_RATIOS[presetRatioIndex][0] / PRESET_RATIOS[presetRatioIndex][1];
             return 1;
         }
-        return (m_customRatioW > 0 && m_customRatioH > 0)
-            ? static_cast<double>(m_customRatioW) / m_customRatioH : 1;
+        return (customRatioW > 0 && customRatioH > 0)
+            ? static_cast<double>(customRatioW) / customRatioH : 1;
     }
     return 0;
 }
@@ -582,6 +516,10 @@ QVariantMap ImageCropController::calcDisplayDimensions(int containerW, int conta
 
 QVariantMap ImageCropController::calcInitCropRect(int dispW, int dispH, int srcW, int srcH) const
 {
+    int cropMode = m_settings->cropMode();
+    int targetWidth = m_settings->targetWidth();
+    int targetHeight = m_settings->targetHeight();
+
     QVariantMap result;
     result["cropReady"] = false;
     if (dispW <= 0 || dispH <= 0)
@@ -589,11 +527,11 @@ QVariantMap ImageCropController::calcInitCropRect(int dispW, int dispH, int srcW
 
     int cropX = 0, cropY = 0, cropW = 0, cropH = 0;
 
-    if (m_cropMode == 1) {
+    if (cropMode == 1) {
         double scaleX = static_cast<double>(dispW) / qMax(srcW, 1);
         double scaleY = static_cast<double>(dispH) / qMax(srcH, 1);
-        int pw = qMin(static_cast<int>(m_targetWidth * scaleX), dispW);
-        int ph = qMin(static_cast<int>(m_targetHeight * scaleY), dispH);
+        int pw = qMin(static_cast<int>(targetWidth * scaleX), dispW);
+        int ph = qMin(static_cast<int>(targetHeight * scaleY), dispH);
         cropW = pw;
         cropH = ph;
     } else {
@@ -643,15 +581,19 @@ QVariantMap ImageCropController::clampCropRect(int cropX, int cropY, int cropW, 
 
 void ImageCropController::syncCropToController(int cropX, int cropY, int cropW, int cropH, int dispW, int dispH, int srcW, int srcH)
 {
+    int cropMode = m_settings->cropMode();
+    int targetWidth = m_settings->targetWidth();
+    int targetHeight = m_settings->targetHeight();
+
     double scaleX = srcW / static_cast<double>(qMax(dispW, 1));
     double scaleY = srcH / static_cast<double>(qMax(dispH, 1));
 
     setCropX(qRound(cropX * scaleX));
     setCropY(qRound(cropY * scaleY));
 
-    if (m_cropMode == 1) {
-        setCropW(m_targetWidth);
-        setCropH(m_targetHeight);
+    if (cropMode == 1) {
+        setCropW(targetWidth);
+        setCropH(targetHeight);
     } else {
         setCropW(qRound(cropW * scaleX));
         setCropH(qRound(cropH * scaleY));
@@ -660,6 +602,7 @@ void ImageCropController::syncCropToController(int cropX, int cropY, int cropW, 
 
 int ImageCropController::hitTest(int mx, int my, int cropX, int cropY, int cropW, int cropH, int cornerHitSize) const
 {
+    // Corners
     if (qAbs(mx - cropX) < cornerHitSize && qAbs(my - cropY) < cornerHitSize)
         return 2;
     if (qAbs(mx - (cropX + cropW)) < cornerHitSize && qAbs(my - cropY) < cornerHitSize)
@@ -668,6 +611,24 @@ int ImageCropController::hitTest(int mx, int my, int cropX, int cropY, int cropW
         return 4;
     if (qAbs(mx - (cropX + cropW)) < cornerHitSize && qAbs(my - (cropY + cropH)) < cornerHitSize)
         return 5;
+
+    // Edge midpoints (a narrower hit zone so corners take priority)
+    int edgeHit = cornerHitSize / 2;
+    bool nearTop = qAbs(my - cropY) < edgeHit;
+    bool nearBottom = qAbs(my - (cropY + cropH)) < edgeHit;
+    bool nearLeft = qAbs(mx - cropX) < edgeHit;
+    bool nearRight = qAbs(mx - (cropX + cropW)) < edgeHit;
+
+    if (nearTop && mx > cropX + edgeHit && mx < cropX + cropW - edgeHit)
+        return 6;   // Top edge
+    if (nearBottom && mx > cropX + edgeHit && mx < cropX + cropW - edgeHit)
+        return 7;   // Bottom edge
+    if (nearLeft && my > cropY + edgeHit && my < cropY + cropH - edgeHit)
+        return 8;   // Left edge
+    if (nearRight && my > cropY + edgeHit && my < cropY + cropH - edgeHit)
+        return 9;   // Right edge
+
+    // Interior
     if (mx >= cropX && mx <= cropX + cropW && my >= cropY && my <= cropY + cropH)
         return 1;
     return 0;

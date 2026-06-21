@@ -6,45 +6,18 @@
 #include <QDir>
 
 class PluginLogger;
+class ImageConverterSettings;
 
 class ImageConverterController : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString rootPath READ rootPath WRITE setRootPath NOTIFY rootPathChanged)
-    Q_PROPERTY(int targetFormat READ targetFormat WRITE setTargetFormat NOTIFY targetFormatChanged)
-    Q_PROPERTY(int quality READ quality WRITE setQuality NOTIFY qualityChanged)
-    Q_PROPERTY(QString bgColor READ bgColor WRITE setBgColor NOTIFY bgColorChanged)
-    Q_PROPERTY(int outputMode READ outputMode WRITE setOutputMode NOTIFY outputModeChanged)
-    Q_PROPERTY(QString outputDir READ outputDir WRITE setOutputDir NOTIFY outputDirChanged)
-    Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
     Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
     Q_PROPERTY(QVariantList records READ records NOTIFY recordsChanged)
 
 public:
-    explicit ImageConverterController(PluginLogger *logger, QObject *parent = nullptr);
-
-    QString rootPath() const;
-    void setRootPath(const QString &rootPath);
-
-    int targetFormat() const;
-    void setTargetFormat(int format);
-
-    int quality() const;
-    void setQuality(int quality);
-
-    QString bgColor() const;
-    void setBgColor(const QString &color);
-
-    int outputMode() const;
-    void setOutputMode(int mode);
-
-    QString outputDir() const;
-    void setOutputDir(const QString &dir);
-
-    bool recursive() const;
-    void setRecursive(bool recursive);
+    explicit ImageConverterController(PluginLogger *logger, ImageConverterSettings *settings, QObject *parent = nullptr);
 
     QString statusMessage() const;
     bool hasRecords() const;
@@ -54,16 +27,11 @@ public:
     Q_INVOKABLE void executeConvert();
     Q_INVOKABLE void cancel();
     Q_INVOKABLE void clearRecords();
+    Q_INVOKABLE void restoreRecord(int index);
+    Q_INVOKABLE void restoreAllRecords();
     Q_INVOKABLE void reset();
 
 signals:
-    void rootPathChanged();
-    void targetFormatChanged();
-    void qualityChanged();
-    void bgColorChanged();
-    void outputModeChanged();
-    void outputDirChanged();
-    void recursiveChanged();
     void statusMessageChanged();
     void hasRecordsChanged();
     void recordsChanged();
@@ -81,7 +49,10 @@ private:
     };
 
     void processDirectory(const QDir &currentDir, const QString &relativePath,
-                          int &successCount, int &failCount, int &skipCount);
+                          int &successCount, int &failCount, int &skipCount,
+                          const QString &rootPath, int targetFormat,
+                          int outputMode, const QString &outputDir,
+                          int quality, const QString &bgColor, bool recursive);
     void addRecord(const QString &originalPath, const QString &newPath,
                    const QString &formatTag, bool success, const QString &status);
     void setStatusMessage(const QString &message);
@@ -92,17 +63,11 @@ private:
     static QByteArray formatForQImage(int formatIndex);
     static QString formatTagForExt(const QString &ext);
 
-    QString m_rootPath;
-    int m_targetFormat = 1;  // 0=PNG, 1=JPG, 2=BMP, 3=WebP, 4=TIFF
-    int m_quality = 85;
-    QString m_bgColor = "#ffffff";
-    int m_outputMode = 0;   // 0=替换原文件, 1=输出到新目录
-    QString m_outputDir;
-    bool m_recursive = false;
     bool m_isProcessing = false;
     QString m_statusMessage;
     QList<ConvertRecord> m_records;
 
+    ImageConverterSettings *m_settings = nullptr;
     PluginLogger *m_logger = nullptr;
     const QStringList m_imageExtensions = {
         ".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tiff", ".tif",

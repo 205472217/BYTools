@@ -48,7 +48,7 @@ void VideoSubtitlePlugin::initialize()
         m_settings = new VideoSubtitleSettings(m_logger, this);
     }
     if (!m_controller) {
-        m_controller = new VideoSubtitleController(m_logger, this);
+        m_controller = new VideoSubtitleController(m_logger, m_settings, this);
     }
     m_logger->info(QStringLiteral("视频字幕翻译插件已初始化"));
 }

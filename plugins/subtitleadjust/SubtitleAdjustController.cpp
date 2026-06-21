@@ -1,6 +1,6 @@
 #include "SubtitleAdjustController.h"
+#include "SubtitleAdjustSettings.h"
 #include "Logger.h"
-#include "SettingsHelper.h"
 #include "Config.h"
 #include <QFile>
 #include <QFileInfo>
@@ -14,38 +14,15 @@
 #include <QDateTime>
 #include <algorithm>
 
-SubtitleAdjustController::SubtitleAdjustController(PluginLogger *logger, QObject *parent)
+SubtitleAdjustController::SubtitleAdjustController(PluginLogger *logger, SubtitleAdjustSettings *settings, QObject *parent)
     : QObject(parent)
     , m_logger(logger)
+    , m_settings(settings)
 {
     m_matchModel = new MatchPairModel(this);
 
-    // 加载持久化配置
-    QSettings &s = pluginGroupSettings("subtitle-adjust");
-    s.sync();
-    m_mode = s.value("mode", 0).toInt();
-    m_videoFolder = s.value("videoFolder").toString();
-    m_subtitleFolder = s.value("subtitleFolder").toString();
-    m_recursiveVideo = s.value("recursiveVideo", false).toBool();
-    m_recursiveSubtitle = s.value("recursiveSubtitle", false).toBool();
-    m_overwriteOriginal = s.value("overwriteOriginal", false).toBool();
-
     // 加载已完成记录
     loadRecords();
-}
-
-// ── mode ──
-
-int SubtitleAdjustController::mode() const { return m_mode; }
-void SubtitleAdjustController::setMode(int mode)
-{
-    if (m_mode != mode) {
-        m_mode = mode;
-        emit modeChanged();
-        reset();
-        pluginGroupSettings("subtitle-adjust").setValue("mode", mode);
-        pluginGroupSettings("subtitle-adjust").sync();
-    }
 }
 
 // ── 单文件模式 ──
@@ -65,52 +42,6 @@ void SubtitleAdjustController::setSubtitlePath(const QString &path)
     if (m_subtitlePath != path) {
         m_subtitlePath = path;
         emit subtitlePathChanged();
-    }
-}
-
-// ── 批量模式 ──
-
-QString SubtitleAdjustController::videoFolder() const { return m_videoFolder; }
-void SubtitleAdjustController::setVideoFolder(const QString &path)
-{
-    if (m_videoFolder != path) {
-        m_videoFolder = path;
-        emit videoFolderChanged();
-        pluginGroupSettings("subtitle-adjust").setValue("videoFolder", path);
-        pluginGroupSettings("subtitle-adjust").sync();
-    }
-}
-
-QString SubtitleAdjustController::subtitleFolder() const { return m_subtitleFolder; }
-void SubtitleAdjustController::setSubtitleFolder(const QString &path)
-{
-    if (m_subtitleFolder != path) {
-        m_subtitleFolder = path;
-        emit subtitleFolderChanged();
-        pluginGroupSettings("subtitle-adjust").setValue("subtitleFolder", path);
-        pluginGroupSettings("subtitle-adjust").sync();
-    }
-}
-
-bool SubtitleAdjustController::recursiveVideo() const { return m_recursiveVideo; }
-void SubtitleAdjustController::setRecursiveVideo(bool recursive)
-{
-    if (m_recursiveVideo != recursive) {
-        m_recursiveVideo = recursive;
-        emit recursiveVideoChanged();
-        pluginGroupSettings("subtitle-adjust").setValue("recursiveVideo", recursive);
-        pluginGroupSettings("subtitle-adjust").sync();
-    }
-}
-
-bool SubtitleAdjustController::recursiveSubtitle() const { return m_recursiveSubtitle; }
-void SubtitleAdjustController::setRecursiveSubtitle(bool recursive)
-{
-    if (m_recursiveSubtitle != recursive) {
-        m_recursiveSubtitle = recursive;
-        emit recursiveSubtitleChanged();
-        pluginGroupSettings("subtitle-adjust").setValue("recursiveSubtitle", recursive);
-        pluginGroupSettings("subtitle-adjust").sync();
     }
 }
 
@@ -165,7 +96,7 @@ void SubtitleAdjustController::startMatch()
     if (!m_logger)
         return;
 
-    if (m_mode == 0) {
+    if (m_settings->mode() == 0) {
         // 单文件模式：直接添加当前选中的文件对
         if (m_videoPath.isEmpty() || m_subtitlePath.isEmpty()) {
             QString msg = QStringLiteral("请先选择视频文件和字幕文件");
@@ -199,7 +130,7 @@ void SubtitleAdjustController::startMatch()
         emit logMessage(msg);
     } else {
         // 批量模式：扫描文件夹，按文件名前缀匹配
-        if (m_videoFolder.isEmpty() || m_subtitleFolder.isEmpty()) {
+        if (m_settings->videoFolder().isEmpty() || m_settings->subtitleFolder().isEmpty()) {
             QString msg = QStringLiteral("请先选择视频文件夹和字幕文件夹");
             m_logger->warn(msg);
             emit logMessage(msg);
@@ -209,12 +140,12 @@ void SubtitleAdjustController::startMatch()
         emit logMessage(QStringLiteral("正在扫描视频文件夹..."));
         QStringList videoExts = {"*.mp4", "*.mkv", "*.avi", "*.mov", "*.wmv", "*.flv", "*.webm", "*.m4v", "*.ts"};
         QStringList videoFiles;
-        collectFiles(m_videoFolder, m_recursiveVideo, videoExts, videoFiles);
+        collectFiles(m_settings->videoFolder(), m_settings->recursiveVideo(), videoExts, videoFiles);
 
         emit logMessage(QStringLiteral("正在扫描字幕文件夹..."));
         QStringList subExts = {"*.srt", "*.ass", "*.ssa"};
         QStringList subFiles;
-        collectFiles(m_subtitleFolder, m_recursiveSubtitle, subExts, subFiles);
+        collectFiles(m_settings->subtitleFolder(), m_settings->recursiveSubtitle(), subExts, subFiles);
 
         // 按文件名主干（不含扩展名）建立索引
         QMap<QString, QString> subMap;
@@ -316,7 +247,7 @@ void SubtitleAdjustController::exportSubtitle()
     // 构造输出路径
     QFileInfo fi(m_srtFilePath);
     QString outputPath;
-    if (m_overwriteOriginal) {
+    if (m_settings->overwriteOriginal()) {
         outputPath = m_srtFilePath; // 直接覆盖原文件
     } else {
         outputPath = fi.absolutePath() + "/" + fi.completeBaseName() + "_adjusted.srt";
@@ -609,16 +540,14 @@ void SubtitleAdjustController::collectFiles(const QString &dirPath, bool recursi
 
 bool SubtitleAdjustController::overwriteOriginal() const
 {
-    return m_overwriteOriginal;
+    return m_settings->overwriteOriginal();
 }
 
 void SubtitleAdjustController::setOverwriteOriginal(bool overwrite)
 {
-    if (m_overwriteOriginal != overwrite) {
-        m_overwriteOriginal = overwrite;
+    if (m_settings->overwriteOriginal() != overwrite) {
+        m_settings->setOverwriteOriginal(overwrite);
         emit overwriteOriginalChanged();
-        pluginGroupSettings("subtitle-adjust").setValue("overwriteOriginal", overwrite);
-        pluginGroupSettings("subtitle-adjust").sync();
     }
 }
 

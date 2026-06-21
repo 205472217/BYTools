@@ -1,147 +1,18 @@
 #include "BatchRenameController.h"
+#include "BatchRenamePlugin.h"
+#include "BatchRenameSettings.h"
+#include "Config.h"
 #include "Logger.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QUrl>
 #include <QRegularExpression>
 
-BatchRenameController::BatchRenameController(PluginLogger *logger, QObject *parent)
+BatchRenameController::BatchRenameController(PluginLogger *logger, BatchRenameSettings *settings, QObject *parent)
     : QObject(parent)
     , m_logger(logger)
+    , m_settings(settings)
 {
-    updateFileTips();
-}
-
-QString BatchRenameController::rootPath() const
-{
-    return m_rootPath;
-}
-
-void BatchRenameController::setRootPath(const QString &rootPath)
-{
-    QString normalizedPath = rootPath;
-    const QUrl url(rootPath);
-    if (url.isLocalFile()) {
-        normalizedPath = url.toLocalFile();
-    }
-
-    if (m_rootPath == normalizedPath) {
-        return;
-    }
-
-    m_rootPath = normalizedPath;
-    emit rootPathChanged();
-}
-
-int BatchRenameController::fileType() const
-{
-    return m_fileType;
-}
-
-void BatchRenameController::setFileType(int fileType)
-{
-    if (m_fileType == fileType) {
-        return;
-    }
-
-    m_fileType = fileType;
-    emit fileTypeChanged();
-    updateFileTips();
-}
-
-QString BatchRenameController::customExtension() const
-{
-    return m_customExtension;
-}
-
-void BatchRenameController::setCustomExtension(const QString &customExtension)
-{
-    if (m_customExtension == customExtension) {
-        return;
-    }
-
-    m_customExtension = customExtension;
-    emit customExtensionChanged();
-}
-
-QString BatchRenameController::fileTips() const
-{
-    return m_fileTips;
-}
-
-int BatchRenameController::renameMode() const
-{
-    return m_renameMode;
-}
-
-void BatchRenameController::setRenameMode(int renameMode)
-{
-    if (m_renameMode == renameMode) {
-        return;
-    }
-
-    m_renameMode = renameMode;
-    emit renameModeChanged();
-}
-
-QString BatchRenameController::baseName() const
-{
-    return m_baseName;
-}
-
-void BatchRenameController::setBaseName(const QString &baseName)
-{
-    if (m_baseName == baseName) {
-        return;
-    }
-
-    m_baseName = baseName;
-    emit baseNameChanged();
-}
-
-QString BatchRenameController::searchText() const
-{
-    return m_searchText;
-}
-
-void BatchRenameController::setSearchText(const QString &searchText)
-{
-    if (m_searchText == searchText) {
-        return;
-    }
-
-    m_searchText = searchText;
-    emit searchTextChanged();
-}
-
-QString BatchRenameController::replaceText() const
-{
-    return m_replaceText;
-}
-
-void BatchRenameController::setReplaceText(const QString &replaceText)
-{
-    if (m_replaceText == replaceText) {
-        return;
-    }
-
-    m_replaceText = replaceText;
-    emit replaceTextChanged();
-}
-
-bool BatchRenameController::recursive() const
-{
-    return m_recursive;
-}
-
-void BatchRenameController::setRecursive(bool recursive)
-{
-    if (m_recursive == recursive) {
-        return;
-    }
-
-    m_recursive = recursive;
-    emit recursiveChanged();
 }
 
 QString BatchRenameController::statusMessage() const
@@ -173,13 +44,32 @@ QVariantList BatchRenameController::records() const
 
 void BatchRenameController::executeRename()
 {
-    if (m_rootPath.isEmpty() || !QDir(m_rootPath).exists()) {
+    QString rootPath = m_settings->rootPath();
+    bool recursive = m_settings->recursive();
+    int fileType = m_settings->fileType();
+    QString customExtension = m_settings->customExtension();
+    int renameMode = m_settings->renameMode();
+    QString baseName = m_settings->baseName();
+    QString searchText = m_settings->searchText();
+    QString replaceText = m_settings->replaceText();
+
+    if (rootPath.isEmpty() || !QDir(rootPath).exists()) {
         setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
         return;
     }
 
+    if (renameMode == 0 && baseName.isEmpty()) {
+        setStatusMessage(QStringLiteral("请填写指定名称"));
+        return;
+    }
+
+    if (renameMode == 1 && searchText.isEmpty()) {
+        setStatusMessage(QStringLiteral("请填写查找文本"));
+        return;
+    }
+
     m_logger->info(QString("===== 开始批量重命名 ====="));
-    m_logger->info(QString("根目录: %1, 递归=%2").arg(m_rootPath).arg(m_recursive));
+    m_logger->info(QString("根目录: %1, 递归=%2").arg(rootPath).arg(recursive));
 
     m_records.clear();
     emit recordsChanged();
@@ -190,7 +80,7 @@ void BatchRenameController::executeRename()
     int successCount = 0;
     int failCount = 0;
 
-    processDirectory(QDir(m_rootPath), successCount, failCount);
+    processDirectory(QDir(rootPath), recursive, fileType, customExtension, renameMode, baseName, searchText, replaceText, successCount, failCount);
 
     if (successCount == 0 && failCount == 0) {
         setStatusMessage(QStringLiteral("没有找到匹配的文件"));
@@ -209,7 +99,10 @@ void BatchRenameController::executeRename()
     setIsProcessing(false);
 }
 
-void BatchRenameController::processDirectory(const QDir &currentDir, int &successCount, int &failCount)
+void BatchRenameController::processDirectory(const QDir &currentDir, bool recursive, int fileType,
+                                              const QString &customExtension, int renameMode,
+                                              const QString &baseName, const QString &searchText,
+                                              const QString &replaceText, int &successCount, int &failCount)
 {
     m_logger->info(QString("处理目录: %1").arg(currentDir.absolutePath()));
     QFileInfoList entries = currentDir.entryInfoList(
@@ -218,46 +111,47 @@ void BatchRenameController::processDirectory(const QDir &currentDir, int &succes
 
     QList<QFileInfo> matchingFiles;
     for (const QFileInfo &entry : entries) {
-        if (matchesFileType(entry.fileName())) {
+        if (matchesFileType(entry.fileName(), fileType, customExtension)) {
             matchingFiles.append(entry);
         }
     }
 
     QMap<QString, QList<QPair<QFileInfo, QString>>> nameGroups;
-    
+
     for (int i = 0; i < matchingFiles.size(); ++i) {
         const QFileInfo &entry = matchingFiles[i];
         QString extension = getFileExtension(entry.fileName());
-        QString newName = generateNewName(i + 1, entry.fileName(), extension);
+        QString newName = generateNewName(i + 1, entry.fileName(), extension,
+                                           renameMode, baseName, searchText, replaceText);
         nameGroups[newName].append(qMakePair(entry, newName));
     }
 
     QMap<QString, QString> finalNames;
-    
+
     for (auto it = nameGroups.begin(); it != nameGroups.end(); ++it) {
-        const QString &baseName = it.key();
+        const QString &baseNameKey = it.key();
         const QList<QPair<QFileInfo, QString>> &group = it.value();
-        
+
         if (group.size() == 1) {
-            QString newPath = currentDir.absoluteFilePath(baseName);
+            QString newPath = currentDir.absoluteFilePath(baseNameKey);
             if (newPath != group.first().first.absoluteFilePath()) {
-                finalNames[group.first().first.absoluteFilePath()] = baseName;
+                finalNames[group.first().first.absoluteFilePath()] = baseNameKey;
             }
         } else {
-            QString base = QFileInfo(baseName).baseName();
-            QString ext = QFileInfo(baseName).suffix();
-            
+            QString base = QFileInfo(baseNameKey).baseName();
+            QString ext = QFileInfo(baseNameKey).suffix();
+
             for (int i = 0; i < group.size(); ++i) {
                 QString finalName;
                 if (i == 0) {
-                    finalName = baseName;
+                    finalName = baseNameKey;
                 } else {
                     finalName = QString("%1(%2).%3").arg(base).arg(i).arg(ext);
                 }
-                
+
                 QString originalPath = group[i].first.absoluteFilePath();
                 QString newPath = currentDir.absoluteFilePath(finalName);
-                
+
                 if (newPath != originalPath) {
                     finalNames[originalPath] = finalName;
                 }
@@ -289,13 +183,16 @@ void BatchRenameController::processDirectory(const QDir &currentDir, int &succes
         addRecord(originalPath, newPath, success, status);
     }
 
-    if (m_recursive) {
+    if (recursive) {
         QFileInfoList dirs = currentDir.entryInfoList(
             QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden,
             QDir::Name);
 
         for (const QFileInfo &dirEntry : dirs) {
-            processDirectory(QDir(dirEntry.absoluteFilePath()), successCount, failCount);
+            processDirectory(QDir(dirEntry.absoluteFilePath()), recursive,
+                             fileType, customExtension, renameMode,
+                             baseName, searchText, replaceText,
+                             successCount, failCount);
         }
     }
 }
@@ -312,26 +209,10 @@ void BatchRenameController::reset()
 {
     cancel();
     m_records.clear();
-    m_rootPath.clear();
-    m_fileType = 0;
-    m_customExtension.clear();
-    m_renameMode = 0;
-    m_baseName.clear();
-    m_searchText.clear();
-    m_replaceText.clear();
-    m_recursive = false;
     setStatusMessage(QString());
-    
+
     emit recordsChanged();
     emit hasRecordsChanged();
-    emit rootPathChanged();
-    emit fileTypeChanged();
-    emit customExtensionChanged();
-    emit renameModeChanged();
-    emit baseNameChanged();
-    emit searchTextChanged();
-    emit replaceTextChanged();
-    emit recursiveChanged();
 }
 
 void BatchRenameController::restoreRecord(int index)
@@ -433,28 +314,6 @@ void BatchRenameController::restoreAllRecords()
     emit recordsChanged();
 }
 
-void BatchRenameController::updateFileTips()
-{
-    switch (m_fileType) {
-    case 1:
-        m_fileTips = QStringLiteral("支持: %1").arg(m_videoExtensions.join(", "));
-        break;
-    case 2:
-        m_fileTips = QStringLiteral("支持: %1").arg(m_audioExtensions.join(", "));
-        break;
-    case 3:
-        m_fileTips = QStringLiteral("支持: %1").arg(m_textExtensions.join(", "));
-        break;
-    case 4:
-        m_fileTips = QStringLiteral("支持: %1").arg(m_imageExtensions.join(", "));
-        break;
-    default:
-        m_fileTips = QString();
-        break;
-    }
-    emit fileTipsChanged();
-}
-
 void BatchRenameController::setStatusMessage(const QString &message)
 {
     if (m_statusMessage == message) {
@@ -516,11 +375,11 @@ QString BatchRenameController::getFileType(const QString &fileName) const
     }
 }
 
-bool BatchRenameController::matchesFileType(const QString &fileName) const
+bool BatchRenameController::matchesFileType(const QString &fileName, int fileType, const QString &customExtension) const
 {
     QString ext = getFileExtension(fileName).toLower();
 
-    switch (m_fileType) {
+    switch (fileType) {
     case 0:
         return true;
     case 1:
@@ -532,10 +391,10 @@ bool BatchRenameController::matchesFileType(const QString &fileName) const
     case 4:
         return m_imageExtensions.contains(ext);
     case 5: {
-        if (m_customExtension.isEmpty()) {
+        if (customExtension.isEmpty()) {
             return true;
         }
-        QString customExt = m_customExtension.toLower();
+        QString customExt = customExtension.toLower();
         if (!customExt.startsWith('.')) {
             customExt = '.' + customExt;
         }
@@ -546,19 +405,20 @@ bool BatchRenameController::matchesFileType(const QString &fileName) const
     }
 }
 
-QString BatchRenameController::generateNewName(int index, const QString &originalName, const QString &extension) const
+QString BatchRenameController::generateNewName(int index, const QString &originalName, const QString &extension,
+                                                int renameMode, const QString &baseName,
+                                                const QString &searchText, const QString &replaceText) const
 {
-    if (m_renameMode == 0) {
-        QString base = m_baseName.isEmpty() ? QStringLiteral("file") : m_baseName;
-        return QString("%1%2").arg(base).arg(extension);
+    if (renameMode == 0) {
+        return QString("%1%2").arg(baseName).arg(extension);
     } else {
         QString nameWithoutExt = originalName;
         if (!extension.isEmpty()) {
             nameWithoutExt = originalName.left(originalName.length() - extension.length());
         }
         QString newName = nameWithoutExt;
-        if (!m_searchText.isEmpty()) {
-            newName = newName.replace(m_searchText, m_replaceText);
+        if (!searchText.isEmpty()) {
+            newName = newName.replace(searchText, replaceText);
         }
         return newName + extension;
     }

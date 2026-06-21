@@ -11,8 +11,10 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Core)
 set(PLUGIN_SOURCES
     NameConverterPlugin.cpp
     NameConverterPlugin.h
-    BatchNameController.cpp
-    BatchNameController.h
+    NameConverterController.cpp
+    NameConverterController.h
+    NameConverterSettings.cpp
+    NameConverterSettings.h
     NamePreviewModel.cpp
     NamePreviewModel.h
     NameService.cpp

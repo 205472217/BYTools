@@ -1,0 +1,92 @@
+#include "BatchRenameSettings.h"
+#include "BatchRenamePlugin.h"
+#include "SettingsHelper.h"
+#include <QDir>
+
+BatchRenameSettings::BatchRenameSettings(QObject *parent)
+    : QObject(parent)
+{
+    loadSettings();
+}
+
+QString BatchRenameSettings::rootPath() const { return m_rootPath; }
+int BatchRenameSettings::fileType() const { return m_fileType; }
+QString BatchRenameSettings::customExtension() const { return m_customExtension; }
+int BatchRenameSettings::renameMode() const { return m_renameMode; }
+QString BatchRenameSettings::baseName() const { return m_baseName; }
+QString BatchRenameSettings::searchText() const { return m_searchText; }
+QString BatchRenameSettings::replaceText() const { return m_replaceText; }
+bool BatchRenameSettings::recursive() const { return m_recursive; }
+
+void BatchRenameSettings::setRootPath(const QString &path)
+{
+    if (m_rootPath != path) {
+        m_rootPath = path;
+        emit rootPathChanged();
+        saveSettings();
+    }
+}
+void BatchRenameSettings::setFileType(int fileType)
+{
+    if (m_fileType != fileType) {
+        m_fileType = fileType;
+        emit fileTypeChanged();
+    }
+}
+void BatchRenameSettings::setCustomExtension(const QString &ext)
+{
+    if (m_customExtension != ext) {
+        m_customExtension = ext;
+        emit customExtensionChanged();
+    }
+}
+void BatchRenameSettings::setRenameMode(int mode)
+{
+    if (m_renameMode != mode) {
+        m_renameMode = mode;
+        emit renameModeChanged();
+    }
+}
+void BatchRenameSettings::setBaseName(const QString &name)
+{
+    if (m_baseName != name) {
+        m_baseName = name;
+        emit baseNameChanged();
+    }
+}
+void BatchRenameSettings::setSearchText(const QString &text)
+{
+    if (m_searchText != text) {
+        m_searchText = text;
+        emit searchTextChanged();
+    }
+}
+void BatchRenameSettings::setReplaceText(const QString &text)
+{
+    if (m_replaceText != text) {
+        m_replaceText = text;
+        emit replaceTextChanged();
+    }
+}
+void BatchRenameSettings::setRecursive(bool recursive)
+{
+    if (m_recursive != recursive) {
+        m_recursive = recursive;
+        emit recursiveChanged();
+        saveSettings();
+    }
+}
+
+void BatchRenameSettings::loadSettings()
+{
+    QSettings &s = pluginGroupSettings(BatchRenamePlugin::kIniSection);
+    m_rootPath = s.value("rootPath").toString();
+    m_recursive = s.value("recursive", false).toBool();
+}
+void BatchRenameSettings::saveSettings()
+{
+    QSettings &s = pluginGroupSettings(BatchRenamePlugin::kIniSection);
+    s.setValue("rootPath", m_rootPath);
+    s.setValue("recursive", m_recursive);
+    s.sync();
+}

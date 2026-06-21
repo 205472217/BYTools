@@ -6,52 +6,18 @@
 #include <QDir>
 
 class PluginLogger;
+class BatchRenameSettings;
 
 class BatchRenameController : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString rootPath READ rootPath WRITE setRootPath NOTIFY rootPathChanged)
-    Q_PROPERTY(int fileType READ fileType WRITE setFileType NOTIFY fileTypeChanged)
-    Q_PROPERTY(QString customExtension READ customExtension WRITE setCustomExtension NOTIFY customExtensionChanged)
-    Q_PROPERTY(QString fileTips READ fileTips NOTIFY fileTipsChanged)
-    Q_PROPERTY(int renameMode READ renameMode WRITE setRenameMode NOTIFY renameModeChanged)
-    Q_PROPERTY(QString baseName READ baseName WRITE setBaseName NOTIFY baseNameChanged)
-    Q_PROPERTY(QString searchText READ searchText WRITE setSearchText NOTIFY searchTextChanged)
-    Q_PROPERTY(QString replaceText READ replaceText WRITE setReplaceText NOTIFY replaceTextChanged)
-    Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
     Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
     Q_PROPERTY(QVariantList records READ records NOTIFY recordsChanged)
 
 public:
-    explicit BatchRenameController(PluginLogger *logger, QObject *parent = nullptr);
-
-    QString rootPath() const;
-    void setRootPath(const QString &rootPath);
-
-    int fileType() const;
-    void setFileType(int fileType);
-
-    QString customExtension() const;
-    void setCustomExtension(const QString &customExtension);
-
-    QString fileTips() const;
-
-    int renameMode() const;
-    void setRenameMode(int renameMode);
-
-    QString baseName() const;
-    void setBaseName(const QString &baseName);
-
-    QString searchText() const;
-    void setSearchText(const QString &searchText);
-
-    QString replaceText() const;
-    void setReplaceText(const QString &replaceText);
-
-    bool recursive() const;
-    void setRecursive(bool recursive);
+    explicit BatchRenameController(PluginLogger *logger, BatchRenameSettings *settings, QObject *parent = nullptr);
 
     QString statusMessage() const;
     bool hasRecords() const;
@@ -65,19 +31,13 @@ public:
     Q_INVOKABLE void restoreAllRecords();
     Q_INVOKABLE void reset();
 
-    void processDirectory(const QDir &currentDir, int &successCount, int &failCount);
+    void processDirectory(const QDir &currentDir, bool recursive, int fileType,
+                          const QString &customExtension, int renameMode,
+                          const QString &baseName, const QString &searchText,
+                          const QString &replaceText, int &successCount, int &failCount);
     QString getFileType(const QString &fileName) const;
 
 signals:
-    void rootPathChanged();
-    void fileTypeChanged();
-    void customExtensionChanged();
-    void fileTipsChanged();
-    void renameModeChanged();
-    void baseNameChanged();
-    void searchTextChanged();
-    void replaceTextChanged();
-    void recursiveChanged();
     void statusMessageChanged();
     void hasRecordsChanged();
     void recordsChanged();
@@ -94,27 +54,20 @@ private:
         QString status;
     };
 
-    void updateFileTips();
     void setStatusMessage(const QString &message);
     void setIsProcessing(bool processing);
     void addRecord(const QString &originalPath, const QString &newPath, bool success, const QString &status);
-    bool matchesFileType(const QString &fileName) const;
-    QString generateNewName(int index, const QString &originalName, const QString &extension) const;
+    bool matchesFileType(const QString &fileName, int fileType, const QString &customExtension) const;
+    QString generateNewName(int index, const QString &originalName, const QString &extension,
+                            int renameMode, const QString &baseName,
+                            const QString &searchText, const QString &replaceText) const;
     QString getFileExtension(const QString &fileName) const;
 
-    QString m_rootPath;
-    int m_fileType = 0;
-    QString m_customExtension;
-    QString m_fileTips;
-    int m_renameMode = 0;
-    QString m_baseName;
-    QString m_searchText;
-    QString m_replaceText;
-    bool m_recursive = false;
     bool m_isProcessing = false;
     QString m_statusMessage;
     QList<RenameRecord> m_records;
 
+    BatchRenameSettings *m_settings = nullptr;
     PluginLogger *m_logger = nullptr;
     const QStringList m_videoExtensions = {".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".ts"};
     const QStringList m_audioExtensions = {".mp3", ".wav", ".flac", ".ogg", ".aac", ".wma"};
