@@ -1143,7 +1143,7 @@ Pane {
                                     textColor: pal.checkBox_textColor
                                     checked: controller ? controller.gpuAccel : false
                                     font.pixelSize: 11
-                                    enabled: !controller || controller.currentStep === controller.stepNone
+                                    visible: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
                                         if (controller)
                                             controller.gpuAccel = checked;
