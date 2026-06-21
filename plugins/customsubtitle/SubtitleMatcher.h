@@ -38,6 +38,8 @@ public:
                           const QStringList &preprocessors);
 
     void cancel();
+    /// Graceful stop: set cancel flag, let current item finish, then break
+    void requestStop();
 
 signals:
     void logMessage(const QString &message);

@@ -109,7 +109,7 @@ QString CustomSubtitleController::statusMessage() const { return m_statusMessage
 double CustomSubtitleController::progress() const { return m_progress; }
 double CustomSubtitleController::currentFileProgress() const { return m_currentFileProgress; }
 bool CustomSubtitleController::isProcessing() const { return m_isProcessing; }
-QString CustomSubtitleController::currentStep() const { return m_currentStep; }
+int CustomSubtitleController::currentStep() const { return m_currentStep; }
 int CustomSubtitleController::processedCount() const { return m_processedCount; }
 int CustomSubtitleController::totalCount() const { return m_totalCount; }
 QString CustomSubtitleController::currentFile() const { return m_currentFile; }
@@ -223,7 +223,7 @@ void CustomSubtitleController::matchAndMoveSubtitles()
         return;
     }
 
-    setCurrentStep("匹配并移动字幕");
+    setCurrentStep(StepMatch);
     setIsProcessing(true);
     setProgress(0.0);
     setProcessedCount(0);
@@ -256,7 +256,7 @@ void CustomSubtitleController::mergeSubtitleToVideo()
     // Ensure output dir exists
     QDir().mkpath(m_mergedOutputPath);
 
-    setCurrentStep("合成视频+字幕");
+    setCurrentStep(StepMerge);
     setIsProcessing(true);
     setProgress(0.0);
     emit logMessage("========== 步骤3：合成视频+字幕 ==========");
@@ -276,7 +276,7 @@ void CustomSubtitleController::replaceOriginalVideo()
         return;
     }
 
-    setCurrentStep("替换原视频");
+    setCurrentStep(StepReplace);
     setIsProcessing(true);
     setProgress(0.0);
     setProcessedCount(0);
@@ -296,16 +296,37 @@ void CustomSubtitleController::replaceOriginalVideo()
 
 void CustomSubtitleController::cancel()
 {
-    m_matcher->cancel();
-    m_mergeService->cancel();
-    m_replaceService->cancel();
+    if (m_currentStep == StepMatch) {
+        m_matcher->requestStop();
+        m_mergeService->cancel();
+        m_replaceService->cancel();
+        m_gracefulStopRequested = true;
+        emit stopRequestedChanged();
+        setStatusMessage("正在停止…");
+        emit logMessage("⏹ 步骤2：请求停止，完成当前字幕任务后停止");
+    } else if (m_currentStep == StepReplace) {
+        m_matcher->cancel();
+        m_mergeService->cancel();
+        m_replaceService->requestStop();
+        m_gracefulStopRequested = true;
+        emit stopRequestedChanged();
+        setStatusMessage("正在停止…");
+        emit logMessage("⏹ 步骤4：请求停止，完成当前替换任务后停止");
+    } else {
+        // Step 3 or unknown → aggressive
+        m_gracefulStopRequested = false;
+        emit stopRequestedChanged();
+        m_matcher->cancel();
+        m_mergeService->cancel();
+        m_replaceService->cancel();
 
-    setIsProcessing(false);
-    setStatusMessage("已取消");
-    setCurrentStep("");
-    setProcessedCount(0);
-    setTotalCount(0);
-    emit logMessage("⏹ 已取消操作");
+        setIsProcessing(false);
+        setStatusMessage("已取消");
+        setCurrentStep(StepNone);
+        setProcessedCount(0);
+        setTotalCount(0);
+        emit logMessage("⏹ 已取消操作");
+    }
 }
 
 void CustomSubtitleController::requestStopAfterCount(int count)
@@ -317,8 +338,10 @@ void CustomSubtitleController::requestStopAfterCount(int count)
 void CustomSubtitleController::reset()
 {
     cancel();
+    m_gracefulStopRequested = false;
+    emit stopRequestedChanged();
     setStatusMessage("");
-    setCurrentStep("");
+    setCurrentStep(StepNone);
     setProgress(0.0);
     setCurrentFileProgress(0.0);
 }
@@ -332,7 +355,13 @@ QString CustomSubtitleController::ffmpegPath() const
 
 void CustomSubtitleController::onMatchFinished(bool success, const QString &error)
 {
-    if (!success) {
+    if (m_gracefulStopRequested) {
+        m_gracefulStopRequested = false;
+        emit stopRequestedChanged();
+        setStatusMessage("已停止");
+        emit logMessage("⏹ 步骤2：已停止（已完成当前字幕任务）");
+        m_logger->info("步骤2：已停止");
+    } else if (!success) {
         setStatusMessage("步骤2失败: " + error);
         emit logMessage("✗ 步骤2失败: " + error);
         m_logger->error(QString("步骤2失败: %1").arg(error));
@@ -342,7 +371,7 @@ void CustomSubtitleController::onMatchFinished(bool success, const QString &erro
         m_logger->info("步骤2完成 ✓");
     }
     setIsProcessing(false);
-    setCurrentStep("");
+    setCurrentStep(StepNone);
 }
 
 void CustomSubtitleController::onMergeFinished(bool success, const QString &error)
@@ -357,12 +386,18 @@ void CustomSubtitleController::onMergeFinished(bool success, const QString &erro
         m_logger->error(QString("步骤3失败: %1").arg(error));
     }
     setIsProcessing(false);
-    setCurrentStep("");
+    setCurrentStep(StepNone);
 }
 
 void CustomSubtitleController::onReplaceFinished(bool success, const QString &error)
 {
-    if (success) {
+    if (m_gracefulStopRequested) {
+        m_gracefulStopRequested = false;
+        emit stopRequestedChanged();
+        setStatusMessage("已停止");
+        emit logMessage("⏹ 步骤4：已停止（已完成当前任务的备份和替换）");
+        m_logger->info("步骤4：已停止");
+    } else if (success) {
         setStatusMessage("步骤4完成");
         emit logMessage("✓ 步骤4：替换完成");
         m_logger->info("步骤4完成 ✓");
@@ -372,7 +407,7 @@ void CustomSubtitleController::onReplaceFinished(bool success, const QString &er
         m_logger->error(QString("步骤4失败: %1").arg(error));
     }
     setIsProcessing(false);
-    setCurrentStep("");
+    setCurrentStep(StepNone);
 }
 
 // ── Internal ──
@@ -385,7 +420,7 @@ void CustomSubtitleController::setStatusMessage(const QString &msg)
     }
 }
 
-void CustomSubtitleController::setCurrentStep(const QString &step)
+void CustomSubtitleController::setCurrentStep(int step)
 {
     if (m_currentStep != step) {
         m_currentStep = step;

@@ -62,6 +62,11 @@ void SubtitleMatcher::startMatchAsync(const QString &subtitleDir,
     m_workerThread.start();
 }
 
+void SubtitleMatcher::requestStop()
+{
+    m_cancelled.storeRelaxed(1);
+}
+
 void SubtitleMatcher::cancel()
 {
     m_cancelled.storeRelaxed(1);
@@ -218,6 +223,7 @@ void SubtitleMatcher::doWork()
     QList<MatchResult> results = doMatch();
 
     if (m_cancelled.loadRelaxed()) {
+        emit finished(false, "已取消");
         m_workerThread.quit();
         return;
     }

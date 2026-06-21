@@ -90,6 +90,12 @@ void VideoReplaceService::startReplace(const QString &videoDir,
     m_workerThread.start();
 }
 
+void VideoReplaceService::requestStop()
+{
+    m_cancelled.storeRelaxed(1);
+    emit logMessage("⏹ 请求停止：完成当前任务后停止");
+}
+
 void VideoReplaceService::cancel()
 {
     m_cancelled.storeRelaxed(1);

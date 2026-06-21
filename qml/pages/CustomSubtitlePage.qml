@@ -430,7 +430,7 @@ Pane {
                         Layout.alignment: Qt.AlignVCenter
                         radius: 2
                         color: pal.CustomSubtitlePage_ffmpegProgressBg_color
-                        visible: controller && controller.currentStep === "合成视频+字幕"
+                        visible: controller && controller.currentStep === controller.stepMerge
 
                         Rectangle {
                             id: ffmpegProgressFill
@@ -441,9 +441,16 @@ Pane {
                         }
                     }
 
+                    Item {
+                        id: replaceStepKeepSpace
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 4
+                        visible: controller && controller.currentStep === controller.stepReplace
+                    }
+
                     Label {
                         id: ffmpegProgressPct
-                        text: controller && controller.currentStep === "合成视频+字幕"
+                        text: controller && controller.currentStep === controller.stepMerge
                               ? Math.round(controller.currentFileProgress * 100) + "%"
                               : (controller.totalCount > 0
                                  ? controller.processedCount + "/" + controller.totalCount
@@ -969,7 +976,7 @@ Pane {
                                     height: 30
                                     implicitWidth: 30
                                     implicitHeight: 30
-                                    running: controller && controller.currentStep === "匹配并移动字幕"
+                                    running: controller && controller.currentStep === controller.stepMatch
                                     visible: running
                                 }
                             }
@@ -1042,7 +1049,30 @@ Pane {
                                             controller.matchAndMoveSubtitles();
                                     }
                                 }
-                            }
+
+                                Item {
+                                    id: setp2KeepSpace
+                                    Layout.fillWidth: true
+                                    visible: controller && controller.isProcessing && controller.currentStep === controller.stepMatch
+                                }
+
+                                IconButton {
+                                    id: step2StopBtn
+                                    Layout.preferredWidth: 64
+                                    text: "立即停止"
+                                    tooltip: "完成当前字幕的匹配、移动和预处理后停止"
+                                    normalColor: pal.CustomSubtitlePage_step3StopBtn_normalColor
+                                    hoverColor: pal.CustomSubtitlePage_step3StopBtn_hoverColor
+                                    borderColor: pal.CustomSubtitlePage_step3StopBtn_borderColor
+                                    textColor: pal.CustomSubtitlePage_step3StopBtn_textColor
+                                    enabled: controller && controller.isProcessing && controller.currentStep === controller.stepMatch && !controller.stopRequested
+                                    visible: enabled
+                                    onClicked: {
+                                        if (controller)
+                                            controller.cancel();
+                                    }
+                                }
+                             }
 
                         }
                     }
@@ -1079,7 +1109,7 @@ Pane {
                                     height: 30
                                     implicitWidth: 30
                                     implicitHeight: 30
-                                    running: controller && controller.currentStep === "合成视频+字幕"
+                                    running: controller && controller.currentStep === controller.stepMerge
                                     visible: running
                                 }
                             }
@@ -1127,10 +1157,10 @@ Pane {
                                     }
                                 }
 
-                                // 运行状态：停止控制
+                                // 预约停止
                                 RowLayout {
                                     spacing: 4
-                                    visible: controller ? controller.isProcessing : false
+                                    visible: controller && controller.isProcessing && controller.currentStep === controller.stepMerge
 
                                     Label {
                                         id: step3CompleteLabel
@@ -1171,6 +1201,7 @@ Pane {
                                     }
                                 }
 
+                                // 立即停止
                                 IconButton {
                                     id: step3StopBtn
                                     Layout.preferredWidth: 72
@@ -1180,8 +1211,8 @@ Pane {
                                     hoverColor: pal.CustomSubtitlePage_step3StopBtn_hoverColor
                                     borderColor: pal.CustomSubtitlePage_step3StopBtn_borderColor
                                     textColor: pal.CustomSubtitlePage_step3StopBtn_textColor
-                                    enabled: controller ? controller.isProcessing : false
-                                    visible: controller ? controller.isProcessing : false
+                                    enabled: controller && controller.isProcessing && controller.currentStep === controller.stepMerge
+                                    visible: enabled
                                     onClicked: {
                                         if (controller)
                                             controller.cancel();
@@ -1223,7 +1254,7 @@ Pane {
                                     height: 30
                                     implicitWidth: 30
                                     implicitHeight: 30
-                                    running: controller && controller.currentStep === "替换原视频"
+                                    running: controller && controller.currentStep === controller.stepReplace
                                     visible: running
                                 }
                             }
@@ -1269,7 +1300,30 @@ Pane {
                                             controller.replaceOriginalVideo();
                                     }
                                 }
-                            }
+
+                                Item {
+                                    id: setp4KeepSpace
+                                    Layout.fillWidth: true
+                                    visible: controller && controller.isProcessing && controller.currentStep === controller.stepReplace
+                                }
+
+                                IconButton {
+                                    id: step4StopBtn
+                                    Layout.preferredWidth: 72
+                                    text: "立即停止"
+                                    tooltip: "完成当前视频的备份、替换和清理字幕文件后停止"
+                                    normalColor: pal.CustomSubtitlePage_step3StopBtn_normalColor
+                                    hoverColor: pal.CustomSubtitlePage_step3StopBtn_hoverColor
+                                    borderColor: pal.CustomSubtitlePage_step3StopBtn_borderColor
+                                    textColor: pal.CustomSubtitlePage_step3StopBtn_textColor
+                                    enabled: controller && controller.isProcessing && controller.currentStep === controller.stepReplace && !controller.stopRequested
+                                    visible: enabled
+                                    onClicked: {
+                                        if (controller)
+                                            controller.cancel();
+                                    }
+                                }
+                             }
                         }
                     }
 

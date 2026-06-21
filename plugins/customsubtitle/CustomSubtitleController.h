@@ -39,12 +39,20 @@ class CustomSubtitleController : public QObject
     Q_PROPERTY(double progress READ progress NOTIFY progressChanged)
     Q_PROPERTY(double currentFileProgress READ currentFileProgress NOTIFY currentFileProgressChanged)
     Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
-    Q_PROPERTY(QString currentStep READ currentStep NOTIFY currentStepChanged)
+    Q_PROPERTY(int currentStep READ currentStep NOTIFY currentStepChanged)
     Q_PROPERTY(int processedCount READ processedCount NOTIFY processedCountChanged)
     Q_PROPERTY(int totalCount READ totalCount NOTIFY totalCountChanged)
     Q_PROPERTY(QString currentFile READ currentFile NOTIFY currentFileChanged)
+    Q_PROPERTY(bool stopRequested READ isStopRequested NOTIFY stopRequestedChanged)
+
+    // === Step enum constants for QML ===
+    Q_PROPERTY(int stepNone READ stepNone CONSTANT)
+    Q_PROPERTY(int stepMatch READ stepMatch CONSTANT)
+    Q_PROPERTY(int stepMerge READ stepMerge CONSTANT)
+    Q_PROPERTY(int stepReplace READ stepReplace CONSTANT)
 
 public:
+    enum Step { StepNone = 0, StepMatch, StepMerge, StepReplace };
     explicit CustomSubtitleController(PluginLogger *logger, QObject *parent = nullptr);
     ~CustomSubtitleController();
 
@@ -62,10 +70,17 @@ public:
     double progress() const;
     double currentFileProgress() const;
     bool isProcessing() const;
-    QString currentStep() const;
+    int currentStep() const;
     int processedCount() const;
     int totalCount() const;
     QString currentFile() const;
+    bool isStopRequested() const { return m_gracefulStopRequested; }
+
+    // Step enum read-only access for QML
+    int stepNone() const { return StepNone; }
+    int stepMatch() const { return StepMatch; }
+    int stepMerge() const { return StepMerge; }
+    int stepReplace() const { return StepReplace; }
 
     // Setters
     void setSubtitleDownloadPath(const QString &path);
@@ -110,6 +125,7 @@ signals:
     void currentFileChanged();
     void logMessage(const QString &message);
     void enabledPreprocessorsChanged();
+    void stopRequestedChanged();
 
 private slots:
     void onMatchFinished(bool success, const QString &error);
@@ -118,7 +134,7 @@ private slots:
 
 private:
     void setStatusMessage(const QString &msg);
-    void setCurrentStep(const QString &step);
+    void setCurrentStep(int step);
     void setProgress(double value);
     void setCurrentFileProgress(double value);
     void setIsProcessing(bool processing);
@@ -138,7 +154,7 @@ private:
     double m_progress = 0.0;
     double m_currentFileProgress = 0.0;
     bool m_isProcessing = false;
-    QString m_currentStep;
+    int m_currentStep = StepNone;
 
     QStringList m_enabledPreprocessors;
 
@@ -150,4 +166,5 @@ private:
     int m_processedCount = 0;
     int m_totalCount = 0;
     QString m_currentFile;
+    bool m_gracefulStopRequested = false;
 };
