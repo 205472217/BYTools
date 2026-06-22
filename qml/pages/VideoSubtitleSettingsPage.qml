@@ -119,6 +119,26 @@ Pane {
                     font.pixelSize: 14
                 }
             }
+
+            Item {
+                Layout.fillWidth: true
+            }
+
+            IconButton {
+                id: saveBtn
+                implicitWidth: 120
+                implicitHeight: 38
+                text: "保存设置"
+                normalColor: pal.VideoSubtitleSettingsPage_saveBtn_normalColor
+                hoverColor: pal.VideoSubtitleSettingsPage_saveBtn_hoverColor
+                borderColor: pal.VideoSubtitleSettingsPage_saveBtn_borderColor
+                onClicked: {
+                    if (settings) {
+                        settings.saveSettings();
+                        root.backRequested();
+                    }
+                }
+            }
         }
 
         // Settings card
@@ -183,6 +203,7 @@ Pane {
                             id: ffmpegStatusLabel
                             text: {
                                 if (!settings) return "";
+                                if (settings.ffmpegDetecting) return "检测中...";
                                 if (settings.ffmpegPath && settings.ffmpegPath.length > 0) {
                                     var parts = settings.ffmpegPath.replace(/\\/g, '/').split('/');
                                     var ok = settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0;
@@ -190,7 +211,15 @@ Pane {
                                 }
                                 return "请点击下载地址进行 FFmpeg 下载";
                             }
-                            color: settings && settings.ffmpegPath && settings.ffmpegPath.length > 0 && (settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0) ? pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_success : pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_error
+                            color: {
+                                if (!settings) return "";
+                                if (settings.ffmpegDetecting) return pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_detecting;
+                                if (settings.ffmpegPath && settings.ffmpegPath.length > 0) {
+                                    var ok = settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0;
+                                    return ok ? pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_success : pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_error;
+                                }
+                                return pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_error;
+                            }
                             font.pixelSize: 12
                             elide: Text.ElideRight
                             verticalAlignment: Text.AlignVCenter
@@ -259,6 +288,7 @@ Pane {
                             id: whisperStatusLabel
                             text: {
                                 if (!settings) return "";
+                                if (settings.whisperDetecting) return "检测中...";
                                 if (settings.whisperPath && settings.whisperPath.length > 0) {
                                     var parts = settings.whisperPath.replace(/\\/g, '/').split('/');
                                     var ok = settings.whisperStatus.indexOf("已找到") >= 0 || settings.whisperStatus.indexOf("已检测到") >= 0;
@@ -266,7 +296,15 @@ Pane {
                                 }
                                 return "请点击下载地址进行 Whisper 下载";
                             }
-                            color: settings && settings.whisperPath && settings.whisperPath.length > 0 && (settings.whisperStatus.indexOf("已找到") >= 0 || settings.whisperStatus.indexOf("已检测到") >= 0) ? pal.VideoSubtitleSettingsPage_whisperStatusLabel_color_success : pal.VideoSubtitleSettingsPage_whisperStatusLabel_color_error
+                            color: {
+                                if (!settings) return "";
+                                if (settings.whisperDetecting) return pal.VideoSubtitleSettingsPage_whisperStatusLabel_color_detecting;
+                                if (settings.whisperPath && settings.whisperPath.length > 0) {
+                                    var ok = settings.whisperStatus.indexOf("已找到") >= 0 || settings.whisperStatus.indexOf("已检测到") >= 0;
+                                    return ok ? pal.VideoSubtitleSettingsPage_whisperStatusLabel_color_success : pal.VideoSubtitleSettingsPage_whisperStatusLabel_color_error;
+                                }
+                                return pal.VideoSubtitleSettingsPage_whisperStatusLabel_color_error;
+                            }
                             font.pixelSize: 12
                             elide: Text.ElideRight
                             verticalAlignment: Text.AlignVCenter
@@ -1037,7 +1075,7 @@ Pane {
                             text: "启用硬件加速（NVENC / QSV / AMF）"
                             textColor: pal.checkBox_textColor
                             checked: settings ? settings.useGpuAccel : false
-                            enabled: settings ? (settings.ffmpegPath.length > 0 && (settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0)) : false
+                            enabled: settings ? (settings.ffmpegPath.length > 0 && (settings.ffmpegDetecting || settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0)) : false
                             onCheckedChanged: {
                                 if (settings)
                                     settings.useGpuAccel = checked;
@@ -1055,6 +1093,7 @@ Pane {
                             text: settings ? settings.gpuAccelInfo : ""
                             color: {
                                 if (!settings) return pal.VideoSubtitleSettingsPage_gpuInfoLabel_color_disabled;
+                                if (settings.ffmpegDetecting) return pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_detecting;
                                 if (settings.gpuAccelInfo.indexOf("NVENC") >= 0
                                     || settings.gpuAccelInfo.indexOf("QSV") >= 0
                                     || settings.gpuAccelInfo.indexOf("AMF") >= 0)
@@ -1143,31 +1182,6 @@ Pane {
 
             }
 
-        }
-
-        // Action buttons
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 12
-
-            Item {
-                Layout.fillWidth: true
-            }
-
-            IconButton {
-                id: saveBtn
-                implicitWidth: 120
-                text: "保存设置"
-                normalColor: pal.VideoSubtitleSettingsPage_saveBtn_normalColor
-                hoverColor: pal.VideoSubtitleSettingsPage_saveBtn_hoverColor
-                borderColor: pal.VideoSubtitleSettingsPage_saveBtn_borderColor
-                onClicked: {
-                    if (settings) {
-                        settings.saveSettings();
-                        root.backRequested();
-                    }
-                }
-            }
         }
     }
 }

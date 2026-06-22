@@ -15,6 +15,7 @@
 #include <QUrlQuery>
 #include <QCryptographicHash>
 #include <QRandomGenerator>
+#include <QtConcurrent/QtConcurrentRun>
 
 const QVector<VideoSubtitleSettings::ModelInfo> VideoSubtitleSettings::MODEL_INFOS = {
     {"tiny",   "ggml-tiny.bin",   77701664LL},
@@ -34,6 +35,11 @@ VideoSubtitleSettings::VideoSubtitleSettings(PluginLogger *logger, QObject *pare
 {
     m_settings.beginGroup(VideoSubtitlePlugin::kIniSection);
     m_whisperModelDir = QCoreApplication::applicationDirPath() + "/plugins/videosubtitle";
+
+    m_detectWatcher = new QFutureWatcher<ToolsDetectResult>(this);
+    connect(m_detectWatcher, &QFutureWatcher<ToolsDetectResult>::finished,
+            this, &VideoSubtitleSettings::onToolsDetectionFinished);
+
     loadSettings();
     m_logger->info("插件设置已加载");
 }
@@ -103,18 +109,18 @@ void VideoSubtitleSettings::setFfmpegPath(const QString &path)
     if (m_ffmpegPath != path) {
         m_ffmpegPath = path;
         emit ffmpegPathChanged();
-        if (isFFmpegAvailable(path, m_logger)) {
-            QString ver = ffmpegVersion(path);
-            m_ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
+        if (!path.isEmpty()) {
+            m_ffmpegDetecting = true;
+            m_ffmpegStatus = "检测中...";
+            m_gpuAccelInfo = "检测中...";
+            startAsyncDetection();
         } else {
-            m_ffmpegStatus = path.isEmpty() ? "未配置" : "无法找到 FFmpeg";
-        }
-        emit ffmpegStatusChanged();
-        if (isFFmpegAvailable(path, m_logger)) {
-            m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(path);
-        } else {
+            m_ffmpegDetecting = false;
+            m_ffmpegStatus = "未配置";
             m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
         }
+        emit ffmpegDetectingChanged();
+        emit ffmpegStatusChanged();
         emit gpuAccelInfoChanged();
     }
 }
@@ -409,20 +415,57 @@ void VideoSubtitleSettings::loadSettings()
     m_enableTranslate = m_settings.value("enableTranslate", true).toBool();
     m_enableBurnSubtitle = m_settings.value("enableBurnSubtitle", true).toBool();
 
-    if (!m_ffmpegPath.isEmpty() && isFFmpegAvailable(m_ffmpegPath, m_logger)) {
-        m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(m_ffmpegPath);
+    // Fast bundled scan (synchronous, just file enumeration)
+    bool changed = false;
+    if (m_ffmpegPath.isEmpty()) {
+        QString found = findBundled("ffmpeg.exe");
+        if (!found.isEmpty()) {
+            m_ffmpegPath = found;
+            changed = true;
+        }
+    }
+    if (m_whisperPath.isEmpty()) {
+        QString found = findBundled("whisper-cli.exe");
+        if (!found.isEmpty()) {
+            m_whisperPath = found;
+            changed = true;
+        }
+    }
+    if (changed)
+        saveSettings();
+
+    // Set initial detection states (ffmpeg async, whisper sync)
+    if (!m_ffmpegPath.isEmpty()) {
+        m_ffmpegDetecting = true;
+        m_ffmpegStatus = "检测中...";
     } else {
-        m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
+        m_ffmpegDetecting = false;
+        m_ffmpegStatus = "未配置";
+    }
+    if (!m_whisperPath.isEmpty()) {
+        m_whisperDetecting = false;
+        if (QFileInfo::exists(m_whisperPath))
+            m_whisperStatus = "已找到 whisper.cpp";
+        else
+            m_whisperStatus = "无法找到 whisper.cpp";
+    } else {
+        m_whisperDetecting = false;
+        m_whisperStatus = "未配置";
     }
 
-    if (m_apiUrl.isEmpty()) {
+    m_gpuAccelInfo = m_ffmpegPath.isEmpty()
+        ? "GPU 加速: 需先配置 FFmpeg"
+        : "检测中...";
+
+    if (m_apiUrl.isEmpty())
         updateApiUrlForEngine(m_translateEngine);
-    }
-
-    detectTools();
 
     emit ffmpegPathChanged();
+    emit ffmpegStatusChanged();
+    emit ffmpegDetectingChanged();
     emit whisperPathChanged();
+    emit whisperStatusChanged();
+    emit whisperDetectingChanged();
     emit whisperModelChanged();
     emit whisperModelDirChanged();
     emit localModelPathChanged();
@@ -455,6 +498,10 @@ void VideoSubtitleSettings::loadSettings()
     emit enableTranscribeChanged();
     emit enableTranslateChanged();
     emit enableBurnSubtitleChanged();
+
+    // Start async ffmpeg detection in background thread
+    if (m_ffmpegDetecting)
+        startAsyncDetection();
 }
 void VideoSubtitleSettings::saveSettings()
 {
@@ -533,12 +580,35 @@ void VideoSubtitleSettings::resetDefaults()
     m_enableTranslate = true;
     m_enableBurnSubtitle = true;
 
-    detectTools();
+    // Fast bundled scan
+    bool changed = false;
+    QString bundledFfmpeg = findBundled("ffmpeg.exe");
+    if (!bundledFfmpeg.isEmpty()) {
+        m_ffmpegPath = bundledFfmpeg;
+        m_ffmpegDetecting = true;
+        m_ffmpegStatus = "检测中...";
+        m_gpuAccelInfo = "检测中...";
+        changed = true;
+    } else {
+        m_ffmpegDetecting = false;
+    }
+
+    QString bundledWhisper = findBundled("whisper-cli.exe");
+    if (!bundledWhisper.isEmpty()) {
+        m_whisperPath = bundledWhisper;
+        m_whisperStatus = "已找到 whisper.cpp";
+        m_whisperDetecting = false;
+        changed = true;
+    }
+
+    if (changed) saveSettings();
 
     emit ffmpegPathChanged();
     emit ffmpegStatusChanged();
+    emit ffmpegDetectingChanged();
     emit whisperPathChanged();
     emit whisperStatusChanged();
+    emit whisperDetectingChanged();
     emit whisperModelChanged();
     emit whisperModelDirChanged();
     emit localModelPathChanged();
@@ -571,6 +641,9 @@ void VideoSubtitleSettings::resetDefaults()
     emit enableTranscribeChanged();
     emit enableTranslateChanged();
     emit enableBurnSubtitleChanged();
+
+    if (m_ffmpegDetecting)
+        startAsyncDetection();
 }
 void VideoSubtitleSettings::testFfmpeg()
 {
@@ -759,73 +832,68 @@ qint64 VideoSubtitleSettings::modelFileSize(int modelIndex) const
 }
 
 // ── Private ──
-void VideoSubtitleSettings::detectTools()
+void VideoSubtitleSettings::startAsyncDetection()
 {
-    bool changed = false;
+    if (!m_ffmpegDetecting || m_ffmpegPath.isEmpty())
+        return;
 
-    auto findBundled = [](const QString &fileName) -> QString {
-        QString basePath = QCoreApplication::applicationDirPath() + "/plugins/videosubtitle";
-        QDirIterator it(basePath, QStringList() << fileName, QDir::Files, QDirIterator::Subdirectories);
-        if (it.hasNext()) {
-            it.next();
-            return it.filePath();
-        }
-        return QString();
-    };
+    auto future = QtConcurrent::run(
+        [](const QString &ffmpegPath, PluginLogger *logger) -> ToolsDetectResult {
+            return runToolsDetection(ffmpegPath, logger);
+        },
+        m_ffmpegPath, m_logger
+    );
+    m_detectWatcher->setFuture(future);
+}
+void VideoSubtitleSettings::onToolsDetectionFinished()
+{
+    if (!m_detectWatcher || !m_detectWatcher->isFinished())
+        return;
 
-    if (!m_ffmpegPath.isEmpty()) {
-        if (isFFmpegAvailable(m_ffmpegPath, m_logger)) {
-            QString ver = ffmpegVersion(m_ffmpegPath);
-            m_ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
-        } else {
-            m_ffmpegStatus = "无法找到 FFmpeg";
-            m_logger->warn("ini 配置的 FFmpeg 路径不可用: " + m_ffmpegPath);
-        }
-        emit ffmpegStatusChanged();
+    auto result = m_detectWatcher->future().result();
+
+    m_ffmpegDetecting = false;
+    m_ffmpegStatus = result.ffmpegStatus;
+    m_gpuAccelInfo = result.gpuAccelInfo;
+
+    emit ffmpegDetectingChanged();
+    emit ffmpegStatusChanged();
+    emit gpuAccelInfoChanged();
+}
+ToolsDetectResult VideoSubtitleSettings::runToolsDetection(const QString &ffmpegPath, PluginLogger *logger)
+{
+    ToolsDetectResult result;
+
+    if (ffmpegPath.isEmpty()) {
+        result.ffmpegStatus = "未配置";
+        result.gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
+        return result;
+    }
+
+    if (isFFmpegAvailable(ffmpegPath, logger)) {
+        QString ver = ffmpegVersion(ffmpegPath);
+        result.ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
     } else {
-        QString found = findBundled("ffmpeg.exe");
-        if (!found.isEmpty()) {
-            m_ffmpegPath = found;
-            if (isFFmpegAvailable(m_ffmpegPath, m_logger)) {
-                QString ver = ffmpegVersion(m_ffmpegPath);
-                m_ffmpegStatus = ver.isEmpty() ? "已找到 FFmpeg" : ("已检测到 FFmpeg " + ver);
-            } else {
-                m_ffmpegStatus = "无法找到 FFmpeg";
-            }
-            changed = true;
-            m_logger->info("自动检测到自带的 FFmpeg: " + m_ffmpegPath);
-        }
-        emit ffmpegStatusChanged();
+        result.ffmpegStatus = "无法找到 FFmpeg";
     }
 
-    if (!m_ffmpegPath.isEmpty() && isFFmpegAvailable(m_ffmpegPath, m_logger)) {
-        m_gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(m_ffmpegPath);
+    if (isFFmpegAvailable(ffmpegPath, logger)) {
+        result.gpuAccelInfo = "GPU 加速: " + FFmpegService::hardwareAccelName(ffmpegPath);
     } else {
-        m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
+        result.gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
     }
 
-    if (!m_whisperPath.isEmpty()) {
-        if (QFileInfo::exists(m_whisperPath)) {
-            m_whisperStatus = "已找到 whisper.cpp";
-        } else {
-            m_whisperStatus = "无法找到 whisper.cpp";
-            m_logger->warn("ini 配置的 Whisper 路径不可用: " + m_whisperPath);
-        }
-        emit whisperStatusChanged();
-    } else {
-        QString found = findBundled("whisper-cli.exe");
-        if (!found.isEmpty()) {
-            m_whisperPath = found;
-            m_whisperStatus = "已找到 whisper.cpp";
-            changed = true;
-            m_logger->info("自动检测到自带的 Whisper: " + m_whisperPath);
-        }
-        emit whisperStatusChanged();
+    return result;
+}
+QString VideoSubtitleSettings::findBundled(const QString &fileName) const
+{
+    QString basePath = QCoreApplication::applicationDirPath() + "/plugins/videosubtitle";
+    QDirIterator it(basePath, QStringList() << fileName, QDir::Files, QDirIterator::Subdirectories);
+    if (it.hasNext()) {
+        it.next();
+        return it.filePath();
     }
-
-    if (changed) {
-        saveSettings();
-    }
+    return QString();
 }
 void VideoSubtitleSettings::updateApiUrlForEngine(int engine)
 {

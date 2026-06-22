@@ -5,9 +5,15 @@
 #include <QVariantList>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QFutureWatcher>
 #include "Config.h"
 
 class PluginLogger;
+
+struct ToolsDetectResult {
+    QString ffmpegStatus;
+    QString gpuAccelInfo;
+};
 
 class VideoSubtitleSettings : public QObject
 {
@@ -45,6 +51,8 @@ class VideoSubtitleSettings : public QObject
     Q_PROPERTY(int defaultBorderWidth READ defaultBorderWidth WRITE setDefaultBorderWidth NOTIFY defaultBorderWidthChanged)
     Q_PROPERTY(bool useGpuAccel READ useGpuAccel WRITE setUseGpuAccel NOTIFY useGpuAccelChanged)
     Q_PROPERTY(QString gpuAccelInfo READ gpuAccelInfo NOTIFY gpuAccelInfoChanged)
+    Q_PROPERTY(bool ffmpegDetecting READ ffmpegDetecting NOTIFY ffmpegDetectingChanged)
+    Q_PROPERTY(bool whisperDetecting READ whisperDetecting NOTIFY whisperDetectingChanged)
 
     // ── 主页面 ──
     Q_PROPERTY(QString inputPath READ inputPath WRITE setInputPath NOTIFY inputPathChanged)
@@ -92,6 +100,8 @@ public:
     int defaultBorderWidth() const;
     bool useGpuAccel() const;
     QString gpuAccelInfo() const;
+    bool ffmpegDetecting() const { return m_ffmpegDetecting; }
+    bool whisperDetecting() const { return m_whisperDetecting; }
 
     // ── 主页面 getter ──
     QString inputPath() const;
@@ -186,6 +196,8 @@ signals:
     void settingsChanged();
     void useGpuAccelChanged();
     void gpuAccelInfoChanged();
+    void ffmpegDetectingChanged();
+    void whisperDetectingChanged();
 
     // ── 主页面信号 ──
     void inputPathChanged();
@@ -202,7 +214,10 @@ signals:
     void enableBurnSubtitleChanged();
 
 private:
-    void detectTools();
+    void startAsyncDetection();
+    void onToolsDetectionFinished();
+    static ToolsDetectResult runToolsDetection(const QString &ffmpegPath, PluginLogger *logger);
+    QString findBundled(const QString &fileName) const;
     void updateApiUrlForEngine(int engine);
     QString defaultApiUrl(int engine) const;
     void testBaiduConnection();
@@ -210,6 +225,10 @@ private:
 
     PluginLogger *m_logger = nullptr;
     QSettings m_settings;
+    QFutureWatcher<ToolsDetectResult> *m_detectWatcher = nullptr;
+    bool m_ffmpegDetecting = false;
+    bool m_whisperDetecting = false;
+
     // ── 设置页成员 ──
     QString m_ffmpegPath;
     QString m_ffmpegStatus;
