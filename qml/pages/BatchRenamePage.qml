@@ -119,18 +119,19 @@ Pane {
             Layout.fillWidth: true
             spacing: 12
 
-            IconButton {
-                iconSource: "qrc:/icons/arrow-left.svg"
-                implicitHeight: 38
-                tooltip: "返回"
-                onClicked: {
-                    if (controller && controller.isProcessing) {
-                        backConfirmDialog.open();
-                    } else {
-                        root.backRequested();
+                    IconButton {
+                        id: backBtn
+                        iconSource: "qrc:/icons/arrow-left.svg"
+                        implicitHeight: 38
+                        tooltip: "返回"
+                        onClicked: {
+                            if (controller && controller.isProcessing) {
+                                backConfirmDialog.open();
+                            } else {
+                                root.backRequested();
+                            }
+                        }
                     }
-                }
-            }
 
             ColumnLayout {
                 Layout.fillWidth: true
@@ -183,6 +184,7 @@ Pane {
                     }
 
                     TextFieldEx {
+                        id: rootPathField
                         Layout.fillWidth: true
                         text: settings ? settings.rootPath : ""
                         readOnly: true
@@ -227,6 +229,7 @@ Pane {
                         Layout.fillWidth: true
 
                         RadioButtonEx {
+                            id: allTypeRadio
                             implicitWidth: 40
                             text: "所有"
                             textColor: pal.radioButton_textColor
@@ -239,6 +242,7 @@ Pane {
                         }
 
                         RadioButtonEx {
+                            id: videoTypeRadio
                             implicitWidth: 40
                             text: "视频"
                             textColor: pal.radioButton_textColor
@@ -251,6 +255,7 @@ Pane {
                         }
 
                         RadioButtonEx {
+                            id: audioTypeRadio
                             implicitWidth: 40
                             text: "音频"
                             textColor: pal.radioButton_textColor
@@ -263,6 +268,7 @@ Pane {
                         }
 
                         RadioButtonEx {
+                            id: textTypeRadio
                             implicitWidth: 40
                             text: "文本"
                             textColor: pal.radioButton_textColor
@@ -275,6 +281,7 @@ Pane {
                         }
 
                         RadioButtonEx {
+                            id: imageTypeRadio
                             implicitWidth: 40
                             text: "图片"
                             textColor: pal.radioButton_textColor
@@ -300,6 +307,7 @@ Pane {
                         }
 
                         TextFieldEx {
+                            id: customExtField
                             Layout.preferredWidth: 80
                             text: settings ? settings.customExtension : ""
                             placeholderText: ".txt"
@@ -348,6 +356,7 @@ Pane {
                     }
 
                     TextFieldEx {
+                        id: baseNameField
                         Layout.preferredWidth: 150
                         text: settings ? settings.baseName : ""
                         placeholderText: "输入文件名"
@@ -380,6 +389,7 @@ Pane {
                     }
 
                     TextFieldEx {
+                        id: searchTextField
                         Layout.preferredWidth: 120
                         text: settings ? settings.searchText : ""
                         placeholderText: "查找"
@@ -398,6 +408,7 @@ Pane {
                     }
 
                     TextFieldEx {
+                        id: replaceTextField
                         Layout.preferredWidth: 120
                         text: settings ? settings.replaceText : ""
                         placeholderText: "替换"

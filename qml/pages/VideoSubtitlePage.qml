@@ -321,6 +321,7 @@ Pane {
                     }
 
                     RadioButtonEx {
+                        id: singleFileRadio
                         implicitWidth: 100
                         text: "单个视频"
                         textColor: pal.radioButton_textColor
@@ -334,6 +335,7 @@ Pane {
                     }
 
                     RadioButtonEx {
+                        id: batchFolderRadio
                         implicitWidth: 100
                         text: "文件夹批量"
                         textColor: pal.radioButton_textColor
@@ -611,6 +613,7 @@ Pane {
                     }
 
                     RadioButtonEx {
+                        id: sameDirRadio
                         implicitWidth: 80
                         text: "同目录"
                         textColor: pal.radioButton_textColor
@@ -622,6 +625,7 @@ Pane {
                     }
 
                     RadioButtonEx {
+                        id: specifyDirRadio
                         implicitWidth: 80
                         text: "指定目录"
                         textColor: pal.radioButton_textColor
@@ -760,8 +764,9 @@ Pane {
                     }
 
                     Label {
+                        id: stopAfterLabel
                         text: "再完成"
-                        color: pal.VideoSubtitlePage_statusMessage_color_log
+                        color: pal.VideoSubtitlePage_stopAfterLabel_color
                         font.pixelSize: 11
                         Layout.alignment: Qt.AlignVCenter
                     }
@@ -786,8 +791,9 @@ Pane {
                     }
 
                     Label {
+                        id: stopAtLabel
                         text: "个后停止"
-                        color: pal.VideoSubtitlePage_statusMessage_color_log
+                        color: pal.VideoSubtitlePage_stopAtLabel_color
                         font.pixelSize: 11
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     }

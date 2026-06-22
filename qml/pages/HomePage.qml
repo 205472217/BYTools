@@ -73,6 +73,7 @@ Pane {
                 clip: true
 
                 background: Rectangle {
+                    id: themeSwitcherBg
                     color: pal.HomePage_themeSwitcherBg_color
                     radius: 6
                     border.color: pal.HomePage_themeSwitcherBorder_color

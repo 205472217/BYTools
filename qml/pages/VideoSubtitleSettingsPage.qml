@@ -892,9 +892,10 @@ Pane {
                         }
 
                         Rectangle {
+                            id: fontSizeDivider
                             width: 1
                             height: 24
-                            color: pal.VideoSubtitleSettingsPage_sizeDivider_color
+                            color: pal.VideoSubtitleSettingsPage_fontSizeDivider_color
                         }
 
                         Label {
@@ -954,9 +955,10 @@ Pane {
                         }
 
                         Rectangle {
+                            id: subtitleStyleDivider
                             width: 1
                             height: 24
-                            color: pal.VideoSubtitleSettingsPage_sizeDivider_color
+                            color: pal.VideoSubtitleSettingsPage_subtitleStyleDivider_color
                         }
 
                         Label {
@@ -985,12 +987,12 @@ Pane {
 
                         Label {
                             id: fontColorValue
-                            text: settings ? settings.defaultFontColor : "#FFFFFF"
                             color: pal.VideoSubtitleSettingsPage_fontColorValue_color
                             font.pixelSize: 12
                         }
 
                         Rectangle {
+                            id: styleDivider
                             width: 1
                             height: 24
                             color: pal.VideoSubtitleSettingsPage_styleDivider_color
@@ -1022,7 +1024,6 @@ Pane {
 
                         Label {
                             id: borderColorValue
-                            text: settings ? settings.defaultBorderColor : "#000000"
                             color: pal.VideoSubtitleSettingsPage_borderColorValue_color
                             font.pixelSize: 12
                         }
@@ -1039,6 +1040,7 @@ Pane {
                         border.color: pal.VideoSubtitleSettingsPage_settingsCard_borderColor
 
                         Label {
+                            id: previewLabel
                             anchors.centerIn: parent
                             text: "这是一行字幕文字预览"
                             color: settings ? settings.defaultFontColor : pal.VideoSubtitleSettingsPage_previewLabel_color
@@ -1071,6 +1073,7 @@ Pane {
                         }
 
                         CheckBoxEx {
+                            id: gpuCheckBox
                             implicitWidth: 250
                             text: "启用硬件加速（NVENC / QSV / AMF）"
                             textColor: pal.checkBox_textColor
@@ -1090,6 +1093,7 @@ Pane {
                         Item { Layout.fillWidth: true }
 
                         Label {
+                            id: gpuInfoLabel
                             text: settings ? settings.gpuAccelInfo : ""
                             color: {
                                 if (!settings) return pal.VideoSubtitleSettingsPage_gpuInfoLabel_color_disabled;
@@ -1120,6 +1124,7 @@ Pane {
                         }
 
                         CheckBoxEx {
+                            id: keepWavCheckBox
                             implicitWidth: 150
                             text: "保留 WAV 音频文件"
                             textColor: pal.checkBox_textColor
@@ -1131,6 +1136,7 @@ Pane {
                         }
 
                         CheckBoxEx {
+                            id: keepOrigSrtCheckBox
                             implicitWidth: 150
                             text: "保留原始 SRT 字幕"
                             textColor: pal.checkBox_textColor
@@ -1142,6 +1148,7 @@ Pane {
                         }
 
                         CheckBoxEx {
+                            id: keepTranslatedSrtCheckBox
                             implicitWidth: 150
                             text: "保留翻译后 SRT"
                             textColor: pal.checkBox_textColor

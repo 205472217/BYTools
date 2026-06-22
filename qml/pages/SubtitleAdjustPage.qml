@@ -420,6 +420,7 @@ Pane {
 
         // ═══════════════ Log Row + Shortcut Hints ═══════════════
         Rectangle {
+            id: logBar
             Layout.fillWidth: true
             Layout.preferredHeight: 50
             radius: 6
@@ -1028,6 +1029,7 @@ Pane {
 
                     // Replace original srt
                     CheckBoxEx {
+                        id: overwriteCheckBox
                         Layout.fillWidth: true
                         text: "替换原字幕文件"
                         textColor: pal.checkBox_textColor

@@ -677,9 +677,10 @@ Pane {
 
                     // separator
                     Rectangle {
+                        id: sep2
                         Layout.fillWidth: true
                         Layout.preferredHeight: 1
-                        color: pal.CustomSubtitlePage_sep1_color
+                        color: pal.CustomSubtitlePage_sep2_color
                     }
 
                     // ── Search results list ──
@@ -1139,6 +1140,7 @@ Pane {
 
                                 // 空闲状态：执行按钮
                                 CheckBoxEx {
+                                    id: gpuCheckBox
                                     Layout.fillWidth: true
                                     text: "GPU加速"
                                     textColor: pal.checkBox_textColor
@@ -1280,6 +1282,7 @@ Pane {
                                 spacing: 5
 
                                 CheckBoxEx {
+                                    id: backupCheckBox
                                     Layout.fillWidth: true
                                     text: "备份原文件"
                                     textColor: pal.checkBox_textColor

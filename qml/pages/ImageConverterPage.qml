@@ -83,6 +83,7 @@ Pane {
             Layout.margins: 4
 
             Label {
+                id: msgLabel
                 text: "当前有图片格式转换任务正在处理中，返回首页将中断执行，是否继续？"
                 color: pal.ImageConverterPage_msgLabel_color
                 font.pixelSize: 14
@@ -97,6 +98,7 @@ Pane {
                 Item { Layout.fillWidth: true }
 
                 IconButton {
+                    id: cancelBtn
                     text: "取消"
                     tooltip: "不返回，继续当前任务"
                     normalColor: pal.ImageConverterPage_cancelBtn_normalColor
@@ -354,6 +356,7 @@ Pane {
                             border.color: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? pal.ImageConverterPage_customSwatch_borderColor_active : pal.ImageConverterPage_customSwatch_borderColor_normal
 
                             Label {
+                                id: customSwatchLabel
                                 anchors.centerIn: parent
                                 text: "自定义"
                                 color: pal.ImageConverterPage_customSwatch_textColor_normal

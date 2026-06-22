@@ -215,6 +215,7 @@ Pane {
             Layout.margins: 4
 
             Label {
+                id: confirmMsg
                 text: "当前有图片裁剪任务正在处理中，返回首页将中断执行，是否继续？"
                 color: pal.ImageCropPage_confirmMsg_color
                 font.pixelSize: 14
@@ -358,13 +359,14 @@ Pane {
                 }
 
                 IconButton {
+                    id: loadImageBtn
                     text: "载入图片"
                     tooltip: "加载指定路径下的图片资源"
                     implicitWidth: 100
                     implicitHeight: 38
-                    normalColor: pal.ImageCropPage_execBtn_normalColor
-                    hoverColor: pal.ImageCropPage_execBtn_hoverColor
-                    borderColor: pal.ImageCropPage_execBtn_borderColor
+                    normalColor: pal.ImageCropPage_loadImageBtn_normalColor
+                    hoverColor: pal.ImageCropPage_loadImageBtn_hoverColor
+                    borderColor: pal.ImageCropPage_loadImageBtn_borderColor
                     onClicked: {
                         if (controller && settings.rootPath.length > 0) {
                             controller.scanImages();
@@ -1569,6 +1571,7 @@ Pane {
                                     spacing: 12
 
                                     RadioButtonEx {
+                                        id: overwriteRadio
                                         implicitWidth: 120
                                         text: "覆盖源文件"
                                         textColor: pal.radioButton_textColor
