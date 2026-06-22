@@ -57,6 +57,10 @@ qint64 getVideoDuration(const QString &ffmpegPath, const QString &videoPath);
 /// 相比 getVideoBitrate，这个值不包含音频码率，更适合传给 -b:v
 qint64 getVideoStreamBitrate(const QString &ffmpegPath, const QString &videoPath);
 
+/// 获取视频帧率（fps），基于 ffmpeg -i 输出解析，失败返回 0
+/// 解析 Stream #0:0 ... 末尾的 fps 字段（如 "23.98 fps", "59.97 fps", "30 fps"）
+qint64 getVideoFps(const QString &ffmpegPath, const QString &videoPath);
+
 /// 从 ffmpeg stderr 中提取人类可读的错误信息
 /// 清理内存地址、进度行、boilerplate 噪声
 QString extractFfmpegError(const QString &rawStderr);
@@ -72,4 +76,5 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
                               const QString &subtitleFilter,
                               const QString &outputPath,
                               const QString &inputCodec,
-                              qint64 bitrate = 0);
+                              qint64 bitrate = 0,
+                              qint64 fps = 0);
