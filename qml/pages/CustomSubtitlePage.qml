@@ -60,6 +60,16 @@ Pane {
     // ── Log state ──
     property string _lastLogLine: ""
 
+    // ── Unified progress value (0-1) for all steps ──
+    property double _progressValue: {
+        if (!controller || !controller.isProcessing) return 0;
+        if (controller.currentStep === controller.stepSearch)
+            return browserCtrl ? browserCtrl.searchProgress / 100 : 0;
+        if (controller.currentStep === controller.stepMerge)
+            return controller.currentFileProgress;
+        return controller.progress;
+    }
+
     // ── Browser controller shortcut ──
     property var browserCtrl: controller ? controller.browserController : null
 
@@ -97,6 +107,10 @@ Pane {
             if (message.length === 0)
                 return;
             _lastLogLine = message;
+        }
+        function onCurrentStepChanged() {
+            if (controller && controller.currentStep !== controller.stepNone)
+                _lastLogLine = "";
         }
     }
 
@@ -342,14 +356,20 @@ Pane {
         }
 
         // ═══════════════════════════════════════
-        // Merged status + progress bar (compact)
+        // Unified status + progress bar (2 rows)
         // ═══════════════════════════════════════
         Rectangle {
             id: statusBar
             Layout.fillWidth: true
             Layout.preferredHeight: 50
             radius: 6
-            color: (controller && controller.statusMessage) ? pal.CustomSubtitlePage_statusBar_color_active : pal.CustomSubtitlePage_statusBar_color_idle
+            color: {
+                var hasMsg = controller
+                    && (controller.statusMessage.length > 0 || _lastLogLine.length > 0);
+                return hasMsg
+                    ? pal.CustomSubtitlePage_statusBar_color_active
+                    : pal.CustomSubtitlePage_statusBar_color_idle;
+            }
 
             ColumnLayout {
                 anchors.fill: parent
@@ -357,22 +377,45 @@ Pane {
                 anchors.rightMargin: 12
                 spacing: 2
 
-                // Row 1: real-time log + current file
+                // Row 1: real-time message + current file
+                // Shown during all steps and after completion
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
+                    visible: {
+                        if (!controller) return true;
+                        if (controller.isProcessing) return true;
+                        if (browserCtrl && browserCtrl.downloading) return true;
+                        return controller.statusMessage.length > 0 || _lastLogLine.length > 0;
+                    }
 
                     Label {
                         id: statusMsgLabel
                         Layout.fillWidth: true
                         text: {
-                            var msg = _lastLogLine.length > 0 ? _lastLogLine
-                                   : (controller && controller.statusMessage.length > 0 ? controller.statusMessage : "");
-                            return msg.length > 0 ? msg.replace(/[\r\n]+/g, " ") : "就绪";
+                            if (!controller) return "就绪";
+                            var isBusy = controller.isProcessing
+                                || (browserCtrl && browserCtrl.downloading);
+                            if (isBusy)
+                                return _lastLogLine.length > 0
+                                    ? _lastLogLine.replace(/[\r\n]+/g, " ")
+                                    : "";
+                            var msg = controller.statusMessage.length > 0
+                                ? controller.statusMessage
+                                : _lastLogLine;
+                            return msg.length > 0
+                                ? msg.replace(/[\r\n]+/g, " ")
+                                : "就绪";
                         }
                         color: {
-                            var hasMsg = _lastLogLine.length > 0 || (controller && controller.statusMessage.length > 0);
-                            return hasMsg ? pal.CustomSubtitlePage_statusMsgLabel_color_log : pal.CustomSubtitlePage_statusMsgLabel_color_idle;
+                            var isBusy = controller.isProcessing
+                                || (browserCtrl && browserCtrl.downloading);
+                            var hasMsg = isBusy
+                                ? _lastLogLine.length > 0
+                                : (controller.statusMessage.length > 0 || _lastLogLine.length > 0);
+                            return hasMsg
+                                ? pal.CustomSubtitlePage_statusMsgLabel_color_log
+                                : pal.CustomSubtitlePage_statusMsgLabel_color_idle;
                         }
                         font.pixelSize: 11
                         font.family: "Consolas, 'Courier New', monospace"
@@ -382,6 +425,7 @@ Pane {
                     Label {
                         id: currentFileLabel
                         visible: controller && controller.isProcessing
+                                 && controller.currentStep >= controller.stepMatch
                                  && controller.currentFile.length > 0
                         text: "[" + controller.currentFile + "]"
                         color: pal.CustomSubtitlePage_currentFileLabel_color
@@ -391,76 +435,42 @@ Pane {
                     }
                 }
 
-                // Row 2: search progress（字幕搜索进度）
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 6
-                    visible: browserCtrl && browserCtrl.searching && browserCtrl.searchProgress > 0
-
-                    Rectangle {
-                        id: searchProgressBg
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 4
-                        Layout.alignment: Qt.AlignVCenter
-                        radius: 2
-                        color: pal.CustomSubtitlePage_searchProgressBg_color
-
-                        Rectangle {
-                            id: searchProgressFill
-                            width: parent.width * (browserCtrl ? browserCtrl.searchProgress / 100 : 0)
-                            height: parent.height
-                            radius: 2
-                            color: pal.CustomSubtitlePage_searchProgressFill_color
-                        }
-                    }
-
-                    Label {
-                        id: searchProgressPct
-                        text: browserCtrl ? browserCtrl.searchProgressMessage : ""
-                        color: pal.CustomSubtitlePage_searchProgressPct_color
-                        font.pixelSize: 11
-                        font.bold: true
-                    }
-                }
-
-                // Row 3: progress（步骤3→当前文件的 ffmpeg 实时进度，步骤2/4→走总进度 N/M）
+                // Row 2: progress bar + label
+                // Shown for all 4 steps during processing
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
                     visible: controller ? controller.isProcessing : false
 
                     Rectangle {
-                        id: ffmpegProgressBg
+                        id: progressBarBg
                         Layout.fillWidth: true
                         Layout.preferredHeight: 4
                         Layout.alignment: Qt.AlignVCenter
                         radius: 2
                         color: pal.CustomSubtitlePage_ffmpegProgressBg_color
-                        visible: controller && controller.currentStep === controller.stepMerge
 
                         Rectangle {
-                            id: ffmpegProgressFill
-                            width: parent.width * (controller ? controller.currentFileProgress : 0)
+                            id: progressBarFill
+                            width: parent.width * _progressValue
                             height: parent.height
                             radius: 2
                             color: pal.CustomSubtitlePage_ffmpegProgressFill_color
                         }
                     }
 
-                    Item {
-                        id: replaceStepKeepSpace
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 4
-                        visible: controller && controller.currentStep === controller.stepReplace
-                    }
-
                     Label {
-                        id: ffmpegProgressPct
-                        text: controller && controller.currentStep === controller.stepMerge
-                              ? Math.round(controller.currentFileProgress * 100) + "%"
-                              : (controller.totalCount > 0
-                                 ? controller.processedCount + "/" + controller.totalCount
-                                 : "")
+                        id: progressLabel
+                        text: {
+                            if (!controller) return "";
+                            if (controller.currentStep === controller.stepSearch)
+                                return browserCtrl ? browserCtrl.searchProgressMessage : "";
+                            if (controller.currentStep === controller.stepMerge)
+                                return Math.round(controller.currentFileProgress * 100) + "%";
+                            return controller.totalCount > 0
+                                ? controller.processedCount + "/" + controller.totalCount
+                                : "";
+                        }
                         color: pal.CustomSubtitlePage_ffmpegProgressPct_color
                         font.pixelSize: 11
                         font.bold: true

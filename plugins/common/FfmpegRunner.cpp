@@ -40,6 +40,9 @@ void FfmpegRunner::burnSubtitles(const BurnConfig &config)
     qint64 srcBitrate = m_srcBitrate;
     bool hasBitrate = (srcBitrate > 0);
 
+    // 获取帧率 — 用于 GPU constqp 模式下动态选择 QP
+    qint64 fps = getVideoFps(config.ffmpegPath, config.videoPath);
+
     // 计算线程限制：默认保留 ~15% CPU 余量，避免系统卡顿
     if (m_burnConfig.threadCount == 0) {
         m_burnConfig.threadCount = qMax(1, qRound(QThread::idealThreadCount() * 0.85));
@@ -53,7 +56,7 @@ void FfmpegRunner::burnSubtitles(const BurnConfig &config)
                                               config.fontSize, config.fontColor,
                                               config.borderColor, config.borderWidth);
         args = buildGpuAccelArgs(vendor, config.videoPath, filter,
-                                  config.outputPath, codec, srcBitrate);
+                                  config.outputPath, codec, srcBitrate, fps);
     }
 
     if (args.isEmpty()) {
@@ -71,8 +74,8 @@ void FfmpegRunner::burnSubtitles(const BurnConfig &config)
                  << "-bufsize" << QString::number(srcBitrate * 3);       // 3x 缓冲
         } else {
             args << "-b:v" << "5M"
-                 << "-maxrate" << "10M"
-                 << "-bufsize" << "20M";
+                 << "-maxrate" << "7500k"
+                 << "-bufsize" << "15M";
         }
         args << "-c:a" << "copy"
              << "-y";
@@ -174,8 +177,8 @@ void FfmpegRunner::onProcessFinished(int exitCode, QProcess::ExitStatus exitStat
                            << "-bufsize" << QString::number(m_srcBitrate * 3);
                 } else {
                     swArgs << "-b:v" << "5M"
-                           << "-maxrate" << "10M"
-                           << "-bufsize" << "20M";
+                           << "-maxrate" << "7500k"
+                           << "-bufsize" << "15M";
                 }
                 swArgs << "-c:a" << "copy"
                        << "-y"

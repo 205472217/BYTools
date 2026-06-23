@@ -6,6 +6,7 @@
 #include <QRegularExpression>
 #include <QFileInfo>
 #include <QDir>
+#include <cmath>
 
 // ── 辅助：编码器名称映射 ────────────────────────────────
 
@@ -157,7 +158,8 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
                               const QString &subtitleFilter,
                               const QString &outputPath,
                               const QString &inputCodec,
-                              qint64 bitrate)
+                              qint64 bitrate,
+                              qint64 fps)
 {
     QStringList args;
     if (vendor == GpuVendor::None)
@@ -167,14 +169,21 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
     if (encoder.isEmpty())
         return args;
 
-    // 目标码率 = 源码率（最低 2 Mbps），峰值上限 = 源码率×1.5
-    qint64 targetBitrate = qMax(bitrate, 2000'000ll);
-    qint64 maxBitrate = targetBitrate * 3 / 2;
+    // 根据源码率和帧率计算合适的 QP 
+    int qp = 23;
+    if (bitrate > 0 && fps > 0) {
+        qint64 normBitrate = bitrate * 30 / fps;        // 归一化到 30fps
+        double ratio = static_cast<double>(normBitrate) / 3000000.0;
+        ratio = qBound(0.1, ratio, 2.0);                // 限幅避免极端值
+        qp = qRound(23 - 6.0 * std::log2(ratio));
+        qp = qBound(23, qp, 26);                        // QP 23-26，超出 26 视频可能会出现透明方块
+    }
 
     switch (vendor) {
     case GpuVendor::CUDA:
-        //   -rc constqp -qp 23：固定 QP 值，0-51(0为无损质量)，码率自适应，彻底避免 VBR 预测错误
+        //   -rc constqp：固定 QP 值，彻底避免 VBR 预测错误导致的透明方块
         //   -spatial_aq 1：保护字幕边缘不模糊
+        //   QP 根据源码率+帧率动态计算，使输出码率 ≈ 源码率
         args << "-hwaccel" << "cuda"
              << "-hwaccel_output_format" << "cuda"
              << "-i" << videoPath
@@ -182,13 +191,13 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
              << "-c:v" << encoder
              << "-preset" << "p7"
              << "-rc" << "constqp"
-             << "-qp" << "23"
+             << "-qp" << QString::number(qp)
              << "-spatial_aq" << "1"
              << "-c:a" << "copy" << "-y" << outputPath;
         break;
 
     case GpuVendor::Intel:
-        //   -rc icq -global_quality 23：固定参数0-51(0为无损质量)，ICQ 模式下 GPU 自动分配码率
+        //   -rc icq -global_quality：固定质量参数，ICQ 模式下 GPU 自动分配码率
         args << "-hwaccel" << "qsv"
              << "-hwaccel_output_format" << "qsv"
              << "-i" << videoPath
@@ -196,20 +205,20 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
              << "-c:v" << encoder
              << "-preset" << "medium"
              << "-rc" << "icq"
-             << "-global_quality" << "23"
+             << "-global_quality" << QString::number(qp)
              << "-c:a" << "copy" << "-y" << outputPath;
         break;
 
     case GpuVendor::AMD:
-        //   -rc cqp -qp_i 23 -qp_p 23：固定参数0-51(0为无损质量)，无 B 帧预测问题
+        //   QP 根据源码率+帧率动态计算
         //   -bf 0：关闭 B 帧，根除字幕突现时的宏块预测错误
         args << "-i" << videoPath
              << "-vf" << subtitleFilter
              << "-c:v" << encoder
              << "-quality" << "quality"
              << "-rc" << "cqp"
-             << "-qp_i" << "23"
-             << "-qp_p" << "23"
+             << "-qp_i" << QString::number(qp)
+             << "-qp_p" << QString::number(qp)
              << "-bf" << "0"
              << "-c:a" << "copy" << "-y" << outputPath;
         break;
@@ -350,6 +359,30 @@ qint64 getVideoStreamBitrate(const QString &ffmpegPath, const QString &videoPath
         return qMax(videoBps, minBps);
     }
 
+    return 0;
+}
+
+// ── getVideoFps ─────────────────────────────────────────────
+
+qint64 getVideoFps(const QString &ffmpegPath, const QString &videoPath)
+{
+    if (ffmpegPath.isEmpty() || videoPath.isEmpty())
+        return 0;
+
+    QProcess proc;
+    proc.start(ffmpegPath, {"-i", videoPath});
+    if (!proc.waitForStarted(3000) || !proc.waitForFinished(10000))
+        return 0;
+
+    QString output = QString::fromUtf8(proc.readAllStandardError());
+    // Stream #0:0[0x1](und): Video: h264, ..., 1048 kb/s, 23.98 fps
+    // Stream #0:0: Video: hevc, ..., 59.97 fps
+    // Stream #0:0: Video: h264, ..., 30 fps
+    QRegularExpression re(R"(Stream\s+#0:0.*Video:.*?(\d+\.?\d*)\s*fps)");
+    QRegularExpressionMatch m = re.match(output);
+    if (m.hasMatch()) {
+        return static_cast<qint64>(m.captured(1).toDouble() + 0.5);
+    }
     return 0;
 }
 
