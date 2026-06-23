@@ -16,7 +16,7 @@ Pane {
 
     background: Rectangle {
         id: bgRect
-        color: pal.HomePage_bgRect_color
+        color: pal.SurfaceEx_pageBg
     }
 
     ColumnLayout {
@@ -36,7 +36,7 @@ Pane {
                 Label {
                     id: titleLabel
                     text: "功能集合"
-                    color: pal.HomePage_titleLabel_color
+                    color: pal.LabelEx_titleText
                     font.pixelSize: 32
                     font.bold: true
                     font.letterSpacing: -0.5
@@ -45,7 +45,7 @@ Pane {
                 Label {
                     id: subtitleLabel
                     text: "选择一个工具开始处理任务"
-                    color: pal.HomePage_subtitleLabel_color
+                    color: pal.LabelEx_subtitleText
                     font.pixelSize: 15
                 }
 
@@ -57,8 +57,8 @@ Pane {
                     height: 1
                     gradient: Gradient {
                         orientation: Gradient.Horizontal
-                        GradientStop { position: 0.0; color: pal.HomePage_headerSepStart_color }
-                        GradientStop { position: 0.3; color: pal.HomePage_headerSepMid_color }
+                        GradientStop { position: 0.0; color: pal.SurfaceEx_divider }
+                        GradientStop { position: 0.3; color: pal.SurfaceEx_divider }
                         GradientStop { position: 1.0; color: "transparent" }
                     }
                 }
@@ -74,9 +74,9 @@ Pane {
 
                 background: Rectangle {
                     id: themeSwitcherBg
-                    color: pal.HomePage_themeSwitcherBg_color
+                    color: pal.SurfaceEx_cardBg
                     radius: 6
-                    border.color: pal.HomePage_themeSwitcherBorder_color
+                    border.color: pal.SurfaceEx_cardBorder
                     border.width: 1
                 }
 
@@ -143,7 +143,7 @@ Pane {
             Label {
                 id: modeLabel
                 text: "显示模式:"
-                color: pal.HomePage_modeLabel_color
+                color: pal.LabelEx_labelText
                 font.pixelSize: 14
                 Layout.alignment: Qt.AlignVCenter
             }
@@ -152,7 +152,7 @@ Pane {
                 id: showAllRadio
                 implicitWidth: 80
                 text: "全部插件"
-                textColor: pal.radioButton_textColor
+                textColor: pal.RadioButtonEx_textColor
                 checked: true
                 onCheckedChanged: { if (checked) root.showAll = true; }
             }
@@ -161,7 +161,7 @@ Pane {
                 id: categoryRadio
                 implicitWidth: 80
                 text: "分类显示"
-                textColor: pal.radioButton_textColor
+                textColor: pal.RadioButtonEx_textColor
                 onCheckedChanged: { if (checked) root.showAll = false; }
             }
         }
@@ -220,9 +220,9 @@ Pane {
                 clip: true
                 background: Rectangle {
                     id: categoryTabBarBg
-                    color: pal.HomePage_categoryTabBarBg_color
+                    color: pal.SurfaceEx_cardBg
                     radius: 8
-                    border.color: pal.HomePage_categoryTabBarBorder_color
+                    border.color: pal.SurfaceEx_cardBorder
                     border.width: 1
                 }
 

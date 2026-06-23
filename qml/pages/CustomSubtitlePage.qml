@@ -16,7 +16,7 @@ Pane {
     padding: 0
     background: Rectangle {
         id: pageBg
-        color: pal.CustomSubtitlePage_pageBg_color
+        color: pal.SurfaceEx_pageBg
     }
 
     // ── Dialogs ──
@@ -164,7 +164,7 @@ Pane {
                 Label {
                     id: titleLabel
                     text: "自定义视频字幕"
-                    color: pal.CustomSubtitlePage_titleLabel_color
+                    color: pal.LabelEx_titleText
                     font.pixelSize: 26
                     font.bold: true
                 }
@@ -172,7 +172,7 @@ Pane {
                 Label {
                     id: descLabel
                     text: "下载字幕->匹配视频字幕->合成视频+字幕->替换原视频，一站式完成"
-                    color: pal.CustomSubtitlePage_descLabel_color
+                    color: pal.LabelEx_subtitleText
                     font.pixelSize: 14
                 }
             }
@@ -191,8 +191,8 @@ Pane {
             Layout.fillHeight: false
             implicitHeight: settingsColumn.implicitHeight + 36
             radius: 10
-            color: pal.CustomSubtitlePage_settingsPanel_color
-            border.color: pal.CustomSubtitlePage_settingsPanel_borderColor
+            color: pal.SurfaceEx_cardBg
+            border.color: pal.SurfaceEx_cardBorderLight
             border.width: 1
 
             // 路径配置
@@ -210,7 +210,7 @@ Pane {
                     Label {
                         id: subtitleDownloadLabel
                         text: "字幕下载路径"
-                        color: pal.CustomSubtitlePage_subtitleDownloadLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 12
                         font.bold: true
                         Layout.preferredWidth: 72
@@ -240,7 +240,7 @@ Pane {
                     Label {
                         id: videoSourceLabel
                         text: "原视频路径"
-                        color: pal.CustomSubtitlePage_videoSourceLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 12
                         font.bold: true
                         Layout.preferredWidth: 72
@@ -258,7 +258,7 @@ Pane {
                         id: recursiveCheck
                         implicitWidth: 110
                         text: "递归子文件夹"
-                        textColor: pal.checkBox_textColor
+                        textColor: pal.CheckBoxEx_textColor
                         checked: controller ? settings.recursive : false
                         font.pixelSize: 11
                         enabled: !controller || controller.currentStep === controller.stepNone
@@ -284,7 +284,7 @@ Pane {
                     Label {
                         id: mergedOutputLabel
                         text: "合成输出路径"
-                        color: pal.CustomSubtitlePage_mergedOutputLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 12
                         font.bold: true
                         Layout.preferredWidth: 72
@@ -314,7 +314,7 @@ Pane {
                     Label {
                         id: ffmpegLabel
                         text: "FFmpeg路径"
-                        color: pal.CustomSubtitlePage_ffmpegLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 12
                         font.bold: true
                         Layout.preferredWidth: 72
@@ -331,7 +331,7 @@ Pane {
                     Label {
                         id: downloadLink
                         text: "下载地址 →"
-                        color: pal.CustomSubtitlePage_downloadLink_color
+                        color: pal.LabelEx_statusText
                         font.pixelSize: 12
                         font.underline: true
 
@@ -363,7 +363,7 @@ Pane {
             Layout.fillWidth: true
             Layout.preferredHeight: 50
             radius: 6
-            color: pal.CustomSubtitlePage_statusBar_color_active
+            color: pal.SurfaceEx_statusBar
 
             ColumnLayout {
                 anchors.fill: parent
@@ -396,7 +396,7 @@ Pane {
                                 ? msg.replace(/[\r\n]+/g, " ")
                                 : "就绪";
                         }
-                        color: pal.CustomSubtitlePage_statusMsgLabel_color_log
+                        color: pal.LabelEx_statusText
                         font.pixelSize: 13
                         elide: Text.ElideRight
                     }
@@ -407,7 +407,7 @@ Pane {
                                  && controller.currentStep >= controller.stepMatch
                                  && controller.currentFile.length > 0
                         text: "[" + controller.currentFile + "]"
-                        color: pal.CustomSubtitlePage_currentFileLabel_color
+                        color: pal.LabelEx_statusText
                         font.pixelSize: 11
                         font.family: "Consolas, 'Courier New', monospace"
                         font.bold: true
@@ -427,14 +427,14 @@ Pane {
                         Layout.preferredHeight: 4
                         Layout.alignment: Qt.AlignVCenter
                         radius: 2
-                        color: pal.CustomSubtitlePage_ffmpegProgressBg_color
+                        color: pal.SurfaceEx_progressTrack
 
                         Rectangle {
                             id: progressBarFill
                             width: parent.width * _progressValue
                             height: parent.height
                             radius: 2
-                            color: pal.CustomSubtitlePage_ffmpegProgressFill_color
+                            color: pal.SurfaceEx_progressFill
                         }
                     }
 
@@ -450,7 +450,7 @@ Pane {
                                 ? controller.processedCount + "/" + controller.totalCount
                                 : "";
                         }
-                        color: pal.CustomSubtitlePage_ffmpegProgressPct_color
+                        color: pal.LabelEx_statusText
                         font.pixelSize: 11
                         font.bold: true
                     }
@@ -472,8 +472,8 @@ Pane {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 8
-                color: pal.CustomSubtitlePage_leftPanel_color
-                border.color: pal.CustomSubtitlePage_leftPanel_borderColor
+                color: pal.SurfaceEx_cardBgAlt
+                border.color: pal.SurfaceEx_cardBorderLight
                 border.width: 1
                 clip: true
 
@@ -496,7 +496,7 @@ Pane {
                             Label {
                                 id: step1Title
                                 text: "步骤1：搜索并下载字幕"
-                                color: pal.CustomSubtitlePage_step1Title_color
+                                color: pal.LabelEx_titleText
                                 font.pixelSize: 14
                                 font.bold: true
                             }
@@ -506,7 +506,7 @@ Pane {
                             Label {
                                 id: step1Hint
                                 text: "下载的文件将保存到字幕下载路径"
-                                color: pal.CustomSubtitlePage_step1Hint_color
+                                color: pal.LabelEx_infoText
                                 font.pixelSize: 10
                             }
                         }
@@ -517,7 +517,7 @@ Pane {
                         id: sep1
                         Layout.fillWidth: true
                         Layout.preferredHeight: 1
-                        color: pal.CustomSubtitlePage_sep1_color
+                        color: pal.SurfaceEx_divider
                     }
 
                     // ── Search bar (fixed height) ──
@@ -607,7 +607,7 @@ Pane {
                                     background: Item {}
                                     verticalAlignment: TextInput.AlignVCenter
                                     font.pixelSize: 12
-                                    color: pal.CustomSubtitlePage_keywordField_color
+                                    color: pal.TextFieldEx_textColor
                                     placeholderText: "输入关键字搜索字幕..."
                                     selectByMouse: true
                                     enabled: !controller || controller.currentStep === controller.stepNone
@@ -669,7 +669,7 @@ Pane {
                         id: sep2
                         Layout.fillWidth: true
                         Layout.preferredHeight: 1
-                        color: pal.CustomSubtitlePage_sep2_color
+                        color: pal.SurfaceEx_divider
                     }
 
                     // ── Search results list ──
@@ -695,13 +695,13 @@ Pane {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "⚠️"
                                     font.pixelSize: 28
-                                    color: pal.CustomSubtitlePage_pyWarnEmoji_color
+                                    color: pal.LabelEx_warningText
                                 }
                                 Label {
                                     id: pyWarnTitle
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "Python 不可用"
-                                    color: pal.CustomSubtitlePage_pyWarnTitle_color
+                                    color: pal.LabelEx_warningText
                                     font.pixelSize: 14
                                     font.bold: true
                                 }
@@ -709,7 +709,7 @@ Pane {
                                     id: pyWarnDesc
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "请安装 Python 3.10+，并确保在系统 PATH 中"
-                                    color: pal.CustomSubtitlePage_pyWarnDesc_color
+                                    color: pal.LabelEx_warningText
                                     font.pixelSize: 12
                                     horizontalAlignment: Text.AlignHCenter
                                     width: 320
@@ -728,13 +728,13 @@ Pane {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "📦"
                                     font.pixelSize: 28
-                                    color: pal.CustomSubtitlePage_depWarnEmoji_color
+                                    color: pal.LabelEx_warningText
                                 }
                                 Label {
                                     id: depWarnTitle
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "缺少 Python 依赖库"
-                                    color: pal.CustomSubtitlePage_depWarnTitle_color
+                                    color: pal.LabelEx_warningText
                                     font.pixelSize: 14
                                     font.bold: true
                                 }
@@ -742,7 +742,7 @@ Pane {
                                     id: depWarnDesc
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "请安装 lxml 库"
-                                    color: pal.CustomSubtitlePage_depWarnDesc_color
+                                    color: pal.LabelEx_warningText
                                     font.pixelSize: 12
                                     horizontalAlignment: Text.AlignHCenter
                                     width: 320
@@ -752,7 +752,7 @@ Pane {
                                     id: pipCmdField
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "pip install lxml"
-                                    color: pal.CustomSubtitlePage_pipCmdField_color
+                                    color: pal.LabelEx_codeText
                                     font.pixelSize: 12
                                     font.family: "Consolas, 'Courier New', monospace"
                                     font.bold: true
@@ -799,13 +799,13 @@ Pane {
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "🔍"
                                     font.pixelSize: 28
-                                    color: pal.CustomSubtitlePage_emptySearchEmoji_color
+                                    color: pal.LabelEx_infoText
                                 }
                                 Label {
                                     id: emptySearchTitle
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "输入关键字搜索字幕"
-                                    color: pal.CustomSubtitlePage_emptySearchTitle_color
+                                    color: pal.LabelEx_infoText
                                     font.pixelSize: 14
                                     font.bold: true
                                 }
@@ -813,7 +813,7 @@ Pane {
                                     id: emptySearchDesc
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "选择左侧网站，输入片名或关键字，点击搜索"
-                                    color: pal.CustomSubtitlePage_emptySearchDesc_color
+                                    color: pal.LabelEx_infoText
                                     font.pixelSize: 12
                                 }
                             }
@@ -866,7 +866,7 @@ Pane {
                                             id: langLabel
                                             anchors.centerIn: parent
                                             text: model.language || ""
-                                            color: pal.CustomSubtitlePage_langLabel_color
+                                            color: pal.LabelEx_statusText
                                             font.pixelSize: 10
                                             font.bold: true
                                         }
@@ -877,7 +877,7 @@ Pane {
                                         id: fileNameLabel
                                         Layout.fillWidth: true
                                         text: model.fileName || ""
-                                        color: pal.CustomSubtitlePage_fileNameLabel_color
+                                        color: pal.LabelEx_valueText
                                         font.pixelSize: 12
                                         elide: Text.ElideRight
                                     }
@@ -886,7 +886,7 @@ Pane {
                                     Label {
                                         id: siteLabel
                                         text: model.site || ""
-                                        color: pal.CustomSubtitlePage_siteLabel_color
+                                        color: pal.LabelEx_infoText
                                         font.pixelSize: 10
                                         Layout.preferredWidth: 80
                                         horizontalAlignment: Text.AlignRight
@@ -951,8 +951,8 @@ Pane {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 100
                         radius: 8
-                        color: pal.CustomSubtitlePage_step2Panel_color
-                        border.color: pal.CustomSubtitlePage_step2Panel_borderColor
+                        color: pal.SurfaceEx_cardBgAlt
+                        border.color: pal.SurfaceEx_cardBorderLight
                         border.width: 1
 
                         ColumnLayout {
@@ -974,7 +974,7 @@ Pane {
                                     Label {
                                         id: step2Title
                                         text: "步骤2：匹配并移动字幕"
-                                        color: pal.CustomSubtitlePage_step2Title_color
+                                        color: pal.LabelEx_titleText
                                         font.pixelSize: 14
                                         font.bold: true
                                         Layout.fillWidth: true
@@ -994,7 +994,7 @@ Pane {
                             Label {
                                 id: step2Desc
                                 text: "自动匹配下载的字幕与视频，重命名并移动到视频目录"
-                                color: pal.CustomSubtitlePage_step2Desc_color
+                                color: pal.LabelEx_subtitleText
                                 font.pixelSize: 10
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -1073,8 +1073,8 @@ Pane {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 100
                         radius: 8
-                        color: pal.CustomSubtitlePage_step3Panel_color
-                        border.color: pal.CustomSubtitlePage_step3Panel_borderColor
+                        color: pal.SurfaceEx_cardBgAlt
+                        border.color: pal.SurfaceEx_cardBorderLight
                         border.width: 1
 
                         ColumnLayout {
@@ -1096,7 +1096,7 @@ Pane {
                                     Label {
                                         id: step3Title
                                         text: "步骤3：合成视频+字幕"
-                                        color: pal.CustomSubtitlePage_step3Title_color
+                                        color: pal.LabelEx_titleText
                                         font.pixelSize: 14
                                         font.bold: true
                                         Layout.fillWidth: true
@@ -1116,7 +1116,7 @@ Pane {
                             Label {
                                 id: step3Desc
                                 text: "将字幕嵌入视频，生成带字幕的新视频文件"
-                                color: pal.CustomSubtitlePage_step3Desc_color
+                                color: pal.LabelEx_subtitleText
                                 font.pixelSize: 10
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -1132,7 +1132,7 @@ Pane {
                                     id: gpuCheckBox
                                     Layout.fillWidth: true
                                     text: "GPU加速"
-                                    textColor: pal.checkBox_textColor
+                                    textColor: pal.CheckBoxEx_textColor
                                     checked: controller ? settings.gpuAccel : false
                                     font.pixelSize: 11
                                     visible: !controller || controller.currentStep === controller.stepNone
@@ -1152,7 +1152,7 @@ Pane {
                                     Label {
                                         id: step3CompleteLabel
                                         text: "再完成"
-                                        color: pal.CustomSubtitlePage_step3CompleteLabel_color
+                                        color: pal.LabelEx_infoText
                                         font.pixelSize: 11
                                         Layout.alignment: Qt.AlignVCenter
                                     }
@@ -1181,7 +1181,7 @@ Pane {
                                     Label {
                                         id: step3StopAfterLabel
                                         text: "个后停止"
-                                        color: pal.CustomSubtitlePage_step3StopAfterLabel_color
+                                        color: pal.LabelEx_labelText
                                         font.pixelSize: 11
                                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                                         Layout.fillWidth: true
@@ -1216,8 +1216,8 @@ Pane {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 100
                         radius: 8
-                        color: pal.CustomSubtitlePage_step4Panel_color
-                        border.color: pal.CustomSubtitlePage_step4Panel_borderColor
+                        color: pal.SurfaceEx_cardBgAlt
+                        border.color: pal.SurfaceEx_cardBorderLight
                         border.width: 1
 
                         ColumnLayout {
@@ -1239,7 +1239,7 @@ Pane {
                                     Label {
                                         id: step4Title
                                         text: "步骤4：匹配+替换原视频"
-                                        color: pal.CustomSubtitlePage_step4Title_color
+                                        color: pal.LabelEx_titleText
                                         font.pixelSize: 14
                                         font.bold: true
                                         Layout.fillWidth: true
@@ -1259,7 +1259,7 @@ Pane {
                             Label {
                                 id: step4Desc
                                 text: "用合成后的视频替换原文件，并清理同名字幕"
-                                color: pal.CustomSubtitlePage_step4Desc_color
+                                color: pal.LabelEx_subtitleText
                                 font.pixelSize: 10
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -1274,7 +1274,7 @@ Pane {
                                     id: backupCheckBox
                                     Layout.fillWidth: true
                                     text: "备份原文件"
-                                    textColor: pal.checkBox_textColor
+                                    textColor: pal.CheckBoxEx_textColor
                                     checked: controller ? settings.backupOriginal : false
                                     font.pixelSize: 11
                                     enabled: !controller || controller.currentStep === controller.stepNone

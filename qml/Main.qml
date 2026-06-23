@@ -13,7 +13,7 @@ ApplicationWindow {
     minimumHeight: 560
     visible: true
     title: "BYTools"
-    color: pal.Main_window_color
+    color: pal.SurfaceEx_pageBg
 
     property string currentFeatureId: ""
     property bool _navGuard: false

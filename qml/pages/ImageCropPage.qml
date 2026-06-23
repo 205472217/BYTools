@@ -46,7 +46,7 @@ Pane {
     padding: 0
     background: Rectangle {
         id: bgRect
-        color: pal.ImageCropPage_bgRect_color
+        color: pal.SurfaceEx_pageBg
     }
 
     FolderDialog {
@@ -94,7 +94,7 @@ Pane {
             id: overflowMsg
             text: overflowWarnDialog.detailText
             wrapMode: Text.WordWrap
-            color: pal.ImageCropPage_overflowMsg_color
+            color: pal.LabelEx_statusText
             font.pixelSize: 13
             lineHeight: 1.4
             padding: 16
@@ -217,7 +217,7 @@ Pane {
             Label {
                 id: confirmMsg
                 text: "当前有图片裁剪任务正在处理中，返回首页将中断执行，是否继续？"
-                color: pal.ImageCropPage_confirmMsg_color
+                color: pal.LabelEx_statusText
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
@@ -292,7 +292,7 @@ Pane {
                 Label {
                     id: pageTitle
                     text: "图片裁剪"
-                    color: pal.ImageCropPage_pageTitle_color
+                    color: pal.LabelEx_titleText
                     font.pixelSize: 26
                     font.bold: true
                 }
@@ -300,7 +300,7 @@ Pane {
                 Label {
                     id: pageSubtitle
                     text: "按比例或指定像素尺寸裁剪图片"
-                    color: pal.ImageCropPage_pageSubtitle_color
+                    color: pal.LabelEx_subtitleText
                     font.pixelSize: 14
                 }
             }
@@ -312,8 +312,8 @@ Pane {
             Layout.fillWidth: true
             implicitHeight: 52
             radius: 10
-            color: pal.ImageCropPage_folderRow_color
-            border.color: pal.ImageCropPage_folderRow_borderColor
+            color: pal.SurfaceEx_cardBg
+            border.color: pal.SurfaceEx_cardBorder
             border.width: 1
 
             RowLayout {
@@ -326,7 +326,7 @@ Pane {
                 Label {
                     id: folderLbl
                     text: "源文件夹"
-                    color: pal.ImageCropPage_folderLbl_color
+                    color: pal.LabelEx_labelText
                     font.pixelSize: 13
                     font.bold: true
                 }
@@ -344,7 +344,7 @@ Pane {
                     id: recursiveCheck
                     implicitWidth: 110
                     text: "递归子文件夹"
-                    textColor: pal.checkBox_textColor
+                    textColor: pal.CheckBoxEx_textColor
                     checked: controller ? settings.recursive : false
                     onCheckedChanged: {
                         if (controller)
@@ -389,7 +389,7 @@ Pane {
                 Layout.fillWidth: true
                 height: statusText.implicitHeight + 12
                 radius: 6
-                color: pal.ImageCropPage_statusBar_color
+                color: pal.SurfaceEx_statusBar
 
                 Label {
                     id: statusText
@@ -401,7 +401,7 @@ Pane {
                     text: controller && controller.statusMessage.length > 0
                         ? controller.statusMessage
                         : "就绪"
-                    color: pal.ImageCropPage_statusText_color
+                    color: pal.LabelEx_statusText
                     font.pixelSize: 13
                     elide: Text.ElideRight
                 }
@@ -432,8 +432,8 @@ Pane {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 10
-                color: pal.ImageCropPage_imagePanel_color
-                border.color: pal.ImageCropPage_imagePanel_borderColor
+                color: pal.SurfaceEx_cardBg
+                border.color: pal.SurfaceEx_cardBorder
                 border.width: 1
 
                 ColumnLayout {
@@ -926,14 +926,14 @@ Pane {
                                     id: emptyTitle
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "请选择图片文件夹"
-                                    color: pal.ImageCropPage_emptyTitle_color
+                                    color: pal.LabelEx_infoText
                                     font.pixelSize: 15
                                 }
                                 Label {
                                     id: emptySubtitle
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "支持 PNG、JPG、BMP、WebP、TIFF、GIF 格式"
-                                    color: pal.ImageCropPage_emptySubtitle_color
+                                    color: pal.LabelEx_infoText
                                     font.pixelSize: 12
                                 }
                             }
@@ -948,7 +948,7 @@ Pane {
                             width: 36
                             height: 60
                             radius: 10
-                            color: prevBtnMouse.containsMouse ? pal.ImageCropPage_prevBtn_color_hover : pal.ImageCropPage_prevBtn_color_normal
+                            color: prevBtnMouse.containsMouse ? pal.IconBtnEx_overlayBgHoverColor : pal.IconBtnEx_overlayBgColor
                             visible: controller && controller.currentFileCount > 0
                             opacity: prevBtnMouse.containsMouse ? 1.0 : 0.55
 
@@ -962,7 +962,7 @@ Pane {
                                 id: prevBtnIcon
                                 anchors.centerIn: parent
                                 text: "‹"
-                                color: prevBtnMouse.containsMouse ? pal.ImageCropPage_prevBtnIcon_color_hover : pal.ImageCropPage_prevBtnIcon_color_normal
+                                color: prevBtnMouse.containsMouse ? pal.IconBtnEx_overlayTextHoverColor : pal.IconBtnEx_overlayTextColor
                                 font.pixelSize: 26
                                 font.bold: true
                             }
@@ -985,7 +985,7 @@ Pane {
                             width: 36
                             height: 60
                             radius: 10
-                            color: nextBtnMouse.containsMouse ? pal.ImageCropPage_nextBtn_color_hover : pal.ImageCropPage_nextBtn_color_normal
+                            color: nextBtnMouse.containsMouse ? pal.IconBtnEx_overlayBgHoverColor : pal.IconBtnEx_overlayBgColor
                             visible: controller && controller.currentFileCount > 0
                             opacity: nextBtnMouse.containsMouse ? 1.0 : 0.55
 
@@ -999,7 +999,7 @@ Pane {
                                 id: nextBtnIcon
                                 anchors.centerIn: parent
                                 text: "›"
-                                color: nextBtnMouse.containsMouse ? pal.ImageCropPage_nextBtnIcon_color_hover : pal.ImageCropPage_nextBtnIcon_color_normal
+                                color: nextBtnMouse.containsMouse ? pal.IconBtnEx_overlayTextHoverColor : pal.IconBtnEx_overlayTextColor
                                 font.pixelSize: 26
                                 font.bold: true
                             }
@@ -1023,7 +1023,7 @@ Pane {
                             width: pageLabel.implicitWidth + 16
                             height: 22
                             radius: 11
-                            color: pal.ImageCropPage_pageIndicator_color
+                            color: pal.SurfaceEx_pageIndicator
                             visible: controller && controller.currentFileCount > 0
 
                             Label {
@@ -1036,7 +1036,7 @@ Pane {
                                     var cur = controller.currentIndex + 1;
                                     return cur + "/" + total;
                                 }
-                                color: pal.ImageCropPage_pageLabel_color
+                                color: pal.LabelEx_valueText
                                 font.pixelSize: 11
                                 font.bold: true
                             }
@@ -1069,7 +1069,7 @@ Pane {
                                     }
                                     return "";
                                 }
-                                color: pal.ImageCropPage_cropInfoLabel_color
+                                color: pal.LabelEx_infoText
                                 font.pixelSize: 11
                             }
                         }
@@ -1090,7 +1090,7 @@ Pane {
                                 id: fileNameLabel
                                 anchors.centerIn: parent
                                 text: controller ? controller.extractFileName(controller.currentFilePath) : ""
-                                color: pal.ImageCropPage_fileNameLabel_color
+                                color: pal.LabelEx_pathText
                                 font.pixelSize: 11
                                 elide: Text.ElideMiddle
                                 maximumLineCount: 1
@@ -1114,7 +1114,7 @@ Pane {
                                 id: imageSizeLabel
                                 anchors.centerIn: parent
                                 text: root.srcW + " × " + root.srcH
-                                color: pal.ImageCropPage_cropInfoLabel_color
+                                color: pal.LabelEx_infoText
                                 font.pixelSize: 11
                             }
                         }
@@ -1126,7 +1126,7 @@ Pane {
                             width: tipLabel.implicitWidth + 32
                             height: 36
                             radius: 18
-                            color: pal.ImageCropPage_tipOverlay_color
+                            color: pal.SurfaceEx_overlay
                             z: 100
                             opacity: 0
 
@@ -1147,7 +1147,7 @@ Pane {
                                 id: tipLabel
                                 anchors.centerIn: parent
                                 text: root.tipText
-                                color: pal.ImageCropPage_tipLabel_color
+                                color: pal.LabelEx_infoText
                                 font.pixelSize: 13
                             }
                         }
@@ -1161,8 +1161,8 @@ Pane {
                 Layout.preferredWidth: 310
                 Layout.fillHeight: true
                 radius: 10
-                color: pal.ImageCropPage_rightPanel_color
-                border.color: pal.ImageCropPage_rightPanel_borderColor
+                color: pal.SurfaceEx_cardBg
+                border.color: pal.SurfaceEx_cardBorder
                 border.width: 1
 
                 ColumnLayout {
@@ -1253,8 +1253,8 @@ Pane {
                             Layout.fillHeight: true
                             Layout.topMargin: 8
                             radius: 6
-                            color: pal.ImageCropPage_inputSection_color
-                            border.color: pal.ImageCropPage_inputSection_borderColor
+                            color: pal.SurfaceEx_cardBgAlt
+                            border.color: pal.SurfaceEx_cardBorderLight
                             border.width: 1
 
                             ColumnLayout {
@@ -1267,7 +1267,7 @@ Pane {
                                 Label {
                                     id: inputSectionLbl
                                     text: "输入设置"
-                                    color: pal.ImageCropPage_inputSectionLbl_color
+                                    color: pal.LabelEx_labelText
                                     font.pixelSize: 11
                                     font.bold: true
                                 }
@@ -1361,7 +1361,7 @@ Pane {
                                             id: customRatioRadio
                                             implicitWidth: 60
                                             text: "自定义"
-                                            textColor: pal.radioButton_textColor
+                                            textColor: pal.RadioButtonEx_textColor
                                             checked: controller ? !settings.usePresetRatio : false
                                             font.pixelSize: 12
                                             onCheckedChanged: {
@@ -1404,7 +1404,7 @@ Pane {
                                         Label {
                                             id: colonLbl
                                             text: ":"
-                                            color: pal.ImageCropPage_colonLbl_color
+                                            color: pal.LabelEx_infoText
                                             font.pixelSize: 14
                                             font.bold: true
                                         }
@@ -1484,7 +1484,7 @@ Pane {
                                         Label {
                                             id: multiplyLbl
                                             text: "x"
-                                            color: pal.ImageCropPage_multiplyLbl_color
+                                            color: pal.LabelEx_infoText
                                             font.pixelSize: 16
                                         }
 
@@ -1537,7 +1537,7 @@ Pane {
                                 anchors.left: parent.left
                                 anchors.right: parent.right
                                 height: 1
-                                color: pal.ImageCropPage_sectionSepLine_color
+                                color: pal.SurfaceEx_divider
                             }
                         }
 
@@ -1548,8 +1548,8 @@ Pane {
                             Layout.fillHeight: true
                             Layout.bottomMargin: 8
                             radius: 6
-                            color: pal.ImageCropPage_outputSection_color
-                            border.color: pal.ImageCropPage_outputSection_borderColor
+                            color: pal.SurfaceEx_cardBgAlt
+                            border.color: pal.SurfaceEx_cardBorderLight
                             border.width: 1
 
                             ColumnLayout {
@@ -1562,7 +1562,7 @@ Pane {
                                 Label {
                                     id: outputSectionLbl
                                     text: "输出设置"
-                                    color: pal.ImageCropPage_outputSectionLbl_color
+                                    color: pal.LabelEx_labelText
                                     font.pixelSize: 11
                                     font.bold: true
                                 }
@@ -1574,7 +1574,7 @@ Pane {
                                         id: overwriteRadio
                                         implicitWidth: 120
                                         text: "覆盖源文件"
-                                        textColor: pal.radioButton_textColor
+                                        textColor: pal.RadioButtonEx_textColor
                                         checked: controller ? settings.outputMode === 0 : true
                                         font.pixelSize: 12
                                         onCheckedChanged: {
@@ -1587,7 +1587,7 @@ Pane {
                                         id: newDirRadio
                                         implicitWidth: 120
                                         text: "输出到新目录"
-                                        textColor: pal.radioButton_textColor
+                                        textColor: pal.RadioButtonEx_textColor
                                         checked: controller ? settings.outputMode === 1 : false
                                         font.pixelSize: 12
                                         onCheckedChanged: {
@@ -1644,7 +1644,7 @@ Pane {
                         id: bottomSep
                         Layout.fillWidth: true
                         height: 1
-                        color: pal.ImageCropPage_bottomSep_color
+                        color: pal.SurfaceEx_dividerLight
                         Layout.topMargin: 12
                         Layout.bottomMargin: 12
                     }

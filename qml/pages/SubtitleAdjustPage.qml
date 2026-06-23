@@ -60,7 +60,7 @@ Pane {
     padding: 0
     background: Rectangle {
         id: pageBg
-        color: pal.SubtitleAdjustPage_pageBg_color
+        color: pal.SurfaceEx_pageBg
     }
 
     // ── File Dialogs ──
@@ -117,7 +117,7 @@ Pane {
             Label {
                 id: unsavedMsg
                 text: "当前字幕调整尚未导出，切换将丢失进度，是否继续？"
-                color: pal.SubtitleAdjustPage_unsavedMsg_color
+                color: pal.LabelEx_statusText
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
@@ -233,7 +233,7 @@ Pane {
                 Label {
                     id: titleLabel
                     text: "字幕时间调整"
-                    color: pal.SubtitleAdjustPage_titleLabel_color
+                    color: pal.LabelEx_titleText
                     font.pixelSize: 26
                     font.bold: true
                 }
@@ -241,7 +241,7 @@ Pane {
                 Label {
                     id: descLabel
                     text: "实时调整字幕时间点以匹配视频"
-                    color: pal.SubtitleAdjustPage_descLabel_color
+                    color: pal.LabelEx_subtitleText
                     font.pixelSize: 14
                 }
             }
@@ -253,8 +253,8 @@ Pane {
             Layout.fillWidth: true
             implicitHeight: topPanelContent.implicitHeight + 36
             radius: 10
-            color: pal.SubtitleAdjustPage_topPanel_color
-            border.color: pal.SubtitleAdjustPage_topPanel_borderColor
+            color: pal.SurfaceEx_cardBg
+            border.color: pal.SurfaceEx_cardBorder
             border.width: 1
 
             ColumnLayout {
@@ -272,7 +272,7 @@ Pane {
                         id: singleModeRadio
                         implicitWidth: 120
                         text: "单文件模式"
-                        textColor: pal.radioButton_textColor
+                        textColor: pal.RadioButtonEx_textColor
                         checked: isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
@@ -285,7 +285,7 @@ Pane {
                         id: batchModeRadio
                         implicitWidth: 120
                         text: "批量处理模式"
-                        textColor: pal.radioButton_textColor
+                        textColor: pal.RadioButtonEx_textColor
                         checked: !isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
@@ -305,7 +305,7 @@ Pane {
                     Label {
                         id: videoFileLabel
                         text: "视频文件路径"
-                        color: pal.SubtitleAdjustPage_videoFileLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 12
                         font.bold: true
                         Layout.preferredWidth: 72
@@ -326,7 +326,7 @@ Pane {
                         id: recursiveCheck1
                         implicitWidth: 110
                         text: "递归子文件夹"
-                        textColor: pal.checkBox_textColor
+                        textColor: pal.CheckBoxEx_textColor
                         font.pixelSize: 12
                         visible: !isSingleMode
                         checked: controller ? settings.recursiveVideo : false
@@ -350,7 +350,7 @@ Pane {
                     Label {
                         id: subtitleFileLabel
                         text: "字幕文件路径"
-                        color: pal.SubtitleAdjustPage_subtitleFileLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 12
                         font.bold: true
                         Layout.preferredWidth: 72
@@ -371,7 +371,7 @@ Pane {
                         id: recursiveCheck2
                         implicitWidth: 110
                         text: "递归子文件夹"
-                        textColor: pal.checkBox_textColor
+                        textColor: pal.CheckBoxEx_textColor
                         font.pixelSize: 12
                         visible: !isSingleMode
                         checked: controller ? settings.recursiveSubtitle : false
@@ -424,7 +424,7 @@ Pane {
             Layout.fillWidth: true
             Layout.preferredHeight: 50
             radius: 6
-            color: pal.SubtitleAdjustPage_logBar_color
+            color: pal.SurfaceEx_statusBar
 
             ColumnLayout {
                 anchors.fill: parent
@@ -440,7 +440,7 @@ Pane {
                         id: logText
                         Layout.fillWidth: true
                         text: root._lastLogLine.length > 0 ? root._lastLogLine : "就绪"
-                        color: pal.SubtitleAdjustPage_logText_color_log
+                        color: pal.LabelEx_statusText
                         font.pixelSize: 13
                         elide: Text.ElideRight
                     }
@@ -460,8 +460,8 @@ Pane {
                 Layout.preferredWidth: 360
                 Layout.fillHeight: true
                 radius: 10
-                color: pal.SubtitleAdjustPage_matchPanel_color
-                border.color: pal.SubtitleAdjustPage_matchPanel_borderColor
+                color: pal.SurfaceEx_cardBg
+                border.color: pal.SurfaceEx_cardBorder
                 border.width: 1
                 clip: true
 
@@ -480,7 +480,7 @@ Pane {
                             id: numHeader
                             Layout.preferredWidth: 20
                             text: "#"
-                            color: pal.SubtitleAdjustPage_numHeader_color
+                            color: pal.LabelEx_headerText
                             font.pixelSize: 11
                             font.bold: true
                         }
@@ -489,7 +489,7 @@ Pane {
                             id: videoHeader
                             Layout.preferredWidth: 128
                             text: "视频文件"
-                            color: pal.SubtitleAdjustPage_videoHeader_color
+                            color: pal.LabelEx_headerText
                             font.pixelSize: 11
                             font.bold: true
                         }
@@ -498,7 +498,7 @@ Pane {
                             id: subHeader
                             Layout.preferredWidth: 128
                             text: "字幕文件"
-                            color: pal.SubtitleAdjustPage_subHeader_color
+                            color: pal.LabelEx_headerText
                             font.pixelSize: 11
                             font.bold: true
                         }
@@ -507,7 +507,7 @@ Pane {
                             id: statusHeader
                             Layout.fillWidth: true
                             text: "状态"
-                            color: pal.SubtitleAdjustPage_statusHeader_color
+                            color: pal.LabelEx_headerText
                             font.pixelSize: 11
                             font.bold: true
                         }
@@ -517,7 +517,7 @@ Pane {
                         id: headerSep
                         Layout.fillWidth: true
                         Layout.preferredHeight: 1
-                        color: pal.SubtitleAdjustPage_headerSep_color
+                        color: pal.SurfaceEx_divider
                     }
 
                     // Table body area
@@ -550,7 +550,7 @@ Pane {
                                 color: {
                                     if (status === 1) return pal.SubtitleAdjustPage_delegateRoot_bg_matched
                                     if (ListView.isCurrentItem) return pal.SubtitleAdjustPage_delegateRoot_bg_selected
-                                    return index % 2 === 0 ? pal.SubtitleAdjustPage_delegateRoot_bg_even : pal.SubtitleAdjustPage_delegateRoot_bg_odd
+                                    return index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SubtitleAdjustPage_delegateRoot_bg_odd
                                 }
 
                                 RowLayout {
@@ -563,7 +563,7 @@ Pane {
                                         id: indexLabel
                                         Layout.preferredWidth: 20
                                         text: delegateRoot.index + 1
-                                        color: pal.SubtitleAdjustPage_indexLabel_color
+                                        color: pal.LabelEx_infoText
                                         font.pixelSize: 11
                                     }
 
@@ -571,7 +571,7 @@ Pane {
                                         id: videoDisplayLabel
                                         Layout.preferredWidth: 128
                                         text: delegateRoot.videoDisplay
-                                        color: pal.SubtitleAdjustPage_videoDisplayLabel_color
+                                        color: pal.LabelEx_valueText
                                         font.pixelSize: 12
                                         elide: Text.ElideRight
                                     }
@@ -580,7 +580,7 @@ Pane {
                                         id: subtitleDisplayLabel
                                         Layout.preferredWidth: 128
                                         text: delegateRoot.subtitleDisplay
-                                        color: pal.SubtitleAdjustPage_subtitleDisplayLabel_color
+                                        color: pal.LabelEx_valueText
                                         font.pixelSize: 12
                                         elide: Text.ElideRight
                                     }
@@ -589,7 +589,7 @@ Pane {
                                         id: statusDisplayLabel
                                         Layout.fillWidth: true
                                         text: delegateRoot.statusDisplay
-                                        color: delegateRoot.status === 1 ? pal.SubtitleAdjustPage_statusDisplayLabel_color_matched : pal.SubtitleAdjustPage_statusDisplayLabel_color_normal
+                                        color: delegateRoot.status === 1 ? pal.LabelEx_successText : pal.LabelEx_infoText
                                         font.pixelSize: 12
                                         font.bold: delegateRoot.status === 1
                                     }
@@ -611,7 +611,7 @@ Pane {
                             id: emptyMatchLabel
                             anchors.centerIn: parent
                             text: "暂无映射，请选择文件后点击「开始映射」"
-                            color: pal.SubtitleAdjustPage_emptyMatchLabel_color
+                            color: pal.LabelEx_infoText
                             font.pixelSize: 13
                             visible: !controller || !controller.matchModel || controller.matchModel.count === 0
                         }
@@ -625,8 +625,8 @@ Pane {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: 10
-                color: pal.SubtitleAdjustPage_videoPanel_color
-                border.color: pal.SubtitleAdjustPage_videoPanel_borderColor
+                color: pal.SurfaceEx_cardBg
+                border.color: pal.SurfaceEx_cardBorder
                 border.width: 1
 
                 ColumnLayout {
@@ -652,14 +652,14 @@ Pane {
                                 id: emptyVideoTitle
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: "请在左侧映射列表中点击一项以开始调整"
-                                color: pal.SubtitleAdjustPage_emptyVideoTitle_color
+                                color: pal.LabelEx_infoText
                                 font.pixelSize: 15
                             }
                             Label {
                                 id: emptyVideoDesc
                                 anchors.horizontalCenter: parent.horizontalCenter
                                 text: "加载后将在此处实时预览视频"
-                                color: pal.SubtitleAdjustPage_emptyVideoDesc_color
+                                color: pal.LabelEx_infoText
                                 font.pixelSize: 12
                             }
                         }
@@ -695,7 +695,7 @@ Pane {
                                     id: playPromptText
                                     anchors.horizontalCenter: parent.horizontalCenter
                                     text: "请点击播放，开始调整字幕"
-                                    color: pal.SubtitleAdjustPage_playPromptText_color
+                                    color: pal.LabelEx_infoText
                                     font.pixelSize: 20
                                 }
                             }
@@ -735,8 +735,8 @@ Pane {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 40
                         radius: 6
-                        color: pal.SubtitleAdjustPage_playbackControls_color
-                        border.color: pal.SubtitleAdjustPage_playbackControls_borderColor
+                        color: pal.SurfaceEx_cardBgAlt
+                        border.color: pal.SurfaceEx_cardBorderLight
                         border.width: 1
                         visible: hasVideo && videoDisplayLoader.active
 
@@ -801,7 +801,7 @@ Pane {
                                     var p = videoDisplayLoader.item
                                     root.fmtTime(p ? p.position : 0)
                                 }
-                                color: pal.SubtitleAdjustPage_positionLabel_color
+                                color: pal.LabelEx_infoText
                                 font.pixelSize: 12
                                 font.family: "Consolas, monospace"
                                 Layout.preferredWidth: 70
@@ -827,7 +827,7 @@ Pane {
                                     var p = videoDisplayLoader.item
                                     root.fmtTime(p ? p.duration : 0)
                                 }
-                                color: pal.SubtitleAdjustPage_durationLabel_color
+                                color: pal.LabelEx_infoText
                                 font.pixelSize: 12
                                 font.family: "Consolas, monospace"
                                 Layout.preferredWidth: 70
@@ -843,8 +843,8 @@ Pane {
                 Layout.preferredWidth: 280
                 Layout.fillHeight: true
                 radius: 10
-                color: pal.SubtitleAdjustPage_adjPanel_color
-                border.color: pal.SubtitleAdjustPage_adjPanel_borderColor
+                color: pal.SurfaceEx_cardBg
+                border.color: pal.SurfaceEx_cardBorder
                 border.width: 1
 
                 ColumnLayout {
@@ -860,7 +860,7 @@ Pane {
                         Label {
                             id: offsetTitle
                             text: "偏移量"
-                            color: pal.SubtitleAdjustPage_offsetTitle_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 11
                             font.bold: true
                         }
@@ -870,7 +870,7 @@ Pane {
                         Label {
                             id: maxOffsetTitle
                             text: "最大偏移"
-                            color: pal.SubtitleAdjustPage_maxOffsetTitle_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 11
                         }
 
@@ -899,7 +899,7 @@ Pane {
                         Layout.fillWidth: true
                         Layout.topMargin: 4
                         text: controller ? root.fmtOffset(controller.offsetMs) : "±0.0s"
-                        color: controller && controller.offsetMs !== 0 ? (controller.offsetMs > 0 ? pal.SubtitleAdjustPage_offsetValue_color_positive : pal.SubtitleAdjustPage_offsetValue_color_negative) : pal.SubtitleAdjustPage_offsetValue_color_neutral
+                        color: controller && controller.offsetMs !== 0 ? (controller.offsetMs > 0 ? pal.LabelEx_successText : pal.LabelEx_errorText) : pal.LabelEx_infoText
                         font.pixelSize: 36
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
@@ -910,7 +910,7 @@ Pane {
                         id: sliderPanel
                         Layout.fillWidth: true
                         Layout.preferredHeight: 40
-                        color: pal.SubtitleAdjustPage_sliderPanel_color
+                        color: pal.SurfaceEx_cardBgAlt
                         radius: 6
 
                         ColumnLayout {
@@ -938,7 +938,7 @@ Pane {
                                 Label {
                                     id: sliderMinLabel
                                     text: "-" + (root.maxOffsetMs / 1000) + "s"
-                                    color: pal.SubtitleAdjustPage_sliderMinLabel_color
+                                    color: pal.LabelEx_infoText
                                     font.pixelSize: 10
                                 }
 
@@ -947,7 +947,7 @@ Pane {
                                 Label {
                                     id: sliderZeroLabel
                                     text: "0"
-                                    color: pal.SubtitleAdjustPage_sliderZeroLabel_color
+                                    color: pal.LabelEx_infoText
                                     font.pixelSize: 10
                                 }
 
@@ -956,7 +956,7 @@ Pane {
                                 Label {
                                     id: sliderMaxLabel
                                     text: "+" + (root.maxOffsetMs / 1000) + "s"
-                                    color: pal.SubtitleAdjustPage_sliderMaxLabel_color
+                                    color: pal.LabelEx_infoText
                                     font.pixelSize: 10
                                 }
                             }
@@ -1009,7 +1009,7 @@ Pane {
                         Label {
                             id: stepSizeLabel
                             text: "步长"
-                            color: pal.SubtitleAdjustPage_stepSizeLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                         }
@@ -1031,7 +1031,7 @@ Pane {
                         id: overwriteCheckBox
                         Layout.fillWidth: true
                         text: "替换原字幕文件"
-                        textColor: pal.checkBox_textColor
+                        textColor: pal.CheckBoxEx_textColor
                         font.pixelSize: 12
                         checked: controller ? settings.overwriteOriginal : false
                         onCheckedChanged: {

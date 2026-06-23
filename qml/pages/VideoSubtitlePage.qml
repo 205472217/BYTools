@@ -136,7 +136,7 @@ Pane {
     padding: 0
     background: Rectangle {
         id: pageBg
-        color: pal.VideoSubtitlePage_pageBg_color
+        color: pal.SurfaceEx_pageBg
     }
 
     FolderDialog {
@@ -187,7 +187,7 @@ Pane {
             Label {
                 id: confirmLabel
                 text: "当前有任务正在处理中，返回首页将中断执行，是否继续？"
-                color: pal.VideoSubtitlePage_confirmLabel_color
+                color: pal.LabelEx_statusText
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
@@ -264,7 +264,7 @@ Pane {
                 Label {
                     id: pageTitle
                     text: "视频字幕翻译"
-                    color: pal.VideoSubtitlePage_pageTitle_color
+                    color: pal.LabelEx_titleText
                     font.pixelSize: 26
                     font.bold: true
                 }
@@ -272,7 +272,7 @@ Pane {
                 Label {
                     id: pageSubtitle
                     text: "可自定义处理步骤：分离音频 → 语音识别 → 翻译 → 烧录字幕"
-                    color: pal.VideoSubtitlePage_pageSubtitle_color
+                    color: pal.LabelEx_subtitleText
                     font.pixelSize: 14
                 }
             }
@@ -296,8 +296,8 @@ Pane {
             Layout.fillHeight: false
             implicitHeight: settingsColumn.implicitHeight + 36
             radius: 10
-            color: pal.VideoSubtitlePage_settingsCard_color
-            border.color: pal.VideoSubtitlePage_settingsCard_borderColor
+            color: pal.SurfaceEx_cardBg
+            border.color: pal.SurfaceEx_cardBorder
             border.width: 1
 
             ColumnLayout {
@@ -314,7 +314,7 @@ Pane {
                     Label {
                         id: inputModeLabel
                         text: "选择模式"
-                        color: pal.VideoSubtitlePage_inputModeLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -324,7 +324,7 @@ Pane {
                         id: singleFileRadio
                         implicitWidth: 100
                         text: "单个视频"
-                        textColor: pal.radioButton_textColor
+                        textColor: pal.RadioButtonEx_textColor
                         checked: controller ? settings.inputMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller) {
@@ -338,7 +338,7 @@ Pane {
                         id: batchFolderRadio
                         implicitWidth: 100
                         text: "文件夹批量"
-                        textColor: pal.radioButton_textColor
+                        textColor: pal.RadioButtonEx_textColor
                         checked: controller ? settings.inputMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller) {
@@ -352,7 +352,7 @@ Pane {
                         id: recursiveCheck
                         implicitWidth: 110
                         text: "递归子文件夹"
-                        textColor: pal.checkBox_textColor
+                        textColor: pal.CheckBoxEx_textColor
                         checked: controller ? settings.recursive : false
                         visible: controller ? settings.inputMode === 1 : false
                         onCheckedChanged: {
@@ -374,7 +374,7 @@ Pane {
                     Label {
                         id: inputPathLabel
                         text: "选择路径"
-                        color: pal.VideoSubtitlePage_inputPathLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -412,7 +412,7 @@ Pane {
                     Label {
                         id: stepLabel
                         text: "处理步骤"
-                        color: pal.VideoSubtitlePage_stepLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -426,7 +426,7 @@ Pane {
                             id: stepAudio
                             implicitWidth: 90
                             text: "1. 分离音频"
-                            textColor: pal.checkBox_textColor
+                            textColor: pal.CheckBoxEx_textColor
                             checked: controller ? settings.enableAudioExtraction : true
                             opacity: 1.0
                             onCheckedChanged: {
@@ -444,7 +444,7 @@ Pane {
                             id: stepTranscribe
                             implicitWidth: 160
                             text: "2. 语音识别(音频→SRT)"
-                            textColor: pal.checkBox_textColor
+                            textColor: pal.CheckBoxEx_textColor
                             checked: controller ? settings.enableTranscribe : true
                             enabled: stepAudio.checked
                             opacity: 1.0
@@ -467,7 +467,7 @@ Pane {
                             id: stepTranslate
                             implicitWidth: 90
                             text: "3. 翻译字幕"
-                            textColor: pal.checkBox_textColor
+                            textColor: pal.CheckBoxEx_textColor
                             checked: controller ? settings.enableTranslate : true
                             enabled: stepAudio.checked && stepTranscribe.checked
                             opacity: 1.0
@@ -486,7 +486,7 @@ Pane {
                             id: stepBurn
                             text: "4. 烧录字幕"
                             implicitWidth: 90
-                            textColor: pal.checkBox_textColor
+                            textColor: pal.CheckBoxEx_textColor
                             checked: controller ? settings.enableBurnSubtitle : true
                             enabled: stepAudio.checked && stepTranscribe.checked
                             opacity: 1.0
@@ -511,7 +511,7 @@ Pane {
                     Label {
                         id: langLabel
                         text: "语种转换"
-                        color: pal.VideoSubtitlePage_langLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -520,7 +520,7 @@ Pane {
                     Label {
                         id: sourceLangLabel
                         text: "源语言"
-                        color: pal.VideoSubtitlePage_sourceLangLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                     }
@@ -552,7 +552,7 @@ Pane {
                     Label {
                         id: targetLangLabel
                         text: "目标语言"
-                        color: pal.VideoSubtitlePage_targetLangLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                     }
@@ -582,7 +582,7 @@ Pane {
                         id: musicCheck
                         implicitWidth: 110
                         text: "背景音乐(翻译+烧录)"
-                        textColor: pal.checkBox_textColor
+                        textColor: pal.CheckBoxEx_textColor
                         checked: controller ? settings.translateMusic : false
                         font.pixelSize: 11
                         Layout.fillWidth: true
@@ -606,7 +606,7 @@ Pane {
                     Label {
                         id: outputLabel
                         text: "输出方式"
-                        color: pal.VideoSubtitlePage_outputLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -616,7 +616,7 @@ Pane {
                         id: sameDirRadio
                         implicitWidth: 80
                         text: "同目录"
-                        textColor: pal.radioButton_textColor
+                        textColor: pal.RadioButtonEx_textColor
                         checked: controller ? settings.outputMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller)
@@ -628,7 +628,7 @@ Pane {
                         id: specifyDirRadio
                         implicitWidth: 80
                         text: "指定目录"
-                        textColor: pal.radioButton_textColor
+                        textColor: pal.RadioButtonEx_textColor
                         checked: controller ? settings.outputMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller)
@@ -682,7 +682,7 @@ Pane {
             Layout.fillWidth: true
             Layout.preferredHeight: 50
             radius: 6
-            color: pal.VideoSubtitlePage_statusBar_color_active
+            color: pal.SurfaceEx_statusBar
             visible: true
 
             ColumnLayout {
@@ -701,7 +701,7 @@ Pane {
                         text: controller && controller.statusMessage.length > 0
                             ? controller.statusMessage.replace(/[\r\n]+/g, " ")
                             : "就绪"
-                        color: pal.VideoSubtitlePage_statusMessage_color_log
+                        color: pal.LabelEx_statusText
                         font.pixelSize: 13
                         elide: Text.ElideRight
                     }
@@ -712,7 +712,7 @@ Pane {
                         id: totalTimeLabel
                         text: elapsedTimer.totalElapsedString
                         visible: controller && controller.isProcessing
-                        color: pal.VideoSubtitlePage_logHeaderTitle_color_active
+                        color: pal.LabelEx_statusText
                         font.pixelSize: 11
                         font.bold: true
                     }
@@ -742,21 +742,21 @@ Pane {
                         Layout.preferredHeight: 4
                         Layout.alignment: Qt.AlignVCenter
                         radius: 2
-                        color: pal.VideoSubtitlePage_progressTrack_color
+                        color: pal.SurfaceEx_progressTrack
 
                         Rectangle {
                             id: progressFill
                             width: parent.width * (controller ? controller.progress : 0)
                             height: parent.height
                             radius: 2
-                            color: pal.VideoSubtitlePage_progressFill_color
+                            color: pal.SurfaceEx_progressFill
                         }
                     }
 
                     Label {
                         id: progressPercent
                         text: controller ? Math.round(controller.progress * 100) + "%" : ""
-                        color: pal.VideoSubtitlePage_progressPercent_color
+                        color: pal.LabelEx_statusText
                         font.pixelSize: 11
                         font.bold: true
                     }
@@ -764,7 +764,7 @@ Pane {
                     Label {
                         id: stopAfterLabel
                         text: "再完成"
-                        color: pal.VideoSubtitlePage_stopAfterLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 11
                         Layout.alignment: Qt.AlignVCenter
                     }
@@ -791,7 +791,7 @@ Pane {
                     Label {
                         id: stopAtLabel
                         text: "个后停止"
-                        color: pal.VideoSubtitlePage_stopAtLabel_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 11
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                     }
@@ -805,8 +805,8 @@ Pane {
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 10
-            color: pal.VideoSubtitlePage_logCard_color
-            border.color: pal.VideoSubtitlePage_logCard_borderColor
+            color: pal.SurfaceEx_cardBg
+            border.color: pal.SurfaceEx_cardBorder
             border.width: 1
             clip: true
 
@@ -832,14 +832,14 @@ Pane {
                         id: logDelegate
                         width: logListView.width
                         height: Math.max(28, logText.implicitHeight + 10)
-                        color: index % 2 === 0 ? pal.VideoSubtitlePage_logDelegate_color_even : pal.VideoSubtitlePage_logDelegate_color_odd
+                        color: index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
 
                         Rectangle {
                             id: logDelegateDivider
                             anchors.bottom: parent.bottom
                             width: parent.width
                             height: 1
-                            color: pal.VideoSubtitlePage_logDelegateDivider_color
+                            color: pal.SurfaceEx_rowDivider
                         }
 
                         Label {
@@ -858,11 +858,11 @@ Pane {
                             }
                             color: {
                                 var c = model.text.charAt(0);
-                                if (c === '?') return pal.VideoSubtitlePage_logText_color_error;
-                                if (c === '?') return pal.VideoSubtitlePage_logText_color_success;
-                                if (c === '→') return pal.VideoSubtitlePage_logText_color_info;
-                                if (c === '=') return pal.VideoSubtitlePage_logText_color_heading;
-                                return pal.VideoSubtitlePage_logText_color_default;
+                                if (c === '?') return pal.LabelEx_errorText;
+                                if (c === '?') return pal.LabelEx_successText;
+                                if (c === '→') return pal.LabelEx_statusText;
+                                if (c === '=') return pal.LabelEx_titleText;
+                                return pal.LabelEx_valueText;
                             }
                             wrapMode: Text.Wrap
                             verticalAlignment: Text.AlignVCenter
@@ -879,14 +879,14 @@ Pane {
                             id: emptyTitle
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "暂无输出"
-                            color: pal.VideoSubtitlePage_emptyTitle_color
+                            color: pal.LabelEx_infoText
                             font.pixelSize: 15
                         }
                         Label {
                             id: emptySubtitle
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "开始处理后这里将显示实时日志"
-                            color: pal.VideoSubtitlePage_emptySubtitle_color
+                            color: pal.LabelEx_infoText
                             font.pixelSize: 12
                         }
                     }

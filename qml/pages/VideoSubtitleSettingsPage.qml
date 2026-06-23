@@ -29,7 +29,7 @@ Pane {
     padding: 0
     background: Rectangle {
         id: pageBg
-        color: pal.VideoSubtitleSettingsPage_pageBg_color
+        color: pal.SurfaceEx_pageBg
     }
 
     FileDialog {
@@ -107,7 +107,7 @@ Pane {
                 Label {
                     id: pageTitle
                     text: "插件设置"
-                    color: pal.VideoSubtitleSettingsPage_pageTitle_color
+                    color: pal.LabelEx_titleText
                     font.pixelSize: 26
                     font.bold: true
                 }
@@ -115,7 +115,7 @@ Pane {
                 Label {
                     id: pageSubtitle
                     text: "配置工具路径、翻译 API 和字幕样式"
-                    color: pal.VideoSubtitleSettingsPage_pageSubtitle_color
+                    color: pal.LabelEx_subtitleText
                     font.pixelSize: 14
                 }
             }
@@ -147,8 +147,8 @@ Pane {
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 10
-            color: pal.VideoSubtitleSettingsPage_settingsCard_color
-            border.color: pal.VideoSubtitleSettingsPage_settingsCard_borderColor
+            color: pal.SurfaceEx_cardBg
+            border.color: pal.SurfaceEx_cardBorder
             border.width: 1
 
             ScrollView {
@@ -170,7 +170,7 @@ Pane {
                         Label {
                             id: ffmpegLabel
                             text: "FFmpeg"
-                            color: pal.VideoSubtitleSettingsPage_ffmpegLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                             Layout.preferredWidth: 80
@@ -213,12 +213,12 @@ Pane {
                             }
                             color: {
                                 if (!settings) return "";
-                                if (settings.ffmpegDetecting) return pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_detecting;
+                                if (settings.ffmpegDetecting) return pal.LabelEx_warningText;
                                 if (settings.ffmpegPath && settings.ffmpegPath.length > 0) {
                                     var ok = settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0;
-                                    return ok ? pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_success : pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_error;
+                                    return ok ? pal.LabelEx_successText : pal.LabelEx_errorText;
                                 }
-                                return pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_error;
+                                return pal.LabelEx_errorText;
                             }
                             font.pixelSize: 12
                             elide: Text.ElideRight
@@ -232,7 +232,7 @@ Pane {
                         Label {
                             id: ffmpegDownloadLabel
                             text: "下载地址 →"
-                            color: pal.VideoSubtitleSettingsPage_ffmpegDownloadLabel_color
+                            color: pal.LabelEx_statusText
                             font.pixelSize: 12
                             font.underline: true
 
@@ -255,7 +255,7 @@ Pane {
                         Label {
                             id: whisperLabel
                             text: "Whisper"
-                            color: pal.VideoSubtitleSettingsPage_whisperLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                             Layout.preferredWidth: 80
@@ -298,12 +298,12 @@ Pane {
                             }
                             color: {
                                 if (!settings) return "";
-                                if (settings.whisperDetecting) return pal.VideoSubtitleSettingsPage_whisperStatusLabel_color_detecting;
+                                if (settings.whisperDetecting) return pal.LabelEx_warningText;
                                 if (settings.whisperPath && settings.whisperPath.length > 0) {
                                     var ok = settings.whisperStatus.indexOf("已找到") >= 0 || settings.whisperStatus.indexOf("已检测到") >= 0;
-                                    return ok ? pal.VideoSubtitleSettingsPage_whisperStatusLabel_color_success : pal.VideoSubtitleSettingsPage_whisperStatusLabel_color_error;
+                                    return ok ? pal.LabelEx_successText : pal.LabelEx_errorText;
                                 }
-                                return pal.VideoSubtitleSettingsPage_whisperStatusLabel_color_error;
+                                return pal.LabelEx_errorText;
                             }
                             font.pixelSize: 12
                             elide: Text.ElideRight
@@ -317,7 +317,7 @@ Pane {
                         Label {
                             id: whisperDownloadLabel
                             text: "下载地址 →"
-                            color: pal.VideoSubtitleSettingsPage_whisperDownloadLabel_color
+                            color: pal.LabelEx_statusText
                             font.pixelSize: 12
                             font.underline: true
 
@@ -340,7 +340,7 @@ Pane {
                         Label {
                             id: modelLabel
                             text: "Whisper模型"
-                            color: pal.VideoSubtitleSettingsPage_modelLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                             Layout.preferredWidth: 80
@@ -380,7 +380,7 @@ Pane {
                                 }
                                 return "请点击下载地址进行模型下载";
                             }
-                            color: settings && settings.localModelPath && settings.localModelPath.length > 0 ? pal.VideoSubtitleSettingsPage_modelStatusLabel_color_success : pal.VideoSubtitleSettingsPage_modelStatusLabel_color_error
+                            color: settings && settings.localModelPath && settings.localModelPath.length > 0 ? pal.LabelEx_successText : pal.LabelEx_errorText
                             font.pixelSize: 12
                             elide: Text.ElideRight
                             verticalAlignment: Text.AlignVCenter
@@ -394,7 +394,7 @@ Pane {
                         Label {
                             id: modelDownloadLabel
                             text: "下载地址 →"
-                            color: pal.VideoSubtitleSettingsPage_modelDownloadLabel_color
+                            color: pal.LabelEx_statusText
                             font.pixelSize: 12
                             font.underline: true
 
@@ -414,7 +414,7 @@ Pane {
                         id: sectionDivider1
                         Layout.fillWidth: true
                         height: 1
-                        color: pal.VideoSubtitleSettingsPage_sectionDivider1_color
+                        color: pal.SurfaceEx_divider
                     }
 
                     // Engine selector — 选择翻译引擎（后端: translateEngine 属性）
@@ -426,7 +426,7 @@ Pane {
                         Label {
                             id: engineLabel
                             text: "翻译引擎"
-                            color: pal.VideoSubtitleSettingsPage_engineLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                             Layout.preferredWidth: 80
@@ -457,7 +457,7 @@ Pane {
                             Label {
                                 id: baiduAppIdLabel
                                 text: "百度 App ID"
-                                color: pal.VideoSubtitleSettingsPage_baiduAppIdLabel_color
+                                color: pal.LabelEx_labelText
                                 font.pixelSize: 13
                                 font.bold: true
                                 Layout.preferredWidth: 80
@@ -482,7 +482,7 @@ Pane {
                             Label {
                                 id: baiduApiKeyLabel
                                 text: "百度 API Key"
-                                color: pal.VideoSubtitleSettingsPage_baiduApiKeyLabel_color
+                                color: pal.LabelEx_labelText
                                 font.pixelSize: 13
                                 font.bold: true
                                 Layout.preferredWidth: 80
@@ -517,7 +517,7 @@ Pane {
                             Label {
                                 id: baiduApiUrlLabel
                                 text: "百度 API 地址"
-                                color: pal.VideoSubtitleSettingsPage_baiduApiUrlLabel_color
+                                color: pal.LabelEx_labelText
                                 font.pixelSize: 13
                                 font.bold: true
                                 Layout.preferredWidth: 80
@@ -559,7 +559,7 @@ Pane {
                             Label {
                                 id: apiTestResultLabel
                                 text: settings ? settings.apiTestResult : ""
-                                color: settings && settings.apiTestResult.indexOf("正常") >= 0 ? pal.VideoSubtitleSettingsPage_apiTestResultLabel_color_success : pal.VideoSubtitleSettingsPage_apiTestResultLabel_color_error
+                                color: settings && settings.apiTestResult.indexOf("正常") >= 0 ? pal.LabelEx_successText : pal.LabelEx_errorText
                                 font.pixelSize: 12
                             }
                         }
@@ -578,7 +578,7 @@ Pane {
                             Label {
                                 id: libreUrlLabel
                                 text: "服务地址"
-                                color: pal.VideoSubtitleSettingsPage_libreUrlLabel_color
+                                color: pal.LabelEx_labelText
                                 font.pixelSize: 13
                                 font.bold: true
                                 Layout.preferredWidth: 80
@@ -620,7 +620,7 @@ Pane {
                             Label {
                                 id: libreStatusLabel
                                 text: settings ? settings.libreTranslateStatus : ""
-                                color: settings && settings.libreTranslateStatus.indexOf("正常") >= 0 ? pal.VideoSubtitleSettingsPage_libreStatusLabel_color_success : pal.VideoSubtitleSettingsPage_libreStatusLabel_color_error
+                                color: settings && settings.libreTranslateStatus.indexOf("正常") >= 0 ? pal.LabelEx_successText : pal.LabelEx_errorText
                                 font.pixelSize: 12
                             }
                         }
@@ -635,7 +635,7 @@ Pane {
                             Label {
                                 id: libreConfigTitle
                                 text: "LibreTranslate 配置说明（离线翻译）"
-                                color: pal.VideoSubtitleSettingsPage_libreConfigTitle_color
+                                color: pal.LabelEx_subtitleText
                                 font.pixelSize: 14
                                 font.bold: true
                             }
@@ -643,7 +643,7 @@ Pane {
                             Label {
                                 id: libreDescription
                                 text: "LibreTranslate 是一款开源的离线神经机器翻译引擎，翻译质量高，无需联网。"
-                                color: pal.VideoSubtitleSettingsPage_libreDescription_color
+                                color: pal.LabelEx_infoText
                                 font.pixelSize: 12
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
@@ -659,14 +659,14 @@ Pane {
                                 Label {
                                     id: bulletLabel
                                     text: "•"
-                                    color: pal.VideoSubtitleSettingsPage_bulletLabel_color
+                                    color: pal.LabelEx_infoText
                                     font.pixelSize: 12
                                 }
 
                                 Label {
                                     id: pythonReqLabel
                                     text: "需要 Python 3.8+ 环境"
-                                    color: pal.VideoSubtitleSettingsPage_pythonReqLabel_color
+                                    color: pal.LabelEx_labelText
                                     font.pixelSize: 12
                                     font.bold: true
                                 }
@@ -676,7 +676,7 @@ Pane {
                                 Label {
                                     id: pythonDownloadLabel
                                     text: "Python 下载 →"
-                                    color: pal.VideoSubtitleSettingsPage_pythonDownloadLabel_color
+                                    color: pal.LabelEx_statusText
                                     font.pixelSize: 12
                                     font.underline: true
 
@@ -700,7 +700,7 @@ Pane {
                                 Label {
                                     id: step1Label
                                     text: "步骤 1: 打开终端（cmd），执行："
-                                    color: pal.VideoSubtitleSettingsPage_step1Label_color
+                                    color: pal.LabelEx_labelText
                                     font.pixelSize: 12
                                 }
 
@@ -725,7 +725,7 @@ Pane {
                                             text: "python -m pip install libretranslate"
                                             font.family: "Consolas, 'Courier New', monospace"
                                             font.pixelSize: 12
-                                            color: pal.VideoSubtitleSettingsPage_pipCmdText_color
+                                            color: pal.LabelEx_codeText
                                             readOnly: true
                                             selectByMouse: true
                                             cursorVisible: false
@@ -738,7 +738,7 @@ Pane {
                                     Label {
                                         id: pipCopyLabel
                                         text: root.copyFeedback === "pip" ? "已复制" : "复制"
-                                        color: root.copyFeedback === "pip" ? pal.VideoSubtitleSettingsPage_pipCopyLabel_color_success : pal.VideoSubtitleSettingsPage_pipCopyLabel_color_info
+                                        color: root.copyFeedback === "pip" ? pal.LabelEx_successText : pal.LabelEx_infoText
                                         font.pixelSize: 12
                                         font.bold: true
                                         verticalAlignment: Text.AlignVCenter
@@ -763,7 +763,7 @@ Pane {
                                 Label {
                                     id: step2Label
                                     text: "步骤 2: 启动服务（仅加载需要的语言: en=英语,zh=中文,ja=日语,ko=韩语）"
-                                    color: pal.VideoSubtitleSettingsPage_step2Label_color
+                                    color: pal.LabelEx_labelText
                                     font.pixelSize: 12
                                 }
 
@@ -788,7 +788,7 @@ Pane {
                                             text: "py -m libretranslate.main --load-only en,zh,ja,ko"
                                             font.family: "Consolas, 'Courier New', monospace"
                                             font.pixelSize: 12
-                                            color: pal.VideoSubtitleSettingsPage_ltCmdText_color
+                                            color: pal.LabelEx_codeText
                                             readOnly: true
                                             selectByMouse: true
                                             cursorVisible: false
@@ -801,7 +801,7 @@ Pane {
                                     Label {
                                         id: ltCopyLabel
                                         text: root.copyFeedback === "lt" ? "已复制" : "复制"
-                                        color: root.copyFeedback === "lt" ? pal.VideoSubtitleSettingsPage_ltCopyLabel_color_success : pal.VideoSubtitleSettingsPage_ltCopyLabel_color_info
+                                        color: root.copyFeedback === "lt" ? pal.LabelEx_successText : pal.LabelEx_infoText
                                         font.pixelSize: 12
                                         font.bold: true
                                         verticalAlignment: Text.AlignVCenter
@@ -831,7 +831,7 @@ Pane {
                                 Label {
                                     id: libreDescriptionText
                                     text: "首次启动会自动下载翻译模型（约 500MB-2GB），下载完成后即可离线使用。<br>出现Running on http://127.0.0.1:5000即为成功，不要关闭窗口。<br>服务默认监听 <b>http://localhost:5000</b>，可在上方修改地址。"
-                                    color: pal.VideoSubtitleSettingsPage_libreDescriptionText_color
+                                    color: pal.LabelEx_infoText
                                     font.pixelSize: 11
                                     wrapMode: Text.WordWrap
                                     Layout.fillWidth: true
@@ -843,7 +843,7 @@ Pane {
                                 Label {
                                     id: libreGitHubLabel
                                     text: "LibreTranslate GitHub →"
-                                    color: pal.VideoSubtitleSettingsPage_libreGitHubLabel_color
+                                    color: pal.LabelEx_statusText
                                     font.pixelSize: 12
                                     font.underline: true
 
@@ -864,7 +864,7 @@ Pane {
                         id: sectionDivider2
                         Layout.fillWidth: true
                         height: 1
-                        color: pal.VideoSubtitleSettingsPage_sectionDivider2_color
+                        color: pal.SurfaceEx_divider
                     }
 
                     // Font size + border width
@@ -875,7 +875,7 @@ Pane {
                         Label {
                             id: fontSizeLabel
                             text: "字号"
-                            color: pal.VideoSubtitleSettingsPage_fontSizeLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                             Layout.preferredWidth: 80
@@ -895,13 +895,13 @@ Pane {
                             id: fontSizeDivider
                             width: 1
                             height: 24
-                            color: pal.VideoSubtitleSettingsPage_fontSizeDivider_color
+                            color: pal.SurfaceEx_divider
                         }
 
                         Label {
                             id: borderWidthLabel
                             text: "描边宽度"
-                            color: pal.VideoSubtitleSettingsPage_borderWidthLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                         }
@@ -925,7 +925,7 @@ Pane {
                         Label {
                             id: subtitleStyleLabel
                             text: "字幕样式"
-                            color: pal.VideoSubtitleSettingsPage_subtitleStyleLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                             Layout.preferredWidth: 80
@@ -958,13 +958,13 @@ Pane {
                             id: subtitleStyleDivider
                             width: 1
                             height: 24
-                            color: pal.VideoSubtitleSettingsPage_subtitleStyleDivider_color
+                            color: pal.SurfaceEx_divider
                         }
 
                         Label {
                             id: fontColorLabel
                             text: "字体颜色"
-                            color: pal.VideoSubtitleSettingsPage_fontColorLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                         }
@@ -987,7 +987,7 @@ Pane {
 
                         Label {
                             id: fontColorValue
-                            color: pal.VideoSubtitleSettingsPage_fontColorValue_color
+                            color: pal.LabelEx_valueText
                             font.pixelSize: 12
                         }
 
@@ -995,13 +995,13 @@ Pane {
                             id: styleDivider
                             width: 1
                             height: 24
-                            color: pal.VideoSubtitleSettingsPage_styleDivider_color
+                            color: pal.SurfaceEx_divider
                         }
 
                         Label {
                             id: borderColorLabel
                             text: "描边颜色"
-                            color: pal.VideoSubtitleSettingsPage_borderColorLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                         }
@@ -1024,7 +1024,7 @@ Pane {
 
                         Label {
                             id: borderColorValue
-                            color: pal.VideoSubtitleSettingsPage_borderColorValue_color
+                            color: pal.LabelEx_valueText
                             font.pixelSize: 12
                         }
                     }
@@ -1037,7 +1037,7 @@ Pane {
                         radius: 6
                         color: pal.VideoSubtitleSettingsPage_previewBg_color
                         border.width: 1
-                        border.color: pal.VideoSubtitleSettingsPage_settingsCard_borderColor
+                        border.color: pal.SurfaceEx_cardBorder
 
                         Label {
                             id: previewLabel
@@ -1055,7 +1055,7 @@ Pane {
                         id: sectionDivider3
                         Layout.fillWidth: true
                         height: 1
-                        color: pal.VideoSubtitleSettingsPage_sectionDivider3_color
+                        color: pal.SurfaceEx_divider
                     }
 
                     // GPU 加速
@@ -1066,7 +1066,7 @@ Pane {
                         Label {
                             id: gpuLabel
                             text: "GPU 加速"
-                            color: pal.VideoSubtitleSettingsPage_gpuLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                             Layout.preferredWidth: 80
@@ -1076,7 +1076,7 @@ Pane {
                             id: gpuCheckBox
                             implicitWidth: 250
                             text: "启用硬件加速（NVENC / QSV / AMF）"
-                            textColor: pal.checkBox_textColor
+                            textColor: pal.CheckBoxEx_textColor
                             checked: settings ? settings.useGpuAccel : false
                             enabled: settings ? (settings.ffmpegPath.length > 0 && (settings.ffmpegDetecting || settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0)) : false
                             onCheckedChanged: {
@@ -1096,13 +1096,13 @@ Pane {
                             id: gpuInfoLabel
                             text: settings ? settings.gpuAccelInfo : ""
                             color: {
-                                if (!settings) return pal.VideoSubtitleSettingsPage_gpuInfoLabel_color_disabled;
-                                if (settings.ffmpegDetecting) return pal.VideoSubtitleSettingsPage_ffmpegStatusLabel_color_detecting;
+                                if (!settings) return pal.LabelEx_infoText;
+                                if (settings.ffmpegDetecting) return pal.LabelEx_warningText;
                                 if (settings.gpuAccelInfo.indexOf("NVENC") >= 0
                                     || settings.gpuAccelInfo.indexOf("QSV") >= 0
                                     || settings.gpuAccelInfo.indexOf("AMF") >= 0)
-                                    return pal.VideoSubtitleSettingsPage_gpuInfoLabel_color_success;
-                                return pal.VideoSubtitleSettingsPage_gpuInfoLabel_color_disabled;
+                                    return pal.LabelEx_successText;
+                                return pal.LabelEx_infoText;
                             }
                             font.pixelSize: 12
                         }
@@ -1116,7 +1116,7 @@ Pane {
                         Label {
                             id: retentionLabel
                             text: "保留输出文件"
-                            color: pal.VideoSubtitleSettingsPage_retentionLabel_color
+                            color: pal.LabelEx_labelText
                             font.pixelSize: 13
                             font.bold: true
                             topPadding: 8
@@ -1127,7 +1127,7 @@ Pane {
                             id: keepWavCheckBox
                             implicitWidth: 150
                             text: "保留 WAV 音频文件"
-                            textColor: pal.checkBox_textColor
+                            textColor: pal.CheckBoxEx_textColor
                             checked: settings ? settings.keepWav : true
                             onCheckedChanged: {
                                 if (settings)
@@ -1139,7 +1139,7 @@ Pane {
                             id: keepOrigSrtCheckBox
                             implicitWidth: 150
                             text: "保留原始 SRT 字幕"
-                            textColor: pal.checkBox_textColor
+                            textColor: pal.CheckBoxEx_textColor
                             checked: settings ? settings.keepOriginalSrt : true
                             onCheckedChanged: {
                                 if (settings)
@@ -1151,7 +1151,7 @@ Pane {
                             id: keepTranslatedSrtCheckBox
                             implicitWidth: 150
                             text: "保留翻译后 SRT"
-                            textColor: pal.checkBox_textColor
+                            textColor: pal.CheckBoxEx_textColor
                             checked: settings ? settings.keepTranslatedSrt : true
                             onCheckedChanged: {
                                 if (settings)

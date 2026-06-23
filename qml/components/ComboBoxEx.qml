@@ -129,7 +129,7 @@ ComboBox {
         height: 32
 
         contentItem: Text {
-            text: modelData
+            text: root.textRole ? modelData[root.textRole] : modelData
             font.pixelSize: 13
             color: highlighted ? root.delegateHighlightTextColor : root.delegateTextColor
             verticalAlignment: Text.AlignVCenter

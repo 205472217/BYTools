@@ -35,7 +35,7 @@ Pane {
     padding: 0
     background: Rectangle {
         id: bgRect
-        color: pal.ImageConverterPage_bgRect_color
+        color: pal.SurfaceEx_pageBg
     }
 
     FolderDialog {
@@ -85,7 +85,7 @@ Pane {
             Label {
                 id: msgLabel
                 text: "当前有图片格式转换任务正在处理中，返回首页将中断执行，是否继续？"
-                color: pal.ImageConverterPage_msgLabel_color
+                color: pal.LabelEx_statusText
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
@@ -159,7 +159,7 @@ Pane {
                 Label {
                     id: pageTitle
                     text: "图片格式转换"
-                    color: pal.ImageConverterPage_pageTitle_color
+                    color: pal.LabelEx_titleText
                     font.pixelSize: 26
                     font.bold: true
                 }
@@ -167,7 +167,7 @@ Pane {
                 Label {
                     id: pageSubtitle
                     text: "批量转换图片格式，支持递归子文件夹"
-                    color: pal.ImageConverterPage_pageSubtitle_color
+                    color: pal.LabelEx_subtitleText
                     font.pixelSize: 14
                 }
             }
@@ -179,8 +179,8 @@ Pane {
             Layout.fillHeight: false
             implicitHeight: settingsColumn.implicitHeight + 36
             radius: 10
-            color: pal.ImageConverterPage_settingsCard_color
-            border.color: pal.ImageConverterPage_settingsCard_borderColor
+            color: pal.SurfaceEx_cardBg
+            border.color: pal.SurfaceEx_cardBorder
             border.width: 1
 
             ColumnLayout {
@@ -196,7 +196,7 @@ Pane {
                     Label {
                         id: srcFolderLbl
                         text: "源文件夹"
-                        color: pal.ImageConverterPage_srcFolderLbl_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -213,7 +213,7 @@ Pane {
                         id: recursiveCheck
                         implicitWidth: 110
                         text: "递归子文件夹"
-                        textColor: pal.checkBox_textColor
+                        textColor: pal.CheckBoxEx_textColor
                         checked: controller ? settings.recursive : false
                         onCheckedChanged: {
                             if (controller) {
@@ -236,7 +236,7 @@ Pane {
                     Label {
                         id: targetFormatLbl
                         text: "目标格式"
-                        color: pal.ImageConverterPage_targetFormatLbl_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -257,13 +257,13 @@ Pane {
                         id: fmtSeparator
                         width: 1
                         height: 24
-                        color: pal.ImageConverterPage_fmtSeparator_color
+                        color: pal.SurfaceEx_divider
                     }
 
                     Label {
                         id: qualityLbl
                         text: "质量"
-                        color: pal.ImageConverterPage_qualityLbl_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                     }
@@ -288,7 +288,7 @@ Pane {
                     Label {
                         id: qualityValLbl
                         text: (controller ? settings.quality : 85)
-                        color: pal.ImageConverterPage_qualityValLbl_color
+                        color: pal.LabelEx_valueText
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 28
@@ -305,7 +305,7 @@ Pane {
                     Label {
                         id: bgColorLbl
                         text: "JPG背景色"
-                        color: pal.ImageConverterPage_bgColorLbl_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -375,13 +375,13 @@ Pane {
                         id: bgColorSeparator
                         width: 1
                         height: 24
-                        color: pal.ImageConverterPage_fmtSeparator_color
+                        color: pal.SurfaceEx_divider
                     }
 
                     Label {
                         id: fillTipLbl
                         text: "PNG转JPG时填充透明区域"
-                        color: pal.ImageConverterPage_fillTipLbl_color
+                        color: pal.LabelEx_infoText
                         font.pixelSize: 12
                     }
 
@@ -409,7 +409,7 @@ Pane {
                     Label {
                         id: outputModeLbl
                         text: "输出方式"
-                        color: pal.ImageConverterPage_outputModeLbl_color
+                        color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 80
@@ -419,7 +419,7 @@ Pane {
                         id: replaceRadio
                         implicitWidth: 120
                         text: "替换原文件"
-                        textColor: pal.radioButton_textColor
+                        textColor: pal.RadioButtonEx_textColor
                         checked: controller ? settings.outputMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller) {
@@ -432,7 +432,7 @@ Pane {
                         id: newDirRadio
                         implicitWidth: 120
                         text: "输出到新目录"
-                        textColor: pal.radioButton_textColor
+                        textColor: pal.RadioButtonEx_textColor
                         checked: controller ? settings.outputMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller) {
@@ -494,7 +494,7 @@ Pane {
                 Layout.fillWidth: true
                 height: statusText.implicitHeight + 12
                 radius: 6
-                color: pal.ImageConverterPage_statusBar_color
+                color: pal.SurfaceEx_statusBar
 
                 Label {
                     id: statusText
@@ -506,7 +506,7 @@ Pane {
                     text: controller && controller.statusMessage.length > 0
                         ? controller.statusMessage
                         : "就绪"
-                    color: pal.ImageConverterPage_statusTextLbl_color
+                    color: pal.LabelEx_statusText
                     font.pixelSize: 13
                     elide: Text.ElideRight
                 }
@@ -530,8 +530,8 @@ Pane {
             Layout.fillWidth: true
             Layout.fillHeight: true
             radius: 10
-            color: pal.ImageConverterPage_resultCard_color
-            border.color: pal.ImageConverterPage_resultCard_borderColor
+            color: pal.SurfaceEx_cardBg
+            border.color: pal.SurfaceEx_cardBorder
             border.width: 1
             clip: true
 
@@ -544,14 +544,14 @@ Pane {
                     id: headerRow
                     Layout.fillWidth: true
                     Layout.preferredHeight: 40
-                    color: pal.ImageConverterPage_headerRow_color
+                    color: pal.SurfaceEx_headerRowBg
 
                     Rectangle {
                         id: headerBorder
                         anchors.bottom: parent.bottom
                         width: parent.width
                         height: 1
-                        color: pal.ImageConverterPage_headerBorder_color
+                        color: pal.SurfaceEx_headerDivider
                     }
 
                     Label {
@@ -560,7 +560,7 @@ Pane {
                         width: root.typeColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "格式"
-                        color: pal.ImageConverterPage_fmtHeaderLbl_color
+                        color: pal.LabelEx_headerText
                         font.pixelSize: 12
                         font.bold: true
                     }
@@ -571,7 +571,7 @@ Pane {
                         width: root.textColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "原名称"
-                        color: pal.ImageConverterPage_origHeaderLbl_color
+                        color: pal.LabelEx_headerText
                         font.pixelSize: 12
                         font.bold: true
                     }
@@ -582,7 +582,7 @@ Pane {
                         width: root.textColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "新名称"
-                        color: pal.ImageConverterPage_newHeaderLbl_color
+                        color: pal.LabelEx_headerText
                         font.pixelSize: 12
                         font.bold: true
                     }
@@ -593,7 +593,7 @@ Pane {
                         width: root.statusColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "状态"
-                        color: pal.ImageConverterPage_statusHeaderLbl_color
+                        color: pal.LabelEx_headerText
                         font.pixelSize: 12
                         font.bold: true
                     }
@@ -604,7 +604,7 @@ Pane {
                         width: root.actionColumnWidth
                         anchors.verticalCenter: parent.verticalCenter
                         text: "操作"
-                        color: pal.ImageConverterPage_actionHeaderLbl_color
+                        color: pal.LabelEx_headerText
                         font.pixelSize: 12
                         font.bold: true
                         horizontalAlignment: Text.AlignHCenter
@@ -625,15 +625,15 @@ Pane {
                         id: rowDelegate
                         width: recordsListView.width
                         height: 74
-                        color: rowMouseArea.containsMouse ? pal.ImageConverterPage_rowDelegate_color_hover :
-                               index % 2 === 0 ? pal.ImageConverterPage_rowDelegate_color_even : pal.ImageConverterPage_rowDelegate_color_odd
+                        color: rowMouseArea.containsMouse ? pal.SurfaceEx_rowHoverBg :
+                               index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
 
                         Rectangle {
                             id: rowBorder
                             anchors.bottom: parent.bottom
                             width: parent.width
                             height: 1
-                            color: pal.ImageConverterPage_rowBorder_color
+                            color: pal.SurfaceEx_rowDivider
                         }
 
                         // 格式标签
@@ -670,7 +670,7 @@ Pane {
                             width: root.textColumnWidth
                             y: 14
                             text: modelData.originalName
-                            color: pal.ImageConverterPage_origNameLbl_color
+                            color: pal.LabelEx_valueText
                             font.pixelSize: 13
                             elide: Text.ElideMiddle
                         }
@@ -681,7 +681,7 @@ Pane {
                             width: root.textColumnWidth
                             y: 14
                             text: modelData.status === "已跳过" ? modelData.originalName : modelData.newName
-                            color: modelData.status === "已跳过" ? pal.ImageConverterPage_newNameLbl_color_skipped : pal.ImageConverterPage_newNameLbl_color_done
+                            color: modelData.status === "已跳过" ? pal.LabelEx_infoText : pal.LabelEx_successText
                             font.bold: modelData.status !== "已跳过"
                             font.pixelSize: 13
                             elide: Text.ElideMiddle
@@ -695,8 +695,8 @@ Pane {
                             y: 14
                             height: 22
                             radius: 4
-                            color: modelData.status === "已转换" ? pal.ImageConverterPage_statusBadge_color_converted :
-                                   modelData.status === "已跳过" ? pal.ImageConverterPage_statusBadge_color_skipped : pal.ImageConverterPage_statusBadge_color_failed
+                            color: modelData.status === "已转换" ? pal.StatusBadgeEx_bg_success :
+                                   modelData.status === "已跳过" ? pal.StatusBadgeEx_bg_idle : pal.StatusBadgeEx_bg_error
 
                             Label {
                                 id: statusTagLbl
@@ -704,8 +704,8 @@ Pane {
                                 text: modelData.status
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: modelData.status === "已转换" ? pal.ImageConverterPage_statusTagLbl_color_converted :
-                                       modelData.status === "已跳过" ? pal.ImageConverterPage_statusTagLbl_color_skipped : pal.ImageConverterPage_statusTagLbl_color_failed
+                                color: modelData.status === "已转换" ? pal.LabelEx_statusText :
+                                       modelData.status === "已跳过" ? pal.LabelEx_infoText : pal.LabelEx_errorText
                                 elide: Text.ElideRight
                             }
                         }
@@ -716,7 +716,7 @@ Pane {
                             y: 40
                             width: root.statusColumnX - root.originalColumnX - root.columnGap
                             text: modelData.success ? modelData.newPath : modelData.originalPath
-                            color: pal.ImageConverterPage_pathLbl_color
+                            color: pal.LabelEx_pathText
                             font.pixelSize: 11
                             elide: Text.ElideMiddle
                         }
@@ -753,14 +753,14 @@ Pane {
                             id: emptyTitleLbl
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "暂无转换记录"
-                            color: pal.ImageConverterPage_emptyTitleLbl_color
+                            color: pal.LabelEx_infoText
                             font.pixelSize: 15
                         }
                         Label {
                             id: emptySubtitleLbl
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: "设置参数后点击执行按钮开始"
-                            color: pal.ImageConverterPage_emptySubtitleLbl_color
+                            color: pal.LabelEx_infoText
                             font.pixelSize: 12
                         }
                     }
