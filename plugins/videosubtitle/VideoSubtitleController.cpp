@@ -45,6 +45,20 @@ VideoSubtitleController::VideoSubtitleController(PluginLogger *logger, VideoSubt
             m_settings->setOutputDir({});
         }
     }
+
+    connect(&m_workerThread, &QThread::started,
+            this, &VideoSubtitleController::doScanWork, Qt::DirectConnection);
+    connect(&m_workerThread, &QThread::finished, this, [this]() {
+        m_workerRunning = false;
+    });
+}
+
+VideoSubtitleController::~VideoSubtitleController()
+{
+    if (m_workerRunning) {
+        m_workerThread.quit();
+        m_workerThread.wait(5000);
+    }
 }
 
 // Getters
@@ -277,6 +291,10 @@ void VideoSubtitleController::execute()
     m_currentFileIndex = -1;
     m_stopTargetIndex = -1;
 
+    m_pendingFiles.clear();
+    m_currentFileIndex = -1;
+    m_stopTargetIndex = -1;
+
     if (m_settings->inputMode() == 0) {
         // Single file
         if (isVideoFile(m_settings->inputPath())) {
@@ -285,57 +303,93 @@ void VideoSubtitleController::execute()
             setStatusMessage("选择的文件不是支持的视频格式");
             return;
         }
-    } else {
-        // Directory mode — 按 Windows 自然排序处理，保证处理顺序和 Explorer 看到的一致
-        QDir dir(m_settings->inputPath());
 
-        if (m_settings->recursive()) {
-            // 子目录按自然排序，目录优先于文件（匹配 Windows Explorer 行为）
-            QFileInfoList subdirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
-            naturalSort(subdirs);
-            for (const QFileInfo &subdirInfo : subdirs) {
-                QDir subDir(subdirInfo.absoluteFilePath());
-                QFileInfoList subFiles = subDir.entryInfoList(QDir::Files, QDir::NoSort);
-                naturalSort(subFiles);
-                for (const QFileInfo &subFile : subFiles) {
-                    if (isVideoFile(subFile.fileName()))
-                        m_pendingFiles.append(subFile.absoluteFilePath());
-                }
-            }
+        setIsProcessing(true);
+        setProgress(0.0);
 
-            // 顶层文件在子目录之后处理
-            QFileInfoList topFiles = dir.entryInfoList(QDir::Files, QDir::NoSort);
-            naturalSort(topFiles);
-            for (const QFileInfo &file : topFiles) {
-                if (isVideoFile(file.fileName()))
-                    m_pendingFiles.append(file.absoluteFilePath());
-            }
-        } else {
-            QFileInfoList files = dir.entryInfoList(QDir::Files, QDir::NoSort);
-            naturalSort(files);
-            for (const QFileInfo &file : files) {
-                if (isVideoFile(file.fileName()))
-                    m_pendingFiles.append(file.absoluteFilePath());
-            }
+        {
+            bool useGpu = m_settings->useGpuAccel();
+            m_ffmpegService->setUseHardwareAccel(useGpu);
+            m_logger->info(QString("FFmpeg GPU 加速: %1").arg(useGpu ? "开启" : "关闭"));
         }
 
+        processNextFile();
+    } else {
+        // Directory mode — 在后台线程中扫描文件
+        setIsProcessing(true);
+        setProgress(0.0);
+
+        {
+            bool useGpu = m_settings->useGpuAccel();
+            m_ffmpegService->setUseHardwareAccel(useGpu);
+            m_logger->info(QString("FFmpeg GPU 加速: %1").arg(useGpu ? "开启" : "关闭"));
+        }
+
+        emit logMessage("正在递归查找视频文件...");
+        m_workerRunning = true;
+        m_workerThread.start();
+    }
+}
+
+void VideoSubtitleController::doScanWork()
+{
+    QDir dir(m_settings->inputPath());
+    QStringList pending;
+
+    auto collectFiles = [&](const QString &dirPath, bool recursive) {
+        std::function<void(const QString &, bool)> scan;
+        scan = [&](const QString &path, bool rec) {
+            QDir d(path);
+            if (rec) {
+                QFileInfoList subdirs = d.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
+                naturalSort(subdirs);
+                for (const QFileInfo &sd : subdirs)
+                    scan(sd.absoluteFilePath(), true);
+            }
+            QFileInfoList files = d.entryInfoList(QDir::Files, QDir::NoSort);
+            naturalSort(files);
+            for (const QFileInfo &f : files) {
+                if (isVideoFile(f.fileName()))
+                    pending.append(f.absoluteFilePath());
+            }
+        };
+        scan(dirPath, recursive);
+    };
+
+    emit logMessage(QStringLiteral("正在递归查找视频文件..."));
+
+    if (m_settings->recursive()) {
+        // 子目录优先于顶层文件
+        QFileInfoList subdirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
+        naturalSort(subdirs);
+        for (const QFileInfo &sd : subdirs)
+            collectFiles(sd.absoluteFilePath(), true);
+
+        QFileInfoList topFiles = dir.entryInfoList(QDir::Files, QDir::NoSort);
+        naturalSort(topFiles);
+        for (const QFileInfo &f : topFiles) {
+            if (isVideoFile(f.fileName()))
+                pending.append(f.absoluteFilePath());
+        }
+    } else {
+        QFileInfoList files = dir.entryInfoList(QDir::Files, QDir::NoSort);
+        naturalSort(files);
+        for (const QFileInfo &f : files) {
+            if (isVideoFile(f.fileName()))
+                pending.append(f.absoluteFilePath());
+        }
+    }
+
+    m_workerThread.quit();
+    QMetaObject::invokeMethod(this, [this, pending]() {
+        m_pendingFiles = pending;
         if (m_pendingFiles.isEmpty()) {
             setStatusMessage("所选目录中没有找到视频文件");
+            setIsProcessing(false);
             return;
         }
-    }
-
-    setIsProcessing(true);
-    setProgress(0.0);
-
-    // GPU 加速设置
-    {
-        bool useGpu = m_settings->useGpuAccel();
-        m_ffmpegService->setUseHardwareAccel(useGpu);
-        m_logger->info(QString("FFmpeg GPU 加速: %1").arg(useGpu ? "开启" : "关闭"));
-    }
-
-    processNextFile();
+        processNextFile();
+    }, Qt::QueuedConnection);
 }
 
 void VideoSubtitleController::cancel()
@@ -345,6 +399,11 @@ void VideoSubtitleController::cancel()
     // 先设状态为 false，防止 cancel 过程中 waitForFinished 阻塞处理事件
     // 导致异步信号回调（onTranscribeFinished/onTranslateFinished）重新进入处理流程
     setIsProcessing(false);
+
+    if (m_workerRunning) {
+        m_workerThread.quit();
+        m_workerThread.wait(5000);
+    }
 
     m_whisperService->cancel();
     m_translateService->cancel();

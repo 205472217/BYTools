@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QString>
+#include <QThread>
 
 #include "NamePreviewModel.h"
 #include "NameService.h"
@@ -20,6 +21,7 @@ class NameConverterController : public QObject
 
 public:
     explicit NameConverterController(PluginLogger *logger, NameConverterSettings *settings, QObject *parent = nullptr);
+    ~NameConverterController() override;
 
     QString statusMessage() const;
     bool hasRecords() const;
@@ -38,12 +40,13 @@ signals:
     void statusMessageChanged();
     void hasRecordsChanged();
     void isProcessingChanged();
+    void logMessage(const QString &message);
 
 private:
     NameService::TargetType currentTargetType() const;
+
     void setStatusMessage(const QString &message);
     void setIsProcessing(bool processing);
-
     bool m_isProcessing = false;
     QString m_statusMessage;
     ChineseTextConverter m_converter;
@@ -51,4 +54,7 @@ private:
     NameService m_service;
     NamePreviewModel *m_previewModel = nullptr;
     NameConverterSettings *m_settings = nullptr;
+
+    QThread m_workerThread;
+    bool m_workerRunning = false;
 };

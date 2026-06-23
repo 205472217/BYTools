@@ -14,6 +14,17 @@ NameConverterController::NameConverterController(PluginLogger *logger, NameConve
     , m_service(m_converter, logger)
 {
     m_previewModel = new NamePreviewModel(this);
+
+    connect(&m_workerThread, &QThread::finished, this, [this]() {
+        m_workerRunning = false;
+    });
+}
+
+NameConverterController::~NameConverterController()
+{
+    cancel();
+    m_workerThread.quit();
+    m_workerThread.wait(5000);
 }
 
 QString NameConverterController::statusMessage() const
@@ -33,7 +44,13 @@ bool NameConverterController::isProcessing() const
 
 void NameConverterController::cancel()
 {
-    // 繁转简任务同步执行，执行时间短，cancel 仅用于状态同步
+    if (m_workerRunning) {
+        m_workerThread.quit();
+        if (!m_workerThread.wait(3000)) {
+            m_workerThread.terminate();
+            m_workerThread.wait(3000);
+        }
+    }
     if (m_isProcessing) {
         setIsProcessing(false);
         setStatusMessage("已取消");
@@ -57,17 +74,35 @@ void NameConverterController::buildPreview()
     }
 
     m_logger->info(QString("预览繁转简: %1 (递归=%2)").arg(root).arg(rec));
-    const auto items = m_service.preview(root, currentTargetType(), rec);
-    m_previewModel->setItems(items);
-    emit hasRecordsChanged();
+    emit logMessage(QString("正在扫描: %1").arg(root));
+    if (rec)
+        emit logMessage("  启用了递归查找，正在遍历子目录...");
 
-    if (items.isEmpty()) {
-        setStatusMessage(QStringLiteral("没有发现需要转换的名称"));
-        m_logger->info("预览完成: 没有发现需要转换的名称");
-    } else {
-        setStatusMessage(QStringLiteral("发现 %1 项可转换名称").arg(items.count()));
-        m_logger->info(QString("预览完成: 发现 %1 项可转换名称").arg(items.count()));
-    }
+    setIsProcessing(true);
+
+    // Disconnect any previous started connection, then connect for preview
+    disconnect(&m_workerThread, &QThread::started, nullptr, nullptr);
+    connect(&m_workerThread, &QThread::started, this, [this]() {
+        const QString root = m_settings->rootPath();
+        const bool rec = m_settings->recursive();
+        auto items = m_service.preview(root, currentTargetType(), rec);
+        m_workerThread.quit();
+        QMetaObject::invokeMethod(this, [this, items]() {
+            m_previewModel->setItems(items);
+            emit hasRecordsChanged();
+            if (items.isEmpty()) {
+                setStatusMessage(QStringLiteral("没有发现需要转换的名称"));
+                m_logger->info("预览完成: 没有发现需要转换的名称");
+            } else {
+                setStatusMessage(QStringLiteral("发现 %1 项可转换名称").arg(items.count()));
+                m_logger->info(QString("预览完成: 发现 %1 项可转换名称").arg(items.count()));
+            }
+            setIsProcessing(false);
+        }, Qt::QueuedConnection);
+    }, Qt::DirectConnection);
+
+    m_workerRunning = true;
+    m_workerThread.start();
 }
 
 void NameConverterController::executeRename()
@@ -84,14 +119,29 @@ void NameConverterController::executeRename()
 
     m_logger->info(QString("===== 开始繁转简 ====="));
     m_logger->info(QString("根目录: %1, 递归=%2").arg(root).arg(rec));
+    emit logMessage(QString("根目录: %1").arg(root));
+    if (rec)
+        emit logMessage("  启用了递归查找，正在遍历子目录...");
 
     setIsProcessing(true);
-    const auto execution = m_service.execute(root, currentTargetType(), rec);
-    m_previewModel->setItems(execution.records);
-    emit hasRecordsChanged();
-    setStatusMessage(execution.result.message);
-    m_logger->info("繁转简完成: " + execution.result.message);
-    setIsProcessing(false);
+
+    disconnect(&m_workerThread, &QThread::started, nullptr, nullptr);
+    connect(&m_workerThread, &QThread::started, this, [this]() {
+        const QString root = m_settings->rootPath();
+        const bool rec = m_settings->recursive();
+        auto execution = m_service.execute(root, currentTargetType(), rec);
+        m_workerThread.quit();
+        QMetaObject::invokeMethod(this, [this, execution]() {
+            m_previewModel->setItems(execution.records);
+            emit hasRecordsChanged();
+            setStatusMessage(execution.result.message);
+            m_logger->info("繁转简完成: " + execution.result.message);
+            setIsProcessing(false);
+        }, Qt::QueuedConnection);
+    }, Qt::DirectConnection);
+
+    m_workerRunning = true;
+    m_workerThread.start();
 }
 
 void NameConverterController::restoreRecord(int row)

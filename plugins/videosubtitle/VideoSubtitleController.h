@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QVariantList>
+#include <QThread>
 
 class PluginLogger;
 class WhisperService;
@@ -57,6 +58,7 @@ class VideoSubtitleController : public QObject
 public:
     enum Step { StepNone = 0, StepExtractAudio, StepTranscribe, StepTranslate, StepBurnSubtitle };
     explicit VideoSubtitleController(PluginLogger *logger, VideoSubtitleSettings *settings, QObject *parent = nullptr);
+    ~VideoSubtitleController() override;
 
     // Getters
     QString inputPath() const;
@@ -156,6 +158,7 @@ private slots:
 
 private:
     void processNextFile();
+    void doScanWork();
     void processSingleFile(const QString &videoPath);
     void finalizeCurrentFile();
     void setStatusMessage(const QString &message);
@@ -178,6 +181,9 @@ private:
     QString defaultBorderColor() const;
     int defaultBorderWidth() const;
     int audioSegmentDuration() const;
+
+    QThread m_workerThread;
+    bool m_workerRunning = false;
 
     VideoSubtitleSettings *m_settings = nullptr;
 

@@ -21,8 +21,22 @@ SubtitleAdjustController::SubtitleAdjustController(PluginLogger *logger, Subtitl
 {
     m_matchModel = new MatchPairModel(this);
 
+    connect(&m_workerThread, &QThread::started,
+            this, &SubtitleAdjustController::doMatchWork, Qt::DirectConnection);
+    connect(&m_workerThread, &QThread::finished, this, [this]() {
+        m_workerRunning = false;
+    });
+
     // 加载已完成记录
     loadRecords();
+}
+
+SubtitleAdjustController::~SubtitleAdjustController()
+{
+    if (m_workerRunning) {
+        m_workerThread.quit();
+        m_workerThread.wait(5000);
+    }
 }
 
 // ── 单文件模式 ──
@@ -129,7 +143,7 @@ void SubtitleAdjustController::startMatch()
         m_logger->info(msg);
         emit logMessage(msg);
     } else {
-        // 批量模式：扫描文件夹，按文件名前缀匹配
+        // 批量模式：扫描文件夹，按文件名前缀匹配（后台线程执行）
         if (m_settings->videoFolder().isEmpty() || m_settings->subtitleFolder().isEmpty()) {
             QString msg = QStringLiteral("请先选择视频文件夹和字幕文件夹");
             m_logger->warn(msg);
@@ -138,51 +152,11 @@ void SubtitleAdjustController::startMatch()
         }
 
         emit logMessage(QStringLiteral("正在扫描视频文件夹..."));
-        QStringList videoExts = {"*.mp4", "*.mkv", "*.avi", "*.mov", "*.wmv", "*.flv", "*.webm", "*.m4v", "*.ts"};
-        QStringList videoFiles;
-        collectFiles(m_settings->videoFolder(), m_settings->recursiveVideo(), videoExts, videoFiles);
+        if (m_settings->recursiveVideo() || m_settings->recursiveSubtitle())
+            emit logMessage("  启用了递归查找，正在遍历子目录...");
 
-        emit logMessage(QStringLiteral("正在扫描字幕文件夹..."));
-        QStringList subExts = {"*.srt", "*.ass", "*.ssa"};
-        QStringList subFiles;
-        collectFiles(m_settings->subtitleFolder(), m_settings->recursiveSubtitle(), subExts, subFiles);
-
-        // 按文件名主干（不含扩展名）建立索引
-        QMap<QString, QString> subMap;
-        for (const auto &sf : subFiles) {
-            QFileInfo fi(sf);
-            QString stem = fi.completeBaseName().toLower();
-            subMap.insert(stem, sf);
-        }
-
-        // 匹配视频与字幕
-        QList<MatchPairModel::MatchPair> pairs;
-        int matched = 0;
-        for (const auto &vf : videoFiles) {
-            QFileInfo fi(vf);
-            QString stem = fi.completeBaseName().toLower();
-            if (subMap.contains(stem)) {
-                pairs.append({vf, subMap[stem], 0});
-                matched++;
-            }
-        }
-
-        m_matchModel->setPairs(pairs);
-
-        // 查 JSON 记录，已有导出记录的标为「已导出」
-        for (int i = 0; i < m_matchModel->rowCount(); ++i) {
-            if (hasRecord(m_matchModel->at(i).subtitleFile))
-                m_matchModel->setStatus(i, 1);
-        }
-
-        QString msg = QStringLiteral("✓ 匹配完成: 共扫描 %1 个视频, %2 个字幕, 成功匹配 %3 对")
-            .arg(videoFiles.size()).arg(subFiles.size()).arg(matched);
-        m_logger->info(msg);
-        emit logMessage(msg);
-
-        if (matched == 0) {
-            emit logMessage(QStringLiteral("⚠ 未匹配到任何视频-字幕对，请检查文件名是否一致"));
-        }
+        m_workerRunning = true;
+        m_workerThread.start();
     }
     emit matchCompleted();
 }
@@ -515,25 +489,73 @@ QString SubtitleAdjustController::formatSrtTime(qint64 ms)
 
 // ── 递归收集文件（Windows 自然排序，深度优先）──
 
-void SubtitleAdjustController::collectFiles(const QString &dirPath, bool recursive,
-                                              const QStringList &extensions, QStringList &results)
+void SubtitleAdjustController::doMatchWork()
 {
-    QDir dir(dirPath);
+    QStringList videoExts = {"*.mp4", "*.mkv", "*.avi", "*.mov", "*.wmv", "*.flv", "*.webm", "*.m4v", "*.ts"};
+    QStringList subExts = {"*.srt", "*.ass", "*.ssa"};
 
-    // 当前目录的文件（已排序）
-    QFileInfoList files = dir.entryInfoList(extensions, QDir::Files, QDir::NoSort);
-    naturalSort(files);
-    for (const auto &fi : files)
-        results.append(fi.absoluteFilePath());
+    auto collect = [&](const QString &dirPath, bool recursive, const QStringList &extensions) {
+        QStringList results;
+        std::function<void(const QString &, bool)> scan;
+        scan = [&](const QString &path, bool rec) {
+            QDir dir(path);
+            QFileInfoList files = dir.entryInfoList(extensions, QDir::Files, QDir::NoSort);
+            naturalSort(files);
+            for (const auto &fi : files)
+                results.append(fi.absoluteFilePath());
+            if (!rec) return;
+            QFileInfoList subdirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
+            naturalSort(subdirs);
+            for (const auto &sd : subdirs)
+                scan(sd.absoluteFilePath(), true);
+        };
+        scan(dirPath, recursive);
+        return results;
+    };
 
-    if (!recursive)
-        return;
+    emit logMessage(QStringLiteral("正在扫描视频文件夹..."));
+    QStringList videoFiles = collect(m_settings->videoFolder(), m_settings->recursiveVideo(), videoExts);
 
-    // 子目录（已排序），深度优先递归
-    QFileInfoList subdirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
-    naturalSort(subdirs);
-    for (const auto &sd : subdirs)
-        collectFiles(sd.absoluteFilePath(), true, extensions, results);
+    emit logMessage(QStringLiteral("正在扫描字幕文件夹..."));
+    QStringList subFiles = collect(m_settings->subtitleFolder(), m_settings->recursiveSubtitle(), subExts);
+
+    // 按文件名主干（不含扩展名）建立索引
+    QMap<QString, QString> subMap;
+    for (const auto &sf : subFiles) {
+        QFileInfo fi(sf);
+        QString stem = fi.completeBaseName().toLower();
+        subMap.insert(stem, sf);
+    }
+
+    // 匹配视频与字幕
+    QList<MatchPairModel::MatchPair> pairs;
+    int matched = 0;
+    for (const auto &vf : videoFiles) {
+        QFileInfo fi(vf);
+        QString stem = fi.completeBaseName().toLower();
+        if (subMap.contains(stem)) {
+            pairs.append({vf, subMap[stem], 0});
+            matched++;
+        }
+    }
+
+    m_workerThread.quit();
+    QMetaObject::invokeMethod(this, [this, pairs, videoFiles, subFiles, matched]() {
+        m_matchModel->setPairs(pairs);
+
+        for (int i = 0; i < m_matchModel->rowCount(); ++i) {
+            if (hasRecord(m_matchModel->at(i).subtitleFile))
+                m_matchModel->setStatus(i, 1);
+        }
+
+        QString msg = QStringLiteral("✓ 匹配完成: 共扫描 %1 个视频, %2 个字幕, 成功匹配 %3 对")
+            .arg(videoFiles.size()).arg(subFiles.size()).arg(matched);
+        m_logger->info(msg);
+        emit logMessage(msg);
+
+        if (matched == 0)
+            emit logMessage(QStringLiteral("⚠ 未匹配到任何视频-字幕对，请检查文件名是否一致"));
+    }, Qt::QueuedConnection);
 }
 
 // ── 导出选项 ──

@@ -4,6 +4,7 @@
 #include <QString>
 #include <QVariantList>
 #include <QDir>
+#include <QThread>
 
 class PluginLogger;
 class BatchRenameSettings;
@@ -18,6 +19,7 @@ class BatchRenameController : public QObject
 
 public:
     explicit BatchRenameController(PluginLogger *logger, BatchRenameSettings *settings, QObject *parent = nullptr);
+    ~BatchRenameController() override;
 
     QString statusMessage() const;
     bool hasRecords() const;
@@ -31,10 +33,6 @@ public:
     Q_INVOKABLE void restoreAllRecords();
     Q_INVOKABLE void reset();
 
-    void processDirectory(const QDir &currentDir, bool recursive, int fileType,
-                          const QString &customExtension, int renameMode,
-                          const QString &baseName, const QString &searchText,
-                          const QString &replaceText, int &successCount, int &failCount);
     QString getFileType(const QString &fileName) const;
 
 signals:
@@ -42,6 +40,7 @@ signals:
     void hasRecordsChanged();
     void recordsChanged();
     void isProcessingChanged();
+    void logMessage(const QString &message);
 
 private:
     struct RenameRecord {
@@ -56,6 +55,7 @@ private:
 
     void setStatusMessage(const QString &message);
     void setIsProcessing(bool processing);
+    void doWork();
     void addRecord(const QString &originalPath, const QString &newPath, bool success, const QString &status);
     bool matchesFileType(const QString &fileName, int fileType, const QString &customExtension) const;
     QString generateNewName(int index, const QString &originalName, const QString &extension,
@@ -66,6 +66,9 @@ private:
     bool m_isProcessing = false;
     QString m_statusMessage;
     QList<RenameRecord> m_records;
+
+    QThread m_workerThread;
+    bool m_workerRunning = false;
 
     BatchRenameSettings *m_settings = nullptr;
     PluginLogger *m_logger = nullptr;

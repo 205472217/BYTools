@@ -4,7 +4,8 @@
 #include <QString>
 #include <QVariantList>
 #include <QDir>
-#include <QImage>>
+#include <QImage>
+#include <QThread>
 
 class PluginLogger;
 class ImageCropSettings;
@@ -28,6 +29,7 @@ class ImageCropController : public QObject
 
 public:
     explicit ImageCropController(PluginLogger *logger, ImageCropSettings *settings, QObject *parent = nullptr);
+    ~ImageCropController();
 
     int cropX() const;
     void setCropX(int x);
@@ -89,6 +91,7 @@ signals:
     void isProcessingChanged();
     void imageVersionChanged();
     void canRestoreCurrentChanged();
+    void logMessage(const QString &message);
 
 private:
     struct CropRecord {
@@ -105,6 +108,8 @@ private:
     void setStatusMessage(const QString &message);
     void setIsProcessing(bool processing);
     bool isImageFile(const QString &fileName) const;
+    void doScanImages();
+    void onScanFinished();
     void addRecord(const QString &originalPath, const QString &newPath,
                    int cropW, int cropH, bool success, const QString &status);
     QString buildCropSuffix() const;
@@ -129,6 +134,9 @@ private:
     static constexpr double PRESET_RATIOS[RATIO_COUNT][2] = {
         {1, 1}, {4, 3}, {16, 9}, {9, 16}
     };
+
+    QThread m_workerThread;
+    bool m_workerRunning = false;
 
     ImageCropSettings *m_settings = nullptr;
     PluginLogger *m_logger = nullptr;

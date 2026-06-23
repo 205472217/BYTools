@@ -4,6 +4,7 @@
 #include <QString>
 #include <QVariantList>
 #include <QDir>
+#include <QThread>
 
 class PluginLogger;
 class ImageConverterSettings;
@@ -18,6 +19,7 @@ class ImageConverterController : public QObject
 
 public:
     explicit ImageConverterController(PluginLogger *logger, ImageConverterSettings *settings, QObject *parent = nullptr);
+    ~ImageConverterController() override;
 
     QString statusMessage() const;
     bool hasRecords() const;
@@ -36,6 +38,7 @@ signals:
     void hasRecordsChanged();
     void recordsChanged();
     void isProcessingChanged();
+    void logMessage(const QString &message);
 
 private:
     struct ConvertRecord {
@@ -48,11 +51,7 @@ private:
         QString status;
     };
 
-    void processDirectory(const QDir &currentDir, const QString &relativePath,
-                          int &successCount, int &failCount, int &skipCount,
-                          const QString &rootPath, int targetFormat,
-                          int outputMode, const QString &outputDir,
-                          int quality, const QString &bgColor, bool recursive);
+    void doWork();
     void addRecord(const QString &originalPath, const QString &newPath,
                    const QString &formatTag, bool success, const QString &status);
     void setStatusMessage(const QString &message);
@@ -66,6 +65,9 @@ private:
     bool m_isProcessing = false;
     QString m_statusMessage;
     QList<ConvertRecord> m_records;
+
+    QThread m_workerThread;
+    bool m_workerRunning = false;
 
     ImageConverterSettings *m_settings = nullptr;
     PluginLogger *m_logger = nullptr;

@@ -4,6 +4,7 @@
 #include <QString>
 #include <QList>
 #include <QHash>
+#include <QThread>
 #include "MatchPairModel.h"
 
 class PluginLogger;
@@ -36,6 +37,7 @@ public:
     };
 
     explicit SubtitleAdjustController(PluginLogger *logger, SubtitleAdjustSettings *settings, QObject *parent = nullptr);
+    ~SubtitleAdjustController() override;
 
     // ── Config properties (delegated to Settings) ──
     bool overwriteOriginal() const;
@@ -96,10 +98,10 @@ private:
 
     bool parseSrtFile(const QString &filePath);
     bool writeAdjustedSrt(const QString &outputPath);
+
     static qint64 parseSrtTime(const QString &timeStr);
     static QString formatSrtTime(qint64 ms);
-    void collectFiles(const QString &dirPath, bool recursive,
-                      const QStringList &extensions, QStringList &results);
+    void doMatchWork();
 
     struct CompletedRecord {
         QString videoPath;
@@ -112,6 +114,9 @@ private:
     void saveRecord(const QString &videoPath, const QString &subtitlePath, qint64 offsetMs);
     bool hasRecord(const QString &subtitlePath) const;
     QString recordsFilePath() const;
+
+    QThread m_workerThread;
+    bool m_workerRunning = false;
 
     PluginLogger *m_logger = nullptr;
     SubtitleAdjustSettings *m_settings = nullptr;

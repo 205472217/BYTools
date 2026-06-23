@@ -14,6 +14,18 @@ ImageCropController::ImageCropController(PluginLogger *logger, ImageCropSettings
     , m_logger(logger)
     , m_settings(settings)
 {
+    connect(&m_workerThread, &QThread::started,
+            this, &ImageCropController::doScanImages, Qt::DirectConnection);
+    connect(&m_workerThread, &QThread::finished, this, [this]() {
+        m_workerRunning = false;
+    });
+}
+
+ImageCropController::~ImageCropController()
+{
+    cancel();
+    m_workerThread.quit();
+    m_workerThread.wait(5000);
 }
 
 // ── Getters / Setters ──────────────────────────────────────────────────
@@ -103,10 +115,6 @@ void ImageCropController::scanImages()
     QString rootPath = m_settings->rootPath();
     bool recursive = m_settings->recursive();
 
-    m_backups.clear();
-    m_imageFiles.clear();
-    m_currentIndex = -1;
-
     if (rootPath.isEmpty() || !QDir(rootPath).exists()) {
         setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
         m_logger->warn("扫描图片失败: 源文件夹无效");
@@ -116,33 +124,57 @@ void ImageCropController::scanImages()
         return;
     }
 
+    m_backups.clear();
+    m_imageFiles.clear();
+    m_currentIndex = -1;
+    setIsProcessing(true);
+
     m_logger->info(QString("扫描图片目录: %1 (递归=%2)").arg(rootPath).arg(recursive));
+    emit logMessage(QString("正在扫描图片目录: %1").arg(rootPath));
+    if (recursive)
+        emit logMessage("  启用了递归查找，正在遍历子目录...");
 
-    QDir dir(rootPath);
-    QFileInfoList entries = dir.entryInfoList(
-        QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+    m_workerRunning = true;
+    m_workerThread.start();
+}
 
-    for (const QFileInfo &entry : entries) {
-        if (isImageFile(entry.fileName())) {
-            m_imageFiles.append(entry.absoluteFilePath());
+void ImageCropController::doScanImages()
+{
+    QString rootPath = m_settings->rootPath();
+    bool recursive = m_settings->recursive();
+
+    QStringList imageFiles;
+    {
+        QDir dir(rootPath);
+        QFileInfoList entries = dir.entryInfoList(
+            QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+        for (const QFileInfo &entry : entries) {
+            if (isImageFile(entry.fileName()))
+                imageFiles.append(entry.absoluteFilePath());
         }
-    }
 
-    if (recursive) {
-        QFileInfoList dirs = dir.entryInfoList(
-            QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
-        for (const QFileInfo &dirEntry : dirs) {
-            QDir subDir(dirEntry.absoluteFilePath());
-            QFileInfoList subEntries = subDir.entryInfoList(
-                QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
-            for (const QFileInfo &subEntry : subEntries) {
-                if (isImageFile(subEntry.fileName())) {
-                    m_imageFiles.append(subEntry.absoluteFilePath());
+        if (recursive) {
+            QFileInfoList dirs = dir.entryInfoList(
+                QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+            for (const QFileInfo &dirEntry : dirs) {
+                QDir subDir(dirEntry.absoluteFilePath());
+                QFileInfoList subEntries = subDir.entryInfoList(
+                    QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+                for (const QFileInfo &subEntry : subEntries) {
+                    if (isImageFile(subEntry.fileName()))
+                        imageFiles.append(subEntry.absoluteFilePath());
                 }
             }
         }
     }
 
+    m_imageFiles = imageFiles;
+    m_workerThread.quit();
+    QMetaObject::invokeMethod(this, "onScanFinished", Qt::QueuedConnection);
+}
+
+void ImageCropController::onScanFinished()
+{
     if (!m_imageFiles.isEmpty()) {
         m_currentIndex = 0;
         setStatusMessage(QStringLiteral("已扫描到 %1 张图片").arg(m_imageFiles.size()));
@@ -152,6 +184,7 @@ void ImageCropController::scanImages()
         m_logger->info("扫描完成: 未找到图片文件");
     }
 
+    setIsProcessing(false);
     emit currentIndexChanged();
     emit currentFileCountChanged();
     emit currentFilePathChanged();
@@ -395,6 +428,15 @@ bool ImageCropController::isProcessing() const
 
 void ImageCropController::cancel()
 {
+    if (m_workerRunning) {
+        m_workerThread.quit();
+        if (!m_workerThread.wait(3000)) {
+            m_workerThread.terminate();
+            m_workerThread.wait(3000);
+        }
+        m_imageFiles.clear();
+        m_currentIndex = -1;
+    }
     if (m_isProcessing) {
         m_logger->info("图片裁剪已取消");
         setIsProcessing(false);
