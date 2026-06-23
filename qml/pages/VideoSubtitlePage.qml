@@ -682,7 +682,7 @@ Pane {
             Layout.fillWidth: true
             Layout.preferredHeight: 50
             radius: 6
-            color: controller && controller.statusMessage ? pal.VideoSubtitlePage_statusBar_color_active : pal.VideoSubtitlePage_statusBar_color_idle
+            color: pal.VideoSubtitlePage_statusBar_color_active
             visible: true
 
             ColumnLayout {
@@ -701,10 +701,8 @@ Pane {
                         text: controller && controller.statusMessage.length > 0
                             ? controller.statusMessage.replace(/[\r\n]+/g, " ")
                             : "就绪"
-                        color: controller && controller.statusMessage.length > 0
-                            ? pal.VideoSubtitlePage_statusMessage_color_log
-                            : pal.VideoSubtitlePage_statusMessage_color_idle
-                        font.pixelSize: 11
+                        color: pal.VideoSubtitlePage_statusMessage_color_log
+                        font.pixelSize: 13
                         elide: Text.ElideRight
                     }
 

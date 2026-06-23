@@ -440,9 +440,8 @@ Pane {
                         id: logText
                         Layout.fillWidth: true
                         text: root._lastLogLine.length > 0 ? root._lastLogLine : "就绪"
-                        color: root._lastLogLine.length > 0 ? pal.SubtitleAdjustPage_logText_color_log : pal.SubtitleAdjustPage_logText_color_idle
-                        font.pixelSize: 11
-                        font.family: "Consolas, 'Courier New', monospace"
+                        color: pal.SubtitleAdjustPage_logText_color_log
+                        font.pixelSize: 13
                         elide: Text.ElideRight
                     }
                 }

@@ -363,13 +363,7 @@ Pane {
             Layout.fillWidth: true
             Layout.preferredHeight: 50
             radius: 6
-            color: {
-                var hasMsg = controller
-                    && (controller.statusMessage.length > 0 || _lastLogLine.length > 0);
-                return hasMsg
-                    ? pal.CustomSubtitlePage_statusBar_color_active
-                    : pal.CustomSubtitlePage_statusBar_color_idle;
-            }
+            color: pal.CustomSubtitlePage_statusBar_color_active
 
             ColumnLayout {
                 anchors.fill: parent
@@ -382,12 +376,7 @@ Pane {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
-                    visible: {
-                        if (!controller) return true;
-                        if (controller.isProcessing) return true;
-                        if (browserCtrl && browserCtrl.downloading) return true;
-                        return controller.statusMessage.length > 0 || _lastLogLine.length > 0;
-                    }
+                    visible: true
 
                     Label {
                         id: statusMsgLabel
@@ -407,18 +396,8 @@ Pane {
                                 ? msg.replace(/[\r\n]+/g, " ")
                                 : "就绪";
                         }
-                        color: {
-                            var isBusy = controller.isProcessing
-                                || (browserCtrl && browserCtrl.downloading);
-                            var hasMsg = isBusy
-                                ? _lastLogLine.length > 0
-                                : (controller.statusMessage.length > 0 || _lastLogLine.length > 0);
-                            return hasMsg
-                                ? pal.CustomSubtitlePage_statusMsgLabel_color_log
-                                : pal.CustomSubtitlePage_statusMsgLabel_color_idle;
-                        }
-                        font.pixelSize: 11
-                        font.family: "Consolas, 'Courier New', monospace"
+                        color: pal.CustomSubtitlePage_statusMsgLabel_color_log
+                        font.pixelSize: 13
                         elide: Text.ElideRight
                     }
 
