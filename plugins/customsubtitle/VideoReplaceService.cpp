@@ -118,6 +118,11 @@ void VideoReplaceService::doWork()
     int matchedCount = 0;
     int srtCount = 0;
 
+    if (m_recursive)
+        emit logMessage("  正在递归查找原视频文件...");
+    else
+        emit logMessage("  正在扫描原视频文件...");
+
     std::function<void(const QString &)> collectDir;
     collectDir = [&](const QString &dirPath) {
         QDir dir(dirPath);

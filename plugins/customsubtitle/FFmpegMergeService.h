@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QObject>
+#include <QThread>
+#include <QAtomicInt>
 #include "FfmpegRunner.h"
 
 class PluginLogger;
@@ -33,9 +35,11 @@ signals:
 private slots:
     void onRunnerProgress(double value);
     void onRunnerFinished(bool success, const QString &outputPath, const QString &error);
+    void onCollectFinished();
 
 private:
     void processNextFile();
+    void doCollectFiles();
 
     struct VideoFile {
         QString path;
@@ -47,13 +51,17 @@ private:
     FfmpegRunner *m_runner = nullptr;
 
     QString m_ffmpegPath;
+    QString m_videoDir;
     QString m_outputDir;
+    bool m_recursive = false;
     QList<VideoFile> m_pendingFiles;
     int m_currentIndex = -1;
-    bool m_cancelled = false;
+    QAtomicInt m_cancelled{0};
     int m_stopTargetIndex = -1;   // ≥0 时处理到此索引后停止，含当前文件
     int m_successCount = 0;
     int m_failCount = 0;
     bool m_checkUseGpu = false;
-    bool m_useFragMp4 = true;
+
+    QThread m_workerThread;
+    bool m_workerRunning = false;
 };

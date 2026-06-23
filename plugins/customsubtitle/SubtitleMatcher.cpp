@@ -132,7 +132,10 @@ QList<SubtitleMatcher::MatchResult> SubtitleMatcher::doMatch()
     };
     QMap<QString, QList<VidInfo>> vidInfoMap;
 
-    emit logMessage("扫描视频目录...");
+    if (m_recursive)
+        emit logMessage("正在递归查找视频文件...");
+    else
+        emit logMessage("正在扫描视频目录...");
     int vidCount = 0;
     std::function<void(const QString &)> collectDir;
     collectDir = [&](const QString &dirPath) {

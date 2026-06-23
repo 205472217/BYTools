@@ -18,11 +18,19 @@ FFmpegMergeService::FFmpegMergeService(PluginLogger *logger, QObject *parent)
             this, &FFmpegMergeService::onRunnerProgress);
     connect(m_runner, &FfmpegRunner::finished,
             this, &FFmpegMergeService::onRunnerFinished);
+
+    connect(&m_workerThread, &QThread::started,
+            this, &FFmpegMergeService::doCollectFiles, Qt::DirectConnection);
+    connect(&m_workerThread, &QThread::finished, this, [this]() {
+        m_workerRunning = false;
+    });
 }
 
 FFmpegMergeService::~FFmpegMergeService()
 {
-    // m_runner 是 QObject 子对象，自动析构
+    cancel();
+    m_workerThread.quit();
+    m_workerThread.wait(5000);
 }
 
 void FFmpegMergeService::startMerge(const QString &ffmpegPath,
@@ -37,10 +45,18 @@ void FFmpegMergeService::startMerge(const QString &ffmpegPath,
         return;
     }
 
+    if (m_workerRunning) {
+        emit logMessage("✗ 正在扫描中，请稍后");
+        emit finished(false, "正在扫描中，请稍后");
+        return;
+    }
+
     m_ffmpegPath = ffmpegPath;
+    m_videoDir = videoDir;
     m_outputDir = outputDir;
+    m_recursive = recursive;
     m_currentIndex = -1;
-    m_cancelled = false;
+    m_cancelled.storeRelaxed(0);
     m_stopTargetIndex = -1;
     m_successCount = 0;
     m_failCount = 0;
@@ -55,23 +71,71 @@ void FFmpegMergeService::startMerge(const QString &ffmpegPath,
     emit logMessage("步骤3：扫描视频文件...");
     m_logger->info(QString("扫描目录: %1 (递归=%2)").arg(videoDir).arg(recursive));
 
+    m_workerRunning = true;
+    m_workerThread.start();
+}
+
+void FFmpegMergeService::cancel()
+{
+    m_cancelled.storeRelaxed(1);
+    if (m_workerRunning) {
+        emit logMessage("  ⏹ 正在停止扫描...");
+        m_workerThread.quit();
+        if (!m_workerThread.wait(3000)) {
+            m_workerThread.terminate();
+            m_workerThread.wait(3000);
+        }
+    }
+    if (m_runner->isRunning()) {
+        emit logMessage("  ⏹ 正在等待 ffmpeg 优雅退出 (写入 moov atom)...");
+    }
+    m_runner->cancel();
+    emit logMessage("  ⏹ 已取消");
+}
+
+void FFmpegMergeService::requestStopAfterCount(int count)
+{
+    if (count <= 0) {
+        m_stopTargetIndex = -1;
+        emit logMessage("  ⏹ 已取消预约停止，将处理全部文件");
+        return;
+    }
+
+    // 再完成 count 个文件后停止
+    m_stopTargetIndex = m_currentIndex + count;
+    emit logMessage(QString("  ⏹ 已预约停止，再完成 %1 个文件后停止").arg(count));
+}
+
+void FFmpegMergeService::doCollectFiles()
+{
     QStringList nameFilters;
     for (const QString &ext : videoExtensions())
         nameFilters << ("*" + ext);
 
     QSet<QString> seenPaths;
+    m_pendingFiles.clear();
+
+    if (m_recursive)
+        emit logMessage("  正在递归查找视频文件...");
+    else
+        emit logMessage("  正在扫描视频文件...");
+
     std::function<void(const QString &)> collectDir;
     collectDir = [&](const QString &dirPath) {
+        if (m_cancelled.loadRelaxed()) return;
+
         QDir dir(dirPath);
-        QString relPath = QDir(videoDir).relativeFilePath(dirPath);
+        QString relPath = QDir(m_videoDir).relativeFilePath(dirPath);
         if (relPath == ".")
-            emit logMessage("  📁 " + QFileInfo(videoDir).fileName());
+            emit logMessage("  📁 " + QFileInfo(m_videoDir).fileName());
         else
             emit logMessage("  📁 " + relPath);
 
         QFileInfoList files = dir.entryInfoList(nameFilters, QDir::Files, QDir::NoSort);
         naturalSort(files);
         for (const QFileInfo &fi : files) {
+            if (m_cancelled.loadRelaxed()) return;
+
             QString absPath = fi.absoluteFilePath();
             if (seenPaths.contains(absPath))
                 continue;
@@ -91,31 +155,44 @@ void FFmpegMergeService::startMerge(const QString &ffmpegPath,
             VideoFile vf;
             vf.path = absPath;
             vf.subtitlePath = subPath;
-            vf.outputPath = outputDir + "/" + fi.fileName();
+            vf.outputPath = m_outputDir + "/" + fi.fileName();
 
             if (QFileInfo::exists(vf.outputPath)) {
                 int idx = 2;
                 QString stem = fi.completeBaseName();
                 QString ext = fi.suffix();
-                while (QFileInfo::exists(outputDir + "/" + stem + "_副本" + QString::number(idx) + "." + ext))
+                while (QFileInfo::exists(m_outputDir + "/" + stem + "_副本" + QString::number(idx) + "." + ext))
                     idx++;
-                vf.outputPath = outputDir + "/" + stem + "_副本" + QString::number(idx) + "." + ext;
+                vf.outputPath = m_outputDir + "/" + stem + "_副本" + QString::number(idx) + "." + ext;
             }
 
             m_pendingFiles.append(vf);
             emit logMessage("    + " + fi.fileName());
         }
 
-        if (!recursive) return;
+        if (!m_recursive) return;
 
         QFileInfoList subdirs = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::NoSort);
         naturalSort(subdirs);
         for (const QFileInfo &subdir : subdirs) {
+            if (m_cancelled.loadRelaxed()) return;
             collectDir(subdir.absoluteFilePath());
         }
     };
 
-    collectDir(videoDir);
+    collectDir(m_videoDir);
+
+    m_workerThread.quit();
+    QMetaObject::invokeMethod(this, "onCollectFinished", Qt::QueuedConnection);
+}
+
+void FFmpegMergeService::onCollectFinished()
+{
+    if (m_cancelled.loadRelaxed()) {
+        emit logMessage("  ⏹ 扫描已取消");
+        emit finished(false, "已取消");
+        return;
+    }
 
     // 去重：输出路径相同的任务只保留第一个，避免多次合成相同视频
     {
@@ -145,40 +222,17 @@ void FFmpegMergeService::startMerge(const QString &ffmpegPath,
                       "  · 勾选「递归扫描」可搜索子文件夹中的视频";
         emit logMessage(err);
         m_logger->error(QString("未找到带字幕的视频文件 (目录=%1, 递归=%2)")
-            .arg(videoDir).arg(recursive));
+            .arg(m_videoDir).arg(m_recursive));
         emit finished(false, "所选文件夹中未找到带字幕的视频文件（视频需与同名字幕放在一起）");
         return;
     }
 
     emit logMessage(QString("找到 %1 个带字幕的视频文件，开始合成...").arg(m_pendingFiles.size()));
     m_logger->info(QString("待处理文件数=%1, 输出目录=%2, 递归=%3, GPU=%4")
-        .arg(m_pendingFiles.size()).arg(m_outputDir).arg(recursive)
+        .arg(m_pendingFiles.size()).arg(m_outputDir).arg(m_recursive)
         .arg(m_checkUseGpu ? "启用(每次处理前检测)" : "禁用"));
 
     processNextFile();
-}
-
-void FFmpegMergeService::cancel()
-{
-    m_cancelled = true;
-    if (m_runner->isRunning()) {
-        emit logMessage("  ⏹ 正在等待 ffmpeg 优雅退出 (写入 moov atom)...");
-    }
-    m_runner->cancel();
-    emit logMessage("  ⏹ 已取消");
-}
-
-void FFmpegMergeService::requestStopAfterCount(int count)
-{
-    if (count <= 0) {
-        m_stopTargetIndex = -1;
-        emit logMessage("  ⏹ 已取消预约停止，将处理全部文件");
-        return;
-    }
-
-    // 再完成 count 个文件后停止
-    m_stopTargetIndex = m_currentIndex + count;
-    emit logMessage(QString("  ⏹ 已预约停止，再完成 %1 个文件后停止").arg(count));
 }
 
 void FFmpegMergeService::processNextFile()
