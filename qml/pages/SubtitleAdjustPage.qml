@@ -223,6 +223,16 @@ Pane {
                 iconSource: "qrc:/icons/arrow-left.svg"
                 implicitHeight: 38
                 tooltip: "返回"
+                normalColor: pal.IconBtnEx_normalColor
+                hoverColor: pal.IconBtnEx_hoverColor
+                pressColor: pal.IconBtnEx_pressColor
+                borderColor: pal.IconBtnEx_borderColor
+                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                disabledColor: pal.IconBtnEx_disabledColor
+                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                textColor: pal.IconBtnEx_textColor
+                disabledTextColor: pal.IconBtnEx_disabledTextColor
+                shadowColor: pal.IconBtnEx_shadowColor
                 onClicked: root.backRequested()
             }
 
@@ -320,6 +330,15 @@ Pane {
                         readOnly: true
                         placeholderText: isSingleMode ? "选择视频文件" : "选择视频文件夹"
                         clip: true
+                        bgColor: pal.TextFieldEx_bgColor
+                        textColor: pal.TextFieldEx_textColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     CheckBoxEx {
@@ -338,6 +357,16 @@ Pane {
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: isSingleMode ? "选择视频文件" : "选择视频文件夹"
+                        normalColor: pal.IconBtnEx_normalColor
+                        hoverColor: pal.IconBtnEx_hoverColor
+                        pressColor: pal.IconBtnEx_pressColor
+                        borderColor: pal.IconBtnEx_borderColor
+                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                        disabledColor: pal.IconBtnEx_disabledColor
+                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                        textColor: pal.IconBtnEx_textColor
+                        disabledTextColor: pal.IconBtnEx_disabledTextColor
+                        shadowColor: pal.IconBtnEx_shadowColor
                         onClicked: isSingleMode ? videoFileDialog.open() : videoFolderDialog.open()
                     }
                 }
@@ -365,6 +394,15 @@ Pane {
                         readOnly: true
                         placeholderText: isSingleMode ? "选择字幕文件" : "选择字幕文件夹"
                         clip: true
+                        bgColor: pal.TextFieldEx_bgColor
+                        textColor: pal.TextFieldEx_textColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     CheckBoxEx {
@@ -383,6 +421,16 @@ Pane {
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: isSingleMode ? "选择字幕文件" : "选择字幕文件夹"
+                        normalColor: pal.IconBtnEx_normalColor
+                        hoverColor: pal.IconBtnEx_hoverColor
+                        pressColor: pal.IconBtnEx_pressColor
+                        borderColor: pal.IconBtnEx_borderColor
+                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                        disabledColor: pal.IconBtnEx_disabledColor
+                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                        textColor: pal.IconBtnEx_textColor
+                        disabledTextColor: pal.IconBtnEx_disabledTextColor
+                        shadowColor: pal.IconBtnEx_shadowColor
                         onClicked: isSingleMode ? subtitleFileDialog.open() : subtitleFolderDialog.open()
                     }
                 }
@@ -890,6 +938,22 @@ Pane {
                             onActivated: {
                                 root.maxOffsetMs = currentValue
                             }
+                            bgColor: pal.ComboBoxEx_bgColor
+                            disabledBgColor: pal.ComboBoxEx_disabledBgColor
+                            textColor: pal.ComboBoxEx_textColor
+                            disabledTextColor: pal.ComboBoxEx_disabledTextColor
+                            borderColor: pal.ComboBoxEx_borderColor
+                            hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
+                            focusBorderColor: pal.ComboBoxEx_focusBorderColor
+                            focusRingColor: pal.ComboBoxEx_focusRingColor
+                            arrowColor: pal.ComboBoxEx_arrowColor
+                            disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
+                            popupBgColor: pal.ComboBoxEx_popupBgColor
+                            popupBorderColor: pal.ComboBoxEx_popupBorderColor
+                            popupShadowColor: pal.ComboBoxEx_popupShadowColor
+                            delegateTextColor: pal.ComboBoxEx_delegateTextColor
+                            delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
+                            delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
                         }
                     }
 
@@ -1023,6 +1087,22 @@ Pane {
                                 var steps = [100, 500, 1000, 5000]
                                 root.stepMs = steps[currentIndex]
                             }
+                            bgColor: pal.ComboBoxEx_bgColor
+                            disabledBgColor: pal.ComboBoxEx_disabledBgColor
+                            textColor: pal.ComboBoxEx_textColor
+                            disabledTextColor: pal.ComboBoxEx_disabledTextColor
+                            borderColor: pal.ComboBoxEx_borderColor
+                            hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
+                            focusBorderColor: pal.ComboBoxEx_focusBorderColor
+                            focusRingColor: pal.ComboBoxEx_focusRingColor
+                            arrowColor: pal.ComboBoxEx_arrowColor
+                            disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
+                            popupBgColor: pal.ComboBoxEx_popupBgColor
+                            popupBorderColor: pal.ComboBoxEx_popupBorderColor
+                            popupShadowColor: pal.ComboBoxEx_popupShadowColor
+                            delegateTextColor: pal.ComboBoxEx_delegateTextColor
+                            delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
+                            delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
                         }
                     }
 

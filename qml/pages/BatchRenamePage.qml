@@ -124,6 +124,16 @@ Pane {
                         iconSource: "qrc:/icons/arrow-left.svg"
                         implicitHeight: 38
                         tooltip: "返回"
+                        normalColor: pal.IconBtnEx_normalColor
+                        hoverColor: pal.IconBtnEx_hoverColor
+                        pressColor: pal.IconBtnEx_pressColor
+                        borderColor: pal.IconBtnEx_borderColor
+                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                        disabledColor: pal.IconBtnEx_disabledColor
+                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                        textColor: pal.IconBtnEx_textColor
+                        disabledTextColor: pal.IconBtnEx_disabledTextColor
+                        shadowColor: pal.IconBtnEx_shadowColor
                         onClicked: {
                             if (controller && controller.isProcessing) {
                                 backConfirmDialog.open();
@@ -189,6 +199,15 @@ Pane {
                         text: settings ? settings.rootPath : ""
                         readOnly: true
                         placeholderText: "点击选择文件夹"
+                        bgColor: pal.TextFieldEx_bgColor
+                        textColor: pal.TextFieldEx_textColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     CheckBoxEx {
@@ -207,6 +226,16 @@ Pane {
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择源文件夹"
+                        normalColor: pal.IconBtnEx_normalColor
+                        hoverColor: pal.IconBtnEx_hoverColor
+                        pressColor: pal.IconBtnEx_pressColor
+                        borderColor: pal.IconBtnEx_borderColor
+                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                        disabledColor: pal.IconBtnEx_disabledColor
+                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                        textColor: pal.IconBtnEx_textColor
+                        disabledTextColor: pal.IconBtnEx_disabledTextColor
+                        shadowColor: pal.IconBtnEx_shadowColor
                         onClicked: folderDialog.open()
                     }
                 }
@@ -317,6 +346,18 @@ Pane {
                                     settings.customExtension = text
                                 }
                             }
+                            bgColor: pal.TextFieldEx_bgColor
+                            disabledBgColor: pal.TextFieldEx_disabledBgColor
+                            textColor: pal.TextFieldEx_textColor
+                            disabledTextColor: pal.TextFieldEx_disabledTextColor
+                            phColor: pal.TextFieldEx_phColor
+                            selColor: pal.TextFieldEx_selColor
+                            selTextColor: pal.TextFieldEx_selTextColor
+                            borderColor: pal.TextFieldEx_borderColor
+                            disabledBorderColor: pal.TextFieldEx_disabledBorderColor
+                            focusBorderColor: pal.TextFieldEx_focusBorderColor
+                            focusRingColor: pal.TextFieldEx_focusRingColor
+                            cursorColor: pal.TextFieldEx_cursorColor
                         }
 
                         Label {
@@ -366,6 +407,18 @@ Pane {
                                 settings.baseName = text
                             }
                         }
+                        bgColor: pal.TextFieldEx_bgColor
+                        disabledBgColor: pal.TextFieldEx_disabledBgColor
+                        textColor: pal.TextFieldEx_textColor
+                        disabledTextColor: pal.TextFieldEx_disabledTextColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        disabledBorderColor: pal.TextFieldEx_disabledBorderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     Rectangle {
@@ -399,6 +452,18 @@ Pane {
                                 settings.searchText = text
                             }
                         }
+                        bgColor: pal.TextFieldEx_bgColor
+                        disabledBgColor: pal.TextFieldEx_disabledBgColor
+                        textColor: pal.TextFieldEx_textColor
+                        disabledTextColor: pal.TextFieldEx_disabledTextColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        disabledBorderColor: pal.TextFieldEx_disabledBorderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     Label {
@@ -418,6 +483,18 @@ Pane {
                                 settings.replaceText = text
                             }
                         }
+                        bgColor: pal.TextFieldEx_bgColor
+                        disabledBgColor: pal.TextFieldEx_disabledBgColor
+                        textColor: pal.TextFieldEx_textColor
+                        disabledTextColor: pal.TextFieldEx_disabledTextColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        disabledBorderColor: pal.TextFieldEx_disabledBorderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     Item { Layout.fillWidth: true }
@@ -426,6 +503,16 @@ Pane {
                         iconSource: "qrc:/icons/trash.svg"
                         tooltip: "清空记录"
                         visible: controller ? controller.hasRecords : false
+                        normalColor: pal.IconBtnEx_normalColor
+                        hoverColor: pal.IconBtnEx_hoverColor
+                        pressColor: pal.IconBtnEx_pressColor
+                        borderColor: pal.IconBtnEx_borderColor
+                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                        disabledColor: pal.IconBtnEx_disabledColor
+                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                        textColor: pal.IconBtnEx_textColor
+                        disabledTextColor: pal.IconBtnEx_disabledTextColor
+                        shadowColor: pal.IconBtnEx_shadowColor
                         onClicked: {
                             if (controller) {
                                 controller.clearRecords()
@@ -486,6 +573,16 @@ Pane {
                 iconSource: "qrc:/icons/undo.svg"
                 tooltip: "批量还原"
                 visible: controller ? controller.hasRecords : false
+                normalColor: pal.IconBtnEx_normalColor
+                hoverColor: pal.IconBtnEx_hoverColor
+                pressColor: pal.IconBtnEx_pressColor
+                borderColor: pal.IconBtnEx_borderColor
+                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                disabledColor: pal.IconBtnEx_disabledColor
+                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                textColor: pal.IconBtnEx_textColor
+                disabledTextColor: pal.IconBtnEx_disabledTextColor
+                shadowColor: pal.IconBtnEx_shadowColor
                 onClicked: {
                     if (controller) {
                         controller.restoreAllRecords()
@@ -694,6 +791,16 @@ Pane {
                             iconSource: "qrc:/icons/undo.svg"
                             tooltip: modelData.success ? "还原" : "失败项无法还原"
                             enabled: modelData.success
+                            normalColor: pal.IconBtnEx_normalColor
+                            hoverColor: pal.IconBtnEx_hoverColor
+                            pressColor: pal.IconBtnEx_pressColor
+                            borderColor: pal.IconBtnEx_borderColor
+                            defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                            disabledColor: pal.IconBtnEx_disabledColor
+                            disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                            textColor: pal.IconBtnEx_textColor
+                            disabledTextColor: pal.IconBtnEx_disabledTextColor
+                            shadowColor: pal.IconBtnEx_shadowColor
                             onClicked: {
                                 if (controller) {
                                     controller.restoreRecord(index)

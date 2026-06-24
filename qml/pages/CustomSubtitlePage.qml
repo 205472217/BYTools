@@ -154,6 +154,16 @@ Pane {
                 iconSource: "qrc:/icons/arrow-left.svg"
                 implicitHeight: 38
                 tooltip: "返回"
+                normalColor: pal.IconBtnEx_normalColor
+                hoverColor: pal.IconBtnEx_hoverColor
+                pressColor: pal.IconBtnEx_pressColor
+                borderColor: pal.IconBtnEx_borderColor
+                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                disabledColor: pal.IconBtnEx_disabledColor
+                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                textColor: pal.IconBtnEx_textColor
+                disabledTextColor: pal.IconBtnEx_disabledTextColor
+                shadowColor: pal.IconBtnEx_shadowColor
                 onClicked: root.backRequested()
             }
 
@@ -222,12 +232,31 @@ Pane {
                         readOnly: true
                         placeholderText: "字幕文件下载后保存的目录路径"
                         font.pixelSize: 11
+                        bgColor: pal.TextFieldEx_bgColor
+                        textColor: pal.TextFieldEx_textColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择下载路径"
                         enabled: !controller || controller.currentStep === controller.stepNone
+                        normalColor: pal.IconBtnEx_normalColor
+                        hoverColor: pal.IconBtnEx_hoverColor
+                        pressColor: pal.IconBtnEx_pressColor
+                        borderColor: pal.IconBtnEx_borderColor
+                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                        disabledColor: pal.IconBtnEx_disabledColor
+                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                        textColor: pal.IconBtnEx_textColor
+                        disabledTextColor: pal.IconBtnEx_disabledTextColor
+                        shadowColor: pal.IconBtnEx_shadowColor
                         onClicked: subtitleDownloadFolderDialog.open()
                     }
                 }
@@ -252,6 +281,15 @@ Pane {
                         readOnly: true
                         placeholderText: "存放原视频的目录路径"
                         font.pixelSize: 11
+                        bgColor: pal.TextFieldEx_bgColor
+                        textColor: pal.TextFieldEx_textColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     CheckBoxEx {
@@ -272,6 +310,16 @@ Pane {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择视频目录"
                         enabled: !controller || controller.currentStep === controller.stepNone
+                        normalColor: pal.IconBtnEx_normalColor
+                        hoverColor: pal.IconBtnEx_hoverColor
+                        pressColor: pal.IconBtnEx_pressColor
+                        borderColor: pal.IconBtnEx_borderColor
+                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                        disabledColor: pal.IconBtnEx_disabledColor
+                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                        textColor: pal.IconBtnEx_textColor
+                        disabledTextColor: pal.IconBtnEx_disabledTextColor
+                        shadowColor: pal.IconBtnEx_shadowColor
                         onClicked: videoSourceFolderDialog.open()
                     }
                 }
@@ -296,12 +344,31 @@ Pane {
                         readOnly: true
                         placeholderText: "合成视频+字幕后，文件的输出路径"
                         font.pixelSize: 11
+                        bgColor: pal.TextFieldEx_bgColor
+                        textColor: pal.TextFieldEx_textColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择合成输出路径"
                         enabled: !controller || controller.currentStep === controller.stepNone
+                        normalColor: pal.IconBtnEx_normalColor
+                        hoverColor: pal.IconBtnEx_hoverColor
+                        pressColor: pal.IconBtnEx_pressColor
+                        borderColor: pal.IconBtnEx_borderColor
+                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                        disabledColor: pal.IconBtnEx_disabledColor
+                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                        textColor: pal.IconBtnEx_textColor
+                        disabledTextColor: pal.IconBtnEx_disabledTextColor
+                        shadowColor: pal.IconBtnEx_shadowColor
                         onClicked: mergedOutputFolderDialog.open()
                     }
                 }
@@ -326,6 +393,15 @@ Pane {
                         readOnly: true
                         placeholderText: "选择 ffmpeg.exe 路径（用于合成视频+字幕）"
                         font.pixelSize: 11
+                        bgColor: pal.TextFieldEx_bgColor
+                        textColor: pal.TextFieldEx_textColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     Label {
@@ -349,6 +425,16 @@ Pane {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择 ffmpeg.exe"
                         enabled: !controller || controller.currentStep === controller.stepNone
+                        normalColor: pal.IconBtnEx_normalColor
+                        hoverColor: pal.IconBtnEx_hoverColor
+                        pressColor: pal.IconBtnEx_pressColor
+                        borderColor: pal.IconBtnEx_borderColor
+                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                        disabledColor: pal.IconBtnEx_disabledColor
+                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                        textColor: pal.IconBtnEx_textColor
+                        disabledTextColor: pal.IconBtnEx_disabledTextColor
+                        shadowColor: pal.IconBtnEx_shadowColor
                         onClicked: ffmpegFileDialog.open()
                     }
                 }
@@ -555,6 +641,22 @@ Pane {
                                         if (idx >= 0) currentIndex = idx;
                                     }
                                 }
+                                bgColor: pal.ComboBoxEx_bgColor
+                                disabledBgColor: pal.ComboBoxEx_disabledBgColor
+                                textColor: pal.ComboBoxEx_textColor
+                                disabledTextColor: pal.ComboBoxEx_disabledTextColor
+                                borderColor: pal.ComboBoxEx_borderColor
+                                hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
+                                focusBorderColor: pal.ComboBoxEx_focusBorderColor
+                                focusRingColor: pal.ComboBoxEx_focusRingColor
+                                arrowColor: pal.ComboBoxEx_arrowColor
+                                disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
+                                popupBgColor: pal.ComboBoxEx_popupBgColor
+                                popupBorderColor: pal.ComboBoxEx_popupBorderColor
+                                popupShadowColor: pal.ComboBoxEx_popupShadowColor
+                                delegateTextColor: pal.ComboBoxEx_delegateTextColor
+                                delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
+                                delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
                             }
 
                             // 语言筛选下拉框
@@ -585,6 +687,22 @@ Pane {
                                         }
                                     }
                                 }
+                                bgColor: pal.ComboBoxEx_bgColor
+                                disabledBgColor: pal.ComboBoxEx_disabledBgColor
+                                textColor: pal.ComboBoxEx_textColor
+                                disabledTextColor: pal.ComboBoxEx_disabledTextColor
+                                borderColor: pal.ComboBoxEx_borderColor
+                                hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
+                                focusBorderColor: pal.ComboBoxEx_focusBorderColor
+                                focusRingColor: pal.ComboBoxEx_focusRingColor
+                                arrowColor: pal.ComboBoxEx_arrowColor
+                                disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
+                                popupBgColor: pal.ComboBoxEx_popupBgColor
+                                popupBorderColor: pal.ComboBoxEx_popupBorderColor
+                                popupShadowColor: pal.ComboBoxEx_popupShadowColor
+                                delegateTextColor: pal.ComboBoxEx_delegateTextColor
+                                delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
+                                delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
                             }
 
                             // 关键字输入框
@@ -659,6 +777,16 @@ Pane {
                                 tooltip: "清空记录"
                                 visible: !searchBusyIndicator.visible
                                 enabled: !searchBusyIndicator.visible && searchResultsModel.count > 0 && (!controller || controller.currentStep === controller.stepNone)
+                                normalColor: pal.IconBtnEx_normalColor
+                                hoverColor: pal.IconBtnEx_hoverColor
+                                pressColor: pal.IconBtnEx_pressColor
+                                borderColor: pal.IconBtnEx_borderColor
+                                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                                disabledColor: pal.IconBtnEx_disabledColor
+                                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                                textColor: pal.IconBtnEx_textColor
+                                disabledTextColor: pal.IconBtnEx_disabledTextColor
+                                shadowColor: pal.IconBtnEx_shadowColor
                                 onClicked: searchResultsModel.clear()
                             }
                         }
@@ -1043,6 +1171,22 @@ Pane {
                                     Component.onCompleted: {
                                         _loadPreprocessors();
                                     }
+                                    bgColor: pal.ComboBoxEx_bgColor
+                                    disabledBgColor: pal.ComboBoxEx_disabledBgColor
+                                    textColor: pal.ComboBoxEx_textColor
+                                    disabledTextColor: pal.ComboBoxEx_disabledTextColor
+                                    borderColor: pal.ComboBoxEx_borderColor
+                                    hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
+                                    focusBorderColor: pal.ComboBoxEx_focusBorderColor
+                                    focusRingColor: pal.ComboBoxEx_focusRingColor
+                                    arrowColor: pal.ComboBoxEx_arrowColor
+                                    disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
+                                    popupBgColor: pal.ComboBoxEx_popupBgColor
+                                    popupBorderColor: pal.ComboBoxEx_popupBorderColor
+                                    popupShadowColor: pal.ComboBoxEx_popupShadowColor
+                                    delegateTextColor: pal.ComboBoxEx_delegateTextColor
+                                    delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
+                                    delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
                                 }
 
                                 IconButton {
@@ -1176,6 +1320,22 @@ Pane {
                                                 }
                                             }
                                         }
+                                        bgColor: pal.ComboBoxEx_bgColor
+                                        disabledBgColor: pal.ComboBoxEx_disabledBgColor
+                                        textColor: pal.ComboBoxEx_textColor
+                                        disabledTextColor: pal.ComboBoxEx_disabledTextColor
+                                        borderColor: pal.ComboBoxEx_borderColor
+                                        hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
+                                        focusBorderColor: pal.ComboBoxEx_focusBorderColor
+                                        focusRingColor: pal.ComboBoxEx_focusRingColor
+                                        arrowColor: pal.ComboBoxEx_arrowColor
+                                        disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
+                                        popupBgColor: pal.ComboBoxEx_popupBgColor
+                                        popupBorderColor: pal.ComboBoxEx_popupBorderColor
+                                        popupShadowColor: pal.ComboBoxEx_popupShadowColor
+                                        delegateTextColor: pal.ComboBoxEx_delegateTextColor
+                                        delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
+                                        delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
                                     }
 
                                     Label {

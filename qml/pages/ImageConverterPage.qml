@@ -143,6 +143,16 @@ Pane {
                 iconSource: "qrc:/icons/arrow-left.svg"
                 implicitHeight: 38
                 tooltip: "返回"
+                normalColor: pal.IconBtnEx_normalColor
+                hoverColor: pal.IconBtnEx_hoverColor
+                pressColor: pal.IconBtnEx_pressColor
+                borderColor: pal.IconBtnEx_borderColor
+                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                disabledColor: pal.IconBtnEx_disabledColor
+                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                textColor: pal.IconBtnEx_textColor
+                disabledTextColor: pal.IconBtnEx_disabledTextColor
+                shadowColor: pal.IconBtnEx_shadowColor
                 onClicked: {
                     if (controller && controller.isProcessing) {
                         backConfirmDialog.open();
@@ -207,6 +217,15 @@ Pane {
                         text: controller ? settings.rootPath : ""
                         readOnly: true
                         placeholderText: "点击选择文件"
+                        bgColor: pal.TextFieldEx_bgColor
+                        textColor: pal.TextFieldEx_textColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     CheckBoxEx {
@@ -225,6 +244,16 @@ Pane {
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择源文件夹"
+                        normalColor: pal.IconBtnEx_normalColor
+                        hoverColor: pal.IconBtnEx_hoverColor
+                        pressColor: pal.IconBtnEx_pressColor
+                        borderColor: pal.IconBtnEx_borderColor
+                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                        disabledColor: pal.IconBtnEx_disabledColor
+                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                        textColor: pal.IconBtnEx_textColor
+                        disabledTextColor: pal.IconBtnEx_disabledTextColor
+                        shadowColor: pal.IconBtnEx_shadowColor
                         onClicked: sourceFolderDialog.open()
                     }
                 }
@@ -251,6 +280,22 @@ Pane {
                                 settings.targetFormat = currentIndex
                             }
                         }
+                        bgColor: pal.ComboBoxEx_bgColor
+                        disabledBgColor: pal.ComboBoxEx_disabledBgColor
+                        textColor: pal.ComboBoxEx_textColor
+                        disabledTextColor: pal.ComboBoxEx_disabledTextColor
+                        borderColor: pal.ComboBoxEx_borderColor
+                        hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
+                        focusBorderColor: pal.ComboBoxEx_focusBorderColor
+                        focusRingColor: pal.ComboBoxEx_focusRingColor
+                        arrowColor: pal.ComboBoxEx_arrowColor
+                        disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
+                        popupBgColor: pal.ComboBoxEx_popupBgColor
+                        popupBorderColor: pal.ComboBoxEx_popupBorderColor
+                        popupShadowColor: pal.ComboBoxEx_popupShadowColor
+                        delegateTextColor: pal.ComboBoxEx_delegateTextColor
+                        delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
+                        delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
                     }
 
                     Rectangle {
@@ -452,12 +497,34 @@ Pane {
                                 settings.outputDir = text
                             }
                         }
+                        bgColor: pal.TextFieldEx_bgColor
+                        disabledBgColor: pal.TextFieldEx_disabledBgColor
+                        textColor: pal.TextFieldEx_textColor
+                        disabledTextColor: pal.TextFieldEx_disabledTextColor
+                        phColor: pal.TextFieldEx_phColor
+                        selColor: pal.TextFieldEx_selColor
+                        selTextColor: pal.TextFieldEx_selTextColor
+                        borderColor: pal.TextFieldEx_borderColor
+                        disabledBorderColor: pal.TextFieldEx_disabledBorderColor
+                        focusBorderColor: pal.TextFieldEx_focusBorderColor
+                        focusRingColor: pal.TextFieldEx_focusRingColor
+                        cursorColor: pal.TextFieldEx_cursorColor
                     }
 
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择输出目录"
                         enabled: newDirRadio.checked
+                        normalColor: pal.IconBtnEx_normalColor
+                        hoverColor: pal.IconBtnEx_hoverColor
+                        pressColor: pal.IconBtnEx_pressColor
+                        borderColor: pal.IconBtnEx_borderColor
+                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                        disabledColor: pal.IconBtnEx_disabledColor
+                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                        textColor: pal.IconBtnEx_textColor
+                        disabledTextColor: pal.IconBtnEx_disabledTextColor
+                        shadowColor: pal.IconBtnEx_shadowColor
                         onClicked: outputFolderDialog.open()
                     }
 
@@ -516,6 +583,16 @@ Pane {
                 iconSource: "qrc:/icons/undo.svg"
                 tooltip: "批量还原"
                 visible: controller ? controller.hasRecords : false
+                normalColor: pal.IconBtnEx_normalColor
+                hoverColor: pal.IconBtnEx_hoverColor
+                pressColor: pal.IconBtnEx_pressColor
+                borderColor: pal.IconBtnEx_borderColor
+                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                disabledColor: pal.IconBtnEx_disabledColor
+                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                textColor: pal.IconBtnEx_textColor
+                disabledTextColor: pal.IconBtnEx_disabledTextColor
+                shadowColor: pal.IconBtnEx_shadowColor
                 onClicked: {
                     if (controller) {
                         controller.restoreAllRecords()
@@ -728,6 +805,16 @@ Pane {
                             iconSource: "qrc:/icons/undo.svg"
                             tooltip: modelData.success ? "还原" : "失败项无法还原"
                             enabled: modelData.success
+                            normalColor: pal.IconBtnEx_normalColor
+                            hoverColor: pal.IconBtnEx_hoverColor
+                            pressColor: pal.IconBtnEx_pressColor
+                            borderColor: pal.IconBtnEx_borderColor
+                            defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                            disabledColor: pal.IconBtnEx_disabledColor
+                            disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                            textColor: pal.IconBtnEx_textColor
+                            disabledTextColor: pal.IconBtnEx_disabledTextColor
+                            shadowColor: pal.IconBtnEx_shadowColor
                             onClicked: {
                                 if (controller) {
                                     controller.restoreRecord(index)

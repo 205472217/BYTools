@@ -97,6 +97,16 @@ Pane {
                 iconSource: "qrc:/icons/arrow-left.svg"
                 implicitHeight: 38
                 tooltip: "返回"
+                normalColor: pal.IconBtnEx_normalColor
+                hoverColor: pal.IconBtnEx_hoverColor
+                pressColor: pal.IconBtnEx_pressColor
+                borderColor: pal.IconBtnEx_borderColor
+                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                disabledColor: pal.IconBtnEx_disabledColor
+                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                textColor: pal.IconBtnEx_textColor
+                disabledTextColor: pal.IconBtnEx_disabledTextColor
+                shadowColor: pal.IconBtnEx_shadowColor
                 onClicked: root.backRequested()
             }
 
@@ -181,11 +191,30 @@ Pane {
                             text: settings ? settings.ffmpegPath : ""
                             placeholderText: "FFmpeg 可执行文件路径"
                             readOnly: true
+                            bgColor: pal.TextFieldEx_bgColor
+                            textColor: pal.TextFieldEx_textColor
+                            phColor: pal.TextFieldEx_phColor
+                            selColor: pal.TextFieldEx_selColor
+                            selTextColor: pal.TextFieldEx_selTextColor
+                            borderColor: pal.TextFieldEx_borderColor
+                            focusBorderColor: pal.TextFieldEx_focusBorderColor
+                            focusRingColor: pal.TextFieldEx_focusRingColor
+                            cursorColor: pal.TextFieldEx_cursorColor
                         }
 
                         IconButton {
                             iconSource: "qrc:/icons/folder.svg"
                             tooltip: "浏览"
+                            normalColor: pal.IconBtnEx_normalColor
+                            hoverColor: pal.IconBtnEx_hoverColor
+                            pressColor: pal.IconBtnEx_pressColor
+                            borderColor: pal.IconBtnEx_borderColor
+                            defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                            disabledColor: pal.IconBtnEx_disabledColor
+                            disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                            textColor: pal.IconBtnEx_textColor
+                            disabledTextColor: pal.IconBtnEx_disabledTextColor
+                            shadowColor: pal.IconBtnEx_shadowColor
                             onClicked: ffmpegFileDialog.open()
                         }
                     }
@@ -266,11 +295,30 @@ Pane {
                             text: settings ? settings.whisperPath : ""
                             placeholderText: "whisper-cli.exe 路径"
                             readOnly: true
+                            bgColor: pal.TextFieldEx_bgColor
+                            textColor: pal.TextFieldEx_textColor
+                            phColor: pal.TextFieldEx_phColor
+                            selColor: pal.TextFieldEx_selColor
+                            selTextColor: pal.TextFieldEx_selTextColor
+                            borderColor: pal.TextFieldEx_borderColor
+                            focusBorderColor: pal.TextFieldEx_focusBorderColor
+                            focusRingColor: pal.TextFieldEx_focusRingColor
+                            cursorColor: pal.TextFieldEx_cursorColor
                         }
 
                         IconButton {
                             iconSource: "qrc:/icons/folder.svg"
                             tooltip: "浏览"
+                            normalColor: pal.IconBtnEx_normalColor
+                            hoverColor: pal.IconBtnEx_hoverColor
+                            pressColor: pal.IconBtnEx_pressColor
+                            borderColor: pal.IconBtnEx_borderColor
+                            defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                            disabledColor: pal.IconBtnEx_disabledColor
+                            disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                            textColor: pal.IconBtnEx_textColor
+                            disabledTextColor: pal.IconBtnEx_disabledTextColor
+                            shadowColor: pal.IconBtnEx_shadowColor
                             onClicked: whisperFileDialog.open()
                         }
                     }
@@ -351,11 +399,30 @@ Pane {
                             text: settings ? settings.localModelPath : ""
                             placeholderText: "选择本地 .bin / .ggml 模型文件"
                             readOnly: true
+                            bgColor: pal.TextFieldEx_bgColor
+                            textColor: pal.TextFieldEx_textColor
+                            phColor: pal.TextFieldEx_phColor
+                            selColor: pal.TextFieldEx_selColor
+                            selTextColor: pal.TextFieldEx_selTextColor
+                            borderColor: pal.TextFieldEx_borderColor
+                            focusBorderColor: pal.TextFieldEx_focusBorderColor
+                            focusRingColor: pal.TextFieldEx_focusRingColor
+                            cursorColor: pal.TextFieldEx_cursorColor
                         }
 
                         IconButton {
                             iconSource: "qrc:/icons/folder.svg"
                             tooltip: "浏览"
+                            normalColor: pal.IconBtnEx_normalColor
+                            hoverColor: pal.IconBtnEx_hoverColor
+                            pressColor: pal.IconBtnEx_pressColor
+                            borderColor: pal.IconBtnEx_borderColor
+                            defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                            disabledColor: pal.IconBtnEx_disabledColor
+                            disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                            textColor: pal.IconBtnEx_textColor
+                            disabledTextColor: pal.IconBtnEx_disabledTextColor
+                            shadowColor: pal.IconBtnEx_shadowColor
                             onClicked: modelFileDialog.open()
                         }
                     }
@@ -440,6 +507,22 @@ Pane {
                                 if (settings)
                                     settings.translateEngine = currentIndex;
                             }
+                            bgColor: pal.ComboBoxEx_bgColor
+                            disabledBgColor: pal.ComboBoxEx_disabledBgColor
+                            textColor: pal.ComboBoxEx_textColor
+                            disabledTextColor: pal.ComboBoxEx_disabledTextColor
+                            borderColor: pal.ComboBoxEx_borderColor
+                            hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
+                            focusBorderColor: pal.ComboBoxEx_focusBorderColor
+                            focusRingColor: pal.ComboBoxEx_focusRingColor
+                            arrowColor: pal.ComboBoxEx_arrowColor
+                            disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
+                            popupBgColor: pal.ComboBoxEx_popupBgColor
+                            popupBorderColor: pal.ComboBoxEx_popupBorderColor
+                            popupShadowColor: pal.ComboBoxEx_popupShadowColor
+                            delegateTextColor: pal.ComboBoxEx_delegateTextColor
+                            delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
+                            delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
                         }
                     }
 
@@ -471,6 +554,15 @@ Pane {
                                     if (settings)
                                         settings.baiduAppId = text;
                                 }
+                                bgColor: pal.TextFieldEx_bgColor
+                                textColor: pal.TextFieldEx_textColor
+                                phColor: pal.TextFieldEx_phColor
+                                selColor: pal.TextFieldEx_selColor
+                                selTextColor: pal.TextFieldEx_selTextColor
+                                borderColor: pal.TextFieldEx_borderColor
+                                focusBorderColor: pal.TextFieldEx_focusBorderColor
+                                focusRingColor: pal.TextFieldEx_focusRingColor
+                                cursorColor: pal.TextFieldEx_cursorColor
                             }
                         }
 
@@ -498,11 +590,30 @@ Pane {
                                     if (settings)
                                         settings.apiKey = text;
                                 }
+                                bgColor: pal.TextFieldEx_bgColor
+                                textColor: pal.TextFieldEx_textColor
+                                phColor: pal.TextFieldEx_phColor
+                                selColor: pal.TextFieldEx_selColor
+                                selTextColor: pal.TextFieldEx_selTextColor
+                                borderColor: pal.TextFieldEx_borderColor
+                                focusBorderColor: pal.TextFieldEx_focusBorderColor
+                                focusRingColor: pal.TextFieldEx_focusRingColor
+                                cursorColor: pal.TextFieldEx_cursorColor
                             }
 
                             IconButton {
                                 iconSource: "qrc:/icons/eye.svg"
                                 tooltip: baiduApiKeyField.echoMode === TextInput.Password ? "显示" : "隐藏"
+                                normalColor: pal.IconBtnEx_normalColor
+                                hoverColor: pal.IconBtnEx_hoverColor
+                                pressColor: pal.IconBtnEx_pressColor
+                                borderColor: pal.IconBtnEx_borderColor
+                                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                                disabledColor: pal.IconBtnEx_disabledColor
+                                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                                textColor: pal.IconBtnEx_textColor
+                                disabledTextColor: pal.IconBtnEx_disabledTextColor
+                                shadowColor: pal.IconBtnEx_shadowColor
                                 onClicked: {
                                     baiduApiKeyField.echoMode = baiduApiKeyField.echoMode === TextInput.Password ? TextInput.Normal : TextInput.Password;
                                 }
@@ -531,6 +642,15 @@ Pane {
                                     if (settings)
                                         settings.apiUrl = text;
                                 }
+                                bgColor: pal.TextFieldEx_bgColor
+                                textColor: pal.TextFieldEx_textColor
+                                phColor: pal.TextFieldEx_phColor
+                                selColor: pal.TextFieldEx_selColor
+                                selTextColor: pal.TextFieldEx_selTextColor
+                                borderColor: pal.TextFieldEx_borderColor
+                                focusBorderColor: pal.TextFieldEx_focusBorderColor
+                                focusRingColor: pal.TextFieldEx_focusRingColor
+                                cursorColor: pal.TextFieldEx_cursorColor
                             }
 
                             IconButton {
@@ -592,6 +712,15 @@ Pane {
                                     if (settings)
                                         settings.libreTranslateUrl = text;
                                 }
+                                bgColor: pal.TextFieldEx_bgColor
+                                textColor: pal.TextFieldEx_textColor
+                                phColor: pal.TextFieldEx_phColor
+                                selColor: pal.TextFieldEx_selColor
+                                selTextColor: pal.TextFieldEx_selTextColor
+                                borderColor: pal.TextFieldEx_borderColor
+                                focusBorderColor: pal.TextFieldEx_focusBorderColor
+                                focusRingColor: pal.TextFieldEx_focusRingColor
+                                cursorColor: pal.TextFieldEx_cursorColor
                             }
 
                             IconButton {
@@ -889,6 +1018,22 @@ Pane {
                                 if (settings)
                                     settings.defaultFontSize = 14 + currentIndex * 2;
                             }
+                            bgColor: pal.ComboBoxEx_bgColor
+                            disabledBgColor: pal.ComboBoxEx_disabledBgColor
+                            textColor: pal.ComboBoxEx_textColor
+                            disabledTextColor: pal.ComboBoxEx_disabledTextColor
+                            borderColor: pal.ComboBoxEx_borderColor
+                            hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
+                            focusBorderColor: pal.ComboBoxEx_focusBorderColor
+                            focusRingColor: pal.ComboBoxEx_focusRingColor
+                            arrowColor: pal.ComboBoxEx_arrowColor
+                            disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
+                            popupBgColor: pal.ComboBoxEx_popupBgColor
+                            popupBorderColor: pal.ComboBoxEx_popupBorderColor
+                            popupShadowColor: pal.ComboBoxEx_popupShadowColor
+                            delegateTextColor: pal.ComboBoxEx_delegateTextColor
+                            delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
+                            delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
                         }
 
                         Rectangle {
@@ -914,6 +1059,22 @@ Pane {
                                 if (settings)
                                     settings.defaultBorderWidth = currentIndex;
                             }
+                            bgColor: pal.ComboBoxEx_bgColor
+                            disabledBgColor: pal.ComboBoxEx_disabledBgColor
+                            textColor: pal.ComboBoxEx_textColor
+                            disabledTextColor: pal.ComboBoxEx_disabledTextColor
+                            borderColor: pal.ComboBoxEx_borderColor
+                            hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
+                            focusBorderColor: pal.ComboBoxEx_focusBorderColor
+                            focusRingColor: pal.ComboBoxEx_focusRingColor
+                            arrowColor: pal.ComboBoxEx_arrowColor
+                            disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
+                            popupBgColor: pal.ComboBoxEx_popupBgColor
+                            popupBorderColor: pal.ComboBoxEx_popupBorderColor
+                            popupShadowColor: pal.ComboBoxEx_popupShadowColor
+                            delegateTextColor: pal.ComboBoxEx_delegateTextColor
+                            delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
+                            delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
                         }
                     }
 
@@ -952,6 +1113,22 @@ Pane {
                                     settings.defaultBorderColor = "#FFFFFF";
                                 }
                             }
+                            bgColor: pal.ComboBoxEx_bgColor
+                            disabledBgColor: pal.ComboBoxEx_disabledBgColor
+                            textColor: pal.ComboBoxEx_textColor
+                            disabledTextColor: pal.ComboBoxEx_disabledTextColor
+                            borderColor: pal.ComboBoxEx_borderColor
+                            hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
+                            focusBorderColor: pal.ComboBoxEx_focusBorderColor
+                            focusRingColor: pal.ComboBoxEx_focusRingColor
+                            arrowColor: pal.ComboBoxEx_arrowColor
+                            disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
+                            popupBgColor: pal.ComboBoxEx_popupBgColor
+                            popupBorderColor: pal.ComboBoxEx_popupBorderColor
+                            popupShadowColor: pal.ComboBoxEx_popupShadowColor
+                            delegateTextColor: pal.ComboBoxEx_delegateTextColor
+                            delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
+                            delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
                         }
 
                         Rectangle {
