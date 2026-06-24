@@ -15,6 +15,7 @@ var palette = {
     TextFieldEx_focusBorderColor: "#3b82f6",
     TextFieldEx_focusRingColor: "#3b82f6",
     TextFieldEx_cursorColor: "#3b82f6",
+    TextFieldEx_highlightBorderColor: "#2563eb",
 
     // ═════════════════════════════
     //  类别2: 勾选框 (CheckBoxEx)
@@ -185,6 +186,7 @@ var palette = {
     ImageConverterPage_customSwatch_borderColor_normal: "#e2e8f0",
     ImageConverterPage_customSwatch_borderColor_active: "#2563eb",
     ImageConverterPage_customSwatch_textColor_normal: "#1e293b",
+    ImageConverterPage_customSwatch_textColor_active: "#2563eb",
     // 图片转换-取消(按钮)
     ImageConverterPage_cancelBtn_normalColor: "#e2e8f0",
     ImageConverterPage_cancelBtn_hoverColor: "#cbd5e1",

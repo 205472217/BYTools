@@ -16,6 +16,13 @@ QString ImageConverterSettings::bgColor() const { return m_bgColor; }
 int ImageConverterSettings::outputMode() const { return m_outputMode; }
 QString ImageConverterSettings::outputDir() const { return m_outputDir; }
 bool ImageConverterSettings::recursive() const { return m_recursive; }
+bool ImageConverterSettings::convertEnabled() const { return m_convertEnabled; }
+bool ImageConverterSettings::resizeEnabled() const { return m_resizeEnabled; }
+int ImageConverterSettings::resizeMode() const { return m_resizeMode; }
+double ImageConverterSettings::resizeRatio() const { return m_resizeRatio; }
+int ImageConverterSettings::resizeWidth() const { return m_resizeWidth; }
+int ImageConverterSettings::resizeHeight() const { return m_resizeHeight; }
+int ImageConverterSettings::mode() const { return m_mode; }
 
 void ImageConverterSettings::setRootPath(const QString &path)
 {
@@ -70,6 +77,62 @@ void ImageConverterSettings::setRecursive(bool recursive)
         saveSettings();
     }
 }
+void ImageConverterSettings::setConvertEnabled(bool enabled)
+{
+    if (m_convertEnabled != enabled) {
+        m_convertEnabled = enabled;
+        emit convertEnabledChanged();
+        saveSettings();
+    }
+}
+void ImageConverterSettings::setResizeEnabled(bool enabled)
+{
+    if (m_resizeEnabled != enabled) {
+        m_resizeEnabled = enabled;
+        emit resizeEnabledChanged();
+        saveSettings();
+    }
+}
+void ImageConverterSettings::setResizeMode(int mode)
+{
+    if (m_resizeMode != mode) {
+        m_resizeMode = mode;
+        emit resizeModeChanged();
+        saveSettings();
+    }
+}
+void ImageConverterSettings::setResizeRatio(double ratio)
+{
+    if (qFuzzyCompare(m_resizeRatio, ratio))
+        return;
+    m_resizeRatio = ratio;
+    emit resizeRatioChanged();
+    saveSettings();
+}
+void ImageConverterSettings::setResizeWidth(int w)
+{
+    if (m_resizeWidth != w) {
+        m_resizeWidth = w;
+        emit resizeWidthChanged();
+        saveSettings();
+    }
+}
+void ImageConverterSettings::setResizeHeight(int h)
+{
+    if (m_resizeHeight != h) {
+        m_resizeHeight = h;
+        emit resizeHeightChanged();
+        saveSettings();
+    }
+}
+void ImageConverterSettings::setMode(int mode)
+{
+    if (m_mode != mode) {
+        m_mode = mode;
+        emit modeChanged();
+        saveSettings();
+    }
+}
 
 void ImageConverterSettings::loadSettings()
 {
@@ -78,6 +141,13 @@ void ImageConverterSettings::loadSettings()
     m_outputMode = s.value("outputMode", 0).toInt();
     m_outputDir = s.value("outputDir").toString();
     m_recursive = s.value("recursive", false).toBool();
+    m_convertEnabled = s.value("convertEnabled", true).toBool();
+    m_resizeEnabled = s.value("resizeEnabled", false).toBool();
+    m_resizeMode = s.value("resizeMode", 0).toInt();
+    m_resizeRatio = s.value("resizeRatio", 0.5).toDouble();
+    m_resizeWidth = s.value("resizeWidth", 1920).toInt();
+    m_resizeHeight = s.value("resizeHeight", 1080).toInt();
+    m_mode = s.value("mode", 1).toInt();
 }
 void ImageConverterSettings::saveSettings()
 {
@@ -86,5 +156,12 @@ void ImageConverterSettings::saveSettings()
     s.setValue("outputMode", m_outputMode);
     s.setValue("outputDir", m_outputDir);
     s.setValue("recursive", m_recursive);
+    s.setValue("convertEnabled", m_convertEnabled);
+    s.setValue("resizeEnabled", m_resizeEnabled);
+    s.setValue("resizeMode", m_resizeMode);
+    s.setValue("resizeRatio", m_resizeRatio);
+    s.setValue("resizeWidth", m_resizeWidth);
+    s.setValue("resizeHeight", m_resizeHeight);
+    s.setValue("mode", m_mode);
     s.sync();
 }

@@ -1373,16 +1373,15 @@ Pane {
                                             placeholderText: "宽"
                                             enabled: controller ? !settings.usePresetRatio : false
                                             text: controller ? settings.customRatioW.toString() : "1"
-                                            validator: IntValidator {
-                                                bottom: 1
-                                                top: 100
-                                            }
+                                            editType: 1
+                                            minNumber: 1
+                                            maxNumber: 100
                                             horizontalAlignment: TextInput.AlignHCenter
                                             onTextChanged: {
                                                 if (!controller)
                                                     return;
                                                 var v = parseInt(text);
-                                                if (!isNaN(v) && v >= 1 && v <= 100) {
+                                                if (!isNaN(v)) {
                                                     settings.customRatioW = v;
                                                     if (settings.cropMode === 0 && !settings.usePresetRatio)
                                                         root.initCrop();
@@ -1391,7 +1390,7 @@ Pane {
                                             onActiveFocusChanged: {
                                                 if (!activeFocus && controller) {
                                                     var v = parseInt(text);
-                                                    if (isNaN(v) || v < 1 || v > 100)
+                                                    if (isNaN(v))
                                                         text = settings.customRatioW.toString();
                                                 }
                                             }
@@ -1411,16 +1410,15 @@ Pane {
                                             placeholderText: "高"
                                             enabled: controller ? !settings.usePresetRatio : false
                                             text: controller ? settings.customRatioH.toString() : "1"
-                                            validator: IntValidator {
-                                                bottom: 1
-                                                top: 100
-                                            }
+                                            editType: 1
+                                            minNumber: 1
+                                            maxNumber: 100
                                             horizontalAlignment: TextInput.AlignHCenter
                                             onTextChanged: {
                                                 if (!controller)
                                                     return;
                                                 var v = parseInt(text);
-                                                if (!isNaN(v) && v >= 1 && v <= 100) {
+                                                if (!isNaN(v)) {
                                                     settings.customRatioH = v;
                                                     if (settings.cropMode === 0 && !settings.usePresetRatio)
                                                         root.initCrop();
@@ -1429,7 +1427,7 @@ Pane {
                                             onActiveFocusChanged: {
                                                 if (!activeFocus && controller) {
                                                     var v = parseInt(text);
-                                                    if (isNaN(v) || v < 1 || v > 100)
+                                                    if (isNaN(v))
                                                         text = settings.customRatioH.toString();
                                                 }
                                             }
@@ -1456,22 +1454,21 @@ Pane {
                                             Layout.preferredWidth: 70
                                             placeholderText: "宽"
                                             text: controller ? settings.targetWidth.toString() : "800"
-                                            validator: IntValidator {
-                                                bottom: 1
-                                                top: 99999
-                                            }
+                                            editType: 1
+                                            minNumber: 1
+                                            maxNumber: 9999
                                             horizontalAlignment: TextInput.AlignHCenter
                                             onTextChanged: {
                                                 if (controller) {
                                                     var v = parseInt(text);
-                                                    if (!isNaN(v) && v > 0)
+                                                    if (!isNaN(v))
                                                         settings.targetWidth = v;
                                                 }
                                             }
                                             onActiveFocusChanged: {
                                                 if (!activeFocus && controller) {
                                                     var v = parseInt(text);
-                                                    if (isNaN(v) || v <= 0)
+                                                    if (isNaN(v))
                                                         v = 800;
                                                     settings.targetWidth = v;
                                                     text = v.toString();
@@ -1492,22 +1489,21 @@ Pane {
                                             Layout.preferredWidth: 70
                                             placeholderText: "高"
                                             text: controller ? settings.targetHeight.toString() : "600"
-                                            validator: IntValidator {
-                                                bottom: 1
-                                                top: 99999
-                                            }
+                                            editType: 1
+                                            minNumber: 1
+                                            maxNumber: 9999
                                             horizontalAlignment: TextInput.AlignHCenter
                                             onTextChanged: {
                                                 if (controller) {
                                                     var v = parseInt(text);
-                                                    if (!isNaN(v) && v > 0)
+                                                    if (!isNaN(v))
                                                         settings.targetHeight = v;
                                                 }
                                             }
                                             onActiveFocusChanged: {
                                                 if (!activeFocus && controller) {
                                                     var v = parseInt(text);
-                                                    if (isNaN(v) || v <= 0)
+                                                    if (isNaN(v))
                                                         v = 600;
                                                     settings.targetHeight = v;
                                                     text = v.toString();

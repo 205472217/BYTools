@@ -7,7 +7,7 @@ Qt/QML + C++ PC 工具集合应用骨架。
 - 主界面展示功能入口。
 - **繁简转换**：批量将指定根目录下的文件名、文件夹名，或二者一起，从繁体中文转换为简体中文。
 - **批量重命名**：批量重命名文件，支持多种命名规则（指定名称、查找替换），支持按文件类型筛选，支持递归子文件夹子目录。
-- **图片格式转换**：批量将图片转换为指定格式（PNG、JPG、BMP、WebP、TIFF），支持递归子文件夹和质量调节。
+- **图片处理**：批量转换图片格式（PNG、JPG、BMP、WebP、TIFF）、缩放尺寸（按比例/指定宽高），支持递归子文件夹和质量调节。
 - **图片裁剪**：按比例或指定像素尺寸裁剪图片，支持实时预览、拖拽调整裁剪框、多图浏览切换，支持覆盖源文件或输出到新目录。
 - **视频字幕翻译**：从视频中提取音频，使用 Whisper 进行语音识别生成SRT字幕，支持翻译SRT字幕（百度翻译API/本地翻译），内嵌SRT字幕到视频（支持 GPU 加速）。
 - **自定义视频字幕**：从网站下载字幕，根据关键码匹配视频字幕，将匹配的视频和字幕合成，替换原视频。
@@ -24,7 +24,7 @@ src/
 plugins/                       插件目录
   nameconverter/               繁简转换插件
   batchrename/                 批量重命名插件
-  imageconverter/              图片格式转换插件
+  imageconverter/              图片处理插件
   imagecrop/                   图片裁剪插件
   videosubtitle/               视频字幕翻译插件
   customsubtitle/              自定义视频字幕插件
@@ -52,7 +52,7 @@ BYTools/
     card-videosubtitle/        视频字幕翻译插件
     card-nameconverter/        繁简转换插件
     card-batchrename/          批量重命名插件
-    card-imageconverter/       图片格式转换插件
+    card-imageconverter/       图片处理插件
     card-imagecrop/            图片裁剪插件
   third/                       第三方程序
     ffmpeg/                    可用的ffmpeg(自定义字幕、视频字幕翻译，在最后烧录视频+字幕时需要)

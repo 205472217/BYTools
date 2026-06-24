@@ -16,12 +16,12 @@ QString ImageConverterPlugin::id() const
 
 QString ImageConverterPlugin::name() const
 {
-    return QStringLiteral("图片格式转换");
+    return QStringLiteral("图片处理");
 }
 
 QString ImageConverterPlugin::description() const
 {
-    return QStringLiteral("批量转换图片格式，支持递归子文件夹");
+    return QStringLiteral("批量转换图片格式、缩放尺寸，支持递归子文件夹");
 }
 
 QString ImageConverterPlugin::iconName() const
@@ -49,7 +49,7 @@ void ImageConverterPlugin::initialize()
     if (!m_controller) {
         m_controller = new ImageConverterController(m_logger, m_settings, this);
     }
-    m_logger->info(QStringLiteral("图片格式转换插件已初始化"));
+    m_logger->info(QStringLiteral("图片处理插件已初始化"));
 }
 
 void ImageConverterPlugin::cleanup()

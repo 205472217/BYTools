@@ -32,6 +32,17 @@ Pane {
     readonly property int statusColumnX: newColumnX + textColumnWidth + columnGap
     readonly property int actionColumnX: statusColumnX + statusColumnWidth + columnGap
 
+    // 自定义比例编辑中 → 取消预设Rect高亮
+    property bool customRatioEditing: false
+
+    // 当前比例是否为预设值
+    function isPresetRatio(r) {
+        return Math.abs(r - 0.5) < 0.001 || Math.abs(r - 1.5) < 0.001
+            || Math.abs(r - 2.0) < 0.001 || Math.abs(r - 4.0) < 0.001
+    }
+
+    readonly property bool isSingleMode: settings ? settings.mode === 0 : false
+
     padding: 0
     background: Rectangle {
         id: bgRect
@@ -54,6 +65,17 @@ Pane {
         onAccepted: {
             if (settings) {
                 settings.outputDir = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
+            }
+        }
+    }
+
+    FileDialog {
+        id: sourceFileDialog
+        title: "选择源文件"
+        nameFilters: ["图片文件 (*.png *.jpg *.jpeg *.bmp *.webp *.tiff *.tif *.gif *.ico)", "所有文件 (*)"]
+        onAccepted: {
+            if (settings) {
+                settings.rootPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""))
             }
         }
     }
@@ -84,7 +106,7 @@ Pane {
 
             Label {
                 id: msgLabel
-                text: "当前有图片格式转换任务正在处理中，返回首页将中断执行，是否继续？"
+                text: "当前有图片处理任务正在处理中，返回首页将中断执行，是否继续？"
                 color: pal.LabelEx_statusText
                 font.pixelSize: 14
                 wrapMode: Text.WordWrap
@@ -153,7 +175,7 @@ Pane {
 
                 Label {
                     id: pageTitle
-                    text: "图片格式转换"
+                    text: "图片处理"
                     color: pal.LabelEx_titleText
                     font.pixelSize: 26
                     font.bold: true
@@ -161,7 +183,7 @@ Pane {
 
                 Label {
                     id: pageSubtitle
-                    text: "批量转换图片格式，支持递归子文件夹"
+                    text: "批量转换图片格式、缩放尺寸，支持递归子文件夹"
                     color: pal.LabelEx_subtitleText
                     font.pixelSize: 14
                 }
@@ -184,13 +206,48 @@ Pane {
                 anchors.margins: 18
                 spacing: 12
 
+                // ── 第0行：模式切换 ──
+                RowLayout {
+                    spacing: 0
+                    Layout.fillWidth: true
+
+                    RadioButtonEx {
+                        id: singleModeRadio
+                        implicitWidth: 120
+                        text: "单文件模式"
+                        paletteGroup: "RadioButtonEx"
+                        checked: root.isSingleMode
+                        font.pixelSize: 13
+                        onCheckedChanged: {
+                            if (checked && settings && settings.mode !== 0)
+                                settings.mode = 0
+                        }
+                    }
+
+                    RadioButtonEx {
+                        id: batchModeRadio
+                        implicitWidth: 120
+                        text: "批量处理模式"
+                        paletteGroup: "RadioButtonEx"
+                        checked: !root.isSingleMode
+                        font.pixelSize: 13
+                        onCheckedChanged: {
+                            if (checked && settings && settings.mode !== 1)
+                                settings.mode = 1
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
+                }
+
+                // ── 第1行：源路径 ──
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
 
                     Label {
                         id: srcFolderLbl
-                        text: "源文件夹"
+                        text: root.isSingleMode ? "源文件" : "源文件夹"
                         color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
@@ -201,12 +258,13 @@ Pane {
                         Layout.fillWidth: true
                         text: controller ? settings.rootPath : ""
                         readOnly: true
-                        placeholderText: "点击选择文件"
+                        placeholderText: root.isSingleMode ? "点击选择文件" : "点击选择文件夹"
                         paletteGroup: "TextFieldEx"
                     }
 
                     CheckBoxEx {
                         id: recursiveCheck
+                        visible: !root.isSingleMode
                         implicitWidth: 110
                         text: "递归子文件夹"
                         paletteGroup: "CheckBoxEx"
@@ -220,29 +278,40 @@ Pane {
 
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
-                        tooltip: "选择源文件夹"
+                        tooltip: root.isSingleMode ? "选择源文件" : "选择源文件夹"
                         paletteGroup: "IconBtnEx"
-                        onClicked: sourceFolderDialog.open()
+                        onClicked: {
+                            if (root.isSingleMode)
+                                sourceFileDialog.open()
+                            else
+                                sourceFolderDialog.open()
+                        }
                     }
                 }
 
+                // ── 第2行：格式转换 + JPG背景色 ──
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
 
-                    Label {
-                        id: targetFormatLbl
-                        text: "目标格式"
-                        color: pal.LabelEx_labelText
-                        font.pixelSize: 13
-                        font.bold: true
+                    CheckBoxEx {
+                        id: convertCheck
                         Layout.preferredWidth: 80
+                        text: "格式转换"
+                        paletteGroup: "CheckBoxEx"
+                        checked: controller ? settings.convertEnabled : true
+                        onCheckedChanged: {
+                            if (controller) {
+                                settings.convertEnabled = checked
+                            }
+                        }
                     }
 
                     ComboBoxEx {
                         Layout.preferredWidth: 150
                         model: ["PNG", "JPG", "BMP", "WebP", "TIFF"]
                         currentIndex: controller ? settings.targetFormat : 1
+                        enabled: controller ? settings.convertEnabled : false
                         onActivated: {
                             if (controller) {
                                 settings.targetFormat = currentIndex
@@ -264,6 +333,7 @@ Pane {
                         color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
+                        enabled: controller ? settings.convertEnabled : false
                     }
 
                     Slider {
@@ -273,6 +343,7 @@ Pane {
                         from: 1
                         to: 100
                         stepSize: 1
+                        enabled: controller ? settings.convertEnabled : false
                         Component.onCompleted: {
                             if (controller) value = settings.quality
                         }
@@ -291,115 +362,393 @@ Pane {
                         font.bold: true
                         Layout.preferredWidth: 28
                         horizontalAlignment: Text.AlignRight
-                    }
-                }
-
-                // JPG背景色（仅目标格式为JPG时显示）
-                RowLayout {
-                    spacing: 12
-                    Layout.fillWidth: true
-                    visible: controller ? settings.targetFormat === 1 : false
-
-                    Label {
-                        id: bgColorLbl
-                        text: "JPG背景色"
-                        color: pal.LabelEx_labelText
-                        font.pixelSize: 13
-                        font.bold: true
-                        Layout.preferredWidth: 80
-                    }
-
-                    RowLayout {
-                        spacing: 12
-
-                        Rectangle {
-                            id: whiteSwatch
-                            width: 42
-                            height: 28
-                            radius: 6
-                            color: pal.ImageConverterPage_whiteSwatch_color
-                            border.width: controller && settings.bgColor === "#ffffff" ? 2 : 1
-                            border.color: controller && settings.bgColor === "#ffffff" ? pal.ImageConverterPage_whiteSwatch_borderColor_active : pal.ImageConverterPage_whiteSwatch_borderColor_normal
-
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: { if (controller) settings.bgColor = "#ffffff" }
-                            }
-                        }
-
-                        Rectangle {
-                            id: blackSwatch
-                            width: 42
-                            height: 28
-                            radius: 6
-                            color: pal.ImageConverterPage_blackSwatch_color
-                            border.width: controller && settings.bgColor === "#000000" ? 2 : 1
-                            border.color: controller && settings.bgColor === "#000000" ? pal.ImageConverterPage_blackSwatch_borderColor_active : pal.ImageConverterPage_blackSwatch_borderColor_normal
-
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: { if (controller) settings.bgColor = "#000000" }
-                            }
-                        }
-
-                        Rectangle {
-                            id: customSwatch
-                            width: 42
-                            height: 28
-                            radius: 6
-                            color: pal.ImageConverterPage_customSwatch_color
-                            border.width: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? 2 : 1
-                            border.color: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? pal.ImageConverterPage_customSwatch_borderColor_active : pal.ImageConverterPage_customSwatch_borderColor_normal
-
-                            Label {
-                                id: customSwatchLabel
-                                anchors.centerIn: parent
-                                text: "自定义"
-                                color: pal.ImageConverterPage_customSwatch_textColor_normal
-                                font.pixelSize: 9
-                            }
-
-                            MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: { colorDialog.open() }
-                            }
-                        }
+                        enabled: controller ? settings.convertEnabled : false
                     }
 
                     Rectangle {
-                        id: bgColorSeparator
+                        id: qualitySeparator
                         width: 1
                         height: 24
                         color: pal.SurfaceEx_divider
                     }
 
+                    // JPG背景色提示（非JPG时opacity=0但仍占位）
                     Label {
                         id: fillTipLbl
-                        text: "PNG转JPG时填充透明区域"
-                        color: pal.LabelEx_infoText
-                        font.pixelSize: 12
+                        text: "PNG转JPG填充背景色"
+                        color: pal.LabelEx_labelText
+                        font.pixelSize: 13
+                        opacity: controller && settings.targetFormat === 1 ? 1 : 0
+                        enabled: controller && settings.targetFormat === 1
                     }
 
                     Rectangle {
-                        id: customSwatchPreview
-                        width: 100
+                        id: whiteSwatch
+                        width: 42
                         height: 28
                         radius: 6
-                        color: controller ? settings.bgColor : pal.ImageConverterPage_customSwatch_color
+                        color: pal.ImageConverterPage_whiteSwatch_color
+                        opacity: controller && settings.targetFormat === 1 ? 1 : 0
+                        enabled: controller && settings.targetFormat === 1
+                        border.width: controller && settings.bgColor === "#ffffff" ? 2 : 1
+                        border.color: controller && settings.bgColor === "#ffffff" ? pal.ImageConverterPage_whiteSwatch_borderColor_active : pal.ImageConverterPage_whiteSwatch_borderColor_normal
 
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: colorDialog.open()
+                            onClicked: { if (controller) settings.bgColor = "#ffffff" }
                         }
+                    }
+
+                    Rectangle {
+                        id: blackSwatch
+                        width: 42
+                        height: 28
+                        radius: 6
+                        color: pal.ImageConverterPage_blackSwatch_color
+                        opacity: controller && settings.targetFormat === 1 ? 1 : 0
+                        enabled: controller && settings.targetFormat === 1
+                        border.width: controller && settings.bgColor === "#000000" ? 2 : 1
+                        border.color: controller && settings.bgColor === "#000000" ? pal.ImageConverterPage_blackSwatch_borderColor_active : pal.ImageConverterPage_blackSwatch_borderColor_normal
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: { if (controller) settings.bgColor = "#000000" }
+                        }
+                    }
+
+                    Rectangle {
+                        id: customSwatch
+                        width: 42
+                        height: 28
+                        radius: 6
+                        color: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? settings.bgColor : pal.ImageConverterPage_customSwatch_color
+                        opacity: controller && settings.targetFormat === 1 ? 1 : 0
+                        enabled: controller && settings.targetFormat === 1
+                        border.width: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? 2 : 1
+                        border.color: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? pal.ImageConverterPage_customSwatch_borderColor_active : pal.ImageConverterPage_customSwatch_borderColor_normal
+
+                        Label {
+                            id: customSwatchLabel
+                            anchors.centerIn: parent
+                            text: "自定义"
+                            color: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? pal.ImageConverterPage_customSwatch_textColor_active : pal.ImageConverterPage_customSwatch_textColor_normal
+                            font.pixelSize: 9
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: { colorDialog.open() }
+                        }
+                    }
+                }
+
+                // ── 第3行：宽高缩放（按比例 + 指定宽高） ──
+                RowLayout {
+                    spacing: 8
+                    Layout.fillWidth: true
+
+                    CheckBoxEx {
+                        id: resizeCheck
+                        Layout.preferredWidth: 80
+                        text: "宽高缩放"
+                        paletteGroup: "CheckBoxEx"
+                        checked: controller ? settings.resizeEnabled : false
+                        onCheckedChanged: {
+                            if (controller) {
+                                settings.resizeEnabled = checked
+                            }
+                        }
+                    }
+
+                    // 按比例缩放
+                    RadioButtonEx {
+                        id: proportionRadio
+                        implicitWidth: 100
+                        text: "按比例缩放"
+                        paletteGroup: "RadioButtonEx"
+                        enabled: controller ? settings.resizeEnabled : false
+                        checked: controller ? settings.resizeMode === 0 : true
+                        onCheckedChanged: {
+                            if (checked && controller) {
+                                settings.resizeMode = 0
+                            }
+                        }
+                    }
+
+                    // 预设 0.5
+                    Rectangle {
+                        id: preset05
+                        width: 36
+                        height: 26
+                        radius: 6
+                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 0) : false
+                        color: pal.SurfaceEx_cardBg
+                        readonly property bool _active: controller && settings.resizeMode === 0
+                            && !customRatioEditing
+                            && Math.abs(settings.resizeRatio - 0.5) < 0.001
+                        border.width: _active ? 2 : 1
+                        border.color: _active ? "#2563eb" : "#e2e8f0"
+
+                        Label {
+                            anchors.centerIn: parent
+                            text: "0.5"
+                            font.pixelSize: 12
+                            font.bold: true
+                            color: parent.enabled ? pal.LabelEx_valueText : pal.LabelEx_infoText
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            enabled: parent.enabled
+                            onClicked: {
+                                if (controller) {
+                                    settings.resizeMode = 0
+                                    settings.resizeRatio = 0.5
+                                }
+                            }
+                        }
+                    }
+
+                    // 预设 1.5
+                    Rectangle {
+                        id: preset15
+                        width: 36
+                        height: 26
+                        radius: 6
+                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 0) : false
+                        color: pal.SurfaceEx_cardBg
+                        readonly property bool _active: controller && settings.resizeMode === 0
+                            && !customRatioEditing
+                            && Math.abs(settings.resizeRatio - 1.5) < 0.001
+                        border.width: _active ? 2 : 1
+                        border.color: _active ? "#2563eb" : "#e2e8f0"
+
+                        Label {
+                            anchors.centerIn: parent
+                            text: "1.5"
+                            font.pixelSize: 12
+                            font.bold: true
+                            color: parent.enabled ? pal.LabelEx_valueText : pal.LabelEx_infoText
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            enabled: parent.enabled
+                            onClicked: {
+                                if (controller) {
+                                    settings.resizeMode = 0
+                                    settings.resizeRatio = 1.5
+                                }
+                            }
+                        }
+                    }
+
+                    // 预设 2
+                    Rectangle {
+                        id: preset2
+                        width: 36
+                        height: 26
+                        radius: 6
+                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 0) : false
+                        color: pal.SurfaceEx_cardBg
+                        readonly property bool _active: controller && settings.resizeMode === 0
+                            && !customRatioEditing
+                            && Math.abs(settings.resizeRatio - 2.0) < 0.001
+                        border.width: _active ? 2 : 1
+                        border.color: _active ? "#2563eb" : "#e2e8f0"
+
+                        Label {
+                            anchors.centerIn: parent
+                            text: "2"
+                            font.pixelSize: 12
+                            font.bold: true
+                            color: parent.enabled ? pal.LabelEx_valueText : pal.LabelEx_infoText
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            enabled: parent.enabled
+                            onClicked: {
+                                if (controller) {
+                                    settings.resizeMode = 0
+                                    settings.resizeRatio = 2.0
+                                }
+                            }
+                        }
+                    }
+
+                    // 预设 4
+                    Rectangle {
+                        id: preset4
+                        width: 36
+                        height: 26
+                        radius: 6
+                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 0) : false
+                        color: pal.SurfaceEx_cardBg
+                        readonly property bool _active: controller && settings.resizeMode === 0
+                            && !customRatioEditing
+                            && Math.abs(settings.resizeRatio - 4.0) < 0.001
+                        border.width: _active ? 2 : 1
+                        border.color: _active ? "#2563eb" : "#e2e8f0"
+
+                        Label {
+                            anchors.centerIn: parent
+                            text: "4"
+                            font.pixelSize: 12
+                            font.bold: true
+                            color: parent.enabled ? pal.LabelEx_valueText : pal.LabelEx_infoText
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            enabled: parent.enabled
+                            onClicked: {
+                                if (controller) {
+                                    settings.resizeMode = 0
+                                    settings.resizeRatio = 4.0
+                                }
+                            }
+                        }
+                    }
+
+                    TextFieldEx {
+                        id: customRatioEdit
+                        Layout.preferredWidth: 80
+                        placeholderText: controller ? settings.resizeRatio.toString() : ""
+                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 0) : false
+                        editType: 2
+                        minNumber: 0.1
+                        maxNumber: 10
+                        highlightOnValid: controller && settings.resizeMode === 0
+                            && Math.abs(settings.resizeRatio - 0.5) > 0.001
+                            && Math.abs(settings.resizeRatio - 1.5) > 0.001
+                            && Math.abs(settings.resizeRatio - 2.0) > 0.001
+                            && Math.abs(settings.resizeRatio - 4.0) > 0.001
+                        onEditingFinished: {
+                            var t = text.trim()
+                            if (t === "") {
+                                text = settings.resizeRatio.toString()
+                                return
+                            }
+                            var val = parseFloat(t)
+                            if (!isNaN(val)) {
+                                val = Math.max(0.1, Math.min(10, val))
+                                if (val !== parseFloat(t)) text = val.toString()
+                                settings.resizeMode = 0
+                                settings.resizeRatio = val
+                            }
+                        }
+                        onActiveFocusChanged: {
+                            customRatioEditing = activeFocus
+                            if (activeFocus && controller) {
+                                settings.resizeMode = 0
+                            }
+                        }
+                    }
+
+                    Connections {
+                        target: controller ? settings : null
+                        function onResizeRatioChanged() {
+                            customRatioEdit.text = settings.resizeRatio.toString()
+                        }
+                    }
+
+                    // 分隔线
+                    Rectangle {
+                        id: resizeSeparator
+                        width: 1
+                        height: 24
+                        color: pal.SurfaceEx_divider
+                        enabled: controller ? settings.resizeEnabled : false
+                    }
+
+                    // 指定宽高缩放
+                    RadioButtonEx {
+                        id: fixedRadio
+                        implicitWidth: 120
+                        text: "指定宽高缩放"
+                        paletteGroup: "RadioButtonEx"
+                        enabled: controller ? settings.resizeEnabled : false
+                        checked: controller ? settings.resizeMode === 1 : true
+                        onCheckedChanged: {
+                            if (checked && controller) {
+                                settings.resizeMode = 1
+                            }
+                        }
+                    }
+
+                    TextFieldEx {
+                        id: widthEdit
+                        Layout.preferredWidth: 60
+                        placeholderText: "宽"
+                        editType: 1
+                        minNumber: 1
+                        maxNumber: 9999
+                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 1) : false
+                        text: controller ? settings.resizeWidth.toString() : ""
+                        onEditingFinished: {
+                            var val = parseInt(text)
+                            if (!isNaN(val) && controller) {
+                                settings.resizeWidth = val
+                            }
+                        }
+                        onActiveFocusChanged: {
+                            if (activeFocus && controller && settings.resizeMode !== 1) {
+                                settings.resizeMode = 1
+                            }
+                        }
+                    }
+
+                    Label {
+                        id: multiplySign
+                        text: "×"
+                        color: pal.LabelEx_labelText
+                        font.pixelSize: 15
+                        font.bold: true
+                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 1) : false
+                    }
+
+                    TextFieldEx {
+                        id: heightEdit
+                        Layout.preferredWidth: 60
+                        placeholderText: "高"
+                        editType: 1
+                        minNumber: 1
+                        maxNumber: 9999
+                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 1) : false
+                        text: controller ? settings.resizeHeight.toString() : ""
+                        onEditingFinished: {
+                            var val = parseInt(text)
+                            if (!isNaN(val) && controller) {
+                                settings.resizeHeight = val
+                            }
+                        }
+                        onActiveFocusChanged: {
+                            if (activeFocus && controller && settings.resizeMode !== 1) {
+                                settings.resizeMode = 1
+                            }
+                        }
+                    }
+
+                    Label {
+                        id: pxLbl
+                        text: "像素"
+                        color: pal.LabelEx_infoText
+                        font.pixelSize: 12
+                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 1) : false
                     }
 
                     Item { Layout.fillWidth: true }
                 }
 
+                // ── 第4行： 输出方式 ──
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
@@ -410,7 +759,7 @@ Pane {
                         color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
-                        Layout.preferredWidth: 80
+                        Layout.preferredWidth: 76
                     }
 
                     RadioButtonEx {

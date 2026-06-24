@@ -51,19 +51,42 @@ QVariantList ImageConverterController::records() const
 void ImageConverterController::executeConvert()
 {
     QString rootPath = m_settings->rootPath();
+    bool isSingle = (m_settings->mode() == 0);
 
-    if (rootPath.isEmpty() || !QDir(rootPath).exists()) {
-        setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
-        m_logger->warn("转换失败: 源文件夹无效");
+    if (isSingle) {
+        if (rootPath.isEmpty() || !QFileInfo::exists(rootPath)) {
+            setStatusMessage(QStringLiteral("请选择有效的图片文件"));
+            m_logger->warn("转换失败: 文件无效");
+            return;
+        }
+        if (!isImageFile(QFileInfo(rootPath).fileName())) {
+            setStatusMessage(QStringLiteral("请选择图片文件"));
+            m_logger->warn("转换失败: 不支持的文件格式");
+            return;
+        }
+    } else {
+        if (rootPath.isEmpty() || !QDir(rootPath).exists()) {
+            setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
+            m_logger->warn("转换失败: 源文件夹无效");
+            return;
+        }
+    }
+
+    bool doConvert = m_settings->convertEnabled();
+    bool doResize = m_settings->resizeEnabled();
+
+    if (!doConvert && !doResize) {
+        setStatusMessage(QStringLiteral("请至少勾选「格式转换」或「宽高缩放」"));
+        m_logger->warn("转换失败: 未勾选任何处理选项");
         return;
     }
 
     int targetFormat = m_settings->targetFormat();
     bool recursive = m_settings->recursive();
-    m_logger->info(QString("===== 开始图片格式转换 ====="));
-    m_logger->info(QString("源目录: %1, 目标格式: %2, 递归=%3")
-        .arg(rootPath).arg(formatExtension(targetFormat)).arg(recursive));
-    emit logMessage(QString("源目录: %1").arg(rootPath));
+    m_logger->info(QString("===== 开始图片处理 ====="));
+    m_logger->info(QString("源路径: %1, 单文件=%2, 格式转换=%3, 宽高缩放=%4, 递归=%5")
+        .arg(rootPath).arg(isSingle).arg(doConvert).arg(doResize).arg(recursive));
+    emit logMessage(QString("源路径: %1").arg(rootPath));
     if (recursive)
         emit logMessage("  启用了递归查找，正在遍历子目录...");
 
@@ -76,6 +99,83 @@ void ImageConverterController::executeConvert()
     m_workerThread.start();
 }
 
+void ImageConverterController::processSingleFile(
+    const QString &filePath, const QString &destPath,
+    bool doConvert, int targetFormat, int quality,
+    bool doResize, int resizeMode, double resizeRatio,
+    int resizeWidth, int resizeHeight, const QString &bgColor,
+    const QString &targetExt, const QByteArray &targetFmt,
+    int &successCount, int &failCount, int &skipCount,
+    QList<ConvertRecord> &records)
+{
+    QFileInfo entry(filePath);
+    QString srcExt = entry.suffix().toLower();
+    QString srcExtDot = QStringLiteral(".") + srcExt;
+
+    if (doConvert && srcExtDot == targetExt && !doResize) {
+        records.append({
+            entry.absoluteFilePath(), entry.absoluteFilePath(),
+            entry.fileName(), entry.fileName(),
+            formatTagForExt(srcExt), true, QStringLiteral("已跳过")
+        });
+        skipCount++;
+        return;
+    }
+
+    QImage image;
+    if (entry.size() > 0)
+        image = QImage(entry.absoluteFilePath());
+
+    if (image.isNull()) {
+        records.append({
+            entry.absoluteFilePath(), destPath,
+            entry.fileName(), QFileInfo(destPath).fileName(),
+            formatTagForExt(srcExt), false, QStringLiteral("失败：无法读取")
+        });
+        failCount++;
+        return;
+    }
+
+    // 宽高缩放
+    if (doResize) {
+        if (resizeMode == 0) {
+            int newW = qRound(image.width() * resizeRatio);
+            int newH = qRound(image.height() * resizeRatio);
+            image = image.scaled(newW, newH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        } else {
+            image = image.scaled(resizeWidth, resizeHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        }
+    }
+
+    // JPG背景色填充
+    if (doConvert && targetFormat == 1 && image.hasAlphaChannel()) {
+        QImage filled(image.size(), QImage::Format_RGB32);
+        filled.fill(bgColor);
+        QPainter painter(&filled);
+        painter.drawImage(0, 0, image);
+        painter.end();
+        image = filled;
+    }
+
+    if (image.save(destPath, doConvert ? targetFmt.constData() : nullptr, doConvert ? quality : -1)) {
+        records.append({
+            entry.absoluteFilePath(), destPath,
+            entry.fileName(), QFileInfo(destPath).fileName(),
+            formatTagForExt(srcExt), true, QStringLiteral("已处理")
+        });
+        successCount++;
+        emit logMessage(QString("  [处理] %1 → %2").arg(entry.fileName(), QFileInfo(destPath).fileName()));
+    } else {
+        records.append({
+            entry.absoluteFilePath(), destPath,
+            entry.fileName(), QFileInfo(destPath).fileName(),
+            formatTagForExt(srcExt), false, QStringLiteral("失败：保存失败")
+        });
+        failCount++;
+        emit logMessage(QString("  [失败] %1 — 保存失败").arg(entry.fileName()));
+    }
+}
+
 void ImageConverterController::doWork()
 {
     QString rootPath = m_settings->rootPath();
@@ -85,100 +185,79 @@ void ImageConverterController::doWork()
     int outputMode = m_settings->outputMode();
     QString outputDir = m_settings->outputDir();
     bool recursive = m_settings->recursive();
+    bool doConvert = m_settings->convertEnabled();
+    bool doResize = m_settings->resizeEnabled();
+    int resizeMode = m_settings->resizeMode();
+    double resizeRatio = m_settings->resizeRatio();
+    int resizeWidth = m_settings->resizeWidth();
+    int resizeHeight = m_settings->resizeHeight();
+    bool isSingle = (m_settings->mode() == 0);
 
     int successCount = 0, failCount = 0, skipCount = 0;
     QList<ConvertRecord> records;
 
-    auto addRec = [&](const QString &orig, const QString &dest, const QString &tag, bool ok, const QString &st) {
-        ConvertRecord rec;
-        rec.originalPath = orig;
-        rec.newPath = dest;
-        rec.originalName = QFileInfo(orig).fileName();
-        rec.newName = QFileInfo(dest).fileName();
-        rec.formatTag = tag;
-        rec.success = ok;
-        rec.status = st;
-        records.append(rec);
-    };
+    QString targetExt;
+    QByteArray targetFmt;
+    if (doConvert) {
+        targetExt = formatExtension(targetFormat);
+        targetFmt = formatForQImage(targetFormat);
+    }
 
-    QString targetExt = formatExtension(targetFormat);
-    QByteArray targetFmt = formatForQImage(targetFormat);
+    auto procFile = [&](const QString &filePath, const QString &destDir, const QString &relPath) {
+        QFileInfo entry(filePath);
+        if (!isImageFile(entry.fileName())) return;
 
-    std::function<void(const QString &, const QString &)> procDir;
-    procDir = [&](const QString &dirPath, const QString &relPath) {
-        QDir currentDir(dirPath);
-        QFileInfoList entries = currentDir.entryInfoList(
-            QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+        QString destFileName;
+        if (doConvert) {
+            destFileName = entry.completeBaseName() + targetExt;
+        } else {
+            destFileName = entry.fileName();
+        }
+        QString destPath;
 
-        for (const QFileInfo &entry : entries) {
-            if (!isImageFile(entry.fileName())) continue;
-
-            QString srcExt = entry.suffix().toLower();
-            if (QStringLiteral(".") + srcExt == targetExt) {
-                addRec(entry.absoluteFilePath(), entry.absoluteFilePath(),
-                       formatTagForExt(srcExt), true, QStringLiteral("已跳过"));
-                skipCount++;
-                continue;
-            }
-
-            QString newBaseName = entry.completeBaseName() + targetExt;
-            QString destPath;
-
-            if (outputMode == 0) {
-                destPath = currentDir.absoluteFilePath(newBaseName);
-            } else {
-                QString outRoot = outputDir.isEmpty() ? rootPath + "_converted" : outputDir;
-                QString destDir = relPath.isEmpty() ? outRoot : outRoot + "/" + relPath;
-                QDir().mkpath(destDir);
-                destPath = destDir + "/" + newBaseName;
-            }
-
-            QImage image;
-            if (entry.size() > 0)
-                image = QImage(entry.absoluteFilePath());
-
-            if (image.isNull()) {
-                addRec(entry.absoluteFilePath(), destPath,
-                       formatTagForExt(srcExt), false, QStringLiteral("失败：无法读取"));
-                failCount++;
-                continue;
-            }
-
-            if (targetFormat == 1 && image.hasAlphaChannel()) {
-                QImage filled(image.size(), QImage::Format_RGB32);
-                filled.fill(bgColor);
-                QPainter painter(&filled);
-                painter.drawImage(0, 0, image);
-                painter.end();
-                image = filled;
-            }
-
-            if (image.save(destPath, targetFmt, quality)) {
-                if (outputMode == 0)
-                    QFile::remove(entry.absoluteFilePath());
-                addRec(entry.absoluteFilePath(), destPath,
-                       formatTagForExt(srcExt), true, QStringLiteral("已转换"));
-                successCount++;
-                emit logMessage(QString("  [转换] %1 → %2").arg(entry.fileName(), QFileInfo(destPath).fileName()));
-            } else {
-                addRec(entry.absoluteFilePath(), destPath,
-                       formatTagForExt(srcExt), false, QStringLiteral("失败：保存失败"));
-                failCount++;
-                emit logMessage(QString("  [失败] %1 — 保存失败").arg(entry.fileName()));
-            }
+        if (outputMode == 0) {
+            destPath = entry.dir().absoluteFilePath(destFileName);
+        } else {
+            QString outRoot = outputDir.isEmpty() ? rootPath + "_converted" : outputDir;
+            QString destDir2 = relPath.isEmpty() ? outRoot : outRoot + "/" + relPath;
+            QDir().mkpath(destDir2);
+            destPath = destDir2 + "/" + destFileName;
         }
 
-        if (recursive) {
-            QFileInfoList dirs = currentDir.entryInfoList(
-                QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
-            for (const QFileInfo &dirEntry : dirs) {
-                QString subRel = relPath.isEmpty() ? dirEntry.fileName() : relPath + "/" + dirEntry.fileName();
-                procDir(dirEntry.absoluteFilePath(), subRel);
-            }
-        }
+        processSingleFile(filePath, destPath,
+            doConvert, targetFormat, quality,
+            doResize, resizeMode, resizeRatio,
+            resizeWidth, resizeHeight, bgColor,
+            targetExt, targetFmt,
+            successCount, failCount, skipCount, records);
     };
 
-    procDir(rootPath, QString());
+    if (isSingle) {
+        QFileInfo fi(rootPath);
+        QString destDir = fi.dir().absolutePath();
+        procFile(rootPath, destDir, QString());
+    } else {
+        std::function<void(const QString &, const QString &)> procDir;
+        procDir = [&](const QString &dirPath, const QString &relPath) {
+            QDir currentDir(dirPath);
+            QFileInfoList entries = currentDir.entryInfoList(
+                QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+
+            for (const QFileInfo &entry : entries) {
+                procFile(entry.absoluteFilePath(), QString(), relPath);
+            }
+
+            if (recursive) {
+                QFileInfoList dirs = currentDir.entryInfoList(
+                    QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+                for (const QFileInfo &dirEntry : dirs) {
+                    QString subRel = relPath.isEmpty() ? dirEntry.fileName() : relPath + "/" + dirEntry.fileName();
+                    procDir(dirEntry.absoluteFilePath(), subRel);
+                }
+            }
+        };
+        procDir(rootPath, QString());
+    }
 
     m_records = records;
     m_workerThread.quit();
@@ -190,10 +269,10 @@ void ImageConverterController::doWork()
 
         if (parts.isEmpty()) {
             setStatusMessage(QStringLiteral("没有找到图片文件"));
-            m_logger->info("转换完成: 没有找到图片文件");
+            m_logger->info("处理完成: 没有找到图片文件");
         } else {
             setStatusMessage(parts.join("，"));
-            m_logger->info(QString("转换完成: %1").arg(parts.join(", ")));
+            m_logger->info(QString("处理完成: %1").arg(parts.join(", ")));
         }
         emit recordsChanged();
         emit hasRecordsChanged();
