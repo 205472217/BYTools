@@ -799,9 +799,16 @@ Pane {
                                 implicitWidth: 26
                                 iconSource: "qrc:/icons/video-seekdec.svg"
                                 tooltip: "快退 5 秒"
-                                normalColor: pal.SubtitleAdjustPage_seekBackBtn_normalColor
-                                hoverColor: pal.SubtitleAdjustPage_seekBackBtn_hoverColor
-                                borderColor: pal.SubtitleAdjustPage_seekBackBtn_borderColor
+                                normalColor: pal.IconBtnEx_normalColor
+                                hoverColor: pal.IconBtnEx_hoverColor
+                                pressColor: pal.IconBtnEx_pressColor
+                                borderColor: pal.IconBtnEx_borderColor
+                                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                                disabledColor: pal.IconBtnEx_disabledColor
+                                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                                textColor: pal.IconBtnEx_textColor
+                                disabledTextColor: pal.IconBtnEx_disabledTextColor
+                                shadowColor: pal.IconBtnEx_shadowColor
                                 onClicked: {
                                     var p = videoDisplayLoader.item
                                     if (p) p.position = Math.max(0, p.position - 5000)
@@ -815,9 +822,16 @@ Pane {
                                 property bool isPlaying: p && p.playbackState === 1
                                 iconSource: isPlaying ? "qrc:/icons/video-pause.svg" : "qrc:/icons/video-play.svg"
                                 tooltip: isPlaying ? "暂停" : "播放"
-                                normalColor: pal.SubtitleAdjustPage_playBtn_normalColor
-                                hoverColor: pal.SubtitleAdjustPage_playBtn_hoverColor
-                                borderColor: pal.SubtitleAdjustPage_playBtn_borderColor
+                                normalColor: pal.IconBtnEx_normalColor
+                                hoverColor: pal.IconBtnEx_hoverColor
+                                pressColor: pal.IconBtnEx_pressColor
+                                borderColor: pal.IconBtnEx_borderColor
+                                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                                disabledColor: pal.IconBtnEx_disabledColor
+                                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                                textColor: pal.IconBtnEx_textColor
+                                disabledTextColor: pal.IconBtnEx_disabledTextColor
+                                shadowColor: pal.IconBtnEx_shadowColor
                                 onClicked: {
                                     var p = videoDisplayLoader.item
                                     if (p) {
@@ -834,9 +848,16 @@ Pane {
                                 implicitWidth: 26
                                 iconSource: "qrc:/icons/video-seekadd.svg"
                                 tooltip: "快进 5 秒"
-                                normalColor: pal.SubtitleAdjustPage_seekFwdBtn_normalColor
-                                hoverColor: pal.SubtitleAdjustPage_seekFwdBtn_hoverColor
-                                borderColor: pal.SubtitleAdjustPage_seekFwdBtn_borderColor
+                                normalColor: pal.IconBtnEx_normalColor
+                                hoverColor: pal.IconBtnEx_hoverColor
+                                pressColor: pal.IconBtnEx_pressColor
+                                borderColor: pal.IconBtnEx_borderColor
+                                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
+                                disabledColor: pal.IconBtnEx_disabledColor
+                                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
+                                textColor: pal.IconBtnEx_textColor
+                                disabledTextColor: pal.IconBtnEx_disabledTextColor
+                                shadowColor: pal.IconBtnEx_shadowColor
                                 onClicked: {
                                     var p = videoDisplayLoader.item
                                     if (p) p.position = Math.min(p.duration, p.position + 5000)
