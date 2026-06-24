@@ -712,12 +712,12 @@ Pane {
                             }
                         }
 
-                        // Video output
+                        // 视频输出（用 Loader 延迟创建 MediaPlayer，避免无视频时空占 GPU 资源）
                         Loader {
                             id: videoDisplayLoader
                             anchors.fill: parent
                             active: hasVideo
-                            source: "../components/SubtitleAdjustVideoPlayer.qml"
+                            source: "../components/VideoPlayer.qml"
 
                             onLoaded: {
                                 item.source = "file:///" + (controller ? controller.currentVideoPath : "")
