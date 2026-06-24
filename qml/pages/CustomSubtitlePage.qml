@@ -572,6 +572,7 @@ Pane {
                     Rectangle {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 40
+                        color: "transparent"
 
                         RowLayout {
                             anchors.fill: parent
