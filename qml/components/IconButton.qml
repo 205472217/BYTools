@@ -8,8 +8,11 @@ Item {
 
     property string iconSource: ""
     property string text: ""
-    property color textColor: "#ffffff"
     property string tooltip: text
+    property bool enabled: true
+
+    // ── 主题支持 ──
+    property string paletteGroup: ""
     property color normalColor: "#ffffff"
     property color hoverColor: "#eef4ff"
     property color pressColor: "#dce7fa"
@@ -17,9 +20,31 @@ Item {
     property color defaultBorderColor: "#BDBDBD"
     property color disabledColor: "#f1f5f9"
     property color disabledBorderColor: "#e2e8f0"
+    property color textColor: "#ffffff"
     property color disabledTextColor: "#94a3b8"
     property color shadowColor: "#1e3a5f"
-    property bool enabled: true
+
+    readonly property var _p: themeManager.palette
+    readonly property color _normalColor:
+        paletteGroup ? (_p[paletteGroup + "_normalColor"] || normalColor) : normalColor
+    readonly property color _hoverColor:
+        paletteGroup ? (_p[paletteGroup + "_hoverColor"] || hoverColor) : hoverColor
+    readonly property color _pressColor:
+        paletteGroup ? (_p[paletteGroup + "_pressColor"] || pressColor) : pressColor
+    readonly property color _borderColor:
+        paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
+    readonly property color _defaultBorderColor:
+        paletteGroup ? (_p[paletteGroup + "_defaultBorderColor"] || defaultBorderColor) : defaultBorderColor
+    readonly property color _disabledColor:
+        paletteGroup ? (_p[paletteGroup + "_disabledColor"] || disabledColor) : disabledColor
+    readonly property color _disabledBorderColor:
+        paletteGroup ? (_p[paletteGroup + "_disabledBorderColor"] || disabledBorderColor) : disabledBorderColor
+    readonly property color _textColor:
+        paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
+    readonly property color _disabledTextColor:
+        paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || disabledTextColor) : disabledTextColor
+    readonly property color _shadowColor:
+        paletteGroup ? (_p[paletteGroup + "_shadowColor"] || shadowColor) : shadowColor
 
     implicitWidth: text.length > 0 ? 76 : 38
     implicitHeight: 26
@@ -30,11 +55,11 @@ Item {
         id: bg
         anchors.fill: parent
         radius: 8
-        color: root.enabled ? (mouseArea.pressed ? root.pressColor :
-               mouseArea.containsMouse ? root.hoverColor : root.normalColor) : root.disabledColor
+        color: root.enabled ? (mouseArea.pressed ? root._pressColor :
+               mouseArea.containsMouse ? root._hoverColor : root._normalColor) : root._disabledColor
         border.width: 1
-        border.color: root.enabled ? (mouseArea.pressed ? root.borderColor :
-                      mouseArea.containsMouse ? root.borderColor : root.defaultBorderColor) : root.disabledBorderColor
+        border.color: root.enabled ? (mouseArea.pressed ? root._borderColor :
+                      mouseArea.containsMouse ? root._borderColor : root._defaultBorderColor) : root._disabledBorderColor
 
         Rectangle {
             anchors.fill: parent
@@ -49,7 +74,7 @@ Item {
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 10
-                color: root.shadowColor
+                color: root._shadowColor
                 opacity: 0.06
             }
         }
@@ -75,7 +100,7 @@ Item {
             layer.enabled: true
             layer.samplerName: "source"
             layer.effect: ColorOverlay {
-                color: root.enabled ? root.textColor : root.disabledTextColor
+                color: root.enabled ? root._textColor : root._disabledTextColor
                 cached: true
             }
         }
@@ -84,7 +109,7 @@ Item {
             id: labelText
             text: root.text
             visible: root.text.length > 0
-            color: root.enabled ? root.textColor : root.disabledTextColor
+            color: root.enabled ? root._textColor : root._disabledTextColor
             font.pixelSize: 13
             font.bold: true
             anchors.verticalCenter: parent.verticalCenter

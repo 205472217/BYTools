@@ -133,10 +133,7 @@ Pane {
                     id: cancelBtn
                     text: "取消"
                     tooltip: "不切换，继续当前调整"
-                    normalColor: pal.SubtitleAdjustPage_cancelBtn_normalColor
-                    hoverColor: pal.SubtitleAdjustPage_cancelBtn_hoverColor
-                    borderColor: pal.SubtitleAdjustPage_cancelBtn_borderColor
-                    textColor: pal.SubtitleAdjustPage_cancelBtn_textColor
+                    paletteGroup: "SubtitleAdjustPage_cancelBtn"
                     implicitWidth: 100
                     implicitHeight: 38
                     onClicked: unsavedDialog.close()
@@ -146,10 +143,7 @@ Pane {
                     id: continueBtn
                     text: "继续切换"
                     tooltip: "放弃当前调整，切换到选中项"
-                    normalColor: pal.SubtitleAdjustPage_continueBtn_normalColor
-                    hoverColor: pal.SubtitleAdjustPage_continueBtn_hoverColor
-                    borderColor: pal.SubtitleAdjustPage_continueBtn_borderColor
-                    textColor: pal.SubtitleAdjustPage_continueBtn_textColor
+                    paletteGroup: "SubtitleAdjustPage_continueBtn"
                     implicitWidth: 120
                     implicitHeight: 38
                     onClicked: {
@@ -223,16 +217,7 @@ Pane {
                 iconSource: "qrc:/icons/arrow-left.svg"
                 implicitHeight: 38
                 tooltip: "返回"
-                normalColor: pal.IconBtnEx_normalColor
-                hoverColor: pal.IconBtnEx_hoverColor
-                pressColor: pal.IconBtnEx_pressColor
-                borderColor: pal.IconBtnEx_borderColor
-                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                disabledColor: pal.IconBtnEx_disabledColor
-                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                textColor: pal.IconBtnEx_textColor
-                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                shadowColor: pal.IconBtnEx_shadowColor
+                paletteGroup: "IconBtnEx"
                 onClicked: root.backRequested()
             }
 
@@ -282,7 +267,7 @@ Pane {
                         id: singleModeRadio
                         implicitWidth: 120
                         text: "单文件模式"
-                        textColor: pal.RadioButtonEx_textColor
+                        paletteGroup: "RadioButtonEx"
                         checked: isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
@@ -295,7 +280,7 @@ Pane {
                         id: batchModeRadio
                         implicitWidth: 120
                         text: "批量处理模式"
-                        textColor: pal.RadioButtonEx_textColor
+                        paletteGroup: "RadioButtonEx"
                         checked: !isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
@@ -330,22 +315,14 @@ Pane {
                         readOnly: true
                         placeholderText: isSingleMode ? "选择视频文件" : "选择视频文件夹"
                         clip: true
-                        bgColor: pal.TextFieldEx_bgColor
-                        textColor: pal.TextFieldEx_textColor
-                        phColor: pal.TextFieldEx_phColor
-                        selColor: pal.TextFieldEx_selColor
-                        selTextColor: pal.TextFieldEx_selTextColor
-                        borderColor: pal.TextFieldEx_borderColor
-                        focusBorderColor: pal.TextFieldEx_focusBorderColor
-                        focusRingColor: pal.TextFieldEx_focusRingColor
-                        cursorColor: pal.TextFieldEx_cursorColor
+                        paletteGroup: "TextFieldEx"
                     }
 
                     CheckBoxEx {
                         id: recursiveCheck1
                         implicitWidth: 110
                         text: "递归子文件夹"
-                        textColor: pal.CheckBoxEx_textColor
+                        paletteGroup: "CheckBoxEx"
                         font.pixelSize: 12
                         visible: !isSingleMode
                         checked: controller ? settings.recursiveVideo : false
@@ -357,16 +334,7 @@ Pane {
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: isSingleMode ? "选择视频文件" : "选择视频文件夹"
-                        normalColor: pal.IconBtnEx_normalColor
-                        hoverColor: pal.IconBtnEx_hoverColor
-                        pressColor: pal.IconBtnEx_pressColor
-                        borderColor: pal.IconBtnEx_borderColor
-                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                        disabledColor: pal.IconBtnEx_disabledColor
-                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                        textColor: pal.IconBtnEx_textColor
-                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                        shadowColor: pal.IconBtnEx_shadowColor
+                        paletteGroup: "IconBtnEx"
                         onClicked: isSingleMode ? videoFileDialog.open() : videoFolderDialog.open()
                     }
                 }
@@ -394,22 +362,14 @@ Pane {
                         readOnly: true
                         placeholderText: isSingleMode ? "选择字幕文件" : "选择字幕文件夹"
                         clip: true
-                        bgColor: pal.TextFieldEx_bgColor
-                        textColor: pal.TextFieldEx_textColor
-                        phColor: pal.TextFieldEx_phColor
-                        selColor: pal.TextFieldEx_selColor
-                        selTextColor: pal.TextFieldEx_selTextColor
-                        borderColor: pal.TextFieldEx_borderColor
-                        focusBorderColor: pal.TextFieldEx_focusBorderColor
-                        focusRingColor: pal.TextFieldEx_focusRingColor
-                        cursorColor: pal.TextFieldEx_cursorColor
+                        paletteGroup: "TextFieldEx"
                     }
 
                     CheckBoxEx {
                         id: recursiveCheck2
                         implicitWidth: 110
                         text: "递归子文件夹"
-                        textColor: pal.CheckBoxEx_textColor
+                        paletteGroup: "CheckBoxEx"
                         font.pixelSize: 12
                         visible: !isSingleMode
                         checked: controller ? settings.recursiveSubtitle : false
@@ -421,16 +381,7 @@ Pane {
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: isSingleMode ? "选择字幕文件" : "选择字幕文件夹"
-                        normalColor: pal.IconBtnEx_normalColor
-                        hoverColor: pal.IconBtnEx_hoverColor
-                        pressColor: pal.IconBtnEx_pressColor
-                        borderColor: pal.IconBtnEx_borderColor
-                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                        disabledColor: pal.IconBtnEx_disabledColor
-                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                        textColor: pal.IconBtnEx_textColor
-                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                        shadowColor: pal.IconBtnEx_shadowColor
+                        paletteGroup: "IconBtnEx"
                         onClicked: isSingleMode ? subtitleFileDialog.open() : subtitleFolderDialog.open()
                     }
                 }
@@ -447,10 +398,7 @@ Pane {
                         implicitWidth: 150
                         text: "开始处理"
                         tooltip: isSingleMode ? "将单个文件加入列表" : "扫描文件夹并自动匹配视频与字幕文件"
-                        normalColor: pal.SubtitleAdjustPage_startMapBtn_normalColor
-                        hoverColor: pal.SubtitleAdjustPage_startMapBtn_hoverColor
-                        borderColor: pal.SubtitleAdjustPage_startMapBtn_borderColor
-                        textColor: pal.SubtitleAdjustPage_startMapBtn_textColor
+                        paletteGroup: "SubtitleAdjustPage_startMapBtn"
                         enabled: {
                             if (!controller) return false
                             if (isSingleMode)
@@ -799,16 +747,7 @@ Pane {
                                 implicitWidth: 26
                                 iconSource: "qrc:/icons/video-seekdec.svg"
                                 tooltip: "快退 5 秒"
-                                normalColor: pal.IconBtnEx_normalColor
-                                hoverColor: pal.IconBtnEx_hoverColor
-                                pressColor: pal.IconBtnEx_pressColor
-                                borderColor: pal.IconBtnEx_borderColor
-                                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                                disabledColor: pal.IconBtnEx_disabledColor
-                                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                                textColor: pal.IconBtnEx_textColor
-                                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                                shadowColor: pal.IconBtnEx_shadowColor
+                                paletteGroup: "IconBtnEx"
                                 onClicked: {
                                     var p = videoDisplayLoader.item
                                     if (p) p.position = Math.max(0, p.position - 5000)
@@ -822,16 +761,7 @@ Pane {
                                 property bool isPlaying: p && p.playbackState === 1
                                 iconSource: isPlaying ? "qrc:/icons/video-pause.svg" : "qrc:/icons/video-play.svg"
                                 tooltip: isPlaying ? "暂停" : "播放"
-                                normalColor: pal.IconBtnEx_normalColor
-                                hoverColor: pal.IconBtnEx_hoverColor
-                                pressColor: pal.IconBtnEx_pressColor
-                                borderColor: pal.IconBtnEx_borderColor
-                                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                                disabledColor: pal.IconBtnEx_disabledColor
-                                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                                textColor: pal.IconBtnEx_textColor
-                                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                                shadowColor: pal.IconBtnEx_shadowColor
+                                paletteGroup: "IconBtnEx"
                                 onClicked: {
                                     var p = videoDisplayLoader.item
                                     if (p) {
@@ -848,16 +778,7 @@ Pane {
                                 implicitWidth: 26
                                 iconSource: "qrc:/icons/video-seekadd.svg"
                                 tooltip: "快进 5 秒"
-                                normalColor: pal.IconBtnEx_normalColor
-                                hoverColor: pal.IconBtnEx_hoverColor
-                                pressColor: pal.IconBtnEx_pressColor
-                                borderColor: pal.IconBtnEx_borderColor
-                                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                                disabledColor: pal.IconBtnEx_disabledColor
-                                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                                textColor: pal.IconBtnEx_textColor
-                                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                                shadowColor: pal.IconBtnEx_shadowColor
+                                paletteGroup: "IconBtnEx"
                                 onClicked: {
                                     var p = videoDisplayLoader.item
                                     if (p) p.position = Math.min(p.duration, p.position + 5000)
@@ -943,39 +864,24 @@ Pane {
                             font.pixelSize: 11
                         }
 
-                        ComboBoxEx {
-                            id: maxOffsetCombo
-                            model: [
-                                { text: "30 秒", value: 30000 },
-                                { text: "1 分钟", value: 60000 },
-                                { text: "5 分钟", value: 300000 },
-                                { text: "10 分钟", value: 600000 },
-                            ]
-                            textRole: "text"
-                            valueRole: "value"
-                            currentIndex: 1
-                            font.pixelSize: 11
-                            implicitWidth: 120
-                            onActivated: {
-                                root.maxOffsetMs = currentValue
+                            ComboBoxEx {
+                                id: maxOffsetCombo
+                                model: [
+                                    { text: "30 秒", value: 30000 },
+                                    { text: "1 分钟", value: 60000 },
+                                    { text: "5 分钟", value: 300000 },
+                                    { text: "10 分钟", value: 600000 },
+                                ]
+                                textRole: "text"
+                                valueRole: "value"
+                                currentIndex: 1
+                                font.pixelSize: 11
+                                implicitWidth: 120
+                                onActivated: {
+                                    root.maxOffsetMs = currentValue
+                                }
+                                paletteGroup: "ComboBoxEx"
                             }
-                            bgColor: pal.ComboBoxEx_bgColor
-                            disabledBgColor: pal.ComboBoxEx_disabledBgColor
-                            textColor: pal.ComboBoxEx_textColor
-                            disabledTextColor: pal.ComboBoxEx_disabledTextColor
-                            borderColor: pal.ComboBoxEx_borderColor
-                            hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
-                            focusBorderColor: pal.ComboBoxEx_focusBorderColor
-                            focusRingColor: pal.ComboBoxEx_focusRingColor
-                            arrowColor: pal.ComboBoxEx_arrowColor
-                            disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
-                            popupBgColor: pal.ComboBoxEx_popupBgColor
-                            popupBorderColor: pal.ComboBoxEx_popupBorderColor
-                            popupShadowColor: pal.ComboBoxEx_popupShadowColor
-                            delegateTextColor: pal.ComboBoxEx_delegateTextColor
-                            delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
-                            delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
-                        }
                     }
 
                     // OffsetValue Text
@@ -1059,10 +965,7 @@ Pane {
                             tooltip: "字幕提前 " + root.stepMs + "ms"
                             Layout.fillWidth: true
                             implicitHeight: 36
-                            normalColor: pal.SubtitleAdjustPage_earlyBtn_normalColor
-                            hoverColor: pal.SubtitleAdjustPage_earlyBtn_hoverColor
-                            borderColor: pal.SubtitleAdjustPage_earlyBtn_borderColor
-                            textColor: pal.SubtitleAdjustPage_earlyBtn_textColor
+                            paletteGroup: "SubtitleAdjustPage_earlyBtn"
                             enabled: hasVideo
                             onClicked: {
                                 if (controller) controller.shiftBackward(root.stepMs)
@@ -1075,10 +978,7 @@ Pane {
                             tooltip: "字幕推迟 " + root.stepMs + "ms"
                             Layout.fillWidth: true
                             implicitHeight: 36
-                            normalColor: pal.SubtitleAdjustPage_delayBtn_normalColor
-                            hoverColor: pal.SubtitleAdjustPage_delayBtn_hoverColor
-                            borderColor: pal.SubtitleAdjustPage_delayBtn_borderColor
-                            textColor: pal.SubtitleAdjustPage_delayBtn_textColor
+                            paletteGroup: "SubtitleAdjustPage_delayBtn"
                             enabled: hasVideo
                             onClicked: {
                                 if (controller) controller.shiftForward(root.stepMs)
@@ -1108,22 +1008,7 @@ Pane {
                                 var steps = [100, 500, 1000, 5000]
                                 root.stepMs = steps[currentIndex]
                             }
-                            bgColor: pal.ComboBoxEx_bgColor
-                            disabledBgColor: pal.ComboBoxEx_disabledBgColor
-                            textColor: pal.ComboBoxEx_textColor
-                            disabledTextColor: pal.ComboBoxEx_disabledTextColor
-                            borderColor: pal.ComboBoxEx_borderColor
-                            hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
-                            focusBorderColor: pal.ComboBoxEx_focusBorderColor
-                            focusRingColor: pal.ComboBoxEx_focusRingColor
-                            arrowColor: pal.ComboBoxEx_arrowColor
-                            disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
-                            popupBgColor: pal.ComboBoxEx_popupBgColor
-                            popupBorderColor: pal.ComboBoxEx_popupBorderColor
-                            popupShadowColor: pal.ComboBoxEx_popupShadowColor
-                            delegateTextColor: pal.ComboBoxEx_delegateTextColor
-                            delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
-                            delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
+                            paletteGroup: "ComboBoxEx"
                         }
                     }
 
@@ -1132,7 +1017,7 @@ Pane {
                         id: overwriteCheckBox
                         Layout.fillWidth: true
                         text: "替换原字幕文件"
-                        textColor: pal.CheckBoxEx_textColor
+                        paletteGroup: "CheckBoxEx"
                         font.pixelSize: 12
                         checked: controller ? settings.overwriteOriginal : false
                         onCheckedChanged: {
@@ -1149,10 +1034,7 @@ Pane {
                             ? "替换原字幕文件（将覆盖原文件）"
                             : "导出为 _adjusted.srt 文件"
                         implicitHeight: 42
-                        normalColor: pal.SubtitleAdjustPage_exportBtn_normalColor
-                        hoverColor: pal.SubtitleAdjustPage_exportBtn_hoverColor
-                        borderColor: pal.SubtitleAdjustPage_exportBtn_borderColor
-                        textColor: pal.SubtitleAdjustPage_exportBtn_textColor
+                        paletteGroup: "SubtitleAdjustPage_exportBtn"
                         enabled: hasVideo && controller && controller.isDirty
                         onClicked: {
                             if (controller) controller.exportSubtitle()

@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QVariantMap>
 #include <QString>
+#include <QColor>
 
 class ThemeManager : public QObject
 {
@@ -17,6 +18,8 @@ public:
     QString currentTheme() const;
 
     Q_INVOKABLE void setTheme(const QString &theme);
+    Q_INVOKABLE QVariantMap groupPalette(const QString &group) const;
+    Q_INVOKABLE QColor groupColor(const QString &group, const QString &prop) const;
 
 signals:
     void paletteChanged();

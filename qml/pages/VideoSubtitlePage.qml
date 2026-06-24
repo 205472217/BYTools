@@ -203,12 +203,9 @@ Pane {
                     id: cancelBtn
                     text: "取消"
                     tooltip: "不返回，继续当前任务"
-                    normalColor: pal.VideoSubtitlePage_cancelBtn_normalColor
-                    hoverColor: pal.VideoSubtitlePage_cancelBtn_hoverColor
-                    borderColor: pal.VideoSubtitlePage_cancelBtn_borderColor
-                    textColor: pal.VideoSubtitlePage_cancelBtn_textColor
                     implicitWidth: 100
                     implicitHeight: 38
+                    paletteGroup: "VideoSubtitlePage_cancelBtn"
                     onClicked: {
                         backConfirmDialog.close();
                     }
@@ -218,12 +215,9 @@ Pane {
                     id: backToHomeBtn
                     text: "返回首页"
                     tooltip: "中断任务并返回首页"
-                    normalColor: pal.VideoSubtitlePage_backToHomeBtn_normalColor
-                    hoverColor: pal.VideoSubtitlePage_backToHomeBtn_hoverColor
-                    borderColor: pal.VideoSubtitlePage_backToHomeBtn_borderColor
-                    textColor: pal.VideoSubtitlePage_backToHomeBtn_textColor
                     implicitWidth: 120
                     implicitHeight: 38
+                    paletteGroup: "VideoSubtitlePage_backToHomeBtn"
                     onClicked: {
                         if (controller) { controller.cancel(); }
                         backConfirmDialog.close();
@@ -248,16 +242,7 @@ Pane {
                 iconSource: "qrc:/icons/arrow-left.svg"
                 implicitHeight: 38
                 tooltip: "返回"
-                normalColor: pal.IconBtnEx_normalColor
-                hoverColor: pal.IconBtnEx_hoverColor
-                pressColor: pal.IconBtnEx_pressColor
-                borderColor: pal.IconBtnEx_borderColor
-                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                disabledColor: pal.IconBtnEx_disabledColor
-                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                textColor: pal.IconBtnEx_textColor
-                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                shadowColor: pal.IconBtnEx_shadowColor
+                paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller && controller.isProcessing) {
                         backConfirmDialog.open();
@@ -295,16 +280,7 @@ Pane {
                 iconSource: "qrc:/icons/settings.svg"
                 implicitHeight: 38
                 tooltip: "设置"
-                normalColor: pal.IconBtnEx_normalColor
-                hoverColor: pal.IconBtnEx_hoverColor
-                pressColor: pal.IconBtnEx_pressColor
-                borderColor: pal.IconBtnEx_borderColor
-                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                disabledColor: pal.IconBtnEx_disabledColor
-                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                textColor: pal.IconBtnEx_textColor
-                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                shadowColor: pal.IconBtnEx_shadowColor
+                paletteGroup: "IconBtnEx"
                 onClicked: root.openSettings()
             }
         }
@@ -344,8 +320,8 @@ Pane {
                         id: singleFileRadio
                         implicitWidth: 100
                         text: "单个视频"
-                        textColor: pal.RadioButtonEx_textColor
                         checked: controller ? settings.inputMode === 0 : true
+                        paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
                             if (checked && controller) {
                                 settings.inputMode = 0;
@@ -358,8 +334,8 @@ Pane {
                         id: batchFolderRadio
                         implicitWidth: 100
                         text: "文件夹批量"
-                        textColor: pal.RadioButtonEx_textColor
                         checked: controller ? settings.inputMode === 1 : false
+                        paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
                             if (checked && controller) {
                                 settings.inputMode = 1;
@@ -372,9 +348,9 @@ Pane {
                         id: recursiveCheck
                         implicitWidth: 110
                         text: "递归子文件夹"
-                        textColor: pal.CheckBoxEx_textColor
                         checked: controller ? settings.recursive : false
                         visible: controller ? settings.inputMode === 1 : false
+                        paletteGroup: "CheckBoxEx"
                         onCheckedChanged: {
                             if (controller)
                                 settings.recursive = checked;
@@ -405,30 +381,13 @@ Pane {
                         text: settings ? settings.inputPath : ""
                         readOnly: true
                         placeholderText: "选择视频文件或文件夹"
-                        bgColor: pal.TextFieldEx_bgColor
-                        textColor: pal.TextFieldEx_textColor
-                        phColor: pal.TextFieldEx_phColor
-                        selColor: pal.TextFieldEx_selColor
-                        selTextColor: pal.TextFieldEx_selTextColor
-                        borderColor: pal.TextFieldEx_borderColor
-                        focusBorderColor: pal.TextFieldEx_focusBorderColor
-                        focusRingColor: pal.TextFieldEx_focusRingColor
-                        cursorColor: pal.TextFieldEx_cursorColor
+                        paletteGroup: "TextFieldEx"
                     }
 
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择文件"
-                        normalColor: pal.IconBtnEx_normalColor
-                        hoverColor: pal.IconBtnEx_hoverColor
-                        pressColor: pal.IconBtnEx_pressColor
-                        borderColor: pal.IconBtnEx_borderColor
-                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                        disabledColor: pal.IconBtnEx_disabledColor
-                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                        textColor: pal.IconBtnEx_textColor
-                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                        shadowColor: pal.IconBtnEx_shadowColor
+                        paletteGroup: "IconBtnEx"
                         onClicked: {
                             if (controller && settings.inputMode === 0) {
                                 inputFileDialog.open();
@@ -465,9 +424,9 @@ Pane {
                             id: stepAudio
                             implicitWidth: 90
                             text: "1. 分离音频"
-                            textColor: pal.CheckBoxEx_textColor
                             checked: controller ? settings.enableAudioExtraction : true
                             opacity: 1.0
+                            paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
                                 if (controller)
                                     settings.enableAudioExtraction = checked;
@@ -483,10 +442,10 @@ Pane {
                             id: stepTranscribe
                             implicitWidth: 160
                             text: "2. 语音识别(音频→SRT)"
-                            textColor: pal.CheckBoxEx_textColor
                             checked: controller ? settings.enableTranscribe : true
                             enabled: stepAudio.checked
                             opacity: 1.0
+                            paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
                                 if (controller)
                                     settings.enableTranscribe = checked;
@@ -506,10 +465,10 @@ Pane {
                             id: stepTranslate
                             implicitWidth: 90
                             text: "3. 翻译字幕"
-                            textColor: pal.CheckBoxEx_textColor
                             checked: controller ? settings.enableTranslate : true
                             enabled: stepAudio.checked && stepTranscribe.checked
                             opacity: 1.0
+                            paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
                                 if (controller)
                                     settings.enableTranslate = checked;
@@ -525,10 +484,10 @@ Pane {
                             id: stepBurn
                             text: "4. 烧录字幕"
                             implicitWidth: 90
-                            textColor: pal.CheckBoxEx_textColor
                             checked: controller ? settings.enableBurnSubtitle : true
                             enabled: stepAudio.checked && stepTranscribe.checked
                             opacity: 1.0
+                            paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
                                 if (controller)
                                     settings.enableBurnSubtitle = checked;
@@ -586,22 +545,7 @@ Pane {
                             var langs = ["auto", "en", "zh", "ja", "ko", "ru"];
                             settings.sourceLanguage = langs[currentIndex];
                         }
-                        bgColor: pal.ComboBoxEx_bgColor
-                        disabledBgColor: pal.ComboBoxEx_disabledBgColor
-                        textColor: pal.ComboBoxEx_textColor
-                        disabledTextColor: pal.ComboBoxEx_disabledTextColor
-                        borderColor: pal.ComboBoxEx_borderColor
-                        hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
-                        focusBorderColor: pal.ComboBoxEx_focusBorderColor
-                        focusRingColor: pal.ComboBoxEx_focusRingColor
-                        arrowColor: pal.ComboBoxEx_arrowColor
-                        disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
-                        popupBgColor: pal.ComboBoxEx_popupBgColor
-                        popupBorderColor: pal.ComboBoxEx_popupBorderColor
-                        popupShadowColor: pal.ComboBoxEx_popupShadowColor
-                        delegateTextColor: pal.ComboBoxEx_delegateTextColor
-                        delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
-                        delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
+                        paletteGroup: "ComboBoxEx"
                     }
 
                     Label {
@@ -631,33 +575,18 @@ Pane {
                             var langs = ["zh", "en", "ja", "ko"];
                             settings.targetLanguage = langs[currentIndex];
                         }
-                        bgColor: pal.ComboBoxEx_bgColor
-                        disabledBgColor: pal.ComboBoxEx_disabledBgColor
-                        textColor: pal.ComboBoxEx_textColor
-                        disabledTextColor: pal.ComboBoxEx_disabledTextColor
-                        borderColor: pal.ComboBoxEx_borderColor
-                        hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
-                        focusBorderColor: pal.ComboBoxEx_focusBorderColor
-                        focusRingColor: pal.ComboBoxEx_focusRingColor
-                        arrowColor: pal.ComboBoxEx_arrowColor
-                        disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
-                        popupBgColor: pal.ComboBoxEx_popupBgColor
-                        popupBorderColor: pal.ComboBoxEx_popupBorderColor
-                        popupShadowColor: pal.ComboBoxEx_popupShadowColor
-                        delegateTextColor: pal.ComboBoxEx_delegateTextColor
-                        delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
-                        delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
+                        paletteGroup: "ComboBoxEx"
                     }
 
                     CheckBoxEx {
                         id: musicCheck
                         implicitWidth: 110
                         text: "背景音乐(翻译+烧录)"
-                        textColor: pal.CheckBoxEx_textColor
                         checked: controller ? settings.translateMusic : false
                         font.pixelSize: 11
                         Layout.fillWidth: true
                         enabled: stepTranslate.checked
+                        paletteGroup: "CheckBoxEx"
                         onCheckedChanged: {
                             if (controller)
                                 settings.translateMusic = checked;
@@ -687,8 +616,8 @@ Pane {
                         id: sameDirRadio
                         implicitWidth: 80
                         text: "同目录"
-                        textColor: pal.RadioButtonEx_textColor
                         checked: controller ? settings.outputMode === 0 : true
+                        paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
                             if (checked && controller)
                                 settings.outputMode = 0;
@@ -699,8 +628,8 @@ Pane {
                         id: specifyDirRadio
                         implicitWidth: 80
                         text: "指定目录"
-                        textColor: pal.RadioButtonEx_textColor
                         checked: controller ? settings.outputMode === 1 : false
+                        paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
                             if (checked && controller)
                                 settings.outputMode = 1;
@@ -713,34 +642,14 @@ Pane {
                         placeholderText: "输出目录"
                         readOnly: true
                         enabled: controller ? settings.outputMode === 1 : false
-                        bgColor: pal.TextFieldEx_bgColor
-                        disabledBgColor: pal.TextFieldEx_disabledBgColor
-                        textColor: pal.TextFieldEx_textColor
-                        disabledTextColor: pal.TextFieldEx_disabledTextColor
-                        phColor: pal.TextFieldEx_phColor
-                        selColor: pal.TextFieldEx_selColor
-                        selTextColor: pal.TextFieldEx_selTextColor
-                        borderColor: pal.TextFieldEx_borderColor
-                        disabledBorderColor: pal.TextFieldEx_disabledBorderColor
-                        focusBorderColor: pal.TextFieldEx_focusBorderColor
-                        focusRingColor: pal.TextFieldEx_focusRingColor
-                        cursorColor: pal.TextFieldEx_cursorColor
+                        paletteGroup: "TextFieldEx"
                     }
 
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择输出目录"
                         enabled: controller ? settings.outputMode === 1 : false
-                        normalColor: pal.IconBtnEx_normalColor
-                        hoverColor: pal.IconBtnEx_hoverColor
-                        pressColor: pal.IconBtnEx_pressColor
-                        borderColor: pal.IconBtnEx_borderColor
-                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                        disabledColor: pal.IconBtnEx_disabledColor
-                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                        textColor: pal.IconBtnEx_textColor
-                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                        shadowColor: pal.IconBtnEx_shadowColor
+                        paletteGroup: "IconBtnEx"
                         onClicked: outputFolderDialog.open()
                     }
 
@@ -815,16 +724,7 @@ Pane {
                         iconSource: "qrc:/icons/trash.svg"
                         tooltip: "清空日志"
                         visible: !controller.isProcessing && logModel.count > 0
-                        normalColor: pal.IconBtnEx_normalColor
-                        hoverColor: pal.IconBtnEx_hoverColor
-                        pressColor: pal.IconBtnEx_pressColor
-                        borderColor: pal.IconBtnEx_borderColor
-                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                        disabledColor: pal.IconBtnEx_disabledColor
-                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                        textColor: pal.IconBtnEx_textColor
-                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                        shadowColor: pal.IconBtnEx_shadowColor
+                        paletteGroup: "IconBtnEx"
                         onClicked: {
                             logModel.clear();
                             elapsedTimer.finalElapsedString = "";
@@ -889,22 +789,7 @@ Pane {
                                 }
                             }
                         }
-                        bgColor: pal.ComboBoxEx_bgColor
-                        disabledBgColor: pal.ComboBoxEx_disabledBgColor
-                        textColor: pal.ComboBoxEx_textColor
-                        disabledTextColor: pal.ComboBoxEx_disabledTextColor
-                        borderColor: pal.ComboBoxEx_borderColor
-                        hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
-                        focusBorderColor: pal.ComboBoxEx_focusBorderColor
-                        focusRingColor: pal.ComboBoxEx_focusRingColor
-                        arrowColor: pal.ComboBoxEx_arrowColor
-                        disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
-                        popupBgColor: pal.ComboBoxEx_popupBgColor
-                        popupBorderColor: pal.ComboBoxEx_popupBorderColor
-                        popupShadowColor: pal.ComboBoxEx_popupShadowColor
-                        delegateTextColor: pal.ComboBoxEx_delegateTextColor
-                        delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
-                        delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
+                        paletteGroup: "ComboBoxEx"
                     }
 
                     Label {

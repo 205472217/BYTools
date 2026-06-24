@@ -233,10 +233,7 @@ Pane {
                     id: cancelBtn
                     text: "取消"
                     tooltip: "不返回，继续当前任务"
-                    normalColor: pal.ImageCropPage_cancelBtn_normalColor
-                    hoverColor: pal.ImageCropPage_cancelBtn_hoverColor
-                    borderColor: pal.ImageCropPage_cancelBtn_borderColor
-                    textColor: pal.ImageCropPage_cancelBtn_textColor
+                    paletteGroup: "ImageCropPage_cancelBtn"
                     implicitWidth: 100
                     implicitHeight: 38
                     onClicked: backConfirmDialog.close()
@@ -246,10 +243,7 @@ Pane {
                     id: goBackBtn
                     text: "返回首页"
                     tooltip: "中断任务并返回首页"
-                    normalColor: pal.ImageCropPage_goBackBtn_normalColor
-                    hoverColor: pal.ImageCropPage_goBackBtn_hoverColor
-                    borderColor: pal.ImageCropPage_goBackBtn_borderColor
-                    textColor: pal.ImageCropPage_goBackBtn_textColor
+                    paletteGroup: "ImageCropPage_goBackBtn"
                     implicitWidth: 120
                     implicitHeight: 38
                     onClicked: {
@@ -276,16 +270,7 @@ Pane {
                 iconSource: "qrc:/icons/arrow-left.svg"
                 implicitHeight: 38
                 tooltip: "返回"
-                normalColor: pal.IconBtnEx_normalColor
-                hoverColor: pal.IconBtnEx_hoverColor
-                pressColor: pal.IconBtnEx_pressColor
-                borderColor: pal.IconBtnEx_borderColor
-                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                disabledColor: pal.IconBtnEx_disabledColor
-                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                textColor: pal.IconBtnEx_textColor
-                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                shadowColor: pal.IconBtnEx_shadowColor
+                paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller && controller.isProcessing) {
                         backConfirmDialog.open();
@@ -348,22 +333,14 @@ Pane {
                     readOnly: true
                     placeholderText: "点击浏览按钮选择图片文件夹"
                     clip: true
-                    bgColor: pal.TextFieldEx_bgColor
-                    textColor: pal.TextFieldEx_textColor
-                    phColor: pal.TextFieldEx_phColor
-                    selColor: pal.TextFieldEx_selColor
-                    selTextColor: pal.TextFieldEx_selTextColor
-                    borderColor: pal.TextFieldEx_borderColor
-                    focusBorderColor: pal.TextFieldEx_focusBorderColor
-                    focusRingColor: pal.TextFieldEx_focusRingColor
-                    cursorColor: pal.TextFieldEx_cursorColor
+                    paletteGroup: "TextFieldEx"
                 }
 
                 CheckBoxEx {
                     id: recursiveCheck
                     implicitWidth: 110
                     text: "递归子文件夹"
-                    textColor: pal.CheckBoxEx_textColor
+                    paletteGroup: "CheckBoxEx"
                     checked: controller ? settings.recursive : false
                     onCheckedChanged: {
                         if (controller)
@@ -374,16 +351,7 @@ Pane {
                 IconButton {
                     iconSource: "qrc:/icons/folder.svg"
                     tooltip: "选择源文件夹"
-                    normalColor: pal.IconBtnEx_normalColor
-                    hoverColor: pal.IconBtnEx_hoverColor
-                    pressColor: pal.IconBtnEx_pressColor
-                    borderColor: pal.IconBtnEx_borderColor
-                    defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                    disabledColor: pal.IconBtnEx_disabledColor
-                    disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                    textColor: pal.IconBtnEx_textColor
-                    disabledTextColor: pal.IconBtnEx_disabledTextColor
-                    shadowColor: pal.IconBtnEx_shadowColor
+                    paletteGroup: "IconBtnEx"
                     onClicked: sourceFolderDialog.open()
                 }
 
@@ -393,9 +361,7 @@ Pane {
                     tooltip: "加载指定路径下的图片资源"
                     implicitWidth: 100
                     implicitHeight: 38
-                    normalColor: pal.ImageCropPage_loadImageBtn_normalColor
-                    hoverColor: pal.ImageCropPage_loadImageBtn_hoverColor
-                    borderColor: pal.ImageCropPage_loadImageBtn_borderColor
+                    paletteGroup: "ImageCropPage_loadImageBtn"
                     onClicked: {
                         if (controller && settings.rootPath.length > 0) {
                             controller.scanImages();
@@ -440,16 +406,7 @@ Pane {
                 iconSource: "qrc:/icons/undo.svg"
                 tooltip: "还原当前图片的裁剪"
                 visible: controller ? controller.canRestoreCurrent : false
-                normalColor: pal.IconBtnEx_normalColor
-                hoverColor: pal.IconBtnEx_hoverColor
-                pressColor: pal.IconBtnEx_pressColor
-                borderColor: pal.IconBtnEx_borderColor
-                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                disabledColor: pal.IconBtnEx_disabledColor
-                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                textColor: pal.IconBtnEx_textColor
-                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                shadowColor: pal.IconBtnEx_shadowColor
+                paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller) {
                         controller.restoreCurrentFile()
@@ -1400,7 +1357,7 @@ Pane {
                                             id: customRatioRadio
                                             implicitWidth: 60
                                             text: "自定义"
-                                            textColor: pal.RadioButtonEx_textColor
+                                            paletteGroup: "RadioButtonEx"
                                             checked: controller ? !settings.usePresetRatio : false
                                             font.pixelSize: 12
                                             onCheckedChanged: {
@@ -1438,18 +1395,7 @@ Pane {
                                                         text = settings.customRatioW.toString();
                                                 }
                                             }
-                                            bgColor: pal.TextFieldEx_bgColor
-                                            disabledBgColor: pal.TextFieldEx_disabledBgColor
-                                            textColor: pal.TextFieldEx_textColor
-                                            disabledTextColor: pal.TextFieldEx_disabledTextColor
-                                            phColor: pal.TextFieldEx_phColor
-                                            selColor: pal.TextFieldEx_selColor
-                                            selTextColor: pal.TextFieldEx_selTextColor
-                                            borderColor: pal.TextFieldEx_borderColor
-                                            disabledBorderColor: pal.TextFieldEx_disabledBorderColor
-                                            focusBorderColor: pal.TextFieldEx_focusBorderColor
-                                            focusRingColor: pal.TextFieldEx_focusRingColor
-                                            cursorColor: pal.TextFieldEx_cursorColor
+                                            paletteGroup: "TextFieldEx"
                                         }
 
                                         Label {
@@ -1487,18 +1433,7 @@ Pane {
                                                         text = settings.customRatioH.toString();
                                                 }
                                             }
-                                            bgColor: pal.TextFieldEx_bgColor
-                                            disabledBgColor: pal.TextFieldEx_disabledBgColor
-                                            textColor: pal.TextFieldEx_textColor
-                                            disabledTextColor: pal.TextFieldEx_disabledTextColor
-                                            phColor: pal.TextFieldEx_phColor
-                                            selColor: pal.TextFieldEx_selColor
-                                            selTextColor: pal.TextFieldEx_selTextColor
-                                            borderColor: pal.TextFieldEx_borderColor
-                                            disabledBorderColor: pal.TextFieldEx_disabledBorderColor
-                                            focusBorderColor: pal.TextFieldEx_focusBorderColor
-                                            focusRingColor: pal.TextFieldEx_focusRingColor
-                                            cursorColor: pal.TextFieldEx_cursorColor
+                                            paletteGroup: "TextFieldEx"
                                         }
 
                                         Item {
@@ -1542,15 +1477,7 @@ Pane {
                                                     text = v.toString();
                                                 }
                                             }
-                                            bgColor: pal.TextFieldEx_bgColor
-                                            textColor: pal.TextFieldEx_textColor
-                                            phColor: pal.TextFieldEx_phColor
-                                            selColor: pal.TextFieldEx_selColor
-                                            selTextColor: pal.TextFieldEx_selTextColor
-                                            borderColor: pal.TextFieldEx_borderColor
-                                            focusBorderColor: pal.TextFieldEx_focusBorderColor
-                                            focusRingColor: pal.TextFieldEx_focusRingColor
-                                            cursorColor: pal.TextFieldEx_cursorColor
+                                            paletteGroup: "TextFieldEx"
                                         }
 
                                         Label {
@@ -1586,15 +1513,7 @@ Pane {
                                                     text = v.toString();
                                                 }
                                             }
-                                            bgColor: pal.TextFieldEx_bgColor
-                                            textColor: pal.TextFieldEx_textColor
-                                            phColor: pal.TextFieldEx_phColor
-                                            selColor: pal.TextFieldEx_selColor
-                                            selTextColor: pal.TextFieldEx_selTextColor
-                                            borderColor: pal.TextFieldEx_borderColor
-                                            focusBorderColor: pal.TextFieldEx_focusBorderColor
-                                            focusRingColor: pal.TextFieldEx_focusRingColor
-                                            cursorColor: pal.TextFieldEx_cursorColor
+                                            paletteGroup: "TextFieldEx"
                                         }
 
                                         Item {
@@ -1655,7 +1574,7 @@ Pane {
                                         id: overwriteRadio
                                         implicitWidth: 120
                                         text: "覆盖源文件"
-                                        textColor: pal.RadioButtonEx_textColor
+                                        paletteGroup: "RadioButtonEx"
                                         checked: controller ? settings.outputMode === 0 : true
                                         font.pixelSize: 12
                                         onCheckedChanged: {
@@ -1668,7 +1587,7 @@ Pane {
                                         id: newDirRadio
                                         implicitWidth: 120
                                         text: "输出到新目录"
-                                        textColor: pal.RadioButtonEx_textColor
+                                        paletteGroup: "RadioButtonEx"
                                         checked: controller ? settings.outputMode === 1 : false
                                         font.pixelSize: 12
                                         onCheckedChanged: {
@@ -1708,30 +1627,13 @@ Pane {
                                                 mouse.accepted = false;
                                             }
                                         }
-                                        bgColor: pal.TextFieldEx_bgColor
-                                        textColor: pal.TextFieldEx_textColor
-                                        phColor: pal.TextFieldEx_phColor
-                                        selColor: pal.TextFieldEx_selColor
-                                        selTextColor: pal.TextFieldEx_selTextColor
-                                        borderColor: pal.TextFieldEx_borderColor
-                                        focusBorderColor: pal.TextFieldEx_focusBorderColor
-                                        focusRingColor: pal.TextFieldEx_focusRingColor
-                                        cursorColor: pal.TextFieldEx_cursorColor
+                                        paletteGroup: "TextFieldEx"
                                     }
 
                                     IconButton {
                                         iconSource: "qrc:/icons/folder.svg"
                                         tooltip: "选择输出目录"
-                                        normalColor: pal.IconBtnEx_normalColor
-                                        hoverColor: pal.IconBtnEx_hoverColor
-                                        pressColor: pal.IconBtnEx_pressColor
-                                        borderColor: pal.IconBtnEx_borderColor
-                                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                                        disabledColor: pal.IconBtnEx_disabledColor
-                                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                                        textColor: pal.IconBtnEx_textColor
-                                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                                        shadowColor: pal.IconBtnEx_shadowColor
+                                        paletteGroup: "IconBtnEx"
                                         onClicked: outputFolderDialog.open()
                                     }
                                 }
@@ -1761,9 +1663,7 @@ Pane {
                             text: "开始处理"
                             iconSource: "qrc:/icons/play.svg"
                             tooltip: "开始裁剪图片"
-                            normalColor: pal.ImageCropPage_execBtn_normalColor
-                            hoverColor: pal.ImageCropPage_execBtn_hoverColor
-                            borderColor: pal.ImageCropPage_execBtn_borderColor
+                            paletteGroup: "ImageCropPage_execBtn"
                             onClicked: {
                                 if (!controller || !root.cropReady)
                                     return;

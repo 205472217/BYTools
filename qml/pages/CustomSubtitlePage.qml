@@ -154,16 +154,7 @@ Pane {
                 iconSource: "qrc:/icons/arrow-left.svg"
                 implicitHeight: 38
                 tooltip: "返回"
-                normalColor: pal.IconBtnEx_normalColor
-                hoverColor: pal.IconBtnEx_hoverColor
-                pressColor: pal.IconBtnEx_pressColor
-                borderColor: pal.IconBtnEx_borderColor
-                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                disabledColor: pal.IconBtnEx_disabledColor
-                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                textColor: pal.IconBtnEx_textColor
-                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                shadowColor: pal.IconBtnEx_shadowColor
+                paletteGroup: "IconBtnEx"
                 onClicked: root.backRequested()
             }
 
@@ -232,31 +223,14 @@ Pane {
                         readOnly: true
                         placeholderText: "字幕文件下载后保存的目录路径"
                         font.pixelSize: 11
-                        bgColor: pal.TextFieldEx_bgColor
-                        textColor: pal.TextFieldEx_textColor
-                        phColor: pal.TextFieldEx_phColor
-                        selColor: pal.TextFieldEx_selColor
-                        selTextColor: pal.TextFieldEx_selTextColor
-                        borderColor: pal.TextFieldEx_borderColor
-                        focusBorderColor: pal.TextFieldEx_focusBorderColor
-                        focusRingColor: pal.TextFieldEx_focusRingColor
-                        cursorColor: pal.TextFieldEx_cursorColor
+                        paletteGroup: "TextFieldEx"
                     }
 
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择下载路径"
                         enabled: !controller || controller.currentStep === controller.stepNone
-                        normalColor: pal.IconBtnEx_normalColor
-                        hoverColor: pal.IconBtnEx_hoverColor
-                        pressColor: pal.IconBtnEx_pressColor
-                        borderColor: pal.IconBtnEx_borderColor
-                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                        disabledColor: pal.IconBtnEx_disabledColor
-                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                        textColor: pal.IconBtnEx_textColor
-                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                        shadowColor: pal.IconBtnEx_shadowColor
+                        paletteGroup: "IconBtnEx"
                         onClicked: subtitleDownloadFolderDialog.open()
                     }
                 }
@@ -281,22 +255,14 @@ Pane {
                         readOnly: true
                         placeholderText: "存放原视频的目录路径"
                         font.pixelSize: 11
-                        bgColor: pal.TextFieldEx_bgColor
-                        textColor: pal.TextFieldEx_textColor
-                        phColor: pal.TextFieldEx_phColor
-                        selColor: pal.TextFieldEx_selColor
-                        selTextColor: pal.TextFieldEx_selTextColor
-                        borderColor: pal.TextFieldEx_borderColor
-                        focusBorderColor: pal.TextFieldEx_focusBorderColor
-                        focusRingColor: pal.TextFieldEx_focusRingColor
-                        cursorColor: pal.TextFieldEx_cursorColor
+                        paletteGroup: "TextFieldEx"
                     }
 
                     CheckBoxEx {
                         id: recursiveCheck
                         implicitWidth: 110
                         text: "递归子文件夹"
-                        textColor: pal.CheckBoxEx_textColor
+                        paletteGroup: "CheckBoxEx"
                         checked: controller ? settings.recursive : false
                         font.pixelSize: 11
                         enabled: !controller || controller.currentStep === controller.stepNone
@@ -310,16 +276,7 @@ Pane {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择视频目录"
                         enabled: !controller || controller.currentStep === controller.stepNone
-                        normalColor: pal.IconBtnEx_normalColor
-                        hoverColor: pal.IconBtnEx_hoverColor
-                        pressColor: pal.IconBtnEx_pressColor
-                        borderColor: pal.IconBtnEx_borderColor
-                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                        disabledColor: pal.IconBtnEx_disabledColor
-                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                        textColor: pal.IconBtnEx_textColor
-                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                        shadowColor: pal.IconBtnEx_shadowColor
+                        paletteGroup: "IconBtnEx"
                         onClicked: videoSourceFolderDialog.open()
                     }
                 }
@@ -344,31 +301,14 @@ Pane {
                         readOnly: true
                         placeholderText: "合成视频+字幕后，文件的输出路径"
                         font.pixelSize: 11
-                        bgColor: pal.TextFieldEx_bgColor
-                        textColor: pal.TextFieldEx_textColor
-                        phColor: pal.TextFieldEx_phColor
-                        selColor: pal.TextFieldEx_selColor
-                        selTextColor: pal.TextFieldEx_selTextColor
-                        borderColor: pal.TextFieldEx_borderColor
-                        focusBorderColor: pal.TextFieldEx_focusBorderColor
-                        focusRingColor: pal.TextFieldEx_focusRingColor
-                        cursorColor: pal.TextFieldEx_cursorColor
+                        paletteGroup: "TextFieldEx"
                     }
 
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择合成输出路径"
                         enabled: !controller || controller.currentStep === controller.stepNone
-                        normalColor: pal.IconBtnEx_normalColor
-                        hoverColor: pal.IconBtnEx_hoverColor
-                        pressColor: pal.IconBtnEx_pressColor
-                        borderColor: pal.IconBtnEx_borderColor
-                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                        disabledColor: pal.IconBtnEx_disabledColor
-                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                        textColor: pal.IconBtnEx_textColor
-                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                        shadowColor: pal.IconBtnEx_shadowColor
+                        paletteGroup: "IconBtnEx"
                         onClicked: mergedOutputFolderDialog.open()
                     }
                 }
@@ -393,15 +333,7 @@ Pane {
                         readOnly: true
                         placeholderText: "选择 ffmpeg.exe 路径（用于合成视频+字幕）"
                         font.pixelSize: 11
-                        bgColor: pal.TextFieldEx_bgColor
-                        textColor: pal.TextFieldEx_textColor
-                        phColor: pal.TextFieldEx_phColor
-                        selColor: pal.TextFieldEx_selColor
-                        selTextColor: pal.TextFieldEx_selTextColor
-                        borderColor: pal.TextFieldEx_borderColor
-                        focusBorderColor: pal.TextFieldEx_focusBorderColor
-                        focusRingColor: pal.TextFieldEx_focusRingColor
-                        cursorColor: pal.TextFieldEx_cursorColor
+                        paletteGroup: "TextFieldEx"
                     }
 
                     Label {
@@ -425,16 +357,7 @@ Pane {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择 ffmpeg.exe"
                         enabled: !controller || controller.currentStep === controller.stepNone
-                        normalColor: pal.IconBtnEx_normalColor
-                        hoverColor: pal.IconBtnEx_hoverColor
-                        pressColor: pal.IconBtnEx_pressColor
-                        borderColor: pal.IconBtnEx_borderColor
-                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                        disabledColor: pal.IconBtnEx_disabledColor
-                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                        textColor: pal.IconBtnEx_textColor
-                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                        shadowColor: pal.IconBtnEx_shadowColor
+                        paletteGroup: "IconBtnEx"
                         onClicked: ffmpegFileDialog.open()
                     }
                 }
@@ -642,22 +565,7 @@ Pane {
                                         if (idx >= 0) currentIndex = idx;
                                     }
                                 }
-                                bgColor: pal.ComboBoxEx_bgColor
-                                disabledBgColor: pal.ComboBoxEx_disabledBgColor
-                                textColor: pal.ComboBoxEx_textColor
-                                disabledTextColor: pal.ComboBoxEx_disabledTextColor
-                                borderColor: pal.ComboBoxEx_borderColor
-                                hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
-                                focusBorderColor: pal.ComboBoxEx_focusBorderColor
-                                focusRingColor: pal.ComboBoxEx_focusRingColor
-                                arrowColor: pal.ComboBoxEx_arrowColor
-                                disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
-                                popupBgColor: pal.ComboBoxEx_popupBgColor
-                                popupBorderColor: pal.ComboBoxEx_popupBorderColor
-                                popupShadowColor: pal.ComboBoxEx_popupShadowColor
-                                delegateTextColor: pal.ComboBoxEx_delegateTextColor
-                                delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
-                                delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
+                                paletteGroup: "ComboBoxEx"
                             }
 
                             // 语言筛选下拉框
@@ -688,22 +596,7 @@ Pane {
                                         }
                                     }
                                 }
-                                bgColor: pal.ComboBoxEx_bgColor
-                                disabledBgColor: pal.ComboBoxEx_disabledBgColor
-                                textColor: pal.ComboBoxEx_textColor
-                                disabledTextColor: pal.ComboBoxEx_disabledTextColor
-                                borderColor: pal.ComboBoxEx_borderColor
-                                hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
-                                focusBorderColor: pal.ComboBoxEx_focusBorderColor
-                                focusRingColor: pal.ComboBoxEx_focusRingColor
-                                arrowColor: pal.ComboBoxEx_arrowColor
-                                disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
-                                popupBgColor: pal.ComboBoxEx_popupBgColor
-                                popupBorderColor: pal.ComboBoxEx_popupBorderColor
-                                popupShadowColor: pal.ComboBoxEx_popupShadowColor
-                                delegateTextColor: pal.ComboBoxEx_delegateTextColor
-                                delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
-                                delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
+                                paletteGroup: "ComboBoxEx"
                             }
 
                             // 关键字输入框
@@ -778,16 +671,7 @@ Pane {
                                 tooltip: "清空记录"
                                 visible: !searchBusyIndicator.visible
                                 enabled: !searchBusyIndicator.visible && searchResultsModel.count > 0 && (!controller || controller.currentStep === controller.stepNone)
-                                normalColor: pal.IconBtnEx_normalColor
-                                hoverColor: pal.IconBtnEx_hoverColor
-                                pressColor: pal.IconBtnEx_pressColor
-                                borderColor: pal.IconBtnEx_borderColor
-                                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                                disabledColor: pal.IconBtnEx_disabledColor
-                                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                                textColor: pal.IconBtnEx_textColor
-                                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                                shadowColor: pal.IconBtnEx_shadowColor
+                                paletteGroup: "IconBtnEx"
                                 onClicked: searchResultsModel.clear()
                             }
                         }
@@ -1027,10 +911,7 @@ Pane {
                                         Layout.preferredWidth: 64
                                         text: "下载"
                                         tooltip: "下载此字幕文件"
-                                        normalColor: pal.CustomSubtitlePage_downloadBtn_normalColor
-                                        hoverColor: pal.CustomSubtitlePage_downloadBtn_hoverColor
-                                        borderColor: pal.CustomSubtitlePage_downloadBtn_borderColor
-                                        textColor: pal.CustomSubtitlePage_downloadBtn_textColor
+                                        paletteGroup: "CustomSubtitlePage_downloadBtn"
                                         enabled: browserCtrl && !browserCtrl.downloading && (!controller || controller.currentStep === controller.stepNone)
                                         onClicked: {
                                             if (browserCtrl) browserCtrl.download(index);
@@ -1134,61 +1015,46 @@ Pane {
                                 Layout.leftMargin: 0
                                 spacing: 5
 
-                                ComboBoxEx {
-                                    id: preprocessCombo
-                                    Layout.fillWidth: true
-                                    font.pixelSize: 11
-                                    model: _preprocessModel
-                                    enabled: !controller || controller.currentStep === controller.stepNone
+                                    ComboBoxEx {
+                                        id: preprocessCombo
+                                        Layout.fillWidth: true
+                                        font.pixelSize: 11
+                                        model: _preprocessModel
+                                        enabled: !controller || controller.currentStep === controller.stepNone
  
-                                    delegate: ItemDelegate {
-                                        width: parent.width
-                                        contentItem: RowLayout {
-                                            spacing: 8
-                                            Label {
-                                                text: model.checked ? "☑" : "☐"
-                                                font.pixelSize: 14
+                                        delegate: ItemDelegate {
+                                            width: parent.width
+                                            contentItem: RowLayout {
+                                                spacing: 8
+                                                Label {
+                                                    text: model.checked ? "☑" : "☐"
+                                                    font.pixelSize: 14
+                                                }
+                                                Label {
+                                                    text: model.label
+                                                    font.pixelSize: 11
+                                                    Layout.fillWidth: true
+                                                }
                                             }
-                                            Label {
-                                                text: model.label
+                                            ToolTip {
+                                                text: model.tooltip
+                                                visible: parent.hovered
+                                                delay: 600
                                                 font.pixelSize: 11
-                                                Layout.fillWidth: true
+                                            }
+                                            onClicked: {
+                                                model.checked = !model.checked;
+                                                _syncPreprocessors();
                                             }
                                         }
-                                        ToolTip {
-                                            text: model.tooltip
-                                            visible: parent.hovered
-                                            delay: 600
-                                            font.pixelSize: 11
-                                        }
-                                        onClicked: {
-                                            model.checked = !model.checked;
-                                            _syncPreprocessors();
-                                        }
-                                    }
 
-                                    displayText: "字幕处理"
+                                        displayText: "字幕处理"
 
-                                    Component.onCompleted: {
-                                        _loadPreprocessors();
+                                        Component.onCompleted: {
+                                            _loadPreprocessors();
+                                        }
+                                        paletteGroup: "ComboBoxEx"
                                     }
-                                    bgColor: pal.ComboBoxEx_bgColor
-                                    disabledBgColor: pal.ComboBoxEx_disabledBgColor
-                                    textColor: pal.ComboBoxEx_textColor
-                                    disabledTextColor: pal.ComboBoxEx_disabledTextColor
-                                    borderColor: pal.ComboBoxEx_borderColor
-                                    hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
-                                    focusBorderColor: pal.ComboBoxEx_focusBorderColor
-                                    focusRingColor: pal.ComboBoxEx_focusRingColor
-                                    arrowColor: pal.ComboBoxEx_arrowColor
-                                    disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
-                                    popupBgColor: pal.ComboBoxEx_popupBgColor
-                                    popupBorderColor: pal.ComboBoxEx_popupBorderColor
-                                    popupShadowColor: pal.ComboBoxEx_popupShadowColor
-                                    delegateTextColor: pal.ComboBoxEx_delegateTextColor
-                                    delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
-                                    delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
-                                }
 
                                 IconButton {
                                     id: step2Btn
@@ -1277,7 +1143,7 @@ Pane {
                                     id: gpuCheckBox
                                     Layout.fillWidth: true
                                     text: "GPU加速"
-                                    textColor: pal.CheckBoxEx_textColor
+                                    paletteGroup: "CheckBoxEx"
                                     checked: controller ? settings.gpuAccel : false
                                     font.pixelSize: 11
                                     visible: !controller || controller.currentStep === controller.stepNone
@@ -1310,33 +1176,16 @@ Pane {
                                         font.pixelSize: 11
                                         Layout.alignment: Qt.AlignVCenter
                                         onActivated: {
-                                            // 选中即生效，无需额外点击按钮
                                             if (controller && controller.isProcessing) {
                                                 var val = currentValue;
                                                 if (typeof val === "number") {
                                                     controller.requestStopAfterCount(val);
                                                 } else {
-                                                    // "全部" → 取消预约停止
                                                     controller.requestStopAfterCount(0);
                                                 }
                                             }
                                         }
-                                        bgColor: pal.ComboBoxEx_bgColor
-                                        disabledBgColor: pal.ComboBoxEx_disabledBgColor
-                                        textColor: pal.ComboBoxEx_textColor
-                                        disabledTextColor: pal.ComboBoxEx_disabledTextColor
-                                        borderColor: pal.ComboBoxEx_borderColor
-                                        hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
-                                        focusBorderColor: pal.ComboBoxEx_focusBorderColor
-                                        focusRingColor: pal.ComboBoxEx_focusRingColor
-                                        arrowColor: pal.ComboBoxEx_arrowColor
-                                        disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
-                                        popupBgColor: pal.ComboBoxEx_popupBgColor
-                                        popupBorderColor: pal.ComboBoxEx_popupBorderColor
-                                        popupShadowColor: pal.ComboBoxEx_popupShadowColor
-                                        delegateTextColor: pal.ComboBoxEx_delegateTextColor
-                                        delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
-                                        delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
+                                        paletteGroup: "ComboBoxEx"
                                     }
 
                                     Label {
@@ -1435,7 +1284,7 @@ Pane {
                                     id: backupCheckBox
                                     Layout.fillWidth: true
                                     text: "备份原文件"
-                                    textColor: pal.CheckBoxEx_textColor
+                                    paletteGroup: "CheckBoxEx"
                                     checked: controller ? settings.backupOriginal : false
                                     font.pixelSize: 11
                                     enabled: !controller || controller.currentStep === controller.stepNone

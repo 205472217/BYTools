@@ -82,10 +82,7 @@ Pane {
                     id: cancelBtn
                     text: "取消"
                     tooltip: "不返回，继续当前任务"
-                    normalColor: pal.NameConverterPage_cancelBtn_normalColor
-                    hoverColor: pal.NameConverterPage_cancelBtn_hoverColor
-                    borderColor: pal.NameConverterPage_cancelBtn_borderColor
-                    textColor: pal.NameConverterPage_cancelBtn_textColor
+                    paletteGroup: "NameConverterPage_cancelBtn"
                     implicitWidth: 100
                     implicitHeight: 38
                     onClicked: backConfirmDialog.close()
@@ -95,10 +92,7 @@ Pane {
                     id: confirmBackBtn
                     text: "返回首页"
                     tooltip: "中断任务并返回首页"
-                    normalColor: pal.NameConverterPage_confirmBackBtn_normalColor
-                    hoverColor: pal.NameConverterPage_confirmBackBtn_hoverColor
-                    borderColor: pal.NameConverterPage_confirmBackBtn_borderColor
-                    textColor: pal.NameConverterPage_confirmBackBtn_textColor
+                    paletteGroup: "NameConverterPage_confirmBackBtn"
                     implicitWidth: 120
                     implicitHeight: 38
                     onClicked: {
@@ -124,16 +118,7 @@ Pane {
                 iconSource: "qrc:/icons/arrow-left.svg"
                 implicitHeight: 38
                 tooltip: "返回"
-                normalColor: pal.IconBtnEx_normalColor
-                hoverColor: pal.IconBtnEx_hoverColor
-                pressColor: pal.IconBtnEx_pressColor
-                borderColor: pal.IconBtnEx_borderColor
-                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                disabledColor: pal.IconBtnEx_disabledColor
-                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                textColor: pal.IconBtnEx_textColor
-                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                shadowColor: pal.IconBtnEx_shadowColor
+                paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller && controller.isProcessing) {
                         backConfirmDialog.open();
@@ -198,22 +183,14 @@ Pane {
                         text: settings ? settings.rootPath : ""
                         readOnly: true
                         placeholderText: "尚未选择"
-                        bgColor: pal.TextFieldEx_bgColor
-                        textColor: pal.TextFieldEx_textColor
-                        phColor: pal.TextFieldEx_phColor
-                        selColor: pal.TextFieldEx_selColor
-                        selTextColor: pal.TextFieldEx_selTextColor
-                        borderColor: pal.TextFieldEx_borderColor
-                        focusBorderColor: pal.TextFieldEx_focusBorderColor
-                        focusRingColor: pal.TextFieldEx_focusRingColor
-                        cursorColor: pal.TextFieldEx_cursorColor
+                        paletteGroup: "TextFieldEx"
                     }
 
                     CheckBoxEx {
                         id: recursiveCheck
                         implicitWidth: 110
                         text: "递归子文件夹"
-                        textColor: pal.CheckBoxEx_textColor
+                        paletteGroup: "CheckBoxEx"
                         checked: settings ? settings.recursive : false
                         onCheckedChanged: {
                             if (settings) {
@@ -225,16 +202,7 @@ Pane {
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择源文件夹"
-                        normalColor: pal.IconBtnEx_normalColor
-                        hoverColor: pal.IconBtnEx_hoverColor
-                        pressColor: pal.IconBtnEx_pressColor
-                        borderColor: pal.IconBtnEx_borderColor
-                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                        disabledColor: pal.IconBtnEx_disabledColor
-                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                        textColor: pal.IconBtnEx_textColor
-                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                        shadowColor: pal.IconBtnEx_shadowColor
+                        paletteGroup: "IconBtnEx"
                         onClicked: folderDialog.open()
                     }
                 }
@@ -262,22 +230,7 @@ Pane {
                                 settings.targetType = currentIndex
                             }
                         }
-                        bgColor: pal.ComboBoxEx_bgColor
-                        disabledBgColor: pal.ComboBoxEx_disabledBgColor
-                        textColor: pal.ComboBoxEx_textColor
-                        disabledTextColor: pal.ComboBoxEx_disabledTextColor
-                        borderColor: pal.ComboBoxEx_borderColor
-                        hoverBorderColor: pal.ComboBoxEx_hoverBorderColor
-                        focusBorderColor: pal.ComboBoxEx_focusBorderColor
-                        focusRingColor: pal.ComboBoxEx_focusRingColor
-                        arrowColor: pal.ComboBoxEx_arrowColor
-                        disabledArrowColor: pal.ComboBoxEx_disabledArrowColor
-                        popupBgColor: pal.ComboBoxEx_popupBgColor
-                        popupBorderColor: pal.ComboBoxEx_popupBorderColor
-                        popupShadowColor: pal.ComboBoxEx_popupShadowColor
-                        delegateTextColor: pal.ComboBoxEx_delegateTextColor
-                        delegateHighlightTextColor: pal.ComboBoxEx_delegateHighlightTextColor
-                        delegateHighlightBgColor: pal.ComboBoxEx_delegateHighlightBgColor
+                        paletteGroup: "ComboBoxEx"
                     }
 
                     Item { Layout.fillWidth: true }
@@ -286,16 +239,7 @@ Pane {
                         iconSource: "qrc:/icons/trash.svg"
                         tooltip: "清空记录"
                         visible: controller ? controller.hasRecords : false
-                        normalColor: pal.IconBtnEx_normalColor
-                        hoverColor: pal.IconBtnEx_hoverColor
-                        pressColor: pal.IconBtnEx_pressColor
-                        borderColor: pal.IconBtnEx_borderColor
-                        defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                        disabledColor: pal.IconBtnEx_disabledColor
-                        disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                        textColor: pal.IconBtnEx_textColor
-                        disabledTextColor: pal.IconBtnEx_disabledTextColor
-                        shadowColor: pal.IconBtnEx_shadowColor
+                        paletteGroup: "IconBtnEx"
                         onClicked: {
                             if (controller) {
                                 controller.clearRecords()
@@ -309,9 +253,7 @@ Pane {
                         text: "开始处理"
                         iconSource: "qrc:/icons/play.svg"
                         tooltip: "开始文本繁简转换"
-                        normalColor: pal.NameConverterPage_executeBtn_normalColor
-                        hoverColor: pal.NameConverterPage_executeBtn_hoverColor
-                        borderColor: pal.NameConverterPage_executeBtn_borderColor
+                        paletteGroup: "NameConverterPage_executeBtn"
                         onClicked: {
                             if (controller) {
                                 controller.executeRename()
@@ -356,16 +298,7 @@ Pane {
                 iconSource: "qrc:/icons/undo.svg"
                 tooltip: "批量还原"
                 visible: controller ? controller.hasRecords : false
-                normalColor: pal.IconBtnEx_normalColor
-                hoverColor: pal.IconBtnEx_hoverColor
-                pressColor: pal.IconBtnEx_pressColor
-                borderColor: pal.IconBtnEx_borderColor
-                defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                disabledColor: pal.IconBtnEx_disabledColor
-                disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                textColor: pal.IconBtnEx_textColor
-                disabledTextColor: pal.IconBtnEx_disabledTextColor
-                shadowColor: pal.IconBtnEx_shadowColor
+                paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller) {
                         controller.restoreAllRecords()
@@ -569,16 +502,7 @@ Pane {
                             iconSource: "qrc:/icons/undo.svg"
                             tooltip: status.indexOf("失败") === 0 ? "失败项无法还原" : "还原"
                             enabled: status === "已转换"
-                            normalColor: pal.IconBtnEx_normalColor
-                            hoverColor: pal.IconBtnEx_hoverColor
-                            pressColor: pal.IconBtnEx_pressColor
-                            borderColor: pal.IconBtnEx_borderColor
-                            defaultBorderColor: pal.IconBtnEx_defaultBorderColor
-                            disabledColor: pal.IconBtnEx_disabledColor
-                            disabledBorderColor: pal.IconBtnEx_disabledBorderColor
-                            textColor: pal.IconBtnEx_textColor
-                            disabledTextColor: pal.IconBtnEx_disabledTextColor
-                            shadowColor: pal.IconBtnEx_shadowColor
+                            paletteGroup: "IconBtnEx"
                             onClicked: {
                                 if (controller) {
                                     controller.restoreRecord(index)

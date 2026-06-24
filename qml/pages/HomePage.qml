@@ -152,7 +152,7 @@ Pane {
                 id: showAllRadio
                 implicitWidth: 80
                 text: "全部插件"
-                textColor: pal.RadioButtonEx_textColor
+                paletteGroup: "RadioButtonEx"
                 checked: true
                 onCheckedChanged: { if (checked) root.showAll = true; }
             }
@@ -161,7 +161,7 @@ Pane {
                 id: categoryRadio
                 implicitWidth: 80
                 text: "分类显示"
-                textColor: pal.RadioButtonEx_textColor
+                paletteGroup: "RadioButtonEx"
                 onCheckedChanged: { if (checked) root.showAll = false; }
             }
         }
@@ -199,23 +199,7 @@ Pane {
                         titleText: modelData.name
                         descriptionText: modelData.description
                         iconSource: "qrc:/icons/card-" + modelData.id + ".svg"
-                        bgColor: pal.FeatureCard_bgColor
-                        hoverBgColor: pal.FeatureCard_hoverBgColor
-                        borderColor: pal.FeatureCard_borderColor
-                        hoverBorderColor: pal.FeatureCard_hoverBorderColor
-                        accentColor: pal.FeatureCard_accentColor
-                        hoverAccentColor: pal.FeatureCard_hoverAccentColor
-                        shadowColor: pal.FeatureCard_shadowColor
-                        iconGradientStart: pal.FeatureCard_iconGradientStart
-                        iconGradientEnd: pal.FeatureCard_iconGradientEnd
-                        hoverIconGradientStart: pal.FeatureCard_hoverIconGradientStart
-                        hoverIconGradientEnd: pal.FeatureCard_hoverIconGradientEnd
-                        iconTextColor: pal.FeatureCard_iconTextColor
-                        titleColor: pal.FeatureCard_titleColor
-                        hoverTitleColor: pal.FeatureCard_hoverTitleColor
-                        descriptionColor: pal.FeatureCard_descriptionColor
-                        arrowColor: pal.FeatureCard_arrowColor
-                        hoverArrowColor: pal.FeatureCard_hoverArrowColor
+                        paletteGroup: "FeatureCard"
                         onClicked: root.openFeature(modelData.id)
                     }
                 }
@@ -303,23 +287,7 @@ Pane {
                             titleText: modelData.name
                             descriptionText: modelData.description
                             iconSource: "qrc:/icons/card-" + modelData.id + ".svg"
-                            bgColor: pal.FeatureCard_bgColor
-                            hoverBgColor: pal.FeatureCard_hoverBgColor
-                            borderColor: pal.FeatureCard_borderColor
-                            hoverBorderColor: pal.FeatureCard_hoverBorderColor
-                            accentColor: pal.FeatureCard_accentColor
-                            hoverAccentColor: pal.FeatureCard_hoverAccentColor
-                            shadowColor: pal.FeatureCard_shadowColor
-                            iconGradientStart: pal.FeatureCard_iconGradientStart
-                            iconGradientEnd: pal.FeatureCard_iconGradientEnd
-                            hoverIconGradientStart: pal.FeatureCard_hoverIconGradientStart
-                            hoverIconGradientEnd: pal.FeatureCard_hoverIconGradientEnd
-                            iconTextColor: pal.FeatureCard_iconTextColor
-                            titleColor: pal.FeatureCard_titleColor
-                            hoverTitleColor: pal.FeatureCard_hoverTitleColor
-                            descriptionColor: pal.FeatureCard_descriptionColor
-                            arrowColor: pal.FeatureCard_arrowColor
-                            hoverArrowColor: pal.FeatureCard_hoverArrowColor
+                            paletteGroup: "FeatureCard"
                             onClicked: root.openFeature(modelData.id)
                         }
                     }

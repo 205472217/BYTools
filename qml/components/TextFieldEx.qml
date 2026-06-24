@@ -5,6 +5,8 @@ import QtQuick.Controls
 TextField {
     id: root
 
+    // ── 主题支持 ──
+    property string paletteGroup: ""
     property color bgColor: "#ffffff"
     property color disabledBgColor: "#f8fafc"
     property color textColor: "#1e293b"
@@ -18,13 +20,39 @@ TextField {
     property color focusRingColor: "#3b82f6"
     property color cursorColor: "#3b82f6"
 
+    readonly property var _p: themeManager.palette
+    readonly property color _bgColor:
+        paletteGroup ? (_p[paletteGroup + "_bgColor"] || bgColor) : bgColor
+    readonly property color _disabledBgColor:
+        paletteGroup ? (_p[paletteGroup + "_disabledBgColor"] || disabledBgColor) : disabledBgColor
+    readonly property color _textColor:
+        paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
+    readonly property color _disabledTextColor:
+        paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || disabledTextColor) : disabledTextColor
+    readonly property color _phColor:
+        paletteGroup ? (_p[paletteGroup + "_phColor"] || phColor) : phColor
+    readonly property color _selColor:
+        paletteGroup ? (_p[paletteGroup + "_selColor"] || selColor) : selColor
+    readonly property color _selTextColor:
+        paletteGroup ? (_p[paletteGroup + "_selTextColor"] || selTextColor) : selTextColor
+    readonly property color _borderColor:
+        paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
+    readonly property color _disabledBorderColor:
+        paletteGroup ? (_p[paletteGroup + "_disabledBorderColor"] || disabledBorderColor) : disabledBorderColor
+    readonly property color _focusBorderColor:
+        paletteGroup ? (_p[paletteGroup + "_focusBorderColor"] || focusBorderColor) : focusBorderColor
+    readonly property color _focusRingColor:
+        paletteGroup ? (_p[paletteGroup + "_focusRingColor"] || focusRingColor) : focusRingColor
+    readonly property color _cursorColor:
+        paletteGroup ? (_p[paletteGroup + "_cursorColor"] || cursorColor) : cursorColor
+
     implicitWidth: 76
     implicitHeight: 26
 
-    color: enabled ? root.textColor : root.disabledTextColor
-    selectionColor: root.selColor
-    selectedTextColor: root.selTextColor
-    placeholderTextColor: root.phColor
+    color: enabled ? root._textColor : root._disabledTextColor
+    selectionColor: root._selColor
+    selectedTextColor: root._selTextColor
+    placeholderTextColor: root._phColor
     font.pixelSize: 13
     verticalAlignment: Text.AlignVCenter
     leftPadding: 12
@@ -34,10 +62,10 @@ TextField {
 
     background: Rectangle {
         radius: 6
-        color: root.enabled ? root.bgColor : root.disabledBgColor
+        color: root.enabled ? root._bgColor : root._disabledBgColor
         border.width: root.activeFocus ? 1.5 : 1
-        border.color: root.activeFocus ? root.focusBorderColor :
-                      root.enabled ? root.borderColor : root.disabledBorderColor
+        border.color: root.activeFocus ? root._focusBorderColor :
+                      root.enabled ? root._borderColor : root._disabledBorderColor
 
         Rectangle {
             anchors.fill: parent
@@ -51,7 +79,7 @@ TextField {
                 anchors.fill: parent
                 anchors.margins: -2
                 radius: 10
-                color: root.focusRingColor
+                color: root._focusRingColor
                 opacity: 0.08
             }
         }
@@ -61,7 +89,7 @@ TextField {
 
     cursorDelegate: Rectangle {
         width: 1.5
-        color: root.cursorColor
+        color: root._cursorColor
         visible: root.activeFocus
     }
 }

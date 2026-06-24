@@ -76,3 +76,18 @@ void ThemeManager::loadPalette()
     m_palette = palette;
     emit paletteChanged();
 }
+
+QVariantMap ThemeManager::groupPalette(const QString &group) const
+{
+    QVariantMap result;
+    QString prefix = group + "_";
+    for (auto it = m_palette.begin(); it != m_palette.end(); ++it)
+        if (it.key().startsWith(prefix))
+            result[it.key().mid(prefix.length())] = it.value();
+    return result;
+}
+
+QColor ThemeManager::groupColor(const QString &group, const QString &prop) const
+{
+    return m_palette.value(group + "_" + prop).value<QColor>();
+}
