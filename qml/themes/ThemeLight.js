@@ -103,10 +103,13 @@ var palette = {
     SurfaceEx_progressFill: "#2563eb",
     SurfaceEx_overlay: "#A6000000",
     SurfaceEx_pageIndicator: "#73000000",
+    // ── Status Badge ──────────────────────────────────────────
+    StatusBadgeEx_bg_success: "#dbeafe",
+    StatusBadgeEx_bg_error: "#fef2f2",
+    StatusBadgeEx_bg_idle: "#f1f5f9",
 
     // ═════════════════════════════
     //  类别8: 页面独有控件 (Page-specific)
-    // ═════════════════════════════
     // ── HomePage ────────────────────────────────────────────
     HomePage_themeTabLabel_color_active: "#ffffff",
     HomePage_themeTabLabel_color_normal: "#627086",
@@ -115,6 +118,23 @@ var palette = {
     HomePage_categoryTabLabel_color_normal: "#627086",
     HomePage_categoryTabBg_color_active: "#3b82f6",
     HomePage_categoryTabBg_color_hover: "#f0f4ff",
+    FeatureCard_bgColor: "#fafbfc",
+    FeatureCard_hoverBgColor: "#ffffff",
+    FeatureCard_borderColor: "#e5e9f0",
+    FeatureCard_hoverBorderColor: "#3b82f6",
+    FeatureCard_accentColor: "#c7d2e0",
+    FeatureCard_hoverAccentColor: "#3b82f6",
+    FeatureCard_shadowColor: "#0d1b2a",
+    FeatureCard_iconGradientStart: "#6366f1",
+    FeatureCard_iconGradientEnd: "#8b5cf6",
+    FeatureCard_hoverIconGradientStart: "#3b82f6",
+    FeatureCard_hoverIconGradientEnd: "#2563eb",
+    FeatureCard_iconTextColor: "#ffffff",
+    FeatureCard_titleColor: "#172033",
+    FeatureCard_hoverTitleColor: "#1e40af",
+    FeatureCard_descriptionColor: "#627086",
+    FeatureCard_arrowColor: "#c7d2e0",
+    FeatureCard_hoverArrowColor: "#3b82f6",
 
     // ── BatchRenamePage ─────────────────────────────────────
     BatchRenamePage_advancedLabel_color: "#475569",
@@ -349,9 +369,4 @@ var palette = {
     SubtitleAdjustPage_exportBtn_hoverColor: "#1d4ed8",
     SubtitleAdjustPage_exportBtn_borderColor: "#1d4ed8",
     SubtitleAdjustPage_exportBtn_textColor: "#ffffff",
-
-    // ── Status Badge ──────────────────────────────────────────
-    StatusBadgeEx_bg_success: "#dbeafe",
-    StatusBadgeEx_bg_error: "#fef2f2",
-    StatusBadgeEx_bg_idle: "#f1f5f9",
 }

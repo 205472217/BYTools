@@ -103,10 +103,13 @@ var palette = {
     SurfaceEx_progressFill: "#60a5fa",
     SurfaceEx_overlay: "#80000000",
     SurfaceEx_pageIndicator: "#B3000000",
+    // ── Status Badge ──────────────────────────────────────────
+    StatusBadgeEx_bg_success: "#1e3a5f",
+    StatusBadgeEx_bg_error: "#3b1a1a",
+    StatusBadgeEx_bg_idle: "#2a2d36",
 
     // ═════════════════════════════
     //  类别8: 页面独有控件 (Page-specific)
-
     // ── HomePage ────────────────────────────────────────────
     HomePage_themeTabLabel_color_active: "#ffffff",
     HomePage_themeTabLabel_color_normal: "#94a3b8",
@@ -115,6 +118,23 @@ var palette = {
     HomePage_categoryTabLabel_color_normal: "#94a3b8",
     HomePage_categoryTabBg_color_active: "#60a5fa",
     HomePage_categoryTabBg_color_hover: "#31353e",
+    FeatureCard_bgColor: "#1a1d23",
+    FeatureCard_hoverBgColor: "#1e2028",
+    FeatureCard_borderColor: "#2a2d36",
+    FeatureCard_hoverBorderColor: "#60a5fa",
+    FeatureCard_accentColor: "#2a2d36",
+    FeatureCard_hoverAccentColor: "#60a5fa",
+    FeatureCard_shadowColor: "#000000",
+    FeatureCard_iconGradientStart: "#3b82f6",
+    FeatureCard_iconGradientEnd: "#6366f1",
+    FeatureCard_hoverIconGradientStart: "#2563eb",
+    FeatureCard_hoverIconGradientEnd: "#4f46e5",
+    FeatureCard_iconTextColor: "#ffffff",
+    FeatureCard_titleColor: "#ffffff",
+    FeatureCard_hoverTitleColor: "#60a5fa",
+    FeatureCard_descriptionColor: "#94a3b8",
+    FeatureCard_arrowColor: "#4a4d56",
+    FeatureCard_hoverArrowColor: "#60a5fa",
 
     // ── BatchRenamePage ─────────────────────────────────────
     BatchRenamePage_advancedLabel_color: "#94a3b8",
@@ -349,9 +369,4 @@ var palette = {
     SubtitleAdjustPage_exportBtn_hoverColor: "#2563eb",
     SubtitleAdjustPage_exportBtn_borderColor: "#2563eb",
     SubtitleAdjustPage_exportBtn_textColor: "#ffffff",
- 
-    // ── Status Badge ──────────────────────────────────────────
-    StatusBadgeEx_bg_success: "#1e3a5f",
-    StatusBadgeEx_bg_error: "#3b1a1a",
-    StatusBadgeEx_bg_idle: "#2a2d36",
 }
