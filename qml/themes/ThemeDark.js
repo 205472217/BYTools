@@ -151,17 +151,17 @@ var palette = {
     BatchRenamePage_executeBtn_borderColor: "#2563eb",
 
     // ── NameConverterPage ───────────────────────────────────
-    NameConverter_cancelBtn_normalColor: "#383b44",
-    NameConverter_cancelBtn_hoverColor: "#4a4d56",
-    NameConverter_cancelBtn_borderColor: "#4a4d56",
-    NameConverter_cancelBtn_textColor: "#cbd5e1",
-    NameConverter_confirmBackBtn_normalColor: "#f87171",
-    NameConverter_confirmBackBtn_hoverColor: "#ef4444",
-    NameConverter_confirmBackBtn_borderColor: "#ef4444",
-    NameConverter_confirmBackBtn_textColor: "#ffffff",
-    NameConverter_executeBtn_normalColor: "#60a5fa",
-    NameConverter_executeBtn_hoverColor: "#2563eb",
-    NameConverter_executeBtn_borderColor: "#2563eb",
+    NameConverterPage_cancelBtn_normalColor: "#383b44",
+    NameConverterPage_cancelBtn_hoverColor: "#4a4d56",
+    NameConverterPage_cancelBtn_borderColor: "#4a4d56",
+    NameConverterPage_cancelBtn_textColor: "#cbd5e1",
+    NameConverterPage_confirmBackBtn_normalColor: "#f87171",
+    NameConverterPage_confirmBackBtn_hoverColor: "#ef4444",
+    NameConverterPage_confirmBackBtn_borderColor: "#ef4444",
+    NameConverterPage_confirmBackBtn_textColor: "#ffffff",
+    NameConverterPage_executeBtn_normalColor: "#60a5fa",
+    NameConverterPage_executeBtn_hoverColor: "#2563eb",
+    NameConverterPage_executeBtn_borderColor: "#2563eb",
 
     // ── ImageConverterPage ──────────────────────────────────
     ImageConverterPage_colorDialog_defaultColor: "#ffffff",

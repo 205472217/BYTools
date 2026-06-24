@@ -82,10 +82,10 @@ Pane {
                     id: cancelBtn
                     text: "取消"
                     tooltip: "不返回，继续当前任务"
-                    normalColor: pal.NameConverter_cancelBtn_normalColor
-                    hoverColor: pal.NameConverter_cancelBtn_hoverColor
-                    borderColor: pal.NameConverter_cancelBtn_borderColor
-                    textColor: pal.NameConverter_cancelBtn_textColor
+                    normalColor: pal.NameConverterPage_cancelBtn_normalColor
+                    hoverColor: pal.NameConverterPage_cancelBtn_hoverColor
+                    borderColor: pal.NameConverterPage_cancelBtn_borderColor
+                    textColor: pal.NameConverterPage_cancelBtn_textColor
                     implicitWidth: 100
                     implicitHeight: 38
                     onClicked: backConfirmDialog.close()
@@ -95,10 +95,10 @@ Pane {
                     id: confirmBackBtn
                     text: "返回首页"
                     tooltip: "中断任务并返回首页"
-                    normalColor: pal.NameConverter_confirmBackBtn_normalColor
-                    hoverColor: pal.NameConverter_confirmBackBtn_hoverColor
-                    borderColor: pal.NameConverter_confirmBackBtn_borderColor
-                    textColor: pal.NameConverter_confirmBackBtn_textColor
+                    normalColor: pal.NameConverterPage_confirmBackBtn_normalColor
+                    hoverColor: pal.NameConverterPage_confirmBackBtn_hoverColor
+                    borderColor: pal.NameConverterPage_confirmBackBtn_borderColor
+                    textColor: pal.NameConverterPage_confirmBackBtn_textColor
                     implicitWidth: 120
                     implicitHeight: 38
                     onClicked: {
@@ -309,9 +309,9 @@ Pane {
                         text: "开始处理"
                         iconSource: "qrc:/icons/play.svg"
                         tooltip: "开始文本繁简转换"
-                        normalColor: pal.NameConverter_executeBtn_normalColor
-                        hoverColor: pal.NameConverter_executeBtn_hoverColor
-                        borderColor: pal.NameConverter_executeBtn_borderColor
+                        normalColor: pal.NameConverterPage_executeBtn_normalColor
+                        hoverColor: pal.NameConverterPage_executeBtn_hoverColor
+                        borderColor: pal.NameConverterPage_executeBtn_borderColor
                         onClicked: {
                             if (controller) {
                                 controller.executeRename()
