@@ -56,7 +56,7 @@ var palette = {
     IconBtnEx_defaultBorderColor: "#e2e8f0",
     IconBtnEx_disabledColor: "#f1f5f9",
     IconBtnEx_disabledBorderColor: "#e2e8f0",
-    IconBtnEx_textColor: "#ffffff",
+    IconBtnEx_textColor: "#475569",
     IconBtnEx_disabledTextColor: "#94a3b8",
     IconBtnEx_shadowColor: "#1e3a5f",
     IconBtnEx_overlayBgColor: "#80FFFFFF",

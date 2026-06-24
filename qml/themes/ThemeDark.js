@@ -49,10 +49,10 @@ var palette = {
     // ═════════════════════════════
     //  类别5: 按钮-通用功能类
     // ═════════════════════════════
-    IconBtnEx_normalColor: "#2a2d36",
-    IconBtnEx_hoverColor: "#323540",
-    IconBtnEx_pressColor: "#383b44",
-    IconBtnEx_borderColor: "#323540",
+    IconBtnEx_normalColor: "#1e2028",
+    IconBtnEx_hoverColor: "#2a2d36",
+    IconBtnEx_pressColor: "#323540",
+    IconBtnEx_borderColor: "#2a2d36",
     IconBtnEx_defaultBorderColor: "#323540",
     IconBtnEx_disabledColor: "#1e2028",
     IconBtnEx_disabledBorderColor: "#232630",

@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import Qt5Compat.GraphicalEffects
 
 Item {
     id: root
@@ -70,6 +71,12 @@ Item {
             visible: root.iconSource.length > 0
             anchors.verticalCenter: parent.verticalCenter
             opacity: root.enabled ? 1.0 : 0.4
+            layer.enabled: true
+            layer.samplerName: "source"
+            layer.effect: ColorOverlay {
+                color: root.enabled ? root.textColor : root.disabledTextColor
+                cached: true
+            }
         }
 
         Label {
