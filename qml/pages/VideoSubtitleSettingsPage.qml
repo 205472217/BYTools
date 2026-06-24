@@ -67,7 +67,7 @@ Pane {
 
     ColorDialog {
         id: fontColorDialog
-        selectedColor: settings ? settings.defaultFontColor : "#ffffff"
+        selectedColor: settings ? settings.defaultFontColor : pal.SurfaceEx_defaultFontColor
         onAccepted: {
             if (settings)
                 settings.defaultFontColor = selectedColor.toString();
@@ -76,7 +76,7 @@ Pane {
 
     ColorDialog {
         id: borderColorDialog
-        selectedColor: settings ? settings.defaultBorderColor : "#000000"
+        selectedColor: settings ? settings.defaultBorderColor : pal.SurfaceEx_defaultBorderColor
         onAccepted: {
             if (settings)
                 settings.defaultBorderColor = selectedColor.toString();
@@ -127,8 +127,6 @@ Pane {
 
             IconButton {
                 id: saveBtn
-                implicitWidth: 120
-                implicitHeight: 38
                 text: "保存设置"
                 paletteGroup: "VideoSubtitleSettingsPage_saveBtn"
                 onClicked: {
@@ -949,16 +947,16 @@ Pane {
                                 settings.subtitleStyle = currentIndex;
                                 if (currentIndex === 0) {
                                     // 白色样式：白字黑边
-                                    settings.defaultFontColor = "#FFFFFF";
-                                    settings.defaultBorderColor = "#000000";
+                                    settings.defaultFontColor = pal.SurfaceEx_subtitlePresetFontColor1;
+                                    settings.defaultBorderColor = pal.SurfaceEx_subtitlePresetBorderColor1;
                                 } else if (currentIndex === 1) {
                                     // 蓝色样式：蓝字白边
-                                    settings.defaultFontColor = "#2196F3";
-                                    settings.defaultBorderColor = "#FFFFFF";
+                                    settings.defaultFontColor = pal.SurfaceEx_subtitlePresetFontColor2;
+                                    settings.defaultBorderColor = pal.SurfaceEx_subtitlePresetBorderColor2;
                                 } else if (currentIndex === 2) {
                                     // 红色样式：红字白边
-                                    settings.defaultFontColor = "#F44336";
-                                    settings.defaultBorderColor = "#FFFFFF";
+                                    settings.defaultFontColor = pal.SurfaceEx_subtitlePresetFontColor3;
+                                    settings.defaultBorderColor = pal.SurfaceEx_subtitlePresetBorderColor3;
                                 }
                             }
                             paletteGroup: "ComboBoxEx"
@@ -1183,8 +1181,6 @@ Pane {
                             hoverColor: allKept ? pal.VideoSubtitleSettingsPage_keepToggleBtn_hoverColor_active : pal.VideoSubtitleSettingsPage_keepToggleBtn_hoverColor_normal
                             borderColor: pal.VideoSubtitleSettingsPage_keepToggleBtn_borderColor
                             textColor: allKept ? pal.VideoSubtitleSettingsPage_keepToggleBtn_textColor_active : pal.VideoSubtitleSettingsPage_keepToggleBtn_textColor_normal
-                            implicitWidth: 100
-                            implicitHeight: 32
                             onClicked: {
                                 if (settings) {
                                     var newVal = !allKept;

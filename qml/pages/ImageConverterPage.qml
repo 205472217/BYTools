@@ -390,13 +390,13 @@ Pane {
                         color: pal.ImageConverterPage_whiteSwatch_color
                         opacity: controller && settings.targetFormat === 1 ? 1 : 0
                         enabled: controller && settings.targetFormat === 1
-                        border.width: controller && settings.bgColor === "#ffffff" ? 2 : 1
-                        border.color: controller && settings.bgColor === "#ffffff" ? pal.ImageConverterPage_whiteSwatch_borderColor_active : pal.ImageConverterPage_whiteSwatch_borderColor_normal
+                        border.width: controller && settings.bgColor === pal.ImageConverterPage_whiteSwatch_color ? 2 : 1
+                        border.color: controller && settings.bgColor === pal.ImageConverterPage_whiteSwatch_color ? pal.ImageConverterPage_whiteSwatch_borderColor_active : pal.ImageConverterPage_whiteSwatch_borderColor_normal
 
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: { if (controller) settings.bgColor = "#ffffff" }
+                            onClicked: { if (controller) settings.bgColor = pal.ImageConverterPage_whiteSwatch_color }
                         }
                     }
 
@@ -408,13 +408,13 @@ Pane {
                         color: pal.ImageConverterPage_blackSwatch_color
                         opacity: controller && settings.targetFormat === 1 ? 1 : 0
                         enabled: controller && settings.targetFormat === 1
-                        border.width: controller && settings.bgColor === "#000000" ? 2 : 1
-                        border.color: controller && settings.bgColor === "#000000" ? pal.ImageConverterPage_blackSwatch_borderColor_active : pal.ImageConverterPage_blackSwatch_borderColor_normal
+                        border.width: controller && settings.bgColor === pal.ImageConverterPage_blackSwatch_color ? 2 : 1
+                        border.color: controller && settings.bgColor === pal.ImageConverterPage_blackSwatch_color ? pal.ImageConverterPage_blackSwatch_borderColor_active : pal.ImageConverterPage_blackSwatch_borderColor_normal
 
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: { if (controller) settings.bgColor = "#000000" }
+                            onClicked: { if (controller) settings.bgColor = pal.ImageConverterPage_blackSwatch_color }
                         }
                     }
 
@@ -423,17 +423,17 @@ Pane {
                         width: 42
                         height: 28
                         radius: 6
-                        color: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? settings.bgColor : pal.ImageConverterPage_customSwatch_color
+                        color: (controller && settings.bgColor !== pal.ImageConverterPage_whiteSwatch_color && settings.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? settings.bgColor : pal.ImageConverterPage_customSwatch_color
                         opacity: controller && settings.targetFormat === 1 ? 1 : 0
                         enabled: controller && settings.targetFormat === 1
-                        border.width: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? 2 : 1
-                        border.color: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? pal.ImageConverterPage_customSwatch_borderColor_active : pal.ImageConverterPage_customSwatch_borderColor_normal
+                        border.width: (controller && settings.bgColor !== pal.ImageConverterPage_whiteSwatch_color && settings.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? 2 : 1
+                        border.color: (controller && settings.bgColor !== pal.ImageConverterPage_whiteSwatch_color && settings.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? pal.ImageConverterPage_customSwatch_borderColor_active : pal.ImageConverterPage_customSwatch_borderColor_normal
 
                         Label {
                             id: customSwatchLabel
                             anchors.centerIn: parent
                             text: "自定义"
-                            color: (controller && settings.bgColor !== "#ffffff" && settings.bgColor !== "#000000") ? pal.ImageConverterPage_customSwatch_textColor_active : pal.ImageConverterPage_customSwatch_textColor_normal
+                            color: (controller && settings.bgColor !== pal.ImageConverterPage_whiteSwatch_color && settings.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? pal.ImageConverterPage_customSwatch_textColor_active : pal.ImageConverterPage_customSwatch_textColor_normal
                             font.pixelSize: 9
                         }
 
@@ -490,7 +490,7 @@ Pane {
                             && !customRatioEditing
                             && Math.abs(settings.resizeRatio - 0.5) < 0.001
                         border.width: _active ? 2 : 1
-                        border.color: _active ? "#2563eb" : "#e2e8f0"
+                        border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
                         Label {
                             anchors.centerIn: parent
@@ -525,7 +525,7 @@ Pane {
                             && !customRatioEditing
                             && Math.abs(settings.resizeRatio - 1.5) < 0.001
                         border.width: _active ? 2 : 1
-                        border.color: _active ? "#2563eb" : "#e2e8f0"
+                        border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
                         Label {
                             anchors.centerIn: parent
@@ -560,7 +560,7 @@ Pane {
                             && !customRatioEditing
                             && Math.abs(settings.resizeRatio - 2.0) < 0.001
                         border.width: _active ? 2 : 1
-                        border.color: _active ? "#2563eb" : "#e2e8f0"
+                        border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
                         Label {
                             anchors.centerIn: parent
@@ -595,7 +595,7 @@ Pane {
                             && !customRatioEditing
                             && Math.abs(settings.resizeRatio - 4.0) < 0.001
                         border.width: _active ? 2 : 1
-                        border.color: _active ? "#2563eb" : "#e2e8f0"
+                        border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
                         Label {
                             anchors.centerIn: parent
@@ -622,6 +622,7 @@ Pane {
                         id: customRatioEdit
                         Layout.preferredWidth: 80
                         placeholderText: controller ? settings.resizeRatio.toString() : ""
+                        paletteGroup: "TextFieldEx"
                         enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 0) : false
                         editType: 2
                         minNumber: 0.1
@@ -688,6 +689,7 @@ Pane {
                         id: widthEdit
                         Layout.preferredWidth: 60
                         placeholderText: "宽"
+                        paletteGroup: "TextFieldEx"
                         editType: 1
                         minNumber: 1
                         maxNumber: 9999
@@ -719,6 +721,7 @@ Pane {
                         id: heightEdit
                         Layout.preferredWidth: 60
                         placeholderText: "高"
+                        paletteGroup: "TextFieldEx"
                         editType: 1
                         minNumber: 1
                         maxNumber: 9999
@@ -991,24 +994,24 @@ Pane {
                             y: 14
                             height: 22
                             radius: 4
-                            color: modelData.formatTag && modelData.formatTag === "PNG" ? "#dbeafe" :
-                                   modelData.formatTag && modelData.formatTag === "JPG" ? "#d1fae5" :
-                                   modelData.formatTag && modelData.formatTag === "BMP" ? "#f3e8ff" :
-                                   modelData.formatTag && modelData.formatTag === "WEBP" ? "#fef3c7" :
-                                   modelData.formatTag && modelData.formatTag === "TIFF" ? "#fce7f3" :
-                                   modelData.formatTag && modelData.formatTag === "GIF" ? "#fef3c7" : "#f1f5f9"
+                            color: modelData.formatTag && modelData.formatTag === "PNG" ? pal.LabelEx_PNG_BgRect :
+                                   modelData.formatTag && modelData.formatTag === "JPG" ? pal.LabelEx_JPG_BgRect :
+                                   modelData.formatTag && modelData.formatTag === "BMP" ? pal.LabelEx_BMP_BgRect :
+                                   modelData.formatTag && modelData.formatTag === "WEBP" ? pal.LabelEx_WEBP_BgRect :
+                                   modelData.formatTag && modelData.formatTag === "TIFF" ? pal.LabelEx_TIFF_BgRect :
+                                   modelData.formatTag && modelData.formatTag === "GIF" ? pal.LabelEx_GIF_BgRect : pal.LabelEx_other_BgRect
 
                             Label {
                                 anchors.centerIn: parent
                                 text: modelData.formatTag
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: modelData.formatTag && modelData.formatTag === "PNG" ? "#2563eb" :
-                                       modelData.formatTag && modelData.formatTag === "JPG" ? "#0f766e" :
-                                       modelData.formatTag && modelData.formatTag === "BMP" ? "#7c3aed" :
-                                       modelData.formatTag && modelData.formatTag === "WEBP" ? "#b45309" :
-                                       modelData.formatTag && modelData.formatTag === "TIFF" ? "#be185d" :
-                                       modelData.formatTag && modelData.formatTag === "GIF" ? "#b45309" : "#64748b"
+                                color: modelData.formatTag && modelData.formatTag === "PNG" ? pal.LabelEx_PNG_Text :
+                                       modelData.formatTag && modelData.formatTag === "JPG" ? pal.LabelEx_JPG_Text :
+                                       modelData.formatTag && modelData.formatTag === "BMP" ? pal.LabelEx_BMP_Text :
+                                       modelData.formatTag && modelData.formatTag === "WEBP" ? pal.LabelEx_WEBP_Text :
+                                       modelData.formatTag && modelData.formatTag === "TIFF" ? pal.LabelEx_TIFF_Text :
+                                       modelData.formatTag && modelData.formatTag === "GIF" ? pal.LabelEx_GIF_Text : pal.LabelEx_other_Text
                             }
                         }
 

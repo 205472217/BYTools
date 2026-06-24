@@ -427,14 +427,14 @@ Pane {
                             y: 14
                             height: 22
                             radius: 4
-                            color: directory ? "#f3e8ff" : "#d1fae5"
+                            color: directory ? pal.LabelEx_Folder_BgRect : pal.LabelEx_File_BgRect
 
                             Label {
                                 anchors.centerIn: parent
                                 text: directory ? "文件夹" : "文件"
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: directory ? "#7c3aed" : "#0f766e"
+                                color: directory ? pal.LabelEx_Folder_Text : pal.LabelEx_File_Text
                             }
                         }
 

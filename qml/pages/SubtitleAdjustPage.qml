@@ -964,7 +964,6 @@ Pane {
                             text: "提前 " + (root.stepMs / 1000).toFixed(1) + "s"
                             tooltip: "字幕提前 " + root.stepMs + "ms"
                             Layout.fillWidth: true
-                            implicitHeight: 36
                             paletteGroup: "SubtitleAdjustPage_earlyBtn"
                             enabled: hasVideo
                             onClicked: {
@@ -977,7 +976,6 @@ Pane {
                             text: "推迟 " + (root.stepMs / 1000).toFixed(1) + "s"
                             tooltip: "字幕推迟 " + root.stepMs + "ms"
                             Layout.fillWidth: true
-                            implicitHeight: 36
                             paletteGroup: "SubtitleAdjustPage_delayBtn"
                             enabled: hasVideo
                             onClicked: {
@@ -1033,7 +1031,6 @@ Pane {
                         tooltip: controller && controller.overwriteOriginal
                             ? "替换原字幕文件（将覆盖原文件）"
                             : "导出为 _adjusted.srt 文件"
-                        implicitHeight: 42
                         paletteGroup: "SubtitleAdjustPage_exportBtn"
                         enabled: hasVideo && controller && controller.isDirty
                         onClicked: {

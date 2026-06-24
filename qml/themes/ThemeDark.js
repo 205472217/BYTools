@@ -80,10 +80,46 @@ var palette = {
     LabelEx_errorText: "#f87171",
     LabelEx_warningText: "#fbbf24",
     LabelEx_codeText: "#e2e8f0",
+    LabelEx_Folder_BgRect: "#f3e8ff",                       // 文件夹-背景色
+    LabelEx_Folder_Text: "#7c3aed",                         // 文件夹-文本色
+    LabelEx_Other_BgRect: "#f1f5f9",                        // 其他-背景色
+    LabelEx_Other_Text: "#64748b",                          // 其他-文本色
+    LabelEx_File_BgRect: "#d1fae5",                         // 文件-背景色
+    LabelEx_File_Text: "#0f766e",                           // 文件-文本色
+    LabelEx_Video_BgRect: "#f3e8ff",                        // 视频-背景色
+    LabelEx_Video_Text: "#7c3aed",                          // 视频-文本色
+    LabelEx_Audio_BgRect: "#fef3c7",                        // 音频-背景色
+    LabelEx_Audio_Text: "#b45309",                          // 音频-文本色
+    LabelEx_Image_BgRect: "#d1fae5",                        // 图片-背景色
+    LabelEx_Image_Text: "#0f766e",                          // 图片-文本色
+    LabelEx_Doc_BgRect: "#dbeafe",                          // 文档-背景色
+    LabelEx_Doc_Text: "#2563eb",                            // 文档-文本色
+    LabelEx_PNG_BgRect: "#dbeafe",                          // PNG-背景色
+    LabelEx_PNG_Text: "#2563eb",                            // PNG-文本色
+    LabelEx_JPG_BgRect: "#d1fae5",                          // JPG-背景色
+    LabelEx_JPG_Text: "#0f766e",                            // JPG-文本色
+    LabelEx_BMP_BgRect: "#f3e8ff",                          // BMP-背景色
+    LabelEx_BMP_Text: "#7c3aed",                            // BMP-文本色
+    LabelEx_WEBP_BgRect: "#fef3c7",                         // WEBP-背景色
+    LabelEx_WEBP_Text: "#b45309",                           // WEBP-文本色
+    LabelEx_TIFF_BgRect: "#fce7f3",                         // TIFF-背景色
+    LabelEx_TIFF_Text: "#be185d",                           // TIFF-文本色
+    LabelEx_GIF_BgRect: "#fef3a0",                          // GIF-背景色
+    LabelEx_GIF_Text: "#a08050",                            // GIF-文本色
 
     // ═════════════════════════════
     //  类别7: 界面全局色 (Surface)
     // ═════════════════════════════
+    SurfaceEx_defaultFontColor: "#ffffff",                  // 默认字体颜色
+    SurfaceEx_defaultBorderColor: "#383b44",                // 默认边框颜色
+    SurfaceEx_selectedBolderColor: "#2563eb",               // 选中边框颜色
+    SurfaceEx_unSelectedBolderColor: "#e2e8f0",             // 未选中边框颜色
+    SurfaceEx_subtitlePresetFontColor1: "#ffffff",          // 预设字幕字体颜色1
+    SurfaceEx_subtitlePresetBorderColor1: "#000000",        // 预设字幕边框颜色1
+    SurfaceEx_subtitlePresetFontColor2: "#2196F3",          // 预设字幕字体颜色2
+    SurfaceEx_subtitlePresetBorderColor2: "#ffffff",        // 预设字幕边框颜色2
+    SurfaceEx_subtitlePresetFontColor3: "#F44336",          // 预设字幕字体颜色3
+    SurfaceEx_subtitlePresetBorderColor3: "#ffffff",        // 预设字幕边框颜色3
     SurfaceEx_pageBg: "#1a1d23",                            // 页面背景
     SurfaceEx_cardBg: "#181a20",                            // 卡片背景
     SurfaceEx_cardBgAlt: "#1e2028",                         // 卡片背景(交替)
@@ -409,5 +445,4 @@ var palette = {
     SubtitleAdjustPage_exportBtn_normalColor: "#60a5fa",
     SubtitleAdjustPage_exportBtn_hoverColor: "#2563eb",
     SubtitleAdjustPage_exportBtn_borderColor: "#2563eb",
-    SubtitleAdjustPage_exportBtn_textColor: "#ffffff",
 }

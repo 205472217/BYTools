@@ -360,7 +360,6 @@ Pane {
                     text: "载入图片"
                     tooltip: "加载指定路径下的图片资源"
                     implicitWidth: 100
-                    implicitHeight: 38
                     paletteGroup: "ImageCropPage_loadImageBtn"
                     onClicked: {
                         if (controller && settings.rootPath.length > 0) {
@@ -1174,7 +1173,7 @@ Pane {
                         Rectangle {
                             id: ratioTab
                             Layout.fillWidth: true
-                            height: 34
+                            height: 26
                             radius: 8
                             color: controller && settings.cropMode === 0 ? pal.ImageCropPage_ratioTab_color_active : pal.ImageCropPage_ratioTab_color_normal
                             border.color: controller && settings.cropMode === 0 ? pal.ImageCropPage_ratioTab_borderColor_active : pal.ImageCropPage_ratioTab_borderColor_normal
@@ -1204,7 +1203,7 @@ Pane {
                         Rectangle {
                             id: pixelTab
                             Layout.fillWidth: true
-                            height: 34
+                            height: 26
                             radius: 8
                             color: controller && settings.cropMode === 1 ? pal.ImageCropPage_pixelTab_color_active : pal.ImageCropPage_pixelTab_color_normal
                             border.color: controller && settings.cropMode === 1 ? pal.ImageCropPage_pixelTab_borderColor_active : pal.ImageCropPage_pixelTab_borderColor_normal
