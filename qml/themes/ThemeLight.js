@@ -173,35 +173,24 @@ var palette = {
     FeatureCard_descriptionColor: "#627086",                // 功能卡片-描述
     FeatureCard_arrowColor: "#c7d2e0",                      // 功能卡片-箭头
     FeatureCard_hoverArrowColor: "#3b82f6",                 // 功能卡片-箭头(悬停)
+    // 通用-返回确认对话框(按钮)
+    BackCancelBtn_normalColor: "#e2e8f0",
+    BackCancelBtn_hoverColor: "#cbd5e1",
+    BackCancelBtn_borderColor: "#cbd5e1",
+    BackCancelBtn_textColor: "#475569",
+    BackConfirmBtn_normalColor: "#dc2626",
+    BackConfirmBtn_hoverColor: "#b91c1c",
+    BackConfirmBtn_borderColor: "#b91c1c",
+    BackConfirmBtn_textColor: "#ffffff",
 
     // ── BatchRenamePage ─────────────────────────────────────
     BatchRenamePage_advancedLabel_color: "#475569",                     // 批量重命名-高级选项标签
-    // 批量重命名-取消(按钮)
-    BatchRenamePage_cancelBtn_normalColor: "#e2e8f0",
-    BatchRenamePage_cancelBtn_hoverColor: "#cbd5e1",
-    BatchRenamePage_cancelBtn_borderColor: "#cbd5e1",
-    BatchRenamePage_cancelBtn_textColor: "#475569",
-    // 批量重命名-返回首页(按钮)
-    BatchRenamePage_returnHomeBtn_normalColor: "#dc2626",
-    BatchRenamePage_returnHomeBtn_hoverColor: "#b91c1c",
-    BatchRenamePage_returnHomeBtn_borderColor: "#b91c1c",
-    BatchRenamePage_returnHomeBtn_textColor: "#ffffff",
     // 批量重命名-开始处理(按钮)
     BatchRenamePage_executeBtn_normalColor: "#2563eb",
     BatchRenamePage_executeBtn_hoverColor: "#1d4ed8",
     BatchRenamePage_executeBtn_borderColor: "#1d4ed8",
 
     // ── NameConverterPage ───────────────────────────────────
-    // 名称转换-取消(按钮)
-    NameConverterPage_cancelBtn_normalColor: "#e2e8f0",
-    NameConverterPage_cancelBtn_hoverColor: "#cbd5e1",
-    NameConverterPage_cancelBtn_borderColor: "#cbd5e1",
-    NameConverterPage_cancelBtn_textColor: "#475569",
-    // 名称转换-确认返回(按钮)
-    NameConverterPage_confirmBackBtn_normalColor: "#dc2626",
-    NameConverterPage_confirmBackBtn_hoverColor: "#b91c1c",
-    NameConverterPage_confirmBackBtn_borderColor: "#b91c1c",
-    NameConverterPage_confirmBackBtn_textColor: "#ffffff",
     // 名称转换-开始处理(按钮)
     NameConverterPage_executeBtn_normalColor: "#2563eb",
     NameConverterPage_executeBtn_hoverColor: "#1d4ed8",
@@ -223,16 +212,6 @@ var palette = {
     ImageConverterPage_customSwatch_borderColor_active: "#2563eb",
     ImageConverterPage_customSwatch_textColor_normal: "#1e293b",
     ImageConverterPage_customSwatch_textColor_active: "#2563eb",
-    // 图片转换-取消(按钮)
-    ImageConverterPage_cancelBtn_normalColor: "#e2e8f0",
-    ImageConverterPage_cancelBtn_hoverColor: "#cbd5e1",
-    ImageConverterPage_cancelBtn_borderColor: "#cbd5e1",
-    ImageConverterPage_cancelBtn_textColor: "#475569",
-    // 图片转换-返回首页(按钮)
-    ImageConverterPage_goBackBtn_normalColor: "#dc2626",
-    ImageConverterPage_goBackBtn_hoverColor: "#b91c1c",
-    ImageConverterPage_goBackBtn_borderColor: "#b91c1c",
-    ImageConverterPage_goBackBtn_textColor: "#ffffff",
     // 图片转换-开始处理(按钮)
     ImageConverterPage_execBtn_normalColor: "#2563eb",
     ImageConverterPage_execBtn_hoverColor: "#1d4ed8",
@@ -265,16 +244,6 @@ var palette = {
     ImageCropPage_pixelTab_borderColor_active: "#4f46e5",
     ImageCropPage_pixelTabLbl_color_normal: "#475569",
     ImageCropPage_pixelTabLbl_color_active: "#ffffff",
-    // 图片裁剪-取消(按钮)
-    ImageCropPage_cancelBtn_normalColor: "#e2e8f0",
-    ImageCropPage_cancelBtn_hoverColor: "#cbd5e1",
-    ImageCropPage_cancelBtn_borderColor: "#cbd5e1",
-    ImageCropPage_cancelBtn_textColor: "#475569",
-    // 图片裁剪-返回首页(按钮)
-    ImageCropPage_goBackBtn_normalColor: "#dc2626",
-    ImageCropPage_goBackBtn_hoverColor: "#b91c1c",
-    ImageCropPage_goBackBtn_borderColor: "#b91c1c",
-    ImageCropPage_goBackBtn_textColor: "#ffffff",
     // 图片裁剪-比例选择按钮
     ImageCropPage_ratioBtn_color_normal: "#ffffff",
     ImageCropPage_ratioBtn_color_active: "#6366f1",
@@ -302,16 +271,6 @@ var palette = {
     VideoSubtitlePage_statusBar_color_idle: "#f1f5f9",                 // 视频字幕-状态栏(空闲)
     VideoSubtitlePage_logHeaderBg_color: "#f8fafc",                     // 视频字幕-日志表头背景
     VideoSubtitlePage_logHeaderDivider_color: "#e8ecf2",                // 视频字幕-日志表头分割线
-    // 视频字幕-取消(按钮)
-    VideoSubtitlePage_cancelBtn_normalColor: "#e2e8f0",
-    VideoSubtitlePage_cancelBtn_hoverColor: "#cbd5e1",
-    VideoSubtitlePage_cancelBtn_borderColor: "#cbd5e1",
-    VideoSubtitlePage_cancelBtn_textColor: "#475569",
-    // 视频字幕-返回首页(按钮)
-    VideoSubtitlePage_backToHomeBtn_normalColor: "#dc2626",
-    VideoSubtitlePage_backToHomeBtn_hoverColor: "#b91c1c",
-    VideoSubtitlePage_backToHomeBtn_borderColor: "#b91c1c",
-    VideoSubtitlePage_backToHomeBtn_textColor: "#ffffff",
     // 视频字幕-开始处理/停止(按钮)
     VideoSubtitlePage_startBtn_normalColor_normal: "#2563eb",
     VideoSubtitlePage_startBtn_normalColor_active: "#dc2626",

@@ -57,6 +57,61 @@ Pane {
         }
     }
 
+    // ── 返回确认对话框（处理中时提示）─────────────────────────────
+    Dialog {
+        id: backConfirmDialog
+        title: "确认返回"
+        modal: true
+        anchors.centerIn: parent
+        width: 420
+        standardButtons: Dialog.NoButton
+        closePolicy: Dialog.CloseOnEscape
+
+        contentItem: ColumnLayout {
+            spacing: 8
+            Layout.margins: 4
+
+            Label {
+                text: "当前有任务正在处理中，返回首页将中断执行，是否继续？"
+                color: pal.LabelEx_statusText
+                font.pixelSize: 14
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+                Layout.bottomMargin: 8
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                Item { Layout.fillWidth: true }
+
+                IconButton {
+                    id: backCancelBtn
+                    text: "取消"
+                    tooltip: "不返回，继续当前处理"
+                    paletteGroup: "IconBtnEx"
+                    implicitWidth: 100
+                    implicitHeight: 38
+                    onClicked: backConfirmDialog.close()
+                }
+
+                IconButton {
+                    id: backConfirmBtn
+                    text: "返回首页"
+                    tooltip: "中断任务并返回首页"
+                    paletteGroup: "BackConfirmBtn"
+                    implicitWidth: 120
+                    implicitHeight: 38
+                    onClicked: {
+                        if (controller) { controller.reset() }
+                        backConfirmDialog.close()
+                        root.backRequested()
+                    }
+                }
+            }
+        }
+    }
+
     // ── Log state ──
     property string _lastLogLine: ""
 
@@ -155,7 +210,13 @@ Pane {
                 implicitHeight: 38
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
-                onClicked: root.backRequested()
+                onClicked: {
+                    if (controller && controller.isProcessing) {
+                        backConfirmDialog.open()
+                    } else {
+                        root.backRequested()
+                    }
+                }
             }
 
             ColumnLayout {
@@ -671,7 +732,7 @@ Pane {
                                 tooltip: "清空记录"
                                 visible: !searchBusyIndicator.visible
                                 enabled: !searchBusyIndicator.visible && searchResultsModel.count > 0 && (!controller || controller.currentStep === controller.stepNone)
-                                paletteGroup: "IconBtnEx"
+                    paletteGroup: "BackCancelBtn"
                                 onClicked: searchResultsModel.clear()
                             }
                         }

@@ -201,6 +201,7 @@ void NameConverterController::clearRecords()
 
 void NameConverterController::reset()
 {
+    cancel();
     clearRecords();
 }
 

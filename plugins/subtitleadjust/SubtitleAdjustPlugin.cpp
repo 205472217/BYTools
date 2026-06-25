@@ -66,6 +66,9 @@ void SubtitleAdjustPlugin::cleanup()
 
 QObject* SubtitleAdjustPlugin::getController()
 {
+    if (m_controller) {
+        m_controller->reset();
+    }
     return m_controller;
 }
 

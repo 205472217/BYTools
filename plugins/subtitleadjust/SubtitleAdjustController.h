@@ -21,6 +21,7 @@ class SubtitleAdjustController : public QObject
     // ── 调整状态 ──
     Q_PROPERTY(qint64 offsetMs READ offsetMs WRITE setOffsetMs NOTIFY offsetMsChanged)
     Q_PROPERTY(bool isDirty READ isDirty NOTIFY isDirtyChanged)
+    Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
     Q_PROPERTY(int currentMatchIndex READ currentMatchIndex NOTIFY currentMatchIndexChanged)
     Q_PROPERTY(QString currentSubtitleText READ currentSubtitleText NOTIFY currentSubtitleTextChanged)
     Q_PROPERTY(QString currentVideoPath READ currentVideoPath NOTIFY currentVideoPathChanged)
@@ -53,6 +54,7 @@ public:
     qint64 offsetMs() const;
     QString currentSubtitleText() const;
     bool isDirty() const;
+    bool isProcessing() const;
     int currentMatchIndex() const;
     QString currentVideoPath() const;
     QString currentSubtitlePath() const;
@@ -65,6 +67,7 @@ public:
     Q_INVOKABLE void startAdjust(int index);
     Q_INVOKABLE void exportSubtitle();
 
+    Q_INVOKABLE void cancel();
     Q_INVOKABLE void shiftForward(qint64 ms);
     Q_INVOKABLE void shiftBackward(qint64 ms);
     Q_INVOKABLE void setOffsetMs(qint64 ms);
@@ -81,6 +84,7 @@ signals:
     void subtitlePathChanged();
     void offsetMsChanged();
     void isDirtyChanged();
+    void isProcessingChanged();
     void currentMatchIndexChanged();
     void currentSubtitleTextChanged();
     void currentVideoPathChanged();

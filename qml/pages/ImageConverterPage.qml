@@ -123,7 +123,7 @@ Pane {
                     id: cancelBtn
                     text: "取消"
                     tooltip: "不返回，继续当前任务"
-                    paletteGroup: "ImageConverterPage_cancelBtn"
+                    paletteGroup: "BackCancelBtn"
                     implicitWidth: 100
                     implicitHeight: 38
                     onClicked: backConfirmDialog.close()
@@ -133,11 +133,11 @@ Pane {
                     id: goBackBtn
                     text: "返回首页"
                     tooltip: "中断任务并返回首页"
-                    paletteGroup: "ImageConverterPage_goBackBtn"
+                    paletteGroup: "BackConfirmBtn"
                     implicitWidth: 120
                     implicitHeight: 38
                     onClicked: {
-                        if (controller) { controller.cancel(); }
+                        if (controller) { controller.reset(); }
                         backConfirmDialog.close();
                         root.backRequested();
                     }

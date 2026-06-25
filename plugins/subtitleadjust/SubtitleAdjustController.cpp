@@ -25,6 +25,7 @@ SubtitleAdjustController::SubtitleAdjustController(PluginLogger *logger, Subtitl
             this, &SubtitleAdjustController::doMatchWork, Qt::DirectConnection);
     connect(&m_workerThread, &QThread::finished, this, [this]() {
         m_workerRunning = false;
+        emit isProcessingChanged();
     });
 
     // 加载已完成记录
@@ -78,6 +79,7 @@ void SubtitleAdjustController::setOffsetMs(qint64 ms)
 
 QString SubtitleAdjustController::currentSubtitleText() const { return m_currentSubtitleText; }
 bool SubtitleAdjustController::isDirty() const { return m_isDirty; }
+bool SubtitleAdjustController::isProcessing() const { return m_workerRunning; }
 int SubtitleAdjustController::currentMatchIndex() const { return m_currentMatchIndex; }
 QString SubtitleAdjustController::currentVideoPath() const { return m_currentVideoPath; }
 QString SubtitleAdjustController::currentSubtitlePath() const { return m_currentSubtitlePath; }
@@ -156,6 +158,7 @@ void SubtitleAdjustController::startMatch()
             emit logMessage("  启用了递归查找，正在遍历子目录...");
 
         m_workerRunning = true;
+        emit isProcessingChanged();
         m_workerThread.start();
     }
     emit matchCompleted();
@@ -263,6 +266,18 @@ void SubtitleAdjustController::shiftBackward(qint64 ms)
     setOffsetMs(m_offsetMs - ms);
 }
 
+// ── 取消 ──
+
+void SubtitleAdjustController::cancel()
+{
+    if (m_workerRunning) {
+        m_workerThread.quit();
+        m_workerThread.wait(500);
+        m_workerRunning = false;
+        emit isProcessingChanged();
+    }
+}
+
 // ── 加载视频（单文件模式兼容）──
 
 void SubtitleAdjustController::loadVideo(const QString &videoPath, const QString &subtitlePath)
@@ -300,6 +315,7 @@ void SubtitleAdjustController::loadVideo(const QString &videoPath, const QString
 
 void SubtitleAdjustController::reset()
 {
+    cancel();
     m_subtitleEntries.clear();
     m_srtFilePath.clear();
     m_offsetMs = 0;

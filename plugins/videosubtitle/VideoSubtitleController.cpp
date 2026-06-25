@@ -424,7 +424,6 @@ void VideoSubtitleController::clearRecords()
 void VideoSubtitleController::reset()
 {
     cancel();
-    m_settings->setInputPath({});
     m_pendingFiles.clear();
     m_currentFileIndex = -1;
     m_stopTargetIndex = -1;
@@ -433,7 +432,6 @@ void VideoSubtitleController::reset()
     setCurrentStep(StepNone, "");
     setProgress(0.0);
 
-    emit inputPathChanged();
     emit hasRecordsChanged();
     emit recordsChanged();
 }

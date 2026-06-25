@@ -98,6 +98,62 @@ Pane {
         }
     }
 
+    // ── 返回确认对话框（有数据时提示）─────────────────────────────
+    Dialog {
+        id: backConfirmDialog
+        title: "确认返回"
+        modal: true
+        anchors.centerIn: parent
+        width: 420
+        standardButtons: Dialog.NoButton
+        closePolicy: Dialog.CloseOnEscape
+
+        contentItem: ColumnLayout {
+            spacing: 8
+            Layout.margins: 4
+
+            Label {
+                id: backConfirmMsg
+                text: "当前页面有数据，返回首页将清空当前数据，是否继续？"
+                color: pal.LabelEx_statusText
+                font.pixelSize: 14
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+                Layout.bottomMargin: 8
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                Item { Layout.fillWidth: true }
+
+                IconButton {
+                    id: backCancelBtn
+                    text: "取消"
+                    tooltip: "不返回，继续当前操作"
+                    paletteGroup: "BackCancelBtn"
+                    implicitWidth: 100
+                    implicitHeight: 38
+                    onClicked: backConfirmDialog.close()
+                }
+
+                IconButton {
+                    id: backConfirmBtn
+                    text: "返回首页"
+                    tooltip: "清空数据并返回首页"
+                    paletteGroup: "BackConfirmBtn"
+                    implicitWidth: 120
+                    implicitHeight: 38
+                    onClicked: {
+                        if (controller) controller.reset()
+                        backConfirmDialog.close()
+                        root.backRequested()
+                    }
+                }
+            }
+        }
+    }
+
     // ── Confirmation: unsaved changes ──
     Dialog {
         id: unsavedDialog
@@ -218,7 +274,13 @@ Pane {
                 implicitHeight: 38
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
-                onClicked: root.backRequested()
+                onClicked: {
+                    if (controller && controller.isProcessing) {
+                        backConfirmDialog.open()
+                    } else {
+                        root.backRequested()
+                    }
+                }
             }
 
             ColumnLayout {
