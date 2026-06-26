@@ -9,6 +9,7 @@
 #include "Logger.h"
 #include <QFileInfo>
 #include <QDir>
+#include <QProcess>
 
 
 VideoSubtitleController::VideoSubtitleController(PluginLogger *logger, VideoSubtitleSettings *settings, QObject *parent)
@@ -290,6 +291,7 @@ void VideoSubtitleController::execute()
     m_pendingFiles.clear();
     m_currentFileIndex = -1;
     m_stopTargetIndex = -1;
+    m_shutdownAfterStop = false;
 
     m_pendingFiles.clear();
     m_currentFileIndex = -1;
@@ -427,6 +429,7 @@ void VideoSubtitleController::reset()
     m_pendingFiles.clear();
     m_currentFileIndex = -1;
     m_stopTargetIndex = -1;
+    m_shutdownAfterStop = false;
     m_records.clear();
     setStatusMessage("");
     setCurrentStep(StepNone, "");
@@ -436,16 +439,18 @@ void VideoSubtitleController::reset()
     emit recordsChanged();
 }
 
-void VideoSubtitleController::requestStopAfterCount(int count)
+void VideoSubtitleController::requestStopAfterCount(int count, bool shutdown)
 {
-    if (count <= 0) {
-        m_stopTargetIndex = -1;
-        emit logMessage("  ⏹ 已取消预约停止，将处理全部文件");
-        return;
-    }
+    m_shutdownAfterStop = shutdown;
+    m_stopTargetIndex = (count <= 0) ? -1 : (m_currentFileIndex + count);
 
-    m_stopTargetIndex = m_currentFileIndex + count;
-    emit logMessage(QString("  ⏹ 已预约停止，再完成 %1 个文件后停止").arg(count));
+    if (count <= 0) {
+        QString action = shutdown ? "关机" : "停止";
+        emit logMessage(QString("  ⏹ 完成全部后%1").arg(action));
+    } else {
+        QString action = shutdown ? "关机" : "停止";
+        emit logMessage(QString("  ⏹ 再完成 %1 个后%2").arg(count).arg(action));
+    }
 }
 
 void VideoSubtitleController::processNextFile()
@@ -468,18 +473,21 @@ void VideoSubtitleController::processNextFile()
         setIsProcessing(false);
         setStatusMessage(QString("预约停止，完成 %1 个文件").arg(m_stopTargetIndex));
         setCurrentStep(StepNone, "");
-        return;
-    }
-
-    if (m_currentFileIndex >= m_pendingFiles.size()) {
+    } else if (m_currentFileIndex >= m_pendingFiles.size()) {
         // All files done
         setIsProcessing(false);
         setStatusMessage(QString("处理完成，共 %1 个文件").arg(m_pendingFiles.size()));
         setCurrentStep(StepNone, "");
+    } else {
+        processSingleFile(m_pendingFiles.at(m_currentFileIndex));
         return;
     }
 
-    processSingleFile(m_pendingFiles.at(m_currentFileIndex));
+    if (m_shutdownAfterStop) {
+        m_shutdownAfterStop = false;
+        emit logMessage("  ⏹ 预约任务已完成，系统将在 5 秒后关机");
+        QProcess::startDetached("shutdown", {"/s", "/t", "5"});
+    }
 }
 
 void VideoSubtitleController::processSingleFile(const QString &videoPath)

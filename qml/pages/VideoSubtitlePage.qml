@@ -782,10 +782,11 @@ Pane {
                         onActivated: {
                             if (controller && controller.isProcessing) {
                                 var val = currentValue;
+                                var shutdownVal = stopActionCombo.currentValue === "关机";
                                 if (typeof val === "number") {
-                                    controller.requestStopAfterCount(val);
+                                    controller.requestStopAfterCount(val, shutdownVal);
                                 } else {
-                                    controller.requestStopAfterCount(0);
+                                    controller.requestStopAfterCount(0, shutdownVal);
                                 }
                             }
                         }
@@ -793,11 +794,31 @@ Pane {
                     }
 
                     Label {
-                        id: stopAtLabel
-                        text: "个后停止"
+                        text: "个后"
                         color: pal.LabelEx_labelText
                         font.pixelSize: 11
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                    }
+
+                    ComboBoxEx {
+                        id: stopActionCombo
+                        model: ["停止", "关机"]
+                        currentIndex: 0
+                        implicitWidth: 60
+                        font.pixelSize: 11
+                        Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                        onActivated: {
+                            if (controller && controller.isProcessing) {
+                                var val = stopAfterCombo.currentValue;
+                                var shutdownVal = currentValue === "关机";
+                                if (typeof val === "number") {
+                                    controller.requestStopAfterCount(val, shutdownVal);
+                                } else {
+                                    controller.requestStopAfterCount(0, shutdownVal);
+                                }
+                            }
+                        }
+                        paletteGroup: "ComboBoxEx"
                     }
                 }
             }

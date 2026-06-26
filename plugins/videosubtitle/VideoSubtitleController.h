@@ -118,7 +118,7 @@ public:
     Q_INVOKABLE void cancel();
     Q_INVOKABLE void clearRecords();
     Q_INVOKABLE void reset();
-    Q_INVOKABLE void requestStopAfterCount(int count);
+    Q_INVOKABLE void requestStopAfterCount(int count, bool shutdown = false);
 
 signals:
     void inputPathChanged();
@@ -197,6 +197,7 @@ private:
     QStringList m_pendingFiles;
     int m_currentFileIndex = -1;
     int m_stopTargetIndex = -1;
+    bool m_shutdownAfterStop = false;
 
     PluginLogger *m_logger = nullptr;
     WhisperService *m_whisperService;

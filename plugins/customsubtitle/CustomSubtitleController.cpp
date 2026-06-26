@@ -11,6 +11,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QFile>
+#include <QProcess>
 
 CustomSubtitleController::CustomSubtitleController(PluginLogger *logger, CustomSubtitleSettings *settings, QObject *parent)
     : QObject(parent)
@@ -243,6 +244,7 @@ void CustomSubtitleController::mergeSubtitleToVideo()
     // Ensure output dir exists
     QDir().mkpath(m_settings->mergedOutputPath());
 
+    m_shutdownAfterStop = false;
     setCurrentStep(StepMerge);
     setProgress(0.0);
     emit logMessage("========== 步骤3：合成视频+字幕 ==========");
@@ -313,16 +315,26 @@ void CustomSubtitleController::cancel()
     }
 }
 
-void CustomSubtitleController::requestStopAfterCount(int count)
+void CustomSubtitleController::requestStopAfterCount(int count, bool shutdown)
 {
+    m_shutdownAfterStop = shutdown;
     if (m_mergeService)
         m_mergeService->requestStopAfterCount(count);
+
+    if (count <= 0) {
+        QString action = shutdown ? "关机" : "停止";
+        emit logMessage(QString("  ⏹ 完成全部后%1").arg(action));
+    } else {
+        QString action = shutdown ? "关机" : "停止";
+        emit logMessage(QString("  ⏹ 再完成 %1 个后%2").arg(count).arg(action));
+    }
 }
 
 void CustomSubtitleController::reset()
 {
     cancel();
     m_gracefulStopRequested = false;
+    m_shutdownAfterStop = false;
     emit stopRequestedChanged();
     setStatusMessage("");
     setCurrentStep(StepNone);
@@ -369,6 +381,12 @@ void CustomSubtitleController::onMergeFinished(bool success, const QString &erro
         m_logger->error(QString("步骤3失败: %1").arg(error));
     }
     setCurrentStep(StepNone);
+
+    if (m_shutdownAfterStop) {
+        m_shutdownAfterStop = false;
+        emit logMessage("  ⏹ 预约任务已完成，系统将在 5 秒后关机");
+        QProcess::startDetached("shutdown", {"/s", "/t", "5"});
+    }
 }
 
 void CustomSubtitleController::onReplaceFinished(bool success, const QString &error)

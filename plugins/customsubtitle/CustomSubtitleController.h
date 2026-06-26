@@ -100,7 +100,7 @@ public:
     Q_INVOKABLE void mergeSubtitleToVideo();         // Step 3
     Q_INVOKABLE void replaceOriginalVideo();         // Step 4
     Q_INVOKABLE void cancel();
-    Q_INVOKABLE void requestStopAfterCount(int count);  // 完成 count 个后退出
+    Q_INVOKABLE void requestStopAfterCount(int count, bool shutdown = false);  // 完成 count 个后退出
     Q_INVOKABLE void reset();
 
 signals:
@@ -155,5 +155,6 @@ private:
     int m_totalCount = 0;
     QString m_currentFile;
     bool m_gracefulStopRequested = false;
+    bool m_shutdownAfterStop = false;
     bool m_removeSrtAfterReplace = true;
 };
