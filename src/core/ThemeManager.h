@@ -32,4 +32,6 @@ private:
     QVariantMap m_palette;
 
     void loadPalette();
+    void loadThemeFromConfig();
+    void saveThemeToConfig();
 };

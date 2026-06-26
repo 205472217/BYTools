@@ -132,6 +132,10 @@ Pane {
                     if (currentIndex === 0) themeManager.setTheme("Light")
                     else themeManager.setTheme("Dark")
                 }
+
+                Component.onCompleted: {
+                    currentIndex = themeManager.currentTheme === "Dark" ? 1 : 0
+                }
             }
         }
 

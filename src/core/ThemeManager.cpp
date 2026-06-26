@@ -1,14 +1,17 @@
 #include "ThemeManager.h"
 
+#include <QCoreApplication>
 #include <QFile>
 #include <QJSEngine>
 #include <QJSValue>
 #include <QJSValueIterator>
+#include <QSettings>
 #include <QDebug>
 
 ThemeManager::ThemeManager(QObject *parent)
     : QObject(parent)
 {
+    loadThemeFromConfig();
     loadPalette();
 }
 
@@ -34,6 +37,7 @@ void ThemeManager::setTheme(const QString &theme)
         return;
     m_currentTheme = theme;
     loadPalette();
+    saveThemeToConfig();
 }
 
 void ThemeManager::loadPalette()
@@ -75,6 +79,22 @@ void ThemeManager::loadPalette()
 
     m_palette = palette;
     emit paletteChanged();
+}
+
+void ThemeManager::loadThemeFromConfig()
+{
+    QSettings settings(QCoreApplication::applicationDirPath() + "/config.ini", QSettings::IniFormat);
+    settings.beginGroup("home");
+    QString saved = settings.value("theme").toString();
+    if (saved == "Light" || saved == "Dark")
+        m_currentTheme = saved;
+}
+
+void ThemeManager::saveThemeToConfig()
+{
+    QSettings settings(QCoreApplication::applicationDirPath() + "/config.ini", QSettings::IniFormat);
+    settings.beginGroup("home");
+    settings.setValue("theme", m_currentTheme);
 }
 
 QVariantMap ThemeManager::groupPalette(const QString &group) const
