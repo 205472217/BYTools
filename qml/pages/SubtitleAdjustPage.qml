@@ -57,6 +57,17 @@ Pane {
 
     function player() { return videoDisplayLoader.item }
 
+    // ── Keyboard shortcuts ──
+    focus: true
+    Keys.onLeftPressed: {
+        var p = videoDisplayLoader.item
+        if (p) p.position = Math.max(0, p.position - 5000)
+    }
+    Keys.onRightPressed: {
+        var p = videoDisplayLoader.item
+        if (p) p.position = Math.min(p.duration, p.position + 5000)
+    }
+
     padding: 0
     background: Rectangle {
         id: pageBg
