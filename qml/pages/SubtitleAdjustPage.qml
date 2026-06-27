@@ -61,11 +61,11 @@ Pane {
     focus: true
     Keys.onLeftPressed: {
         var p = videoDisplayLoader.item
-        if (p) p.position = Math.max(0, p.position - 5000)
+        if (p) p.position = Math.max(0, p.position - settings.seekStepMs)
     }
     Keys.onRightPressed: {
         var p = videoDisplayLoader.item
-        if (p) p.position = Math.min(p.duration, p.position + 5000)
+        if (p) p.position = Math.min(p.duration, p.position + settings.seekStepMs)
     }
 
     padding: 0
@@ -257,6 +257,23 @@ Pane {
                 p.stop()
                 p.source = "file:///" + controller.currentVideoPath
             }
+        }
+    }
+
+    // ── VideoPlayer settings sync ──
+    Connections {
+        target: videoDisplayLoader.item
+        function onVolumeChanged() {
+            if (settings && videoDisplayLoader.item)
+                settings.volume = videoDisplayLoader.item.volume
+        }
+        function onMutedChanged() {
+            if (settings && videoDisplayLoader.item)
+                settings.muted = videoDisplayLoader.item.muted
+        }
+        function onSeekStepMsChanged() {
+            if (settings && videoDisplayLoader.item)
+                settings.seekStepMs = videoDisplayLoader.item.seekStepMs
         }
     }
 
@@ -696,6 +713,7 @@ Pane {
                 id: videoPanel
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.minimumWidth: 320
                 radius: 10
                 color: pal.SurfaceEx_cardBg
                 border.color: pal.SurfaceEx_cardBorder
@@ -747,6 +765,13 @@ Pane {
                                 item.controlsPaletteGroup = "VideoPlayerControls"
                                 item.showPreviousNext = false
                                 item.source = "file:///" + (controller ? controller.currentVideoPath : "")
+                                if (settings) {
+                                    item.volume = settings.volume
+                                    item.muted = settings.muted
+                                    item.seekStepMs = settings.seekStepMs
+                                    if (item.volume < 1)
+                                        item.muted = true
+                                }
                             }
                         }
 
@@ -815,7 +840,7 @@ Pane {
             // ── Right: Adjustment Panel ──
             Rectangle {
                 id: adjPanel
-                Layout.preferredWidth: 280
+                Layout.preferredWidth: 220
                 Layout.fillHeight: true
                 radius: 10
                 color: pal.SurfaceEx_cardBg
@@ -861,7 +886,7 @@ Pane {
                                 valueRole: "value"
                                 currentIndex: 1
                                 font.pixelSize: 11
-                                implicitWidth: 120
+                                implicitWidth: 90
                                 onActivated: {
                                     root.maxOffsetMs = currentValue
                                 }

@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("pluginManager", PluginManager::instance());
     engine.rootContext()->setContextProperty("themeManager", ThemeManager::instance());
 
+
     QObject::connect(
         &engine,
         &QQmlEngine::warnings,

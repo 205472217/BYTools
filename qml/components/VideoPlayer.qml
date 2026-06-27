@@ -7,12 +7,17 @@ import QtMultimedia
 Item {
     id: root
 
+    Layout.minimumWidth: 420
+    Layout.minimumHeight: 360
+
     property alias source: mediaPlayer.source
     property alias position: mediaPlayer.position
     property alias duration: mediaPlayer.duration
     property alias playbackState: mediaPlayer.playbackState
-    property alias volume: audioOut.volume
     property alias muted: audioOut.muted
+
+    property int volume: 100
+    onVolumeChanged: audioOut.volume = volume / 100.0
 
     property bool showControls: true
     property bool showPreviousNext: true
@@ -65,6 +70,13 @@ Item {
     AudioOutput {
         id: audioOut
     }
+
+    Shortcut { sequence: "Left";       enabled: root.visible && root.showSeekButtons;     onActivated: mediaPlayer.position = Math.max(0, mediaPlayer.position - root.seekStepMs) }
+    Shortcut { sequence: "Right";      enabled: root.visible && root.showSeekButtons;     onActivated: mediaPlayer.position = Math.min(mediaPlayer.duration, mediaPlayer.position + root.seekStepMs) }
+    Shortcut { sequence: "Up";         enabled: root.visible;                             onActivated: { root.volume = Math.min(100, root.volume + 5); audioOut.muted = false; volumeTip.show() } }
+    Shortcut { sequence: "Down";       enabled: root.visible;                             onActivated: { var v = Math.max(0, root.volume - 5); root.volume = v; audioOut.muted = (v < 1); volumeTip.show() } }
+    Shortcut { sequence: "Shift+Left"; enabled: root.visible && root.showPreviousNext;    onActivated: root.previousRequested() }
+    Shortcut { sequence: "Shift+Right";enabled: root.visible && root.showPreviousNext;    onActivated: root.nextRequested() }
 
     VideoOutput {
         id: videoOut
@@ -213,15 +225,50 @@ Item {
 
                 Item { Layout.fillWidth: true }
 
+                Label {
+                    id: volumeTip
+                    visible: false
+                    text: root.volume
+                    color: root._controlsTextColor
+                    font.pixelSize: 11
+                    padding: 4
+                    horizontalAlignment: Text.AlignHCenter
+                    Layout.alignment: Qt.AlignVCenter
+                    background: Rectangle {
+                        color: "#D0000000"
+                        radius: 4
+                        border.width: 1
+                        border.color: root._controlsTextColor
+                    }
+                    Timer {
+                        id: volumeTipTimer
+                        interval: 1500
+                        onTriggered: parent.visible = false
+                    }
+                    function show() {
+                        text = root.volume
+                        visible = true
+                        volumeTipTimer.restart()
+                    }
+                }
+
                 IconButton {
                     id: muteBtn
                     implicitWidth: 28
-                    property bool isMuted: audioOut.muted
-                    iconSource: isMuted ? "qrc:/icons/media-mute.svg" : "qrc:/icons/media-volume.svg"
-                    tooltip: isMuted ? "取消静音" : "静音"
+                    property bool _isMuted: audioOut.muted || root.volume < 1
+                    iconSource: _isMuted ? "qrc:/icons/media-mute.svg" : "qrc:/icons/media-volume.svg"
+                    tooltip: _isMuted ? "取消静音" : "静音"
                     paletteGroup: root.controlsPaletteGroup
                     onClicked: {
-                        audioOut.muted = !audioOut.muted
+                        if (audioOut.muted) {
+                            audioOut.muted = false
+                            if (root.volume < 1) {
+                                root.volume = 5
+                                volumeTip.show()
+                            }
+                        } else {
+                            audioOut.muted = true
+                        }
                     }
                 }
 
@@ -230,10 +277,12 @@ Item {
                     Layout.preferredWidth: 100
                     implicitHeight: 20
                     from: 0
-                    to: 1
-                    value: audioOut.volume
+                    to: 100
+                    value: root.volume
                     onMoved: {
-                        audioOut.volume = value
+                        root.volume = value
+                        audioOut.muted = (value < 1)
+                        volumeTip.show()
                     }
 
                     background: Rectangle {
@@ -262,8 +311,44 @@ Item {
                         visible: volumeSlider.pressed || volumeSlider.hovered
                     }
                 }
+
+                Item { Layout.preferredWidth: 4 }
+
+                Row {
+                    visible: root.showSeekButtons
+                    Layout.alignment: Qt.AlignVCenter
+                    spacing: 4
+                    Repeater {
+                        model: [5, 10, 30]
+                        delegate: Rectangle {
+                            required property int modelData
+                            width: 26
+                            height: 20
+                            color: "transparent"
+                            border.width: root.seekStepMs === modelData * 1000 ? 1 : 0
+                            border.color: root._controlsTextColor
+                            radius: 3
+                            ToolTip.visible: mouseArea.containsMouse
+                            ToolTip.delay: 500
+                            ToolTip.text: "快进/快退 " + modelData + " 秒"
+                            Label {
+                                anchors.centerIn: parent
+                                text: modelData + "s"
+                                color: root._controlsTextColor
+                                font.pixelSize: 10
+                            }
+                            MouseArea {
+                                id: mouseArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                onClicked: root.seekStepMs = modelData * 1000
+                            }
+                        }
+                    }
+                }
             }
         }
+
     }
 
     onVisibleChanged: {

@@ -355,7 +355,7 @@ Pane {
 
                     TextFieldEx {
                         id: baseNameField
-                        Layout.preferredWidth: 150
+                        Layout.preferredWidth: 100
                         text: settings ? settings.baseName : ""
                         placeholderText: "输入文件名"
                         enabled: specifyRadio.checked
@@ -389,7 +389,7 @@ Pane {
 
                     TextFieldEx {
                         id: searchTextField
-                        Layout.preferredWidth: 120
+                        Layout.preferredWidth: 80
                         text: settings ? settings.searchText : ""
                         placeholderText: "查找"
                         enabled: replaceRadio.checked
@@ -409,7 +409,7 @@ Pane {
 
                     TextFieldEx {
                         id: replaceTextField
-                        Layout.preferredWidth: 120
+                        Layout.preferredWidth: 80
                         text: settings ? settings.replaceText : ""
                         placeholderText: "替换"
                         enabled: replaceRadio.checked
@@ -437,7 +437,7 @@ Pane {
 
                     IconButton {
                         id: executeBtn
-                        implicitWidth: 150
+                        implicitWidth: 110
                         text: "开始处理"
                         iconSource: "qrc:/icons/play.svg"
                         tooltip: "开始批量重命名"

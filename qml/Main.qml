@@ -9,8 +9,8 @@ ApplicationWindow {
 
     width: 1120
     height: 720
-    minimumWidth: 880
-    minimumHeight: 560
+    minimumWidth: 1120
+    minimumHeight: 720
     visible: true
     title: "BYTools"
     color: pal.SurfaceEx_pageBg
@@ -22,7 +22,7 @@ ApplicationWindow {
     onClosing: function(closeEvent) {
         var pluginIds = ["name-converter", "batch-rename", "image-converter",
                          "image-crop", "video-subtitle", "custom-subtitle",
-                         "subtitle-adjust"]
+                         "subtitle-adjust", "file-view"]
         var anyProcessing = false
         for (var i = 0; i < pluginIds.length; i++) {
             var ctrl = pluginManager.getPlugin(pluginIds[i])
@@ -108,6 +108,8 @@ ApplicationWindow {
                     stackView.push(customSubtitlePageComponent, {controller: controller})
                 } else if (featureId === "subtitle-adjust") {
                     stackView.push(subtitleAdjustPageComponent, {controller: controller})
+                } else if (featureId === "file-view") {
+                    stackView.push(fileViewPageComponent, {controller: controller})
                 }
             }
         }
@@ -212,6 +214,19 @@ ApplicationWindow {
         id: subtitleAdjustPageComponent
 
         SubtitleAdjustPage {
+            onBackRequested: {
+                if (stackView.busy || window._navGuard) return
+                window._navGuard = true
+                stackView.pop()
+                window.currentFeatureId = ""
+            }
+        }
+    }
+
+    Component {
+        id: fileViewPageComponent
+
+        FileViewPage {
             onBackRequested: {
                 if (stackView.busy || window._navGuard) return
                 window._navGuard = true

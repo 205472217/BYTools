@@ -55,6 +55,7 @@ set(BYTOOLS_QML_FILES
     qml/pages/VideoSubtitleSettingsPage.qml
     qml/pages/CustomSubtitlePage.qml
     qml/pages/SubtitleAdjustPage.qml
+    qml/pages/FileViewPage.qml
 )
 
 # Optional Qt6 Multimedia for video playback (subtitle adjust plugin)
@@ -92,3 +93,4 @@ add_subdirectory(plugins/imagecrop)
 add_subdirectory(plugins/videosubtitle)
 add_subdirectory(plugins/customsubtitle)
 add_subdirectory(plugins/subtitleadjust)
+add_subdirectory(plugins/fileview)

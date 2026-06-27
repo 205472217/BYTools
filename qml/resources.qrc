@@ -26,6 +26,9 @@
 	<file>icons/media-mute.svg</file>
 	<file>icons/media-stop.svg</file>
 	<file>icons/spark.svg</file>
+	<file>icons/to-top.svg</file>
+	<file>icons/to-current.svg</file>
+	<file>icons/to-bottom.svg</file>
 	<file>themes/ThemeLight.js</file>
 	<file>themes/ThemeDark.js</file>
     </qresource>

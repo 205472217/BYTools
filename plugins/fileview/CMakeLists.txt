@@ -1,0 +1,49 @@
+cmake_minimum_required(VERSION 3.21)
+
+project(FileViewPlugin VERSION 1.0.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core)
+
+set(PLUGIN_SOURCES
+    FileViewPlugin.cpp
+    FileViewPlugin.h
+    FileViewController.cpp
+    FileViewController.h
+    FileViewSettings.cpp
+    FileViewSettings.h
+    FileListModel.cpp
+    FileListModel.h
+)
+
+add_library(FileViewPlugin MODULE
+    ${PLUGIN_SOURCES}
+)
+
+target_include_directories(FileViewPlugin PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/core
+)
+
+target_link_libraries(FileViewPlugin
+    PRIVATE Qt6::Core PluginCommon
+)
+
+set_target_properties(FileViewPlugin PROPERTIES
+    OUTPUT_NAME "FileView"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/fileview"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/fileview"
+)
+
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/fileview")
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
+    ${CMAKE_BINARY_DIR}/plugins/fileview/plugin.json
+    COPYONLY
+)
+
+if(WIN32)
+    target_compile_definitions(FileViewPlugin PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+endif()
