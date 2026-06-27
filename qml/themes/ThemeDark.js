@@ -66,7 +66,21 @@ var palette = {
     IconBtnEx_overlayTextHoverColor: "#1e293b",
 
     // ═════════════════════════════
-    //  类别6: 标签 (Label)
+    //  类别6: 视频播放器覆盖层按钮
+    // ═════════════════════════════
+    VideoPlayerControls_normalColor: "transparent",
+    VideoPlayerControls_hoverColor: "#33ffffff",
+    VideoPlayerControls_pressColor: "#44ffffff",
+    VideoPlayerControls_borderColor: "transparent",
+    VideoPlayerControls_defaultBorderColor: "transparent",
+    VideoPlayerControls_disabledColor: "transparent",
+    VideoPlayerControls_disabledBorderColor: "transparent",
+    VideoPlayerControls_textColor: "#ffffff",
+    VideoPlayerControls_disabledTextColor: "#64748b",
+    VideoPlayerControls_shadowColor: "#000000",
+
+    // ═════════════════════════════
+    //  类别7: 标签 (Label)
     // ═════════════════════════════
     LabelEx_titleText: "#ffffff",
     LabelEx_subtitleText: "#cbd5e1",
@@ -133,6 +147,8 @@ var palette = {
     SurfaceEx_rowEvenBg: "#181a20",                         // 列表行-偶数
     SurfaceEx_rowOddBg: "#15171c",                          // 列表行-奇数
     SurfaceEx_rowHoverBg: "#1e2028",                        // 列表行-悬停
+    SurfaceEx_rowSelectedBg: "#1e3a5f",                     // 列表行-选中
+    SurfaceEx_rowMatchedBg: "#1a3a2a",                      // 列表行-已匹配
     SurfaceEx_rowDivider: "#1e2028",                        // 列表行分割线
     SurfaceEx_statusBar: "#1e293b",                         // 状态栏(进行中)
     SurfaceEx_statusBarIdle: "#2a2d36",                     // 状态栏(空闲)
@@ -371,10 +387,6 @@ var palette = {
     SubtitleAdjustPage_videoOverlay_color: "#000000",                   // 字幕校对-视频遮罩
     SubtitleAdjustPage_subtitleOverlay_color: "#C0000000",              // 字幕校对-字幕遮罩
     SubtitleAdjustPage_subtitleText_color: "#e2e8f0",                   // 字幕校对-字幕文字
-    // 字幕校对-列表行背景
-    SubtitleAdjustPage_delegateRoot_bg_matched: "#1a3a2a",
-    SubtitleAdjustPage_delegateRoot_bg_selected: "#1e293b",
-    SubtitleAdjustPage_delegateRoot_bg_odd: "#2a2d36",
     // 字幕校对-取消(按钮)
     SubtitleAdjustPage_cancelBtn_normalColor: "#383b44",
     SubtitleAdjustPage_cancelBtn_hoverColor: "#4a4d56",
@@ -404,4 +416,11 @@ var palette = {
     SubtitleAdjustPage_exportBtn_normalColor: "#60a5fa",
     SubtitleAdjustPage_exportBtn_hoverColor: "#2563eb",
     SubtitleAdjustPage_exportBtn_borderColor: "#2563eb",
+
+    // ── FileViewPage ──────────────────────────────────
+    // 开始处理(按钮) 
+    FileViewPage_scanBtn_normalColor: "#60a5fa",
+    FileViewPage_scanBtn_hoverColor: "#2563eb",
+    FileViewPage_scanBtn_borderColor: "#2563eb",
+    FileViewPage_scanBtn_textColor: "#ffffff",
 }

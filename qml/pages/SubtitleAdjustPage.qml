@@ -246,13 +246,16 @@ Pane {
             }
         }
         function onCurrentVideoPathChanged() {
+            var p = videoDisplayLoader.item
             if (!controller || controller.currentVideoPath.length === 0) {
-                var p = videoDisplayLoader.item
                 if (p) {
                     p.stop()
                     p.source = ""
                 }
                 videoDisplayLoader.active = false
+            } else if (p) {
+                p.stop()
+                p.source = "file:///" + controller.currentVideoPath
             }
         }
     }
@@ -536,7 +539,7 @@ Pane {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 12
+                    anchors.margins: 5
                     spacing: 0
 
                     // Header + column labels
@@ -617,9 +620,9 @@ Pane {
                                 required property int status
 
                                 color: {
-                                    if (status === 1) return pal.SubtitleAdjustPage_delegateRoot_bg_matched
-                                    if (ListView.isCurrentItem) return pal.SubtitleAdjustPage_delegateRoot_bg_selected
-                                    return index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SubtitleAdjustPage_delegateRoot_bg_odd
+                                    if (status === 1) return pal.SurfaceEx_rowMatchedBg
+                                    if (ListView.isCurrentItem) return pal.SurfaceEx_rowSelectedBg
+                                    return index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
                                 }
 
                                 RowLayout {
@@ -700,7 +703,7 @@ Pane {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 12
+                    anchors.margins: 5
                     spacing: 8
 
                     // Video area
@@ -741,6 +744,8 @@ Pane {
                             source: "../components/VideoPlayer.qml"
 
                             onLoaded: {
+                                item.controlsPaletteGroup = "VideoPlayerControls"
+                                item.showPreviousNext = false
                                 item.source = "file:///" + (controller ? controller.currentVideoPath : "")
                             }
                         }
@@ -749,6 +754,7 @@ Pane {
                         Rectangle {
                             id: videoOverlay
                             anchors.fill: parent
+                            anchors.bottomMargin: 60
                             radius: 6
                             color: pal.SubtitleAdjustPage_videoOverlay_color
                             visible: {
@@ -778,11 +784,15 @@ Pane {
                             anchors.bottom: parent.bottom
                             anchors.leftMargin: 20
                             anchors.rightMargin: 20
-                            anchors.bottomMargin: 20
+                            anchors.bottomMargin: 70
                             height: subtitleText.implicitHeight + 20
                             radius: 8
                             color: pal.SubtitleAdjustPage_subtitleOverlay_color
-                            visible: hasVideo
+                            visible: {
+                                var p = videoDisplayLoader.item
+                                hasVideo && p && p.playbackState === MediaPlayer.PlayingState
+                                    && root._currentSubtitleText.length > 0
+                            }
 
                             Label {
                                 id: subtitleText
@@ -798,105 +808,7 @@ Pane {
                         }
                     }
 
-                    // Playback controls
-                    Rectangle {
-                        id: playbackControls
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 40
-                        radius: 6
-                        color: pal.SurfaceEx_cardBgAlt
-                        border.color: pal.SurfaceEx_cardBorderLight
-                        border.width: 1
-                        visible: hasVideo && videoDisplayLoader.active
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: 10
-                            anchors.rightMargin: 10
-                            spacing: 8
-
-                            IconButton {
-                                id: seekBackBtn
-                                implicitWidth: 26
-                                iconSource: "qrc:/icons/video-seekdec.svg"
-                                tooltip: "快退 5 秒"
-                                paletteGroup: "IconBtnEx"
-                                onClicked: {
-                                    var p = videoDisplayLoader.item
-                                    if (p) p.position = Math.max(0, p.position - 5000)
-                                }
-                            }
-
-                            IconButton {
-                                id: playBtn
-                                implicitWidth: 32
-                                property var p: videoDisplayLoader.item
-                                property bool isPlaying: p && p.playbackState === 1
-                                iconSource: isPlaying ? "qrc:/icons/video-pause.svg" : "qrc:/icons/video-play.svg"
-                                tooltip: isPlaying ? "暂停" : "播放"
-                                paletteGroup: "IconBtnEx"
-                                onClicked: {
-                                    var p = videoDisplayLoader.item
-                                    if (p) {
-                                        if (p.playbackState === 1)
-                                            p.pause()
-                                        else
-                                            p.play()
-                                    }
-                                }
-                            }
-
-                            IconButton {
-                                id: seekFwdBtn
-                                implicitWidth: 26
-                                iconSource: "qrc:/icons/video-seekadd.svg"
-                                tooltip: "快进 5 秒"
-                                paletteGroup: "IconBtnEx"
-                                onClicked: {
-                                    var p = videoDisplayLoader.item
-                                    if (p) p.position = Math.min(p.duration, p.position + 5000)
-                                }
-                            }
-
-                            Label {
-                                id: positionLabel
-                                text: {
-                                    var p = videoDisplayLoader.item
-                                    root.fmtTime(p ? p.position : 0)
-                                }
-                                color: pal.LabelEx_infoText
-                                font.pixelSize: 12
-                                font.family: "Consolas, monospace"
-                                Layout.preferredWidth: 70
-                            }
-
-                            Slider {
-                                id: seekSlider
-                                Layout.fillWidth: true
-                                property var p: videoDisplayLoader.item
-                                from: 0
-                                to: (p && p.duration > 0) ? p.duration : 1
-                                value: p ? p.position : 0
-                                enabled: p && p.duration > 0
-                                onMoved: {
-                                    var p = videoDisplayLoader.item
-                                    if (p) p.position = value
-                                }
-                            }
-
-                            Label {
-                                id: durationLabel
-                                text: {
-                                    var p = videoDisplayLoader.item
-                                    root.fmtTime(p ? p.duration : 0)
-                                }
-                                color: pal.LabelEx_infoText
-                                font.pixelSize: 12
-                                font.family: "Consolas, monospace"
-                                Layout.preferredWidth: 70
-                            }
-                        }
-                    }
+                    // Playback controls (now in VideoPlayer)
                 }
             }
 
@@ -912,7 +824,7 @@ Pane {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 18
+                    anchors.margins: 5
                     spacing: 10
 
                     // Max Offset value
