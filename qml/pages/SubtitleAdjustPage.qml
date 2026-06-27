@@ -790,7 +790,7 @@ Pane {
                             color: pal.SubtitleAdjustPage_subtitleOverlay_color
                             visible: {
                                 var p = videoDisplayLoader.item
-                                hasVideo && p && p.playbackState === MediaPlayer.PlayingState
+                                hasVideo && p && p.playbackState === 1
                                     && root._currentSubtitleText.length > 0
                             }
 
