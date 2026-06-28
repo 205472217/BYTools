@@ -109,6 +109,8 @@ private:
     void setIsProcessing(bool processing);
     bool isImageFile(const QString &fileName) const;
     void doScanImages();
+
+private:
     void onScanFinished();
     void addRecord(const QString &originalPath, const QString &newPath,
                    int cropW, int cropH, bool success, const QString &status);

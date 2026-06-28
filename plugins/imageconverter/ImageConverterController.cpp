@@ -4,6 +4,7 @@
 #include "Config.h"
 #include "Logger.h"
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QImage>
 #include <QPainter>
@@ -105,7 +106,7 @@ void ImageConverterController::processSingleFile(
     bool doResize, int resizeMode, double resizeRatio,
     int resizeWidth, int resizeHeight, const QString &bgColor,
     const QString &targetExt, const QByteArray &targetFmt,
-    int &successCount, int &failCount, int &skipCount,
+    int outputMode, int &successCount, int &failCount, int &skipCount,
     QList<ConvertRecord> &records)
 {
     QFileInfo entry(filePath);
@@ -113,12 +114,40 @@ void ImageConverterController::processSingleFile(
     QString srcExtDot = QStringLiteral(".") + srcExt;
 
     if (doConvert && srcExtDot == targetExt && !doResize) {
-        records.append({
-            entry.absoluteFilePath(), entry.absoluteFilePath(),
-            entry.fileName(), entry.fileName(),
-            formatTagForExt(srcExt), true, QStringLiteral("已跳过")
-        });
-        skipCount++;
+        if (outputMode == 1) {
+            if (QFile::copy(entry.absoluteFilePath(), destPath)) {
+                records.append({
+                    entry.absoluteFilePath(), destPath,
+                    entry.fileName(), QFileInfo(destPath).fileName(),
+                    formatTagForExt(srcExt), true, QStringLiteral("已复制")
+                });
+                successCount++;
+                emit logMessage(QString("  [复制] %1 → %2").arg(entry.fileName(), QFileInfo(destPath).fileName()));
+            } else if (QFileInfo::exists(destPath)) {
+                records.append({
+                    entry.absoluteFilePath(), destPath,
+                    entry.fileName(), QFileInfo(destPath).fileName(),
+                    formatTagForExt(srcExt), true, QStringLiteral("已存在")
+                });
+                successCount++;
+                emit logMessage(QString("  [跳过] %1 — 输出文件已存在").arg(entry.fileName()));
+            } else {
+                records.append({
+                    entry.absoluteFilePath(), destPath,
+                    entry.fileName(), QFileInfo(destPath).fileName(),
+                    formatTagForExt(srcExt), false, QStringLiteral("失败：复制失败")
+                });
+                failCount++;
+                emit logMessage(QString("  [失败] %1 — 复制失败").arg(entry.fileName()));
+            }
+        } else {
+            records.append({
+                entry.absoluteFilePath(), entry.absoluteFilePath(),
+                entry.fileName(), entry.fileName(),
+                formatTagForExt(srcExt), true, QStringLiteral("已跳过")
+            });
+            skipCount++;
+        }
         return;
     }
 
@@ -228,7 +257,7 @@ void ImageConverterController::doWork()
             doConvert, targetFormat, quality,
             doResize, resizeMode, resizeRatio,
             resizeWidth, resizeHeight, bgColor,
-            targetExt, targetFmt,
+            targetExt, targetFmt, outputMode,
             successCount, failCount, skipCount, records);
     };
 

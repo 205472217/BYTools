@@ -57,7 +57,7 @@ private:
         bool doResize, int resizeMode, double resizeRatio,
         int resizeWidth, int resizeHeight, const QString &bgColor,
         const QString &targetExt, const QByteArray &targetFmt,
-        int &successCount, int &failCount, int &skipCount,
+        int outputMode, int &successCount, int &failCount, int &skipCount,
         QList<ConvertRecord> &records);
     void addRecord(const QString &originalPath, const QString &newPath,
                    const QString &formatTag, bool success, const QString &status);

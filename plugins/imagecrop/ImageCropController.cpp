@@ -3,6 +3,7 @@
 #include "ImageCropSettings.h"
 #include "Config.h"
 #include "Logger.h"
+#include <functional>
 #include <QDir>
 #include <QFileInfo>
 #include <QImage>
@@ -145,32 +146,28 @@ void ImageCropController::doScanImages()
 
     QStringList imageFiles;
     {
-        QDir dir(rootPath);
-        QFileInfoList entries = dir.entryInfoList(
-            QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
-        for (const QFileInfo &entry : entries) {
-            if (isImageFile(entry.fileName()))
-                imageFiles.append(entry.absoluteFilePath());
-        }
-
-        if (recursive) {
-            QFileInfoList dirs = dir.entryInfoList(
-                QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
-            for (const QFileInfo &dirEntry : dirs) {
-                QDir subDir(dirEntry.absoluteFilePath());
-                QFileInfoList subEntries = subDir.entryInfoList(
-                    QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
-                for (const QFileInfo &subEntry : subEntries) {
-                    if (isImageFile(subEntry.fileName()))
-                        imageFiles.append(subEntry.absoluteFilePath());
-                }
+        std::function<void(const QString &)> scanDir;
+        scanDir = [&](const QString &dirPath) {
+            QDir currentDir(dirPath);
+            QFileInfoList entries = currentDir.entryInfoList(
+                QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+            for (const QFileInfo &entry : entries) {
+                if (isImageFile(entry.fileName()))
+                    imageFiles.append(entry.absoluteFilePath());
             }
-        }
+            if (recursive) {
+                QFileInfoList dirs = currentDir.entryInfoList(
+                    QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+                for (const QFileInfo &dirEntry : dirs)
+                    scanDir(dirEntry.absoluteFilePath());
+            }
+        };
+        scanDir(rootPath);
     }
 
     m_imageFiles = imageFiles;
     m_workerThread.quit();
-    QMetaObject::invokeMethod(this, "onScanFinished", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(this, [this]() { onScanFinished(); }, Qt::QueuedConnection);
 }
 
 void ImageCropController::onScanFinished()
