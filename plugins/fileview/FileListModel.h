@@ -15,11 +15,13 @@ public:
     struct FileEntry {
         QString fileName;
         QString filePath;
+        QString originalFilePath;
         qint64 fileSize = 0;
         QDateTime createdTime;
         QDateTime modifiedTime;
         QString fileType;
         int typeCategory = 0; // 0=video, 1=audio, 2=image, 3=document
+        bool deleted = false;
     };
 
     enum Roles {
@@ -32,7 +34,8 @@ public:
         ModifiedTimeRole,
         ModifiedTimeDisplayRole,
         FileTypeRole,
-        TypeCategoryRole
+        TypeCategoryRole,
+        DeletedRole
     };
 
     explicit FileListModel(QObject *parent = nullptr);
@@ -44,6 +47,9 @@ public:
     void setFiles(const QList<FileEntry> &files);
     const FileEntry &at(int row) const;
     void clear();
+
+    void setEntryDeleted(int row, bool deleted);
+    void setEntryFilePath(int row, const QString &path);
 
     static QString formatFileSize(qint64 bytes);
     static QString typeCategoryName(int category);

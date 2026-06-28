@@ -3,9 +3,12 @@
 #include "Logger.h"
 #include "Config.h"
 #include <QFileInfo>
+#include <QFile>
 #include <QDir>
 #include <QDirIterator>
 #include <QCollator>
+#include <QStandardPaths>
+#include <QDateTime>
 #include <algorithm>
 #include <functional>
 
@@ -119,8 +122,6 @@ QStringList FileViewController::extensionsForType(int fileType)
         return {"*.mp3", "*.wav", "*.flac", "*.aac", "*.ogg", "*.wma", "*.m4a", "*.opus"};
     case Image:
         return {"*.jpg", "*.jpeg", "*.png", "*.gif", "*.bmp", "*.webp", "*.svg", "*.tiff", "*.tif", "*.ico"};
-    case Document:
-        return {"*.txt", "*.pdf", "*.doc", "*.docx", "*.xls", "*.xlsx", "*.ppt", "*.pptx", "*.md", "*.epub", "*.csv"};
     }
     return {};
 }
@@ -131,12 +132,9 @@ int FileViewController::categoryForExtension(const QString &ext)
     static const QStringList videoExts = {".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".ts", ".rmvb"};
     static const QStringList audioExts = {".mp3", ".wav", ".flac", ".aac", ".ogg", ".wma", ".m4a", ".opus"};
     static const QStringList imageExts = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg", ".tiff", ".tif", ".ico"};
-    static const QStringList docExts  = {".txt", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".md", ".epub", ".csv"};
-
     if (videoExts.contains(lower)) return Video;
     if (audioExts.contains(lower)) return Audio;
     if (imageExts.contains(lower)) return Image;
-    if (docExts.contains(lower))  return Document;
     return -1;
 }
 
@@ -161,6 +159,7 @@ void FileViewController::startScan()
         return;
     }
 
+    cleanTrash();
     m_allEntries.clear();
     m_fileListModel->clear();
     setCurrentFilePath(QString());
@@ -193,6 +192,7 @@ void FileViewController::doScanWork()
         FileListModel::FileEntry entry;
         entry.fileName = fi.fileName();
         entry.filePath = fi.absoluteFilePath();
+        entry.originalFilePath = fi.absoluteFilePath();
         entry.fileSize = fi.size();
         entry.createdTime = fi.birthTime();
         entry.modifiedTime = fi.lastModified();
@@ -300,6 +300,126 @@ void FileViewController::selectFile(int index)
     setCurrentFileInfo(info);
 }
 
+static QString trashDirPath()
+{
+    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
+        + QStringLiteral("/fileview/trash");
+}
+
+static QString trashFilePath(const QString &fileName)
+{
+    QString dir = trashDirPath();
+    QDir().mkpath(dir);
+
+    QString path = dir + QStringLiteral("/") + fileName;
+    if (QFileInfo::exists(path)) {
+        QFileInfo fi(fileName);
+        QString base = fi.completeBaseName();
+        QString ext = fi.suffix();
+        path = dir + QStringLiteral("/") + base
+            + QStringLiteral("_") + QString::number(QDateTime::currentSecsSinceEpoch())
+            + QStringLiteral(".") + ext;
+    }
+    return path;
+}
+
+bool FileViewController::deleteFile(int index)
+{
+    if (index < 0 || index >= m_allEntries.size())
+        return false;
+
+    auto &entry = m_allEntries[index];
+    if (entry.deleted)
+        return true;
+
+    QString trashPath = trashFilePath(entry.fileName);
+    if (!QFile::rename(entry.filePath, trashPath)) {
+        QString msg = QStringLiteral("[删除失败] 无法移动文件到回收站: ") + entry.filePath;
+        m_logger->warn(msg);
+        emit logMessage(msg);
+        return false;
+    }
+
+    QString origPath = entry.filePath;
+    entry.filePath = trashPath;
+    entry.deleted = true;
+
+    m_fileListModel->setEntryDeleted(index, true);
+    m_fileListModel->setEntryFilePath(index, trashPath);
+
+    if (m_currentFilePath == origPath)
+        setCurrentFilePath(trashPath);
+
+    m_logger->info(QStringLiteral("[回收] ") + entry.fileName);
+    return true;
+}
+
+bool FileViewController::restoreFile(int index)
+{
+    if (index < 0 || index >= m_allEntries.size())
+        return false;
+
+    auto &entry = m_allEntries[index];
+    if (!entry.deleted)
+        return true;
+
+    QString origPath = entry.originalFilePath;
+
+    if (QFileInfo::exists(origPath)) {
+        QString msg = QStringLiteral("[还原失败] 目标文件已存在: ") + origPath;
+        m_logger->warn(msg);
+        emit logMessage(msg);
+        return false;
+    }
+
+    if (!QFile::rename(entry.filePath, origPath)) {
+        QString msg = QStringLiteral("[还原失败] 无法移动文件: ") + entry.filePath;
+        m_logger->warn(msg);
+        emit logMessage(msg);
+        return false;
+    }
+
+    QString trashPath = entry.filePath;
+    entry.filePath = origPath;
+    entry.deleted = false;
+
+    m_fileListModel->setEntryDeleted(index, false);
+    m_fileListModel->setEntryFilePath(index, origPath);
+
+    if (m_currentFilePath == trashPath)
+        setCurrentFilePath(origPath);
+
+    m_logger->info(QStringLiteral("[还原] ") + entry.fileName);
+    return true;
+}
+
+void FileViewController::cleanTrash()
+{
+    QString dir = trashDirPath();
+    QDir trashDir(dir);
+    if (!trashDir.exists())
+        return;
+
+    QStringList entries = trashDir.entryList(QDir::NoDotAndDotDot | QDir::Files);
+    int removed = 0;
+    for (const QString &f : entries) {
+        if (trashDir.remove(f))
+            removed++;
+    }
+    if (removed > 0) {
+        m_logger->info(QStringLiteral("[回收站清理] 已清理 %1 个文件").arg(removed));
+        emit logMessage(QStringLiteral("已清理回收站 %1 个文件").arg(removed));
+    }
+
+    // Clear deleted flags in model
+    for (int i = 0; i < m_allEntries.size(); ++i) {
+        if (m_allEntries[i].deleted) {
+            m_allEntries[i].deleted = false;
+            m_fileListModel->setEntryDeleted(i, false);
+        }
+    }
+}
+
 void FileViewController::cancel()
 {
     if (m_workerRunning) {
@@ -313,6 +433,7 @@ void FileViewController::cancel()
 void FileViewController::reset()
 {
     cancel();
+    cleanTrash();
     m_allEntries.clear();
     m_fileListModel->clear();
     setCurrentFilePath(QString());

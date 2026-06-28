@@ -45,6 +45,8 @@ QVariant FileListModel::data(const QModelIndex &index, int role) const
         return entry.fileType;
     case TypeCategoryRole:
         return entry.typeCategory;
+    case DeletedRole:
+        return entry.deleted;
     }
     return {};
 }
@@ -62,7 +64,26 @@ QHash<int, QByteArray> FileListModel::roleNames() const
         { ModifiedTimeDisplayRole, "modifiedTimeDisplay" },
         { FileTypeRole,         "fileType" },
         { TypeCategoryRole,     "typeCategory" },
+        { DeletedRole,          "fileDeleted" },
     };
+}
+
+void FileListModel::setEntryDeleted(int row, bool deleted)
+{
+    if (row < 0 || row >= m_files.size())
+        return;
+    m_files[row].deleted = deleted;
+    QModelIndex idx = index(row, 0);
+    emit dataChanged(idx, idx, {DeletedRole});
+}
+
+void FileListModel::setEntryFilePath(int row, const QString &path)
+{
+    if (row < 0 || row >= m_files.size())
+        return;
+    m_files[row].filePath = path;
+    QModelIndex idx = index(row, 0);
+    emit dataChanged(idx, idx, {FilePathRole});
 }
 
 void FileListModel::setFiles(const QList<FileEntry> &files)

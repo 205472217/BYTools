@@ -15,7 +15,7 @@ Pane {
     property bool hasFiles: controller && controller.fileCount > 0
     property bool hasSelection: controller && controller.currentFilePath.length > 0
     property string _lastLogLine: ""
-    property var _typeNames: ["视频", "音频", "图片", "文档"]
+    property var _typeNames: ["视频", "音频", "图片"]
 
     function safeInfo(key, fallback) {
         if (!controller || !hasSelection) return fallback || "-"
@@ -65,6 +65,22 @@ Pane {
             if (controller && controller.fileCount > 0)
                 root._lastLogLine = "扫描完成，共 " + controller.fileCount + " 个文件"
         }
+        function onCurrentModelIndexChanged() {
+            if (controller)
+                fileListView.currentIndex = controller.currentModelIndex
+        }
+    }
+
+    function navPrevFile() {
+        if (!controller) return
+        var idx = controller.currentModelIndex
+        if (idx > 0) controller.selectFile(idx - 1)
+    }
+
+    function navNextFile() {
+        if (!controller) return
+        var idx = controller.currentModelIndex
+        if (idx < controller.fileCount - 1) controller.selectFile(idx + 1)
     }
 
     // ═══════════════ Main Layout ═══════════════
@@ -84,6 +100,7 @@ Pane {
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
                 onClicked: {
+                    if (controller) controller.cleanTrash()
                     root.backRequested()
                 }
             }
@@ -209,7 +226,8 @@ Pane {
                         paletteGroup: "FileViewPage_scanBtn"
                         enabled: controller && controller.sourceFolder.length > 0
                         onClicked: {
-                            if (controller) controller.startScan()
+                            if (!controller) return
+                            controller.startScan()
                         }
                     }
                 }
@@ -404,103 +422,185 @@ Pane {
                                 required property string modifiedTimeDisplay
                                 required property string fileType
                                 required property int typeCategory
+                                required property bool fileDeleted
+
+                                property bool rowHovered: false
 
                                 color: {
                                     if (ListView.isCurrentItem) return pal.SurfaceEx_rowSelectedBg
                                     return index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
                                 }
 
-                                ColumnLayout {
+                                RowLayout {
+                                    id: rowContent
                                     anchors.fill: parent
                                     anchors.leftMargin: 8
-                                    anchors.rightMargin: 18
-                                    spacing: 2
+                                    anchors.rightMargin: 44
+                                    spacing: 6
+                                    z: 0
 
-                                    RowLayout {
+                                    ColumnLayout {
                                         Layout.fillWidth: true
-                                        spacing: 6
+                                        spacing: 2
 
-                                        Label {
-                                            id: indexLabel
-                                            text: fileDelegate.index + 1
-                                            color: pal.LabelEx_infoText
-                                            font.pixelSize: 11
-                                            Layout.preferredWidth: 28
-                                        }
-
-                                        Label {
-                                            id: nameLabel
+                                        RowLayout {
                                             Layout.fillWidth: true
-                                            text: fileDelegate.fileName
-                                            color: pal.LabelEx_valueText
-                                            font.pixelSize: 12
-                                            elide: Text.ElideRight
-                                        }
+                                            spacing: 6
 
-                                        Rectangle {
-                                            id: typeTag
-                                            width: typeTagText.implicitWidth + 10
-                                            height: 18
-                                            radius: 3
-                                            color: {
-                                                switch (fileDelegate.typeCategory) {
-                                                case 0: return pal.LabelEx_Video_BgRect
-                                                case 1: return pal.LabelEx_Audio_BgRect
-                                                case 2: return pal.LabelEx_Image_BgRect
-                                                case 3: return pal.LabelEx_Doc_BgRect
-                                                default: return pal.LabelEx_Other_BgRect
-                                                }
+                                            Label {
+                                                id: indexLabel
+                                                text: fileDelegate.index + 1
+                                                color: pal.LabelEx_infoText
+                                                font.pixelSize: 11
+                                                Layout.preferredWidth: 28
                                             }
 
                                             Label {
-                                                id: typeTagText
-                                                anchors.centerIn: parent
-                                                text: fileDelegate.fileType
+                                                id: nameLabel
+                                                Layout.fillWidth: true
+                                                text: fileDelegate.fileName
+                                                color: fileDelegate.fileDeleted ? pal.LabelEx_deleteColor : pal.LabelEx_valueText
+                                                font.pixelSize: 12
+                                                elide: Text.ElideRight
+                                                font.strikeout: fileDelegate.fileDeleted
+                                                font.underline: fileDelegate.fileDeleted
+                                            }
+
+                                            Rectangle {
+                                                id: typeTag
+                                                width: typeTagText.implicitWidth + 10
+                                                height: 18
+                                                radius: 3
                                                 color: {
                                                     switch (fileDelegate.typeCategory) {
-                                                    case 0: return pal.LabelEx_Video_Text
-                                                    case 1: return pal.LabelEx_Audio_Text
-                                                    case 2: return pal.LabelEx_Image_Text
-                                                    case 3: return pal.LabelEx_Doc_Text
-                                                    default: return pal.LabelEx_Other_Text
+                                                    case 0: return pal.LabelEx_Video_BgRect
+                                                    case 1: return pal.LabelEx_Audio_BgRect
+                                                    case 2: return pal.LabelEx_Image_BgRect
+                                                    default: return pal.LabelEx_Other_BgRect
                                                     }
                                                 }
-                                                font.pixelSize: 10
-                                                font.bold: true
+
+                                                Label {
+                                                    id: typeTagText
+                                                    anchors.centerIn: parent
+                                                    text: fileDelegate.fileType
+                                                    color: {
+                                                        switch (fileDelegate.typeCategory) {
+                                                        case 0: return pal.LabelEx_Video_Text
+                                                        case 1: return pal.LabelEx_Audio_Text
+                                                        case 2: return pal.LabelEx_Image_Text
+                                                        default: return pal.LabelEx_Other_Text
+                                                        }
+                                                    }
+                                                    font.pixelSize: 10
+                                                    font.bold: true
+                                                }
                                             }
                                         }
-                                    }
 
-                                    RowLayout {
-                                        Layout.fillWidth: true
-                                        spacing: 12
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 12
 
-                                        Item { Layout.preferredWidth: 28 }
+                                            Item { Layout.preferredWidth: 28 }
 
-                                        Label {
-                                            text: fileDelegate.fileSizeDisplay
-                                            color: pal.LabelEx_infoText
-                                            font.pixelSize: 10
-                                            elide: Text.ElideRight
-                                        }
+                                            Label {
+                                                text: fileDelegate.fileSizeDisplay
+                                                color: pal.LabelEx_infoText
+                                                font.pixelSize: 10
+                                                elide: Text.ElideRight
+                                            }
 
-                                        Item { Layout.fillWidth: true }
+                                            Item { Layout.fillWidth: true }
 
-                                        Label {
-                                            text: fileDelegate.modifiedTimeDisplay
-                                            color: pal.LabelEx_infoText
-                                            font.pixelSize: 10
-                                            elide: Text.ElideRight
+                                            Label {
+                                                text: fileDelegate.modifiedTimeDisplay
+                                                color: pal.LabelEx_infoText
+                                                font.pixelSize: 10
+                                                elide: Text.ElideRight
+                                            }
                                         }
                                     }
                                 }
 
                                 MouseArea {
+                                    id: rowMouse
                                     anchors.fill: parent
+                                    anchors.rightMargin: 36
+                                    z: 0
                                     cursorShape: Qt.PointingHandCursor
+                                    hoverEnabled: true
+                                    onEntered: fileDelegate.rowHovered = true
+                                    onExited: fileDelegate.rowHovered = false
                                     onClicked: {
                                         fileListView.currentIndex = fileDelegate.index
                                         if (controller) controller.selectFile(fileDelegate.index)
+                                    }
+                                }
+
+                                Rectangle {
+                                    id: deleteBtn
+                                    anchors.right: parent.right
+                                    anchors.rightMargin: 8
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: 28
+                                    height: 28
+                                    radius: 6
+                                    z: 1
+                                    visible: fileDelegate.fileDeleted
+                                            || fileListView.currentIndex === fileDelegate.index
+                                            || fileDelegate.rowHovered
+                                            || delMouse.containsMouse
+
+                                    color: delMouse.containsMouse
+                                        ? (fileDelegate.fileDeleted
+                                            ? pal.IconBtnEx_hoverColor
+                                            : pal.IconBtnEx_deleteBgColor)
+                                        : "transparent"
+                                    border.width: delMouse.containsMouse ? 1 : 0
+                                    border.color: fileDelegate.fileDeleted
+                                        ? pal.SurfaceEx_cardBorderLight
+                                        : (delMouse.containsMouse ? pal.LabelEx_deleteColor : "transparent")
+
+                                    Label {
+                                         anchors.centerIn: parent
+                                        text: fileDelegate.fileDeleted ? "↩" : "✕"
+                                        color: fileDelegate.fileDeleted
+                                            ? pal.LabelEx_infoText
+                                            : (delMouse.containsMouse ? pal.LabelEx_deleteColor : pal.LabelEx_infoText)
+
+                                        ToolTip {
+                                            visible: delMouse.containsMouse
+                                            text: fileDelegate.fileDeleted ? "还原文件到原始位置" : "删除文件（移动到回收站）"
+                                            delay: 300
+                                        }
+                                        font.pixelSize: 14
+                                        font.bold: true
+                                    }
+
+                                    MouseArea {
+                                        id: delMouse
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onEntered: fileDelegate.rowHovered = true
+                                        onExited: fileDelegate.rowHovered = false
+                                        onClicked: {
+                                            if (!controller) return
+                                            if (fileDelegate.fileDeleted) {
+                                                controller.restoreFile(fileDelegate.index)
+                                            } else {
+                                                if (fileDelegate.index === controller.currentModelIndex
+                                                        && videoPreviewLoader.item) {
+                                                    videoPreviewLoader.item.stop()
+                                                    videoPreviewLoader.item.source = ""
+                                                }
+                                                var ok = controller.deleteFile(fileDelegate.index)
+                                                if (!ok && fileDelegate.index === controller.currentModelIndex) {
+                                                    root._lastLogLine = "删除失败：文件被占用，请先切换到其他文件再试"
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -557,7 +657,7 @@ Pane {
                             }
                             Label {
                                 anchors.horizontalCenter: parent.horizontalCenter
-                                text: "支持视频、音频、图片和文档文件"
+                                text: "支持视频、音频和图片文件"
                                 color: pal.LabelEx_infoText
                                 font.pixelSize: 12
                             }
@@ -570,7 +670,7 @@ Pane {
                             active: hasSelection && controller
                                     && (controller.currentFileInfo.typeCategory === 0
                                         || controller.currentFileInfo.typeCategory === 1)
-                            source: "../components/VideoPlayer.qml"
+                            source: "../components/MediaViewer.qml"
 
                             onLoaded: {
                                 if (controller) {
@@ -607,9 +707,6 @@ Pane {
                                         p.play()
                                     }
                                 }
-                                function onCurrentModelIndexChanged() {
-                                    fileListView.currentIndex = controller.currentModelIndex
-                                }
                             }
 
                             Connections {
@@ -629,63 +726,41 @@ Pane {
                             }
                         }
 
-                        // ── Image preview ──
+                        // ── Image preview (Loader to avoid decode errors on non‑image files) ──
                         Loader {
                             id: imagePreviewLoader
                             anchors.fill: parent
                             active: hasSelection && controller
                                     && controller.currentFileInfo.typeCategory === 2
+                            source: "../components/ImageViewer.qml"
 
-                            sourceComponent: Image {
-                                id: previewImage
-                                fillMode: Image.PreserveAspectFit
-                                source: controller ? "file:///" + controller.currentFilePath : ""
-                                autoTransform: true
+                            onLoaded: {
+                                if (!controller) return
+                                item.source = controller.currentFilePath
+                                item.hasPrevious = controller.currentModelIndex > 0
+                                item.hasNext = controller.currentModelIndex < controller.fileCount - 1
+                                item.previousRequested.connect(function() { navPrevFile() })
+                                item.nextRequested.connect(function() { navNextFile() })
+                            }
 
-                                Connections {
-                                    target: controller
-                                    function onCurrentFilePathChanged() {
-                                        previewImage.source = "file:///" + controller.currentFilePath
+                            Connections {
+                                target: controller
+                                function onCurrentFilePathChanged() {
+                                    var p = imagePreviewLoader.item
+                                    if (p && controller)
+                                        p.source = controller.currentFilePath
+                                }
+                                function onCurrentModelIndexChanged() {
+                                    var p = imagePreviewLoader.item
+                                    if (p && controller) {
+                                        p.hasPrevious = controller.currentModelIndex > 0
+                                        p.hasNext = controller.currentModelIndex < controller.fileCount - 1
                                     }
                                 }
                             }
                         }
 
-                        // ── Document preview ──
-                        Loader {
-                            id: docPreviewLoader
-                            anchors.fill: parent
-                            anchors.margins: 16
-                            active: hasSelection && controller
-                                    && controller.currentFileInfo.typeCategory === 3
 
-                            sourceComponent: Flickable {
-                                id: docFlick
-                                contentHeight: docText.implicitHeight
-                                clip: true
-
-                                Label {
-                                    id: docText
-                                    width: docFlick.width
-                                    text: {
-                                        if (!controller) return ""
-                                        var path = controller.currentFilePath
-                                        if (path.length === 0) return ""
-                                        var ext = path.substring(path.lastIndexOf(".")).toLowerCase()
-                                        if ([".txt", ".md", ".csv"].indexOf(ext) >= 0) {
-                                            var xhr = new XMLHttpRequest()
-                                            xhr.open("GET", "file:///" + path, false)
-                                            xhr.send()
-                                            return xhr.responseText
-                                        }
-                                        return "暂不支持预览该文档类型"
-                                    }
-                                    color: pal.LabelEx_valueText
-                                    font.pixelSize: 13
-                                    wrapMode: Text.WordWrap
-                                }
-                            }
-                        }
 
                     }
                 }

@@ -46,6 +46,7 @@ set(BYTOOLS_QML_FILES
     qml/components/ComboBoxEx.qml
     qml/components/CheckBoxEx.qml
     qml/components/RadioButtonEx.qml
+    qml/components/ImageViewer.qml
     qml/pages/HomePage.qml
     qml/pages/NameConverterPage.qml
     qml/pages/BatchRenamePage.qml
@@ -55,14 +56,14 @@ set(BYTOOLS_QML_FILES
     qml/pages/VideoSubtitleSettingsPage.qml
     qml/pages/CustomSubtitlePage.qml
     qml/pages/SubtitleAdjustPage.qml
-    qml/pages/FileViewPage.qml
+    qml/pages/FileViewPage.qml 
 )
 
 # Optional Qt6 Multimedia for video playback (subtitle adjust plugin)
 find_package(Qt6 QUIET COMPONENTS Multimedia)
 if(Qt6Multimedia_FOUND)
     message(STATUS "BYTools: Qt6 Multimedia found - video player component enabled")
-    list(APPEND BYTOOLS_QML_FILES qml/components/VideoPlayer.qml)
+    list(APPEND BYTOOLS_QML_FILES qml/components/MediaViewer.qml)
 else()
     message(STATUS "BYTools: Qt6 Multimedia not found - video preview disabled")
 endif()

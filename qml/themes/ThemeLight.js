@@ -60,6 +60,7 @@ var palette = {
     IconBtnEx_textColor: "#475569",
     IconBtnEx_disabledTextColor: "#94a3b8",
     IconBtnEx_shadowColor: "#1e3a5f",
+    IconBtnEx_deleteBgColor: "#40ef4444",
     IconBtnEx_overlayBgColor: "#80FFFFFF",
     IconBtnEx_overlayBgHoverColor: "#DDE4EE",
     IconBtnEx_overlayTextColor: "#ffffff",
@@ -92,6 +93,7 @@ var palette = {
     LabelEx_valueText: "#334155",
     LabelEx_successText: "#059669",
     LabelEx_errorText: "#dc2626",
+    LabelEx_deleteColor: "#ef4444",
     LabelEx_warningText: "#b45309",
     LabelEx_codeText: "#334155",
     LabelEx_Folder_BgRect: "#f3e8ff",                       // 文件夹-背景色

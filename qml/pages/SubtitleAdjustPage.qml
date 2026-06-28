@@ -260,7 +260,7 @@ Pane {
         }
     }
 
-    // ── VideoPlayer settings sync ──
+    // ── MediaViewer settings sync ──
     Connections {
         target: videoDisplayLoader.item
         function onVolumeChanged() {
@@ -759,7 +759,7 @@ Pane {
                             id: videoDisplayLoader
                             anchors.fill: parent
                             active: hasVideo
-                            source: "../components/VideoPlayer.qml"
+                            source: "../components/MediaViewer.qml"
 
                             onLoaded: {
                                 item.controlsPaletteGroup = "VideoPlayerControls"
@@ -833,7 +833,7 @@ Pane {
                         }
                     }
 
-                    // Playback controls (now in VideoPlayer)
+                    // Playback controls (now in MediaViewer)
                 }
             }
 
@@ -849,7 +849,7 @@ Pane {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 5
+                    anchors.margins: 10
                     spacing: 10
 
                     // Max Offset value

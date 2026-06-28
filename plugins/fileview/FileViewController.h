@@ -27,7 +27,7 @@ class FileViewController : public QObject
     Q_PROPERTY(int currentModelIndex READ currentModelIndex NOTIFY currentModelIndexChanged)
 
 public:
-    enum FileType { Video = 0, Audio, Image, Document };
+    enum FileType { Video = 0, Audio, Image };
     Q_ENUM(FileType)
 
     enum SortField { SortName = 0, SortModified, SortCreated, SortSize, SortType };
@@ -58,6 +58,9 @@ public:
     Q_INVOKABLE void cancel();
     Q_INVOKABLE void selectFile(int index);
     Q_INVOKABLE void reset();
+    Q_INVOKABLE bool deleteFile(int index);
+    Q_INVOKABLE bool restoreFile(int index);
+    Q_INVOKABLE void cleanTrash();
 
     static QStringList extensionsForType(int fileType);
     static int categoryForExtension(const QString &ext);
