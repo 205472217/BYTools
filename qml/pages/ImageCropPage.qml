@@ -43,6 +43,14 @@ Pane {
         onTriggered: root.showTip = false
     }
 
+    Connections {
+        target: controller
+        function onCurrentFileCountChanged() {
+            if (controller && controller.currentFileCount > 0)
+                imageContainer.initImage();
+        }
+    }
+
     padding: 0
     background: Rectangle {
         id: bgRect
@@ -362,10 +370,8 @@ Pane {
                     implicitWidth: 100
                     paletteGroup: "ImageCropPage_loadImageBtn"
                     onClicked: {
-                        if (controller && settings.rootPath.length > 0) {
+                        if (controller && settings.rootPath.length > 0)
                             controller.scanImages();
-                            imageContainer.initImage();
-                        }
                     }
                 }
             }
