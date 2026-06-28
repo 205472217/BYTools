@@ -694,6 +694,12 @@ Pane {
                                         var idx = controller.currentModelIndex
                                         controller.selectFile(idx < controller.fileCount - 1 ? idx + 1 : 0)
                                     })
+                                    item.deleteRequested.connect(function() {
+                                        if (!controller || controller.fileCount === 0) return
+                                        item.stop()
+                                        item.source = ""
+                                        controller.deleteFile(controller.currentModelIndex)
+                                    })
                                 }
                             }
 
@@ -741,6 +747,10 @@ Pane {
                                 item.hasNext = controller.currentModelIndex < controller.fileCount - 1
                                 item.previousRequested.connect(function() { navPrevFile() })
                                 item.nextRequested.connect(function() { navNextFile() })
+                                item.deleteRequested.connect(function() {
+                                    if (!controller || controller.fileCount === 0) return
+                                    controller.deleteFile(controller.currentModelIndex)
+                                })
                             }
 
                             Connections {

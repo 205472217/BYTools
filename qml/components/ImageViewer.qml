@@ -12,6 +12,7 @@ Item {
 
     signal previousRequested()
     signal nextRequested()
+    signal deleteRequested()
 
     Shortcut {
         sequence: "Left"
@@ -19,9 +20,24 @@ Item {
         onActivated: root.previousRequested()
     }
     Shortcut {
+        sequence: "Up"
+        enabled: root.visible && root.hasPrevious
+        onActivated: root.previousRequested()
+    }
+    Shortcut {
         sequence: "Right"
         enabled: root.visible && root.hasNext
         onActivated: root.nextRequested()
+    }
+    Shortcut {
+        sequence: "Down"
+        enabled: root.visible && root.hasNext
+        onActivated: root.nextRequested()
+    }
+    Shortcut {
+        sequence: "Delete"
+        enabled: root.visible
+        onActivated: root.deleteRequested()
     }
 
     Image {

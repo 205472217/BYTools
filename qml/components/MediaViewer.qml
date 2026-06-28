@@ -46,6 +46,7 @@ Item {
 
     signal previousRequested()
     signal nextRequested()
+    signal deleteRequested()
 
     function play() { mediaPlayer.play() }
     function pause() { mediaPlayer.pause() }
@@ -77,6 +78,7 @@ Item {
     Shortcut { sequence: "Down";       enabled: root.visible;                             onActivated: { var v = Math.max(0, root.volume - 5); root.volume = v; audioOut.muted = (v < 1); volumeTip.show() } }
     Shortcut { sequence: "Shift+Left"; enabled: root.visible && root.showPreviousNext;    onActivated: root.previousRequested() }
     Shortcut { sequence: "Shift+Right";enabled: root.visible && root.showPreviousNext;    onActivated: root.nextRequested() }
+    Shortcut { sequence: "Delete";      enabled: root.visible;                             onActivated: root.deleteRequested() }
 
     VideoOutput {
         id: videoOut

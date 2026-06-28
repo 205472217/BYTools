@@ -125,6 +125,11 @@ ComboBox {
 
     }
 
+    Keys.onPressed: function(event) {
+        if (event.key === Qt.Key_Up || event.key === Qt.Key_Down)
+            event.accepted = true
+    }
+
     popup: Popup {
         y: root.height
         width: root.width
