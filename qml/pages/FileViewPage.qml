@@ -17,6 +17,16 @@ Pane {
     property string _lastLogLine: ""
     property var _typeNames: ["视频", "音频", "图片"]
 
+    // ── mpv 检测 ──
+    property bool _mpvAvailable: {
+        if (!controller) return false
+        pluginManager.extractMpvZip("file-view")
+        var dir = pluginManager.pluginDirectory("file-view")
+        return dir.length > 0 && pluginManager.fileExists(dir + "/mpv/mpv.exe")
+    }
+    property string _mpvExePath: _mpvAvailable
+        ? pluginManager.pluginDirectory("file-view") + "/mpv/mpv.exe" : ""
+
     function safeInfo(key, fallback) {
         if (!controller || !hasSelection) return fallback || "-"
         var v = controller.currentFileInfo[key]
@@ -640,7 +650,7 @@ Pane {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         radius: 6
-                        color: hasSelection ? pal.SubtitleAdjustPage_videoBg_color_active : pal.SubtitleAdjustPage_videoBg_color_normal
+                        color: hasSelection ? pal.SurfaceEx_videoBg_active : pal.SurfaceEx_videoBg_normal
                         clip: true
 
                         // Empty state
@@ -670,10 +680,14 @@ Pane {
                             active: hasSelection && controller
                                     && (controller.currentFileInfo.typeCategory === 0
                                         || controller.currentFileInfo.typeCategory === 1)
-                            source: "../components/MediaViewer.qml"
+                            source: root._mpvAvailable
+                                ? "../components/MpvViewer.qml"
+                                : "../components/MediaViewer.qml"
 
                             onLoaded: {
                                 if (controller) {
+                                    if (root._mpvAvailable)
+                                        item.mpvPath = root._mpvExePath
                                     item.controlsPaletteGroup = "VideoPlayerControls"
                                     item.source = "file:///" + controller.currentFilePath
                                     if (settings) {
@@ -708,9 +722,11 @@ Pane {
                                 function onCurrentFilePathChanged() {
                                     var p = videoPreviewLoader.item
                                     if (p && controller) {
-                                        p.stop()
-                                        p.source = "file:///" + controller.currentFilePath
-                                        p.play()
+                                        var newSrc = "file:///" + controller.currentFilePath
+                                        if (p.source !== newSrc) {
+                                            p.source = newSrc
+                                            p.play()
+                                        }
                                     }
                                 }
                             }

@@ -5,6 +5,7 @@
 #include <QVariantList>
 #include <QMap>
 #include <QDir>
+#include <QFileInfo>
 #include <QPluginLoader>
 
 class PluginInterface;
@@ -23,6 +24,9 @@ public:
     QStringList loadPlugins(const QString &pluginPath = QString());
     Q_INVOKABLE QObject* getPlugin(const QString &id);
     Q_INVOKABLE QObject* getPluginSettings(const QString &id);
+    Q_INVOKABLE QString pluginDirectory(const QString &id) const;
+    Q_INVOKABLE bool fileExists(const QString &filePath) const;
+    Q_INVOKABLE bool extractMpvZip(const QString &pluginId);
     void registerPlugin(PluginInterface *plugin);
 
 signals:

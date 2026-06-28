@@ -9,6 +9,7 @@
 #include "core/PluginManager.h"
 #include "core/PluginInterface.h"
 #include "core/ThemeManager.h"
+#include "core/MpvPlayer.h"
 
 int main(int argc, char *argv[])
 {
@@ -26,6 +27,8 @@ int main(int argc, char *argv[])
     AppController appController;
 
     QQmlApplicationEngine engine;
+    qmlRegisterType<MpvPlayer>("BYTools", 1, 0, "MpvPlayer");
+
     engine.rootContext()->setContextProperty("appController", &appController);
     engine.rootContext()->setContextProperty("pluginManager", PluginManager::instance());
     engine.rootContext()->setContextProperty("themeManager", ThemeManager::instance());

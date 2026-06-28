@@ -47,3 +47,20 @@ configure_file(
 if(WIN32)
     target_compile_definitions(FileViewPlugin PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
 endif()
+
+# ── Copy mpv/ directory (if present) ──
+set(MPV_SRC_DIR  "${CMAKE_SOURCE_DIR}/third/mpv")
+set(MPV_DST_DIR  "${CMAKE_BINARY_DIR}/plugins/fileview/mpv")
+if(EXISTS "${MPV_SRC_DIR}")
+    file(GLOB_RECURSE MPV_FILES "${MPV_SRC_DIR}/*")
+    add_custom_command(
+        OUTPUT  "${MPV_DST_DIR}/.copy_stamp"
+        DEPENDS ${MPV_FILES}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${MPV_SRC_DIR}" "${MPV_DST_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E touch "${MPV_DST_DIR}/.copy_stamp"
+        COMMENT "Copying mpv to build directory (FileView)"
+    )
+    add_custom_target(FileViewMpv ALL DEPENDS "${MPV_DST_DIR}/.copy_stamp")
+    add_dependencies(FileViewPlugin FileViewMpv)
+    install(DIRECTORY "${MPV_SRC_DIR}/" DESTINATION "${CMAKE_INSTALL_PREFIX}/plugins/fileview/mpv")
+endif()

@@ -2,11 +2,13 @@
 #include "PluginInterface.h"
 
 #include <QDir>
+#include <QFileInfo>
 #include <QPluginLoader>
 #include <QVariantMap>
 #include <QSet>
 #include <QCoreApplication>
 #include <QDebug>
+#include <QProcess>
 #include <algorithm>
 
 PluginManager::PluginManager(QObject *parent)
@@ -142,6 +144,46 @@ QObject* PluginManager::getPluginSettings(const QString &id)
     if (it == m_plugins.constEnd() || !it->plugin)
         return nullptr;
     return it->plugin->getSettings();
+}
+
+bool PluginManager::fileExists(const QString &filePath) const
+{
+    return QFileInfo::exists(filePath);
+}
+
+QString PluginManager::pluginDirectory(const QString &id) const
+{
+    auto it = m_plugins.constFind(id);
+    if (it == m_plugins.constEnd() || !it->loader)
+        return {};
+    return QFileInfo(it->loader->fileName()).absolutePath();
+}
+
+bool PluginManager::extractMpvZip(const QString &pluginId)
+{
+    auto it = m_plugins.constFind(pluginId);
+    if (it == m_plugins.constEnd() || !it->loader)
+        return false;
+
+    QString pluginDir = QFileInfo(it->loader->fileName()).absolutePath();
+    QString mpvExe = pluginDir + "/mpv/mpv.exe";
+
+    if (QFileInfo::exists(mpvExe))
+        return true;
+
+    QString mpvZip = pluginDir + "/mpv/mpv.zip";
+    if (!QFileInfo::exists(mpvZip))
+        return false;
+
+    QProcess proc;
+    proc.start("powershell", QStringList{}
+        << "-NoProfile"
+        << "-Command"
+        << QString("Expand-Archive -Path '%1' -DestinationPath '%2' -Force")
+            .arg(mpvZip, pluginDir + "/mpv"));
+    proc.waitForFinished(60000);
+
+    return QFileInfo::exists(mpvExe);
 }
 
 void PluginManager::registerPlugin(PluginInterface *plugin)

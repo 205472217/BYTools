@@ -158,6 +158,8 @@ var palette = {
     SurfaceEx_progressFill: "#2563eb",                      // 进度条填充
     SurfaceEx_overlay: "#A6000000",                         // 弹窗遮罩
     SurfaceEx_pageIndicator: "#73000000",                   // 分页指示器
+    SurfaceEx_videoBg_active: "#000000",                    // 视频/预览区背景(有内容)
+    SurfaceEx_videoBg_normal: "#000000",                    // 视频/预览区背景(无内容)
     // ── Status Badge ──────────────────────────────────────────
     StatusBadgeEx_bg_success: "#dbeafe",                    // 状态徽章-成功
     StatusBadgeEx_bg_error: "#fef2f2",                      // 状态徽章-失败
@@ -383,9 +385,6 @@ var palette = {
 
     // ── SubtitleAdjustPage ──────────────────────────────────
     SubtitleAdjustPage_logBar_color: "#eff6ff",                         // 字幕校对-日志栏
-    // 字幕校对-视频背景
-    SubtitleAdjustPage_videoBg_color_active: "#000000",
-    SubtitleAdjustPage_videoBg_color_normal: "#f1f5f9",
     SubtitleAdjustPage_videoOverlay_color: "#000000",                   // 字幕校对-视频遮罩
     SubtitleAdjustPage_subtitleOverlay_color: "#C0000000",              // 字幕校对-字幕遮罩
     SubtitleAdjustPage_subtitleText_color: "#ffffff",                   // 字幕校对-字幕文字

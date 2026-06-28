@@ -15,6 +15,16 @@ Pane {
     property bool hasVideo: controller && controller.currentVideoPath.length > 0
     property bool isSingleMode: controller ? settings.mode === 0 : true
 
+    // ── mpv 检测 ──
+    property bool _mpvAvailable: {
+        if (!controller) return false
+        pluginManager.extractMpvZip("subtitle-adjust")
+        var dir = pluginManager.pluginDirectory("subtitle-adjust")
+        return dir.length > 0 && pluginManager.fileExists(dir + "/mpv/mpv.exe")
+    }
+    property string _mpvExePath: _mpvAvailable
+        ? pluginManager.pluginDirectory("subtitle-adjust") + "/mpv/mpv.exe" : ""
+
     property int stepMs: 100
     property int maxOffsetMs: 60000 // 默认 ±1 分钟
     property string _lastLogLine: ""
@@ -730,7 +740,7 @@ Pane {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         radius: 6
-                        color: hasVideo ? pal.SubtitleAdjustPage_videoBg_color_active : pal.SubtitleAdjustPage_videoBg_color_normal
+                        color: hasVideo ? pal.SurfaceEx_videoBg_active : pal.SurfaceEx_videoBg_normal
 
                         // Empty state
                         Column {
@@ -759,9 +769,13 @@ Pane {
                             id: videoDisplayLoader
                             anchors.fill: parent
                             active: hasVideo
-                            source: "../components/MediaViewer.qml"
+                            source: root._mpvAvailable
+                                ? "../components/MpvViewer.qml"
+                                : "../components/MediaViewer.qml"
 
                             onLoaded: {
+                                if (root._mpvAvailable)
+                                    item.mpvPath = root._mpvExePath
                                 item.controlsPaletteGroup = "VideoPlayerControls"
                                 item.showPreviousNext = false
                                 item.source = "file:///" + (controller ? controller.currentVideoPath : "")
