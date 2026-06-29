@@ -28,6 +28,8 @@ qt_add_executable(BYTools
     src/core/PluginManager.cpp
     src/core/ThemeManager.h
     src/core/ThemeManager.cpp
+    src/core/MpvPlayer.h
+    src/core/MpvPlayer.cpp
     ${BYTOOLS_PLATFORM_SOURCES}
 )
 
