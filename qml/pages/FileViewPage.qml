@@ -17,10 +17,9 @@ Pane {
     property string _lastLogLine: ""
     property var _typeNames: ["视频", "音频", "图片"]
 
-    // ── mpv 检测 ──
+    // ── mpv 检测（启动时已解压，此处仅检查文件是否存在） ──
     property bool _mpvAvailable: {
         if (!controller) return false
-        pluginManager.extractMpvZip("file-view")
         var dir = pluginManager.pluginDirectory("file-view")
         return dir.length > 0 && pluginManager.fileExists(dir + "/mpv/mpv.exe")
     }

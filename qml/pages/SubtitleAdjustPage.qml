@@ -15,10 +15,9 @@ Pane {
     property bool hasVideo: controller && controller.currentVideoPath.length > 0
     property bool isSingleMode: controller ? settings.mode === 0 : true
 
-    // ── mpv 检测 ──
+    // ── mpv 检测（启动时已解压，此处仅检查文件是否存在） ──
     property bool _mpvAvailable: {
         if (!controller) return false
-        pluginManager.extractMpvZip("subtitle-adjust")
         var dir = pluginManager.pluginDirectory("subtitle-adjust")
         return dir.length > 0 && pluginManager.fileExists(dir + "/mpv/mpv.exe")
     }

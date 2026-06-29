@@ -6,6 +6,7 @@
 #include <QRandomGenerator>
 #include <QFileInfo>
 #include <QCoreApplication>
+#include <QtMath>
 #include <QDebug>
 
 #ifndef NOMINMAX
@@ -56,6 +57,13 @@ void MpvPlayer::setPosition(qint64 pos)
     seek(pos);
 }
 
+// mpv 内部 volume 使用三次曲线：gain = (vol/100)^3
+// 导致 0-30 区间几乎没有增益变化，在此做逆补偿使 UI 滑块感知线性
+static qreal linearizeMpvVolume(qreal uiVol)
+{
+    return qPow(uiVol / 100.0, 1.0 / 3.0) * 100.0;
+}
+
 void MpvPlayer::setVolume(qreal vol)
 {
     vol = qBound<qreal>(0, vol, 100);
@@ -68,7 +76,7 @@ void MpvPlayer::setVolume(qreal vol)
         QJsonArray args;
         args.append(QStringLiteral("set_property"));
         args.append(QStringLiteral("volume"));
-        args.append(vol);
+        args.append(linearizeMpvVolume(vol));
         cmd[QStringLiteral("command")] = args;
         sendIpcCommand(QJsonDocument(cmd).toJson(QJsonDocument::Compact));
     }
@@ -263,10 +271,11 @@ void MpvPlayer::startMpv()
     args << QStringLiteral("--no-input-cursor");
     args << QStringLiteral("--cursor-autohide=no");
     args << QStringLiteral("--keepaspect=yes");
-    args << QStringLiteral("--volume=%1").arg(static_cast<int>(m_volume));
+    args << QStringLiteral("--volume=%1").arg(static_cast<int>(linearizeMpvVolume(m_volume)));
     args << QStringLiteral("--pause");
     args << QStringLiteral("--no-terminal");
     args << QStringLiteral("--quiet");
+    args << QStringLiteral("--sub-auto=no");
     args << filePath;
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();

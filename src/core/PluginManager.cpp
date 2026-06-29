@@ -18,6 +18,15 @@ PluginManager::PluginManager(QObject *parent)
 
 PluginManager::~PluginManager()
 {
+    // 终止所有运行中的解压进程
+    const auto processes = findChildren<QProcess*>();
+    for (auto *p : processes) {
+        if (p->state() != QProcess::NotRunning) {
+            p->kill();
+            p->waitForFinished(3000);
+        }
+    }
+
     for (auto &entry : m_plugins) {
         if (entry.plugin)
             entry.plugin->cleanup();
@@ -184,6 +193,50 @@ bool PluginManager::extractMpvZip(const QString &pluginId)
     proc.waitForFinished(60000);
 
     return QFileInfo::exists(mpvExe);
+}
+
+void PluginManager::startMpvExtraction(const QString &pluginId)
+{
+    auto it = m_plugins.constFind(pluginId);
+    if (it == m_plugins.constEnd() || !it->loader)
+        return;
+
+    QString pluginDir = QFileInfo(it->loader->fileName()).absolutePath();
+    QString mpvExe = pluginDir + "/mpv/mpv.exe";
+
+    if (QFileInfo::exists(mpvExe))
+        return;
+
+    QString mpvZip = pluginDir + "/mpv/mpv.zip";
+    if (!QFileInfo::exists(mpvZip))
+        return;
+
+    bool wasExtracting = (m_mpvExtractionCount > 0);
+    m_mpvExtractionCount++;
+    if (!wasExtracting)
+        emit mpvExtractingChanged();
+
+    QProcess *proc = new QProcess(this);
+    connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, [this, proc]() {
+        m_mpvExtractionCount--;
+        if (m_mpvExtractionCount < 0)
+            m_mpvExtractionCount = 0;
+        if (m_mpvExtractionCount == 0)
+            emit mpvExtractingChanged();
+        proc->deleteLater();
+    });
+
+    proc->start("powershell", QStringList{}
+        << "-NoProfile"
+        << "-Command"
+        << QString("Expand-Archive -Path '%1' -DestinationPath '%2' -Force")
+            .arg(mpvZip, pluginDir + "/mpv"));
+}
+
+bool PluginManager::isMpvExtracting() const
+{
+    return m_mpvExtractionCount > 0;
 }
 
 void PluginManager::registerPlugin(PluginInterface *plugin)

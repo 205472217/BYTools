@@ -7,6 +7,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QPluginLoader>
+#include <QProcess>
 
 class PluginInterface;
 
@@ -15,6 +16,7 @@ class PluginManager : public QObject
     Q_OBJECT
     Q_PROPERTY(QVariantList plugins READ plugins NOTIFY pluginsChanged)
     Q_PROPERTY(QStringList pluginCategories READ pluginCategories NOTIFY pluginsChanged)
+    Q_PROPERTY(bool mpvExtracting READ isMpvExtracting NOTIFY mpvExtractingChanged)
 
 public:
     static PluginManager* instance();
@@ -27,10 +29,13 @@ public:
     Q_INVOKABLE QString pluginDirectory(const QString &id) const;
     Q_INVOKABLE bool fileExists(const QString &filePath) const;
     Q_INVOKABLE bool extractMpvZip(const QString &pluginId);
+    Q_INVOKABLE void startMpvExtraction(const QString &pluginId);
+    bool isMpvExtracting() const;
     void registerPlugin(PluginInterface *plugin);
 
 signals:
     void pluginsChanged();
+    void mpvExtractingChanged();
 
 private:
     PluginManager(QObject *parent = nullptr);
@@ -43,6 +48,7 @@ private:
 
     QMap<QString, PluginEntry> m_plugins;
     QStringList m_loadedPluginPaths;
+    int m_mpvExtractionCount = 0;
 
     void loadPluginsFromDir(const QDir &dir, const QStringList &filters, QStringList &loadedPlugins);
 };

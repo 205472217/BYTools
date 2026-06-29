@@ -67,6 +67,41 @@ ApplicationWindow {
         }
     }
 
+    // ── 启动加载遮罩：mpv 解压中 ──
+    Rectangle {
+        id: loadingOverlay
+        anchors.fill: stackView
+        z: stackView.z + 2
+        color: pal.SurfaceEx_pageBg
+        visible: pluginManager.mpvExtracting
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 24
+
+            BusyIndicator {
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 48
+                height: 48
+                running: parent.visible
+            }
+
+            Label {
+                text: "正在初始化 mpv 播放器..."
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: pal.LabelEx_infoText
+                font.pixelSize: 15
+            }
+
+            Label {
+                text: "首次启动需解压播放器组件，请稍候"
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: pal.LabelEx_subtitleText
+                font.pixelSize: 12
+            }
+        }
+    }
+
     // 页面切换遮罩：防止切换过程中点击穿透
     Rectangle {
         id: transitionOverlay

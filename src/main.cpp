@@ -24,6 +24,10 @@ int main(int argc, char *argv[])
     qDebug() << "Loaded plugins count:" << loadedPlugins.count();
     qDebug() << "Loaded plugins:" << loadedPlugins;
 
+    // 启动时异步解压 mpv.zip，不阻塞界面
+    PluginManager::instance()->startMpvExtraction("subtitle-adjust");
+    PluginManager::instance()->startMpvExtraction("file-view");
+
     AppController appController;
 
     QQmlApplicationEngine engine;
