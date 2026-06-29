@@ -180,6 +180,7 @@ Pane {
                     onClicked: {
                         if (controller) controller.reset()
                         backConfirmDialog.close()
+                        root._hideNativeOverlay()
                         root.backRequested()
                     }
                 }
@@ -334,6 +335,7 @@ Pane {
                     if (controller && controller.isProcessing) {
                         backConfirmDialog.open()
                     } else {
+                        root._hideNativeOverlay()
                         root.backRequested()
                     }
                 }

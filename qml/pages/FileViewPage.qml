@@ -39,6 +39,17 @@ Pane {
         return (bytes / 1073741824).toFixed(2) + " GB"
     }
 
+    function _hideNativeOverlay() {
+        var p = videoPreviewLoader.item
+        if (p && p.setNativeOverlayVisible)
+            p.setNativeOverlayVisible(false)
+    }
+    function _showNativeOverlay() {
+        var p = videoPreviewLoader.item
+        if (p && p.setNativeOverlayVisible)
+            p.setNativeOverlayVisible(true)
+    }
+
     function selectedFileUrl(url) {
         var p = url.toString()
         if (p.indexOf("file:///") === 0)
@@ -110,6 +121,7 @@ Pane {
                 paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller) controller.cleanTrash()
+                    root._hideNativeOverlay()
                     root.backRequested()
                 }
             }
@@ -572,7 +584,7 @@ Pane {
                                         : (delMouse.containsMouse ? pal.LabelEx_deleteColor : "transparent")
 
                                     Label {
-                                         anchors.centerIn: parent
+                                        anchors.centerIn: parent
                                         text: fileDelegate.fileDeleted ? "↩" : "✕"
                                         color: fileDelegate.fileDeleted
                                             ? pal.LabelEx_infoText
@@ -580,7 +592,7 @@ Pane {
 
                                         ToolTip {
                                             visible: delMouse.containsMouse
-                                            text: fileDelegate.fileDeleted ? "还原文件到原始位置" : "删除文件（移动到回收站）"
+                                            text: fileDelegate.fileDeleted ? "还原（到原始位置）" : "删除（到回收站）"
                                             delay: 300
                                         }
                                         font.pixelSize: 14
