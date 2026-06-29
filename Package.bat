@@ -74,8 +74,8 @@ if exist "third\mpv" (
 )
 ::==========================plugins===============================
 
-:: Deploy Qt runtime dependencies for the exe
-windeployqt --dir "%OUT_DIR%" "%OUT_DIR%\BYTools.exe"
+:: Deploy Qt runtime dependencies for the exe (including QML modules)
+windeployqt --dir "%OUT_DIR%" "%OUT_DIR%\BYTools.exe" --qmldir "%~dp0qml"
 
 :: Deploy Qt runtime dependencies for each plugin DLL
 for %%F in ("%PLUGIN_OUT%\*.dll") do (
