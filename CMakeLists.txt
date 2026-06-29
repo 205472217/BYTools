@@ -49,6 +49,7 @@ set(BYTOOLS_QML_FILES
     qml/components/CheckBoxEx.qml
     qml/components/RadioButtonEx.qml
     qml/components/ImageViewer.qml
+    qml/components/MpvViewer.qml
     qml/pages/HomePage.qml
     qml/pages/NameConverterPage.qml
     qml/pages/BatchRenamePage.qml
