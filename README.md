@@ -9,9 +9,10 @@ Qt/QML + C++ PC 工具集合应用骨架。
 - **批量重命名**：批量重命名文件，支持多种命名规则（指定名称、查找替换），支持按文件类型筛选，支持递归子文件夹子目录。
 - **图片处理**：批量转换图片格式（PNG、JPG、BMP、WebP、TIFF）、缩放尺寸（按比例/指定宽高），支持递归子文件夹和质量调节。
 - **图片裁剪**：按比例或指定像素尺寸裁剪图片，支持实时预览、拖拽调整裁剪框、多图浏览切换，支持覆盖源文件或输出到新目录。
+- **文件浏览**：浏览指定文件夹下的任意类型文件，支持视频在线预览播放、指定条件排序、文件删除与还原。
 - **视频字幕翻译**：从视频中提取音频，使用 Whisper 进行语音识别生成SRT字幕，支持翻译SRT字幕（百度翻译API/本地翻译），内嵌SRT字幕到视频（支持 GPU 加速）。
 - **自定义视频字幕**：从网站下载字幕，根据关键码匹配视频字幕，将匹配的视频和字幕合成，替换原视频。
-- **调整视频字幕**：根据视频内容自动调整字幕位置，支持手动微调。
+- **字幕调整**：视频与字幕同时按时码播放，手动微调字幕时码对齐视频。
 
 
 ## 代码目录结构
@@ -28,7 +29,8 @@ plugins/                       插件目录
   imagecrop/                   图片裁剪插件
   videosubtitle/               视频字幕翻译插件
   customsubtitle/              自定义视频字幕插件
-  adjustsubtitle/              调整字幕时码插件
+  subtitleadjust/              调整字幕时码插件
+  fileview/                    文件浏览插件
 qml/
   components/                  可复用界面组件
   pages/                       页面
@@ -48,7 +50,10 @@ BYTools/
   plugins/                     插件目录
     card-customsubtitle/       自定义视频字幕插件
       python/                  自定义字幕插件访问字幕网站的python脚本（目前支持网站: subtitlecat）
-    card-adjustsubtitle/       调整字幕时码插件
+    card-fileview/             文件浏览插件
+      mpv                      内嵌第三方播放器所需
+    card-subtitleadjust/       调整字幕时码插件
+      mpv                      内嵌第三方播放器所需
     card-videosubtitle/        视频字幕翻译插件
     card-nameconverter/        繁简转换插件
     card-batchrename/          批量重命名插件
@@ -59,6 +64,7 @@ BYTools/
     model/                     模型存放目录（whisper语音识别模型，模型太大未上传,需手动下载）
     whisper_amd/               支持AMD显卡的whisper程序(加快语音识别速度，本地编译)
     whisper_cpu/               官网下载的whisper程序（只支持CPU，速度较慢）
+    mpv/                       第三方播放器，需要播放视频的插件已内嵌
 ```
 
 ## 插件架构

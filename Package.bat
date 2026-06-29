@@ -60,8 +60,18 @@ if exist "plugins\customsubtitle\python" (
 )
 
 :: Copy adjustsubtitle plugin
-mkdir "%PLUGIN_OUT%\card-adjustsubtitle"
-copy "build\plugins\adjustsubtitle\libAdjustSubtitle.dll" "%PLUGIN_OUT%\card-adjustsubtitle"
+mkdir "%PLUGIN_OUT%\card-subtitleadjust"
+copy "build\plugins\subtitleadjust\libSubtitleAdjust.dll" "%PLUGIN_OUT%\card-subtitleadjust"
+if exist "third\mpv" (
+    xcopy /E /I "third\mpv" "%PLUGIN_OUT%\card-subtitleadjust\mpv"
+)
+
+:: Copy fileview plugin
+mkdir "%PLUGIN_OUT%\card-fileview"
+copy "build\plugins\fileview\libFileView.dll" "%PLUGIN_OUT%\card-fileview"
+if exist "third\mpv" (
+    xcopy /E /I "third\mpv" "%PLUGIN_OUT%\card-fileview\mpv"
+)
 ::==========================plugins===============================
 
 :: Deploy Qt runtime dependencies for the exe
