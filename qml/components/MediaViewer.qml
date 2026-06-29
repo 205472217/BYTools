@@ -52,6 +52,7 @@ Item {
     function pause() { mediaPlayer.pause() }
     function stop() { mediaPlayer.stop() }
 
+
     function fmtTime(ms) {
         if (ms < 0) return "-" + fmtTime(-ms)
         var h = Math.floor(ms / 3600000)

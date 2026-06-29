@@ -225,6 +225,16 @@ void MpvPlayer::destroyChildWindow()
     m_childWindow = nullptr;
 }
 
+void MpvPlayer::setNativeOverlayVisible(bool visible)
+{
+    if (!m_childWindow)
+        return;
+    if (visible)
+        m_childWindow->show();
+    else
+        m_childWindow->hide();
+}
+
 void MpvPlayer::updateWindowGeometry()
 {
     if (!m_childWindow)

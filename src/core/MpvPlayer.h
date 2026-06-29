@@ -46,6 +46,7 @@ public:
     Q_INVOKABLE void pause();
     Q_INVOKABLE void stop();
     Q_INVOKABLE void seek(qint64 positionMs);
+    Q_INVOKABLE void setNativeOverlayVisible(bool visible);
 
 signals:
     void sourceChanged();

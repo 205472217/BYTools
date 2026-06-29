@@ -51,6 +51,8 @@ Item {
     function play() { mpvPlayer.play() }
     function pause() { mpvPlayer.pause() }
     function stop() { mpvPlayer.stop() }
+    function setNativeOverlayVisible(v) { mpvPlayer.setNativeOverlayVisible(v) }
+
 
     function fmtTime(ms) {
         if (ms < 0) return "-" + fmtTime(-ms)

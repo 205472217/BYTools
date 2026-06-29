@@ -45,6 +45,17 @@ Pane {
         return sign + (absMs / 1000).toFixed(1) + "s"
     }
 
+    function _hideNativeOverlay() {
+        var p = videoDisplayLoader.item
+        if (p && p.setNativeOverlayVisible)
+            p.setNativeOverlayVisible(false)
+    }
+    function _showNativeOverlay() {
+        var p = videoDisplayLoader.item
+        if (p && p.setNativeOverlayVisible)
+            p.setNativeOverlayVisible(true)
+    }
+
     function selectedFileUrl(url) {
         var p = url.toString()
         if (p.indexOf("file:///") === 0)
@@ -127,6 +138,8 @@ Pane {
         width: 420
         standardButtons: Dialog.NoButton
         closePolicy: Dialog.CloseOnEscape
+        onOpened: root._hideNativeOverlay()
+        onClosed: root._showNativeOverlay()
 
         contentItem: ColumnLayout {
             spacing: 8
@@ -183,6 +196,8 @@ Pane {
         width: 420
         standardButtons: Dialog.NoButton
         closePolicy: Dialog.CloseOnEscape
+        onOpened: root._hideNativeOverlay()
+        onClosed: root._showNativeOverlay()
 
         property int targetIndex: -1
 
@@ -252,6 +267,7 @@ Pane {
             var p = videoDisplayLoader.item
             if (p) {
                 p.source = "file:///" + videoPath
+                p.play()
             }
         }
         function onCurrentVideoPathChanged() {
@@ -263,8 +279,8 @@ Pane {
                 }
                 videoDisplayLoader.active = false
             } else if (p) {
-                p.stop()
                 p.source = "file:///" + controller.currentVideoPath
+                p.play()
             }
         }
     }
@@ -628,6 +644,7 @@ Pane {
                             id: matchListView
                             anchors.fill: parent
                             model: controller ? controller.matchModel : null
+                            currentIndex: controller ? controller.currentMatchIndex : -1
                             visible: controller && controller.matchModel && controller.matchModel.count > 0
                             ScrollBar.vertical: ScrollBar {
                                 policy: ScrollBar.AsNeeded
@@ -646,8 +663,8 @@ Pane {
                                 required property int status
 
                                 color: {
-                                    if (status === 1) return pal.SurfaceEx_rowMatchedBg
                                     if (ListView.isCurrentItem) return pal.SurfaceEx_rowSelectedBg
+                                    if (status === 1) return pal.SurfaceEx_rowMatchedBg
                                     return index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
                                 }
 
@@ -697,7 +714,6 @@ Pane {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
-                                        matchListView.currentIndex = delegateRoot.index
                                         root.tryStartAdjust(delegateRoot.index)
                                     }
                                 }
@@ -778,6 +794,7 @@ Pane {
                                 item.controlsPaletteGroup = "VideoPlayerControls"
                                 item.showPreviousNext = false
                                 item.source = "file:///" + (controller ? controller.currentVideoPath : "")
+                                item.play()
                                 if (settings) {
                                     item.volume = settings.volume
                                     item.muted = settings.muted
@@ -813,35 +830,38 @@ Pane {
                                 }
                             }
                         }
+                    }
 
-                        // Subtitle overlay
-                        Rectangle {
-                            id: subtitleOverlay
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.bottom: parent.bottom
-                            anchors.leftMargin: 20
-                            anchors.rightMargin: 20
-                            anchors.bottomMargin: 70
-                            height: subtitleText.implicitHeight + 20
-                            radius: 8
-                            color: pal.SubtitleAdjustPage_subtitleOverlay_color
-                            visible: {
-                                var p = videoDisplayLoader.item
-                                hasVideo && p && p.playbackState === 1
-                                    && root._currentSubtitleText.length > 0
-                            }
+                    // ── 字幕独立显示区域 ──
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 40
+                        Layout.minimumHeight: 40
+                        radius: 6
+                        color: pal.SurfaceEx_cardBgAlt
+                        border.color: pal.SurfaceEx_cardBorder
+                        border.width: 1
+                        visible: hasVideo
+
+                        ColumnLayout {
+                            anchors.fill: parent
+                            anchors.margins: 8
+                            spacing: 4
 
                             Label {
                                 id: subtitleText
-                                anchors.centerIn: parent
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
                                 text: root._currentSubtitleText
-                                color: pal.SubtitleAdjustPage_subtitleText_color
-                                font.pixelSize: 20
+                                color: pal.LabelEx_valueText
+                                font.pixelSize: 14
                                 font.bold: true
                                 horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
                                 wrapMode: Text.WordWrap
+                                elide: Text.ElideRight
                                 maximumLineCount: 2
+                                visible: root._currentSubtitleText.length > 0
                             }
                         }
                     }
