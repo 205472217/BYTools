@@ -11,6 +11,7 @@
 #include <QCoreApplication>
 #include <QStandardPaths>
 #include <QUuid>
+#include "SubtitleUtils.h"
 
 // ── 辅助函数（定义在使用前） ──
 
@@ -21,6 +22,25 @@ static QString findFileRecursive(const QString &rootDir, const QString &fileName
     while (it.hasNext()) {
         it.next();
         if (it.fileName() == fileName) {
+            return it.filePath();
+        }
+    }
+    return {};
+}
+
+/// 在 rootDir 下递归搜索关键码匹配的视频文件（类似字幕匹配规则）
+static QString findFileByKey(const QString &rootDir, const QString &baseName)
+{
+    QString targetKey = extractKey(baseName);
+    if (targetKey.isEmpty()) return {};
+
+    QDirIterator it(rootDir, QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        it.next();
+        QFileInfo fi(it.filePath());
+        if (!isVideoFile(fi.fileName())) continue;
+        QString key = extractKey(fi.completeBaseName());
+        if (!key.isEmpty() && key == targetKey) {
             return it.filePath();
         }
     }
@@ -51,7 +71,7 @@ void VideoReplaceService::startReplace(const QString &videoDir,
                                         const QString &mergedDir,
                                         bool recursive,
                                         bool removeSrt,
-                                        bool backupOriginal)
+                                        bool weakMatch)
 {
     if (m_workerRunning) {
         emit logMessage("✗ 已有替换任务正在执行");
@@ -62,7 +82,7 @@ void VideoReplaceService::startReplace(const QString &videoDir,
     m_mergedDir = mergedDir;
     m_recursive = recursive;
     m_removeSrt = removeSrt;
-    m_backupOriginal = backupOriginal;
+    m_weakMatch = weakMatch;
     m_cancelled.storeRelaxed(0);
     m_totalVideoCount = 0;
     m_successCount = 0;
@@ -84,6 +104,7 @@ void VideoReplaceService::startReplace(const QString &videoDir,
     emit logMessage(QString("步骤4：扫描原视频目录..."));
     m_logger->info(QString("原视频目录: %1 (递归=%2)").arg(videoDir).arg(recursive));
     m_logger->info(QString("合成视频目录: %1").arg(mergedDir));
+    m_logger->info(QString("名称匹配模式: %1").arg(weakMatch ? "弱匹配(关键码)" : "精确匹配(同名)"));
 
     // 扫描+替换全部在后台线程执行，不阻塞 UI
     m_workerRunning = true;
@@ -133,8 +154,10 @@ void VideoReplaceService::doWork()
 
             m_totalVideoCount++;
 
-            // 在 mergedDir 中递归搜索同名文件
-            QString mergedPath = findFileRecursive(m_mergedDir, fi.fileName());
+            // 根据匹配模式搜索合成目录
+            QString mergedPath = m_weakMatch
+                ? findFileByKey(m_mergedDir, fi.completeBaseName())
+                : findFileRecursive(m_mergedDir, fi.fileName());
             if (mergedPath.isEmpty()) {
                 // 不记录详细文件名，减少日志文件大小
                 //m_logger->info(QString("  [无合成] %1 (%2 MB) — FFOutput 中未找到同名文件") .arg(fi.absoluteFilePath()) .arg(fi.size() / 1024.0 / 1024.0, 0, 'f', 2));
@@ -197,6 +220,7 @@ void VideoReplaceService::doWork()
 
     emit logMessage(QString("找到 %1 个可替换的视频文件，开始替换...")
         .arg(matchedCount));
+    m_logger->info(QString("匹配模式: %1").arg(m_weakMatch ? "弱匹配(关键码)" : "精确匹配(同名)"));
     m_logger->info(QString("扫描完成: 原视频共 %1 个, 有合成文件 %2 个, 有关联字幕 %3 个")
         .arg(m_totalVideoCount).arg(matchedCount).arg(srtCount));
 
@@ -353,7 +377,8 @@ void VideoReplaceService::doWork()
         "═══════════════════════════════════════\n"
         "替换目录: %6\n"
         "合成目录: %7\n"
-        "删除字幕: %8\n"
+        "名称匹配: %8\n"
+        "删除字幕: %9\n"
         "═══════════════════════════════════════\n"
         "详情请查看日志文件")
         .arg(m_totalVideoCount)
@@ -362,6 +387,7 @@ void VideoReplaceService::doWork()
         .arg(failed)
         .arg(unmatched)
         .arg(m_videoDir, m_mergedDir)
+        .arg(m_weakMatch ? "弱匹配(关键码)" : "精确匹配(同名)")
         .arg(m_removeSrt ? "是" : "否");
 
     emit logMessage(summary);

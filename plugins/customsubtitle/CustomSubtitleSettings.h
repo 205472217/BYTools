@@ -13,7 +13,7 @@ class CustomSubtitleSettings : public QObject
     Q_PROPERTY(QString mergedOutputPath READ mergedOutputPath WRITE setMergedOutputPath NOTIFY mergedOutputPathChanged)
     Q_PROPERTY(QString ffmpegPath READ ffmpegPath WRITE setFfmpegPath NOTIFY ffmpegPathChanged)
     Q_PROPERTY(bool gpuAccel READ gpuAccel WRITE setGpuAccel NOTIFY gpuAccelChanged)
-    Q_PROPERTY(bool backupOriginal READ backupOriginal WRITE setBackupOriginal NOTIFY backupOriginalChanged)
+    Q_PROPERTY(bool weakMatch READ weakMatch WRITE setWeakMatch NOTIFY weakMatchChanged)
     Q_PROPERTY(QStringList enabledPreprocessors READ enabledPreprocessors WRITE setEnabledPreprocessors NOTIFY enabledPreprocessorsChanged)
 
 public:
@@ -25,7 +25,7 @@ public:
     QString mergedOutputPath() const;
     QString ffmpegPath() const;
     bool gpuAccel() const;
-    bool backupOriginal() const;
+    bool weakMatch() const;
     QStringList enabledPreprocessors() const;
 
     void setSubtitleDownloadPath(const QString &path);
@@ -34,7 +34,7 @@ public:
     void setMergedOutputPath(const QString &path);
     void setFfmpegPath(const QString &path);
     void setGpuAccel(bool enable);
-    void setBackupOriginal(bool backup);
+    void setWeakMatch(bool weak);
     void setEnabledPreprocessors(const QStringList &ops);
 
     Q_INVOKABLE void loadSettings();
@@ -47,7 +47,7 @@ signals:
     void mergedOutputPathChanged();
     void ffmpegPathChanged();
     void gpuAccelChanged();
-    void backupOriginalChanged();
+    void weakMatchChanged();
     void enabledPreprocessorsChanged();
 
 private:
@@ -57,6 +57,6 @@ private:
     QString m_mergedOutputPath;
     QString m_ffmpegPath;
     bool m_gpuAccel = false;
-    bool m_backupOriginal = false;
+    bool m_weakMatch = false;
     QStringList m_enabledPreprocessors;
 };

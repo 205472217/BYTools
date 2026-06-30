@@ -22,12 +22,12 @@ public:
     /// @param mergedDir   Directory of merged (burned) video files
     /// @param recursive   Whether to scan subdirectories in videoDir
     /// @param removeSrt   Whether to delete matching .srt files after replacement
-    /// @param backupOriginal  Whether to backup original files before replacement
+    /// @param weakMatch  Whether to use fuzzy key-based name matching (like subtitle matching)
     void startReplace(const QString &videoDir,
                       const QString &mergedDir,
                       bool recursive,
                       bool removeSrt,
-                      bool backupOriginal);
+                      bool weakMatch);
 
     void cancel();
     /// Graceful stop: set cancel flag, let current item finish, then break
@@ -56,7 +56,7 @@ private:
     QString m_mergedDir;
     bool m_recursive = false;
     bool m_removeSrt = true;
-    bool m_backupOriginal = false;
+    bool m_weakMatch = false;
     QAtomicInt m_cancelled{0};
 
     QList<ReplaceItem> m_items;

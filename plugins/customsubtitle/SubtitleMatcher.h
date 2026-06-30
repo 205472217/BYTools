@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QString>
+#include "SubtitleUtils.h"
 #include <QStringList>
 #include <QDir>
 #include <QFileInfo>
@@ -17,9 +18,6 @@ class SubtitleMatcher : public QObject
 public:
     explicit SubtitleMatcher(PluginLogger *logger, QObject *parent = nullptr);
     ~SubtitleMatcher();
-
-    /// Extract key code from filename, e.g. "aaa-304" → "aaa-304", "abc123" → "abc-123"
-    static QString extractKey(const QString &fileName);
 
     /// Result of a single match operation
     struct MatchResult {

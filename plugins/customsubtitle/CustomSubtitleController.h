@@ -39,7 +39,7 @@ class CustomSubtitleController : public QObject
     Q_PROPERTY(QString ffmpegPath READ ffmpegPath WRITE setFfmpegPath NOTIFY ffmpegPathChanged)
     Q_PROPERTY(bool gpuAccel READ gpuAccel WRITE setGpuAccel NOTIFY gpuAccelChanged)
     Q_PROPERTY(bool removeSrtAfterReplace READ removeSrtAfterReplace WRITE setRemoveSrtAfterReplace NOTIFY removeSrtAfterReplaceChanged)
-    Q_PROPERTY(bool backupOriginal READ backupOriginal WRITE setBackupOriginal NOTIFY backupOriginalChanged)
+    Q_PROPERTY(bool weakMatch READ weakMatch WRITE setWeakMatch NOTIFY weakMatchChanged)
     Q_PROPERTY(QStringList enabledPreprocessors READ enabledPreprocessors WRITE setEnabledPreprocessors NOTIFY enabledPreprocessorsChanged)
 
     // === Step enum constants for QML ===
@@ -61,7 +61,7 @@ public:
     QString mergedOutputPath() const;
     bool gpuAccel() const;
     bool removeSrtAfterReplace() const;
-    bool backupOriginal() const;
+    bool weakMatch() const;
     QStringList enabledPreprocessors() const;
     QString statusMessage() const;
     double progress() const;
@@ -89,7 +89,7 @@ public:
     void setFfmpegPath(const QString &path);
     void setGpuAccel(bool enable);
     void setRemoveSrtAfterReplace(bool remove);
-    void setBackupOriginal(bool backup);
+    void setWeakMatch(bool weak);
     void setEnabledPreprocessors(const QStringList &ops);
 
     // === Sub Browser ===
@@ -111,7 +111,7 @@ signals:
     void ffmpegPathChanged();
     void gpuAccelChanged();
     void removeSrtAfterReplaceChanged();
-    void backupOriginalChanged();
+    void weakMatchChanged();
     void enabledPreprocessorsChanged();
     void statusMessageChanged();
     void progressChanged();

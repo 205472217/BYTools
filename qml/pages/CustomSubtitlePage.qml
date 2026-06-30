@@ -1120,7 +1120,7 @@ Pane {
                                 IconButton {
                                     id: step2Btn
                                     Layout.preferredWidth: 64
-                                    text: controller && controller.currentStep === controller.stepMatch ? "立即停止" : "执行"
+                                    text: controller && controller.currentStep === controller.stepMatch ? "停止" : "执行"
                                     tooltip: controller && controller.currentStep === controller.stepMatch ? "完成当前字幕的匹配、移动和预处理后停止" : "匹配并移动字幕"
                                     normalColor: controller && controller.currentStep === controller.stepMatch ? pal.CustomSubtitlePage_step3StopBtn_normalColor : pal.CustomSubtitlePage_step2ExecBtn_normalColor_normal
                                     hoverColor: controller && controller.currentStep === controller.stepMatch ? pal.CustomSubtitlePage_step3StopBtn_hoverColor : pal.CustomSubtitlePage_step2ExecBtn_hoverColor
@@ -1207,7 +1207,7 @@ Pane {
                                     paletteGroup: "CheckBoxEx"
                                     checked: controller ? settings.gpuAccel : false
                                     font.pixelSize: 11
-                                    visible: !controller || controller.currentStep === controller.stepNone
+                                    enabled: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
                                         if (controller)
                                             settings.gpuAccel = checked;
@@ -1282,7 +1282,7 @@ Pane {
                                 IconButton {
                                     id: step3Btn
                                     Layout.preferredWidth: 72
-                                    text: controller && controller.currentStep === controller.stepMerge ? "立即停止" : "执行"
+                                    text: controller && controller.currentStep === controller.stepMerge ? "停止" : "执行"
                                     tooltip: controller && controller.currentStep === controller.stepMerge ? "强制终止当前合成任务" : "合成视频+字幕"
                                     normalColor: controller && controller.currentStep === controller.stepMerge ? pal.CustomSubtitlePage_step3StopBtn_normalColor : pal.CustomSubtitlePage_step3ExecBtn_normalColor
                                     hoverColor: controller && controller.currentStep === controller.stepMerge ? pal.CustomSubtitlePage_step3StopBtn_hoverColor : pal.CustomSubtitlePage_step3ExecBtn_hoverColor
@@ -1305,7 +1305,7 @@ Pane {
                     Rectangle {
                         id: step4Panel
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 100
+                        Layout.preferredHeight: 120
                         radius: 8
                         color: pal.SurfaceEx_cardBgAlt
                         border.color: pal.SurfaceEx_cardBorderLight
@@ -1349,7 +1349,7 @@ Pane {
 
                             Label {
                                 id: step4Desc
-                                text: "用合成后的视频替换原文件，并清理同名字幕"
+                                text: "用合成后的视频替换原文件，并清理同名字幕。\n勾选\"名称弱匹配\"可按关键码匹配（如 aaa304 → aaa-304）"
                                 color: pal.LabelEx_subtitleText
                                 font.pixelSize: 10
                                 wrapMode: Text.WordWrap
@@ -1362,23 +1362,23 @@ Pane {
                                 spacing: 5
 
                                 CheckBoxEx {
-                                    id: backupCheckBox
+                                    id: weakMatchCheckBox
                                     Layout.fillWidth: true
-                                    text: "备份原文件"
+                                    text: "名称弱匹配"
                                     paletteGroup: "CheckBoxEx"
-                                    checked: controller ? settings.backupOriginal : false
+                                    checked: controller ? settings.weakMatch : false
                                     font.pixelSize: 11
                                     enabled: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
                                         if (controller)
-                                            settings.backupOriginal = checked;
+                                            settings.weakMatch = checked;
                                     }
                                 }
 
                                 IconButton {
                                     id: step4Btn
                                     Layout.preferredWidth: 72
-                                    text: controller && controller.currentStep === controller.stepReplace ? "立即停止" : "执行"
+                                    text: controller && controller.currentStep === controller.stepReplace ? "停止" : "执行"
                                     tooltip: controller && controller.currentStep === controller.stepReplace ? "完成当前视频的备份、替换和清理字幕文件后停止" : "替换原视频"
                                     normalColor: controller && controller.currentStep === controller.stepReplace ? pal.CustomSubtitlePage_step3StopBtn_normalColor : pal.CustomSubtitlePage_step4ExecBtn_normalColor
                                     hoverColor: controller && controller.currentStep === controller.stepReplace ? pal.CustomSubtitlePage_step3StopBtn_hoverColor : pal.CustomSubtitlePage_step4ExecBtn_hoverColor

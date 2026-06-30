@@ -28,16 +28,6 @@ SubtitleMatcher::~SubtitleMatcher()
     m_workerThread.wait(5000);
 }
 
-QString SubtitleMatcher::extractKey(const QString &fileName)
-{
-    static QRegularExpression re(R"(([a-zA-Z]+)[\s\-]*(\d+))");
-    QRegularExpressionMatch m = re.match(fileName);
-    if (m.hasMatch()) {
-        return m.captured(1).toLower() + "-" + m.captured(2);
-    }
-    return {};
-}
-
 void SubtitleMatcher::startMatchAsync(const QString &subtitleDir,
                                        const QString &videoDir,
                                        bool recursive,

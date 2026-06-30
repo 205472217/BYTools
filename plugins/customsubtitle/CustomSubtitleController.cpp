@@ -107,7 +107,7 @@ bool CustomSubtitleController::recursive() const { return m_settings->recursive(
 QString CustomSubtitleController::mergedOutputPath() const { return m_settings->mergedOutputPath(); }
 bool CustomSubtitleController::gpuAccel() const { return m_settings->gpuAccel(); }
 bool CustomSubtitleController::removeSrtAfterReplace() const { return m_removeSrtAfterReplace; }
-bool CustomSubtitleController::backupOriginal() const { return m_settings->backupOriginal(); }
+bool CustomSubtitleController::weakMatch() const { return m_settings->weakMatch(); }
 QString CustomSubtitleController::statusMessage() const { return m_statusMessage; }
 double CustomSubtitleController::progress() const { return m_progress; }
 double CustomSubtitleController::currentFileProgress() const { return m_currentFileProgress; }
@@ -178,11 +178,11 @@ void CustomSubtitleController::setRemoveSrtAfterReplace(bool remove)
     }
 }
 
-void CustomSubtitleController::setBackupOriginal(bool backup)
+void CustomSubtitleController::setWeakMatch(bool weak)
 {
-    if (m_settings->backupOriginal() != backup) {
-        m_settings->setBackupOriginal(backup);
-        emit backupOriginalChanged();
+    if (m_settings->weakMatch() != weak) {
+        m_settings->setWeakMatch(weak);
+        emit weakMatchChanged();
     }
 }
 
@@ -274,11 +274,11 @@ void CustomSubtitleController::replaceOriginalVideo()
     m_logger->info(QString("========== 步骤4：替换原视频 =========="));
     m_logger->info(QString("原视频目录: %1 (递归=%2)").arg(m_settings->videoSourcePath()).arg(m_settings->recursive()));
     m_logger->info(QString("合成视频目录: %1").arg(m_settings->mergedOutputPath()));
-    m_logger->info(QString("删除字幕=%1 | 备份原文件=%2")
-        .arg(m_removeSrtAfterReplace).arg(m_settings->backupOriginal()));
+    m_logger->info(QString("删除字幕=%1 | 名称弱匹配=%2")
+        .arg(m_removeSrtAfterReplace).arg(m_settings->weakMatch()));
 
     m_replaceService->startReplace(m_settings->videoSourcePath(), m_settings->mergedOutputPath(),
-                                    m_settings->recursive(), m_removeSrtAfterReplace, m_settings->backupOriginal());
+                                    m_settings->recursive(), m_removeSrtAfterReplace, m_settings->weakMatch());
 }
 
 void CustomSubtitleController::cancel()

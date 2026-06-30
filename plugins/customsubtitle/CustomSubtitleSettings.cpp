@@ -15,7 +15,7 @@ bool CustomSubtitleSettings::recursive() const { return m_recursive; }
 QString CustomSubtitleSettings::mergedOutputPath() const { return m_mergedOutputPath; }
 QString CustomSubtitleSettings::ffmpegPath() const { return m_ffmpegPath; }
 bool CustomSubtitleSettings::gpuAccel() const { return m_gpuAccel; }
-bool CustomSubtitleSettings::backupOriginal() const { return m_backupOriginal; }
+bool CustomSubtitleSettings::weakMatch() const { return m_weakMatch; }
 QStringList CustomSubtitleSettings::enabledPreprocessors() const { return m_enabledPreprocessors; }
 
 void CustomSubtitleSettings::setSubtitleDownloadPath(const QString &path)
@@ -66,11 +66,11 @@ void CustomSubtitleSettings::setGpuAccel(bool enable)
         saveSettings();
     }
 }
-void CustomSubtitleSettings::setBackupOriginal(bool backup)
+void CustomSubtitleSettings::setWeakMatch(bool weak)
 {
-    if (m_backupOriginal != backup) {
-        m_backupOriginal = backup;
-        emit backupOriginalChanged();
+    if (m_weakMatch != weak) {
+        m_weakMatch = weak;
+        emit weakMatchChanged();
         saveSettings();
     }
 }
@@ -92,7 +92,7 @@ void CustomSubtitleSettings::loadSettings()
     m_mergedOutputPath = s.value("customMergedOutputPath").toString();
     m_ffmpegPath = s.value("customFfmpegPath").toString();
     m_gpuAccel = s.value("customGpuAccel", false).toBool();
-    m_backupOriginal = s.value("customBackupOriginal", false).toBool();
+    m_weakMatch = s.value("customWeakMatch", false).toBool();
     m_enabledPreprocessors = s.value("customPreprocessors").toStringList();
 }
 void CustomSubtitleSettings::saveSettings()
@@ -104,7 +104,7 @@ void CustomSubtitleSettings::saveSettings()
     s.setValue("customMergedOutputPath", m_mergedOutputPath);
     s.setValue("customFfmpegPath", m_ffmpegPath);
     s.setValue("customGpuAccel", m_gpuAccel);
-    s.setValue("customBackupOriginal", m_backupOriginal);
+    s.setValue("customWeakMatch", m_weakMatch);
     s.setValue("customPreprocessors", m_enabledPreprocessors);
     s.sync();
 }
