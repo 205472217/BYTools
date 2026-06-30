@@ -341,40 +341,6 @@ Pane {
                     }
 
                     RadioButtonEx {
-                        id: specifyRadio
-                        implicitWidth: 80
-                        text: "指定名称"
-                        paletteGroup: "RadioButtonEx"
-                        checked: settings ? settings.renameMode === 0 : true
-                        onCheckedChanged: {
-                            if (checked && settings) {
-                                settings.renameMode = 0
-                            }
-                        }
-                    }
-
-                    TextFieldEx {
-                        id: baseNameField
-                        Layout.preferredWidth: 100
-                        text: settings ? settings.baseName : ""
-                        placeholderText: "输入文件名"
-                        enabled: specifyRadio.checked
-                        paletteGroup: "TextFieldEx"
-                        onTextChanged: {
-                            if (settings) {
-                                settings.baseName = text
-                            }
-                        }
-                    }
-
-                    Rectangle {
-                        id: modeSeparator
-                        width: 1
-                        height: 24
-                        color: pal.SurfaceEx_divider
-                    }
-
-                    RadioButtonEx {
                         id: replaceRadio
                         implicitWidth: 80
                         text: "替换文本"
@@ -389,7 +355,7 @@ Pane {
 
                     TextFieldEx {
                         id: searchTextField
-                        Layout.preferredWidth: 80
+                        Layout.fillWidth: true
                         text: settings ? settings.searchText : ""
                         placeholderText: "查找"
                         enabled: replaceRadio.checked
@@ -409,7 +375,7 @@ Pane {
 
                     TextFieldEx {
                         id: replaceTextField
-                        Layout.preferredWidth: 80
+                        Layout.fillWidth: true
                         text: settings ? settings.replaceText : ""
                         placeholderText: "替换"
                         enabled: replaceRadio.checked
@@ -420,8 +386,47 @@ Pane {
                             }
                         }
                     }
+                }
 
-                    Item { Layout.fillWidth: true }
+                RowLayout {
+                    spacing: 12
+                    Layout.fillWidth: true
+
+                    Label {
+                        id: renameModeKeep
+                        text: ""
+                        color: pal.LabelEx_labelText
+                        font.pixelSize: 13
+                        font.bold: true
+                        Layout.preferredWidth: 80
+                    }
+
+                    RadioButtonEx {
+                        id: specifyRadio
+                        implicitWidth: 80
+                        text: "指定名称"
+                        paletteGroup: "RadioButtonEx"
+                        checked: settings ? settings.renameMode === 0 : true
+                        onCheckedChanged: {
+                            if (checked && settings) {
+                                settings.renameMode = 0
+                            }
+                        }
+                    }
+
+                    TextFieldEx {
+                        id: baseNameField
+                        Layout.fillWidth: true
+                        text: settings ? settings.baseName : ""
+                        placeholderText: "输入文件名"
+                        enabled: specifyRadio.checked
+                        paletteGroup: "TextFieldEx"
+                        onTextChanged: {
+                            if (settings) {
+                                settings.baseName = text
+                            }
+                        }
+                    }
 
                     IconButton {
                         iconSource: "qrc:/icons/trash.svg"
