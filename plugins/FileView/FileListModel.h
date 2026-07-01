@@ -54,6 +54,7 @@ public:
 
     void setEntryDeleted(int row, bool deleted);
     void setEntryFilePath(int row, const QString &path);
+    void setThumbnailPath(int row, const QString &path);
 
     static QString formatFileSize(qint64 bytes);
     static QString typeCategoryName(int category);

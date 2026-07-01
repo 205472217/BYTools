@@ -74,6 +74,15 @@ QHash<int, QByteArray> FileListModel::roleNames() const
     };
 }
 
+void FileListModel::setThumbnailPath(int row, const QString &path)
+{
+    if (row < 0 || row >= m_files.size())
+        return;
+    m_files[row].thumbnailPath = path;
+    QModelIndex idx = index(row, 0);
+    emit dataChanged(idx, idx, {ThumbnailPathRole});
+}
+
 void FileListModel::setEntryDeleted(int row, bool deleted)
 {
     if (row < 0 || row >= m_files.size())

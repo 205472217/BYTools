@@ -98,3 +98,19 @@ add_subdirectory(plugins/VideoSubtitle)
 add_subdirectory(plugins/CustomSubtitle)
 add_subdirectory(plugins/SubtitleAdjust)
 add_subdirectory(plugins/FileView)
+
+# ── Copy third/ffmpeg/ to app directory (for global auto-detection) ──
+set(FFMPEG_SRC_DIR "${CMAKE_SOURCE_DIR}/third/ffmpeg")
+set(FFMPEG_DST_DIR "${CMAKE_BINARY_DIR}/third/ffmpeg")
+if(EXISTS "${FFMPEG_SRC_DIR}")
+    file(GLOB_RECURSE FFMPEG_FILES "${FFMPEG_SRC_DIR}/*")
+    add_custom_command(
+        OUTPUT  "${FFMPEG_DST_DIR}/.copy_stamp"
+        DEPENDS ${FFMPEG_FILES}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${FFMPEG_SRC_DIR}" "${FFMPEG_DST_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E touch "${FFMPEG_DST_DIR}/.copy_stamp"
+        COMMENT "Copying ffmpeg to app directory"
+    )
+    add_custom_target(CopyFfmpeg ALL DEPENDS "${FFMPEG_DST_DIR}/.copy_stamp")
+    add_dependencies(BYTools CopyFfmpeg)
+endif()

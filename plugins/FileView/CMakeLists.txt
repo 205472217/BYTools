@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui)
 
 set(PLUGIN_SOURCES
     FileViewPlugin.cpp
@@ -17,6 +17,8 @@ set(PLUGIN_SOURCES
     FileViewSettings.h
     FileListModel.cpp
     FileListModel.h
+    VideoThumbnailGenerator.cpp
+    VideoThumbnailGenerator.h
 )
 
 add_library(FileViewPlugin MODULE
@@ -28,7 +30,7 @@ target_include_directories(FileViewPlugin PRIVATE
 )
 
 target_link_libraries(FileViewPlugin
-    PRIVATE Qt6::Core PluginCommon
+    PRIVATE Qt6::Core Qt6::Gui PluginCommon
 )
 
 set_target_properties(FileViewPlugin PROPERTIES

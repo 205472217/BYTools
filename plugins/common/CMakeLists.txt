@@ -16,6 +16,7 @@ add_library(PluginCommon STATIC
     SettingsHelper.h  SettingsHelper.cpp
     ProcessRunner.h   ProcessRunner.cpp
     FfmpegRunner.h    FfmpegRunner.cpp
+    GlobalConfig.h    GlobalConfig.cpp
 )
 
 target_include_directories(PluginCommon PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

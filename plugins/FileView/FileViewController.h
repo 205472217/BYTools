@@ -9,6 +9,7 @@
 
 class PluginLogger;
 class FileViewSettings;
+class VideoThumbnailGenerator;
 
 class FileViewController : public QObject
 {
@@ -102,8 +103,12 @@ private:
     void setCurrentModelIndex(int index);
     void setGridCurrentPath(const QString &path);
 
+    void startThumbnailGeneration();
+    void onThumbnailReady(const QString &filePath, const QString &thumbnailPath);
+
     PluginLogger *m_logger = nullptr;
     FileViewSettings *m_settings = nullptr;
+    VideoThumbnailGenerator *m_thumbnailGenerator = nullptr;
 
     QThread m_workerThread;
     bool m_workerRunning = false;

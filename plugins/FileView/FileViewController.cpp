@@ -1,5 +1,7 @@
 #include "FileViewController.h"
 #include "FileViewSettings.h"
+#include "VideoThumbnailGenerator.h"
+#include "GlobalConfig.h"
 #include "Logger.h"
 #include "Config.h"
 #include <QFileInfo>
@@ -35,6 +37,14 @@ FileViewController::FileViewController(PluginLogger *logger, FileViewSettings *s
     m_fileListModel = new FileListModel(this);
     setCurrentFileInfo(emptyFileInfo());
 
+    QString ffmpegPath = GlobalConfig::instance()->ffmpegPath();
+    if (!ffmpegPath.isEmpty()) {
+        m_thumbnailGenerator = new VideoThumbnailGenerator(this);
+        m_thumbnailGenerator->setFfmpegPath(ffmpegPath);
+        connect(m_thumbnailGenerator, &VideoThumbnailGenerator::thumbnailReady,
+                this, &FileViewController::onThumbnailReady);
+    }
+
     connect(&m_workerThread, &QThread::started,
             this, &FileViewController::doScanWork, Qt::DirectConnection);
     connect(&m_workerThread, &QThread::finished, this, [this]() {
@@ -50,6 +60,8 @@ FileViewController::~FileViewController()
         m_workerThread.quit();
         m_workerThread.wait(5000);
     }
+    if (m_thumbnailGenerator)
+        m_thumbnailGenerator->cancel();
 }
 
 QString FileViewController::sourceFolder() const { return m_sourceFolder; }
@@ -251,6 +263,7 @@ void FileViewController::scanListFiles()
     QMetaObject::invokeMethod(this, [this, entries]() {
         m_allEntries = entries;
         applySort();
+        startThumbnailGeneration();
 
         QString msg = QStringLiteral("✓ 扫描完成: 共找到 %1 个文件")
             .arg(entries.size());
@@ -324,6 +337,7 @@ void FileViewController::scanGridDirectory()
     QMetaObject::invokeMethod(this, [this, entries]() {
         m_allEntries = entries;
         applySort();
+        startThumbnailGeneration();
 
         QString msg = QStringLiteral("✓ 扫描完成: 共 %1 项").arg(entries.size());
         m_logger->info(msg);
@@ -582,6 +596,39 @@ void FileViewController::cancel()
         m_workerThread.wait(500);
         m_workerRunning = false;
         emit isProcessingChanged();
+    }
+    if (m_thumbnailGenerator)
+        m_thumbnailGenerator->cancel();
+}
+
+void FileViewController::startThumbnailGeneration()
+{
+    if (!m_thumbnailGenerator || m_viewMode != 0)
+        return;
+
+    m_thumbnailGenerator->cancel();
+
+    QList<VideoThumbnailGenerator::ThumbnailRequest> requests;
+    for (int i = 0; i < m_allEntries.size(); ++i) {
+        const auto &entry = m_allEntries[i];
+        if (entry.typeCategory == 0 && !entry.isDir && entry.thumbnailPath.isEmpty())
+            requests.append({entry.filePath, entry.modifiedTime});
+    }
+
+    if (!requests.isEmpty())
+        m_thumbnailGenerator->requestThumbnails(requests);
+}
+
+void FileViewController::onThumbnailReady(const QString &filePath, const QString &thumbnailPath)
+{
+    for (int i = 0; i < m_allEntries.size(); ++i) {
+        if (m_allEntries[i].filePath == filePath
+            && m_allEntries[i].typeCategory == 0
+            && !m_allEntries[i].isDir) {
+            m_allEntries[i].thumbnailPath = thumbnailPath;
+            m_fileListModel->setThumbnailPath(i, thumbnailPath);
+            break;
+        }
     }
 }
 
