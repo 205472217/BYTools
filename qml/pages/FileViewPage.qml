@@ -10,6 +10,8 @@ Pane {
 
     signal backRequested
     property var controller: null
+    property var stackView: null
+    property string pluginId: ""
     property QtObject settings: pluginManager.settingsForController(controller)
 
     property bool hasFiles: controller && controller.fileCount > 0

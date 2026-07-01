@@ -10,6 +10,8 @@ Pane {
     signal backRequested()
 
     property var controller: null
+    property var stackView: null
+    property string pluginId: ""
     property var pal: themeManager.palette
     property QtObject settings: pluginManager.settingsForController(controller)
 
