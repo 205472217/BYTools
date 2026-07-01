@@ -1,0 +1,6 @@
+﻿{
+    "id": "video-subtitle",
+    "name": "视频字幕翻译",
+    "description": "提取视频音频，语音识别后翻译并烧录字幕",
+    "version": "1.0.0"
+}

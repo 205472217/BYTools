@@ -1,0 +1,6 @@
+{
+    "id": "image-crop",
+    "name": "图片裁剪",
+    "description": "按比例或像素裁剪图片，支持批量处理",
+    "version": "1.0.0"
+}

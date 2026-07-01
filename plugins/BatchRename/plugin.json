@@ -1,0 +1,6 @@
+{
+    "id": "batch-rename",
+    "name": "批量重命名",
+    "description": "批量重命名文件，支持多种命名规则",
+    "version": "1.0.0"
+}
