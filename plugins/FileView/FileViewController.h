@@ -31,7 +31,7 @@ class FileViewController : public QObject
     Q_PROPERTY(bool canNavigateUp READ canNavigateUp NOTIFY canNavigateUpChanged)
 
 public:
-    enum FileType { Video = 0, Audio, Image };
+    enum FileType { Video = 0, Audio, Image, All };
     Q_ENUM(FileType)
 
     enum SortField { SortName = 0, SortModified, SortCreated, SortSize, SortType };
@@ -69,6 +69,8 @@ public:
     Q_INVOKABLE bool deleteFile(int index);
     Q_INVOKABLE void navigateToDir(const QString &path);
     Q_INVOKABLE void navigateUp();
+    Q_INVOKABLE int prevFileInCategory(int currentIndex) const;
+    Q_INVOKABLE int nextFileInCategory(int currentIndex) const;
 
     static QStringList extensionsForType(int fileType);
     static int categoryForExtension(const QString &ext);

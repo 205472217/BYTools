@@ -137,17 +137,39 @@ void FileViewController::setViewMode(int mode)
     emit viewModeChanged();
 }
 
-// ── 扩展名列表 ──
+// ── 扩展名列表（全局仅定义一次） ──
+
+namespace {
+
+const QStringList kVideoGlob = {
+    "*.mp4", "*.mkv", "*.avi", "*.mov", "*.wmv", "*.flv", "*.webm", "*.m4v", "*.ts", "*.rmvb"
+};
+const QStringList kAudioGlob = {
+    "*.mp3", "*.wav", "*.flac", "*.aac", "*.ogg", "*.wma", "*.m4a", "*.opus"
+};
+const QStringList kImageGlob = {
+    "*.jpg", "*.jpeg", "*.png", "*.gif", "*.bmp", "*.webp", "*.svg", "*.tiff", "*.tif", "*.ico"
+};
+
+const QStringList kVideoSuffix = {
+    ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".ts", ".rmvb"
+};
+const QStringList kAudioSuffix = {
+    ".mp3", ".wav", ".flac", ".aac", ".ogg", ".wma", ".m4a", ".opus"
+};
+const QStringList kImageSuffix = {
+    ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg", ".tiff", ".tif", ".ico"
+};
+
+}
 
 QStringList FileViewController::extensionsForType(int fileType)
 {
     switch (fileType) {
-    case Video:
-        return {"*.mp4", "*.mkv", "*.avi", "*.mov", "*.wmv", "*.flv", "*.webm", "*.m4v", "*.ts", "*.rmvb"};
-    case Audio:
-        return {"*.mp3", "*.wav", "*.flac", "*.aac", "*.ogg", "*.wma", "*.m4a", "*.opus"};
-    case Image:
-        return {"*.jpg", "*.jpeg", "*.png", "*.gif", "*.bmp", "*.webp", "*.svg", "*.tiff", "*.tif", "*.ico"};
+    case Video: return kVideoGlob;
+    case Audio: return kAudioGlob;
+    case Image: return kImageGlob;
+    case All:   return kVideoGlob + kAudioGlob + kImageGlob;
     }
     return {};
 }
@@ -155,12 +177,9 @@ QStringList FileViewController::extensionsForType(int fileType)
 int FileViewController::categoryForExtension(const QString &ext)
 {
     const QString lower = ext.toLower();
-    static const QStringList videoExts = {".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".ts", ".rmvb"};
-    static const QStringList audioExts = {".mp3", ".wav", ".flac", ".aac", ".ogg", ".wma", ".m4a", ".opus"};
-    static const QStringList imageExts = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg", ".tiff", ".tif", ".ico"};
-    if (videoExts.contains(lower)) return Video;
-    if (audioExts.contains(lower)) return Audio;
-    if (imageExts.contains(lower)) return Image;
+    if (kVideoSuffix.contains(lower)) return Video;
+    if (kAudioSuffix.contains(lower)) return Audio;
+    if (kImageSuffix.contains(lower)) return Image;
     return -1;
 }
 
@@ -254,7 +273,9 @@ void FileViewController::scanListFiles()
         entry.createdTime = fi.birthTime();
         entry.modifiedTime = fi.lastModified();
         entry.fileType = fi.suffix().toLower();
-        entry.typeCategory = m_fileType;
+        entry.typeCategory = (m_fileType == All)
+            ? categoryForExtension(QStringLiteral(".") + entry.fileType)
+            : m_fileType;
         entries.append(entry);
     }
 
@@ -414,9 +435,6 @@ void FileViewController::selectFile(int index)
 
     const auto &entry = m_allEntries.at(index);
 
-    setCurrentFilePath(entry.filePath);
-    setCurrentModelIndex(index);
-
     QVariantMap info;
     info["fileName"] = entry.fileName;
     info["filePath"] = entry.filePath;
@@ -447,6 +465,8 @@ void FileViewController::selectFile(int index)
     }
 
     setCurrentFileInfo(info);
+    setCurrentFilePath(entry.filePath);
+    setCurrentModelIndex(index);
 }
 
 bool FileViewController::deleteFile(int index)
@@ -511,6 +531,40 @@ void FileViewController::navigateUp()
         return;
 
     navigateToDir(parent);
+}
+
+int FileViewController::prevFileInCategory(int currentIndex) const
+{
+    if (currentIndex < 0 || currentIndex >= m_allEntries.size() || m_allEntries.size() <= 1)
+        return -1;
+
+    int category = m_allEntries.at(currentIndex).typeCategory;
+    for (int i = currentIndex - 1; i >= 0; --i) {
+        if (m_allEntries.at(i).typeCategory == category)
+            return i;
+    }
+    for (int i = m_allEntries.size() - 1; i > currentIndex; --i) {
+        if (m_allEntries.at(i).typeCategory == category)
+            return i;
+    }
+    return -1;
+}
+
+int FileViewController::nextFileInCategory(int currentIndex) const
+{
+    if (currentIndex < 0 || currentIndex >= m_allEntries.size() || m_allEntries.size() <= 1)
+        return -1;
+
+    int category = m_allEntries.at(currentIndex).typeCategory;
+    for (int i = currentIndex + 1; i < m_allEntries.size(); ++i) {
+        if (m_allEntries.at(i).typeCategory == category)
+            return i;
+    }
+    for (int i = 0; i < currentIndex; ++i) {
+        if (m_allEntries.at(i).typeCategory == category)
+            return i;
+    }
+    return -1;
 }
 
 void FileViewController::cancel()

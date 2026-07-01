@@ -18,7 +18,7 @@ Pane {
     property bool hasSelection: controller && controller.currentFilePath.length > 0
     property string _lastLogLine: ""
     property int _activeViewMode: 1  // 上次扫描所用的模式，默认文件模式
-    property var _typeNames: ["视频", "音频", "图片"]
+    property var _typeNames: ["视频", "音频", "图片", "全部"]
     property int _contextMenuIndex: -1
 
     MessageDialog {
@@ -126,17 +126,17 @@ Pane {
     function navPrevFile() {
         if (!controller)
             return;
-        var idx = controller.currentModelIndex;
-        if (idx > 0)
-            controller.selectFile(idx - 1);
+        var idx = controller.prevFileInCategory(controller.currentModelIndex);
+        if (idx >= 0)
+            controller.selectFile(idx);
     }
 
     function navNextFile() {
         if (!controller)
             return;
-        var idx = controller.currentModelIndex;
-        if (idx < controller.fileCount - 1)
-            controller.selectFile(idx + 1);
+        var idx = controller.nextFileInCategory(controller.currentModelIndex);
+        if (idx >= 0)
+            controller.selectFile(idx);
     }
 
     // ═══════════════ Main Layout ═══════════════
@@ -894,14 +894,16 @@ Pane {
                                     item.previousRequested.connect(function () {
                                         if (!controller || controller.fileCount === 0)
                                             return;
-                                        var idx = controller.currentModelIndex;
-                                        controller.selectFile(idx > 0 ? idx - 1 : controller.fileCount - 1);
+                                        var idx = controller.prevFileInCategory(controller.currentModelIndex);
+                                        if (idx >= 0)
+                                            controller.selectFile(idx);
                                     });
                                     item.nextRequested.connect(function () {
                                         if (!controller || controller.fileCount === 0)
                                             return;
-                                        var idx = controller.currentModelIndex;
-                                        controller.selectFile(idx < controller.fileCount - 1 ? idx + 1 : 0);
+                                        var idx = controller.nextFileInCategory(controller.currentModelIndex);
+                                        if (idx >= 0)
+                                            controller.selectFile(idx);
                                     });
                                     item.deleteRequested.connect(function () {
                                         if (!controller || controller.fileCount === 0 || controller.currentModelIndex < 0)
@@ -954,8 +956,8 @@ Pane {
                                 if (!controller)
                                     return;
                                 item.source = controller.currentFilePath;
-                                item.hasPrevious = controller.currentModelIndex > 0;
-                                item.hasNext = controller.currentModelIndex < controller.fileCount - 1;
+                                item.hasPrevious = controller.prevFileInCategory(controller.currentModelIndex) >= 0;
+                                item.hasNext = controller.nextFileInCategory(controller.currentModelIndex) >= 0;
                                 item.previousRequested.connect(function () {
                                     navPrevFile();
                                 });
@@ -980,8 +982,8 @@ Pane {
                                 function onCurrentModelIndexChanged() {
                                     var p = imagePreviewLoader.item;
                                     if (p && controller) {
-                                        p.hasPrevious = controller.currentModelIndex > 0;
-                                        p.hasNext = controller.currentModelIndex < controller.fileCount - 1;
+                                        p.hasPrevious = controller.prevFileInCategory(controller.currentModelIndex) >= 0;
+                                        p.hasNext = controller.nextFileInCategory(controller.currentModelIndex) >= 0;
                                     }
                                 }
                             }
