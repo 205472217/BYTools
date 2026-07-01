@@ -13,6 +13,7 @@ class ImageConverterController : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString statusMessage READ statusMessage NOTIFY statusMessageChanged)
+    Q_PROPERTY(QString sourceFile READ sourceFile WRITE setSourceFile NOTIFY sourceFileChanged)
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
     Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
     Q_PROPERTY(QVariantList records READ records NOTIFY recordsChanged)
@@ -22,6 +23,8 @@ public:
     ~ImageConverterController() override;
 
     QString statusMessage() const;
+    QString sourceFile() const;
+    void setSourceFile(const QString &path);
     bool hasRecords() const;
     bool isProcessing() const;
     QVariantList records() const;
@@ -35,6 +38,7 @@ public:
 
 signals:
     void statusMessageChanged();
+    void sourceFileChanged();
     void hasRecordsChanged();
     void recordsChanged();
     void isProcessingChanged();
@@ -71,6 +75,7 @@ private:
 
     bool m_isProcessing = false;
     QString m_statusMessage;
+    QString m_sourceFile;
     QList<ConvertRecord> m_records;
 
     QThread m_workerThread;

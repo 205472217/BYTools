@@ -30,6 +30,14 @@ ImageConverterController::~ImageConverterController()
 }
 
 QString ImageConverterController::statusMessage() const { return m_statusMessage; }
+QString ImageConverterController::sourceFile() const { return m_sourceFile; }
+void ImageConverterController::setSourceFile(const QString &path)
+{
+    if (m_sourceFile != path) {
+        m_sourceFile = path;
+        emit sourceFileChanged();
+    }
+}
 bool ImageConverterController::hasRecords() const { return !m_records.isEmpty(); }
 
 QVariantList ImageConverterController::records() const
@@ -51,21 +59,21 @@ QVariantList ImageConverterController::records() const
 
 void ImageConverterController::executeConvert()
 {
-    QString rootPath = m_settings->rootPath();
     bool isSingle = (m_settings->mode() == 0);
 
     if (isSingle) {
-        if (rootPath.isEmpty() || !QFileInfo::exists(rootPath)) {
+        if (m_sourceFile.isEmpty() || !QFileInfo::exists(m_sourceFile)) {
             setStatusMessage(QStringLiteral("请选择有效的图片文件"));
             m_logger->warn("转换失败: 文件无效");
             return;
         }
-        if (!isImageFile(QFileInfo(rootPath).fileName())) {
+        if (!isImageFile(QFileInfo(m_sourceFile).fileName())) {
             setStatusMessage(QStringLiteral("请选择图片文件"));
             m_logger->warn("转换失败: 不支持的文件格式");
             return;
         }
     } else {
+        QString rootPath = m_settings->rootPath();
         if (rootPath.isEmpty() || !QDir(rootPath).exists()) {
             setStatusMessage(QStringLiteral("请选择有效的源文件夹"));
             m_logger->warn("转换失败: 源文件夹无效");
@@ -85,9 +93,10 @@ void ImageConverterController::executeConvert()
     int targetFormat = m_settings->targetFormat();
     bool recursive = m_settings->recursive();
     m_logger->info(QString("===== 开始图片处理 ====="));
+    QString srcDisplay = isSingle ? m_sourceFile : m_settings->rootPath();
     m_logger->info(QString("源路径: %1, 单文件=%2, 格式转换=%3, 宽高缩放=%4, 递归=%5")
-        .arg(rootPath).arg(isSingle).arg(doConvert).arg(doResize).arg(recursive));
-    emit logMessage(QString("源路径: %1").arg(rootPath));
+        .arg(srcDisplay).arg(isSingle).arg(doConvert).arg(doResize).arg(recursive));
+    emit logMessage(QString("源路径: %1").arg(srcDisplay));
     if (recursive)
         emit logMessage("  启用了递归查找，正在遍历子目录...");
 
@@ -172,7 +181,7 @@ void ImageConverterController::processSingleFile(
             int newH = qRound(image.height() * resizeRatio);
             image = image.scaled(newW, newH, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         } else {
-            image = image.scaled(resizeWidth, resizeHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            image = image.scaled(resizeWidth, resizeHeight, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
         }
     }
 
@@ -207,7 +216,8 @@ void ImageConverterController::processSingleFile(
 
 void ImageConverterController::doWork()
 {
-    QString rootPath = m_settings->rootPath();
+    bool isSingle = (m_settings->mode() == 0);
+    QString rootPath = isSingle ? m_sourceFile : m_settings->rootPath();
     int targetFormat = m_settings->targetFormat();
     int quality = m_settings->quality();
     QString bgColor = m_settings->bgColor();
@@ -220,8 +230,6 @@ void ImageConverterController::doWork()
     double resizeRatio = m_settings->resizeRatio();
     int resizeWidth = m_settings->resizeWidth();
     int resizeHeight = m_settings->resizeHeight();
-    bool isSingle = (m_settings->mode() == 0);
-
     int successCount = 0, failCount = 0, skipCount = 0;
     QList<ConvertRecord> records;
 

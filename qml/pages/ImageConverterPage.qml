@@ -76,8 +76,8 @@ Pane {
         title: "选择源文件"
         nameFilters: ["图片文件 (*.png *.jpg *.jpeg *.bmp *.webp *.tiff *.tif *.gif *.ico)", "所有文件 (*)"]
         onAccepted: {
-            if (settings) {
-                settings.rootPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""))
+            if (controller) {
+                controller.sourceFile = decodeURIComponent(selectedFile.toString().replace("file:///", ""))
             }
         }
     }
@@ -258,7 +258,9 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? settings.rootPath : ""
+                        text: root.isSingleMode
+                            ? (controller ? controller.sourceFile : "")
+                            : (controller ? settings.rootPath : "")
                         readOnly: true
                         placeholderText: root.isSingleMode ? "点击选择文件" : "点击选择文件夹"
                         paletteGroup: "TextFieldEx"
