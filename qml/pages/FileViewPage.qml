@@ -19,6 +19,27 @@ Pane {
     property string _lastLogLine: ""
     property int _activeViewMode: 1  // 上次扫描所用的模式，默认文件模式
     property var _typeNames: ["视频", "音频", "图片"]
+    property int _contextMenuIndex: -1
+
+    MessageDialog {
+        id: confirmDeleteDialog
+        title: "确认删除"
+        text: "确定要永久删除该文件吗？\n此操作不可恢复！"
+        buttons: MessageDialog.Yes | MessageDialog.No
+        onAccepted: {
+            if (!controller || controller.currentModelIndex < 0)
+                return;
+            if (controller.currentModelIndex === root._contextMenuIndex) {
+                if (videoPreviewLoader.item && videoPreviewLoader.active) {
+                    videoPreviewLoader.item.stop();
+                    videoPreviewLoader.item.source = "";
+                }
+                if (imagePreviewLoader.item && imagePreviewLoader.active)
+                    imagePreviewLoader.item.source = "";
+                controller.deleteFile(controller.currentModelIndex);
+            }
+        }
+    }
 
     // ── mpv 检测（启动时已解压，此处仅检查文件是否存在） ──
     property bool _mpvAvailable: {
@@ -135,8 +156,6 @@ Pane {
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
                 onClicked: {
-                    if (controller)
-                        controller.cleanTrash();
                     root._hideNativeOverlay();
                     root.backRequested();
                 }
@@ -456,7 +475,6 @@ Pane {
                                 required property string modifiedTimeDisplay
                                 required property string fileType
                                 required property int typeCategory
-                                required property bool fileDeleted
 
                                 property bool rowHovered: false
 
@@ -470,7 +488,7 @@ Pane {
                                     id: rowContent
                                     anchors.fill: parent
                                     anchors.leftMargin: 8
-                                    anchors.rightMargin: 44
+                                    anchors.rightMargin: 8
                                     spacing: 6
                                     z: 0
 
@@ -494,11 +512,9 @@ Pane {
                                                 id: nameLabel
                                                 Layout.fillWidth: true
                                                 text: fileDelegate.fileName
-                                                color: fileDelegate.fileDeleted ? pal.LabelEx_deleteColor : pal.LabelEx_valueText
+                                                color: pal.LabelEx_valueText
                                                 font.pixelSize: 12
                                                 elide: Text.ElideRight
-                                                font.strikeout: fileDelegate.fileDeleted
-                                                font.underline: fileDelegate.fileDeleted
                                             }
 
                                             Rectangle {
@@ -573,70 +589,20 @@ Pane {
                                 MouseArea {
                                     id: rowMouse
                                     anchors.fill: parent
-                                    anchors.rightMargin: 36
                                     z: 0
                                     cursorShape: Qt.PointingHandCursor
                                     hoverEnabled: true
+                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
                                     onEntered: fileDelegate.rowHovered = true
                                     onExited: fileDelegate.rowHovered = false
-                                    onClicked: {
-                                        fileListView.currentIndex = fileDelegate.index;
-                                        if (controller)
-                                            controller.selectFile(fileDelegate.index);
-                                    }
-                                }
-
-                                Rectangle {
-                                    id: deleteBtn
-                                    anchors.right: parent.right
-                                    anchors.rightMargin: 8
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    width: 28
-                                    height: 28
-                                    radius: 6
-                                    z: 1
-                                    visible: fileDelegate.fileDeleted || fileListView.currentIndex === fileDelegate.index || fileDelegate.rowHovered || delMouse.containsMouse
-
-                                    color: delMouse.containsMouse ? (fileDelegate.fileDeleted ? pal.IconBtnEx_hoverColor : pal.IconBtnEx_deleteBgColor) : "transparent"
-                                    border.width: delMouse.containsMouse ? 1 : 0
-                                    border.color: fileDelegate.fileDeleted ? pal.SurfaceEx_cardBorderLight : (delMouse.containsMouse ? pal.LabelEx_deleteColor : "transparent")
-
-                                    Label {
-                                        anchors.centerIn: parent
-                                        text: fileDelegate.fileDeleted ? "↩" : "✕"
-                                        color: fileDelegate.fileDeleted ? pal.LabelEx_infoText : (delMouse.containsMouse ? pal.LabelEx_deleteColor : pal.LabelEx_infoText)
-
-                                        ToolTip {
-                                            visible: delMouse.containsMouse
-                                            text: fileDelegate.fileDeleted ? "还原（到原始位置）" : "删除（到回收站）"
-                                            delay: 300
-                                        }
-                                        font.pixelSize: 14
-                                        font.bold: true
-                                    }
-
-                                    MouseArea {
-                                        id: delMouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        cursorShape: Qt.PointingHandCursor
-                                        onEntered: fileDelegate.rowHovered = true
-                                        onExited: fileDelegate.rowHovered = false
-                                        onClicked: {
-                                            if (!controller)
-                                                return;
-                                            if (fileDelegate.fileDeleted) {
-                                                controller.restoreFile(fileDelegate.index);
-                                            } else {
-                                                if (fileDelegate.index === controller.currentModelIndex && videoPreviewLoader.item) {
-                                                    videoPreviewLoader.item.stop();
-                                                    videoPreviewLoader.item.source = "";
-                                                }
-                                                var ok = controller.deleteFile(fileDelegate.index);
-                                                if (!ok && fileDelegate.index === controller.currentModelIndex) {
-                                                    root._lastLogLine = "删除失败：文件被占用，请先切换到其他文件再试";
-                                                }
-                                            }
+                                    onClicked: function (mouse) {
+                                        if (mouse.button === Qt.RightButton) {
+                                            root._contextMenuIndex = fileDelegate.index;
+                                            contentMenu.popup();
+                                        } else {
+                                            fileListView.currentIndex = fileDelegate.index;
+                                            if (controller)
+                                                controller.selectFile(fileDelegate.index);
                                         }
                                     }
                                 }
@@ -729,8 +695,12 @@ Pane {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
                                     hoverEnabled: true
-                                    onClicked: {
-                                        if (isDir) {
+                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                    onClicked: function (mouse) {
+                                        if (mouse.button === Qt.RightButton) {
+                                            root._contextMenuIndex = index;
+                                            contentMenu.popup();
+                                        } else if (isDir) {
                                             controller.navigateToDir(filePath);
                                         } else {
                                             fileGridView.currentIndex = index;
@@ -738,16 +708,6 @@ Pane {
                                         }
                                     }
                                 }
-                            }
-                        }
-
-                        // Right-click context menu
-                        MouseArea {
-                            anchors.fill: parent
-                            acceptedButtons: Qt.RightButton
-                            z: 10
-                            onClicked: {
-                                contentMenu.popup(parent, mouseX, mouseY)
                             }
                         }
 
@@ -837,6 +797,15 @@ Pane {
                                     checked: controller ? !controller.sortAscending : false
                                     onTriggered: if (controller) controller.sortAscending = false
                                 }
+                            }
+
+                            MenuSeparator {}
+
+                            MenuItem {
+                                text: "删除"
+                                icon.source: "qrc:/icons/trash.svg"
+                                enabled: controller && controller.currentModelIndex >= 0 && root._contextMenuIndex === controller.currentModelIndex
+                                onTriggered: confirmDeleteDialog.open()
                             }
                         }
 
@@ -935,11 +904,10 @@ Pane {
                                         controller.selectFile(idx < controller.fileCount - 1 ? idx + 1 : 0);
                                     });
                                     item.deleteRequested.connect(function () {
-                                        if (!controller || controller.fileCount === 0)
+                                        if (!controller || controller.fileCount === 0 || controller.currentModelIndex < 0)
                                             return;
-                                        item.stop();
-                                        item.source = "";
-                                        controller.deleteFile(controller.currentModelIndex);
+                                        root._contextMenuIndex = controller.currentModelIndex;
+                                        confirmDeleteDialog.open();
                                     });
                                 }
                             }
@@ -995,9 +963,10 @@ Pane {
                                     navNextFile();
                                 });
                                 item.deleteRequested.connect(function () {
-                                    if (!controller || controller.fileCount === 0)
+                                    if (!controller || controller.fileCount === 0 || controller.currentModelIndex < 0)
                                         return;
-                                    controller.deleteFile(controller.currentModelIndex);
+                                    root._contextMenuIndex = controller.currentModelIndex;
+                                    confirmDeleteDialog.open();
                                 });
                             }
 
@@ -1154,6 +1123,44 @@ Pane {
                                     wrapMode: Text.WordWrap
                                     elide: Text.ElideRight
                                     maximumLineCount: 4
+                                }
+                            }
+
+                            // Image resolution
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 2
+                                visible: hasSelection && controller.currentFileInfo.typeCategory === 2
+
+                                Label {
+                                    text: "分辨率"
+                                    color: pal.LabelEx_labelText
+                                    font.pixelSize: 11
+                                }
+                                Label {
+                                    Layout.fillWidth: true
+                                    text: controller ? controller.currentFileInfo.imageResolution : "-"
+                                    color: pal.LabelEx_valueText
+                                    font.pixelSize: 12
+                                }
+                            }
+
+                            // Image bit depth
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 2
+                                visible: hasSelection && controller.currentFileInfo.typeCategory === 2
+
+                                Label {
+                                    text: "位深度"
+                                    color: pal.LabelEx_labelText
+                                    font.pixelSize: 11
+                                }
+                                Label {
+                                    Layout.fillWidth: true
+                                    text: controller ? controller.currentFileInfo.imageBitDepth : "-"
+                                    color: pal.LabelEx_valueText
+                                    font.pixelSize: 12
                                 }
                             }
 

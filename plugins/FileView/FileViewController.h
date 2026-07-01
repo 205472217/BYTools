@@ -67,8 +67,6 @@ public:
     Q_INVOKABLE void selectFile(int index);
     Q_INVOKABLE void reset();
     Q_INVOKABLE bool deleteFile(int index);
-    Q_INVOKABLE bool restoreFile(int index);
-    Q_INVOKABLE void cleanTrash();
     Q_INVOKABLE void navigateToDir(const QString &path);
     Q_INVOKABLE void navigateUp();
 

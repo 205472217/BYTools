@@ -8,8 +8,8 @@
 #include <QFile>
 #include <QDir>
 #include <QDirIterator>
+#include <QImage>
 #include <QCollator>
-#include <QStandardPaths>
 #include <QDateTime>
 #include <algorithm>
 #include <functional>
@@ -26,6 +26,8 @@ static QVariantMap emptyFileInfo()
     info["fileType"] = QStringLiteral("");
     info["typeCategory"] = -1;
     info["typeCategoryName"] = QStringLiteral("");
+    info["imageResolution"] = QStringLiteral("");
+    info["imageBitDepth"] = QStringLiteral("");
     return info;
 }
 
@@ -183,7 +185,6 @@ void FileViewController::startScan()
         return;
     }
 
-    cleanTrash();
     m_allEntries.clear();
     m_fileListModel->clear();
     setCurrentFilePath(QString());
@@ -249,7 +250,6 @@ void FileViewController::scanListFiles()
         FileListModel::FileEntry entry;
         entry.fileName = fi.fileName();
         entry.filePath = fi.absoluteFilePath();
-        entry.originalFilePath = fi.absoluteFilePath();
         entry.fileSize = fi.size();
         entry.createdTime = fi.birthTime();
         entry.modifiedTime = fi.lastModified();
@@ -319,7 +319,6 @@ void FileViewController::scanGridDirectory()
         FileListModel::FileEntry entry;
         entry.fileName = fi.fileName();
         entry.filePath = fi.absoluteFilePath();
-        entry.originalFilePath = fi.absoluteFilePath();
         entry.fileSize = fi.size();
         entry.createdTime = fi.birthTime();
         entry.modifiedTime = fi.lastModified();
@@ -432,30 +431,22 @@ void FileViewController::selectFile(int index)
     info["fileType"] = entry.fileType;
     info["typeCategory"] = entry.typeCategory;
     info["typeCategoryName"] = FileListModel::typeCategoryName(entry.typeCategory);
-    setCurrentFileInfo(info);
-}
 
-static QString trashDirPath()
-{
-    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
-        + QStringLiteral("/fileview/trash");
-}
-
-static QString trashFilePath(const QString &fileName)
-{
-    QString dir = trashDirPath();
-    QDir().mkpath(dir);
-
-    QString path = dir + QStringLiteral("/") + fileName;
-    if (QFileInfo::exists(path)) {
-        QFileInfo fi(fileName);
-        QString base = fi.completeBaseName();
-        QString ext = fi.suffix();
-        path = dir + QStringLiteral("/") + base
-            + QStringLiteral("_") + QString::number(QDateTime::currentSecsSinceEpoch())
-            + QStringLiteral(".") + ext;
+    if (entry.typeCategory == 2) {
+        QImage img(entry.filePath);
+        if (!img.isNull()) {
+            info["imageResolution"] = QStringLiteral("%1 × %2").arg(img.width()).arg(img.height());
+            info["imageBitDepth"] = QStringLiteral("%1 bit").arg(img.depth());
+        } else {
+            info["imageResolution"] = QStringLiteral("");
+            info["imageBitDepth"] = QStringLiteral("");
+        }
+    } else {
+        info["imageResolution"] = QStringLiteral("");
+        info["imageBitDepth"] = QStringLiteral("");
     }
-    return path;
+
+    setCurrentFileInfo(info);
 }
 
 bool FileViewController::deleteFile(int index)
@@ -464,95 +455,28 @@ bool FileViewController::deleteFile(int index)
         return false;
 
     auto &entry = m_allEntries[index];
-    if (entry.deleted)
-        return true;
+    QString filePath = entry.filePath;
+    QString fileName = entry.fileName;
 
-    QString trashPath = trashFilePath(entry.fileName);
-    if (!QFile::rename(entry.filePath, trashPath)) {
-        QString msg = QStringLiteral("[删除失败] 无法移动文件到回收站: ") + entry.filePath;
+    if (!QFile::remove(filePath)) {
+        QString msg = QStringLiteral("[删除失败] 无法删除文件: ") + filePath;
         m_logger->warn(msg);
         emit logMessage(msg);
         return false;
     }
 
-    QString origPath = entry.filePath;
-    entry.filePath = trashPath;
-    entry.deleted = true;
+    m_allEntries.removeAt(index);
+    m_fileListModel->setFiles(m_allEntries);
+    emit fileCountChanged();
 
-    m_fileListModel->setEntryDeleted(index, true);
-    m_fileListModel->setEntryFilePath(index, trashPath);
+    if (m_currentFilePath == filePath) {
+        selectFile(m_allEntries.isEmpty() ? -1 : qMax(0, index - 1));
+    } else if (m_currentModelIndex > index) {
+        setCurrentModelIndex(m_currentModelIndex - 1);
+    }
 
-    if (m_currentFilePath == origPath)
-        setCurrentFilePath(trashPath);
-
-    m_logger->info(QStringLiteral("[回收] ") + entry.fileName);
+    m_logger->info(QStringLiteral("[删除] ") + fileName);
     return true;
-}
-
-bool FileViewController::restoreFile(int index)
-{
-    if (index < 0 || index >= m_allEntries.size())
-        return false;
-
-    auto &entry = m_allEntries[index];
-    if (!entry.deleted)
-        return true;
-
-    QString origPath = entry.originalFilePath;
-
-    if (QFileInfo::exists(origPath)) {
-        QString msg = QStringLiteral("[还原失败] 目标文件已存在: ") + origPath;
-        m_logger->warn(msg);
-        emit logMessage(msg);
-        return false;
-    }
-
-    if (!QFile::rename(entry.filePath, origPath)) {
-        QString msg = QStringLiteral("[还原失败] 无法移动文件: ") + entry.filePath;
-        m_logger->warn(msg);
-        emit logMessage(msg);
-        return false;
-    }
-
-    QString trashPath = entry.filePath;
-    entry.filePath = origPath;
-    entry.deleted = false;
-
-    m_fileListModel->setEntryDeleted(index, false);
-    m_fileListModel->setEntryFilePath(index, origPath);
-
-    if (m_currentFilePath == trashPath)
-        setCurrentFilePath(origPath);
-
-    m_logger->info(QStringLiteral("[还原] ") + entry.fileName);
-    return true;
-}
-
-void FileViewController::cleanTrash()
-{
-    QString dir = trashDirPath();
-    QDir trashDir(dir);
-    if (!trashDir.exists())
-        return;
-
-    QStringList entries = trashDir.entryList(QDir::NoDotAndDotDot | QDir::Files);
-    int removed = 0;
-    for (const QString &f : entries) {
-        if (trashDir.remove(f))
-            removed++;
-    }
-    if (removed > 0) {
-        m_logger->info(QStringLiteral("[回收站清理] 已清理 %1 个文件").arg(removed));
-        emit logMessage(QStringLiteral("已清理回收站 %1 个文件").arg(removed));
-    }
-
-    // Clear deleted flags in model
-    for (int i = 0; i < m_allEntries.size(); ++i) {
-        if (m_allEntries[i].deleted) {
-            m_allEntries[i].deleted = false;
-            m_fileListModel->setEntryDeleted(i, false);
-        }
-    }
 }
 
 void FileViewController::navigateToDir(const QString &path)
@@ -635,7 +559,6 @@ void FileViewController::onThumbnailReady(const QString &filePath, const QString
 void FileViewController::reset()
 {
     cancel();
-    cleanTrash();
     m_allEntries.clear();
     m_fileListModel->clear();
     setCurrentFilePath(QString());

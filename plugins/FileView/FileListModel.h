@@ -15,13 +15,11 @@ public:
     struct FileEntry {
         QString fileName;
         QString filePath;
-        QString originalFilePath;
         qint64 fileSize = 0;
         QDateTime createdTime;
         QDateTime modifiedTime;
         QString fileType;
         int typeCategory = 0; // 0=video, 1=audio, 2=image, 3=document
-        bool deleted = false;
         bool isDir = false;
         QString thumbnailPath;
     };
@@ -37,7 +35,6 @@ public:
         ModifiedTimeDisplayRole,
         FileTypeRole,
         TypeCategoryRole,
-        DeletedRole,
         IsDirRole,
         ThumbnailPathRole
     };
@@ -52,8 +49,6 @@ public:
     const FileEntry &at(int row) const;
     void clear();
 
-    void setEntryDeleted(int row, bool deleted);
-    void setEntryFilePath(int row, const QString &path);
     void setThumbnailPath(int row, const QString &path);
 
     static QString formatFileSize(qint64 bytes);
