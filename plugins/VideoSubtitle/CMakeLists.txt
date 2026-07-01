@@ -37,14 +37,14 @@ target_link_libraries(VideoSubtitlePlugin PRIVATE
 
 set_target_properties(VideoSubtitlePlugin PROPERTIES
     OUTPUT_NAME "VideoSubtitle"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/videosubtitle"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/videosubtitle"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/VideoSubtitle"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/VideoSubtitle"
 )
 
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/videosubtitle/models")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/VideoSubtitle/models")
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/videosubtitle/plugin.json
+    ${CMAKE_BINARY_DIR}/plugins/VideoSubtitle/plugin.json
     COPYONLY
 )

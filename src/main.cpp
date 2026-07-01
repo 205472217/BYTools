@@ -25,8 +25,8 @@ int main(int argc, char *argv[])
     qDebug() << "Loaded plugins:" << loadedPlugins;
 
     // 启动时异步解压 mpv.zip，不阻塞界面
-    PluginManager::instance()->startMpvExtraction("subtitle-adjust");
-    PluginManager::instance()->startMpvExtraction("file-view");
+    for (const QString &mpvId : PluginManager::instance()->mpvPluginIds())
+        PluginManager::instance()->startMpvExtraction(mpvId);
 
     AppController appController;
 

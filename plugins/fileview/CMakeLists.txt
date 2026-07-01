@@ -33,14 +33,14 @@ target_link_libraries(FileViewPlugin
 
 set_target_properties(FileViewPlugin PROPERTIES
     OUTPUT_NAME "FileView"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/fileview"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/fileview"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/FileView"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/FileView"
 )
 
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/fileview")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/FileView")
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/fileview/plugin.json
+    ${CMAKE_BINARY_DIR}/plugins/FileView/plugin.json
     COPYONLY
 )
 
@@ -50,7 +50,7 @@ endif()
 
 # ── Copy mpv/ directory (if present) ──
 set(MPV_SRC_DIR  "${CMAKE_SOURCE_DIR}/third/mpv")
-set(MPV_DST_DIR  "${CMAKE_BINARY_DIR}/plugins/fileview/mpv")
+set(MPV_DST_DIR  "${CMAKE_BINARY_DIR}/plugins/FileView/mpv")
 if(EXISTS "${MPV_SRC_DIR}")
     file(GLOB_RECURSE MPV_FILES "${MPV_SRC_DIR}/*")
     add_custom_command(

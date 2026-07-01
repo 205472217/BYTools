@@ -10,7 +10,7 @@ Pane {
 
     signal backRequested
     property var controller: null
-    property QtObject settings: pluginManager.getPluginSettings("subtitle-adjust")
+    property QtObject settings: pluginManager.settingsForController(controller)
 
     property bool hasVideo: controller && controller.currentVideoPath.length > 0
     property bool isSingleMode: controller ? settings.mode === 0 : true

@@ -84,7 +84,7 @@ void FileViewSettings::setSeekStepMs(int ms)
 
 void FileViewSettings::loadSettings()
 {
-    QSettings &s = pluginGroupSettings("file-view");
+    QSettings &s = pluginGroupSettings("FileView");
     m_sourceFolder = s.value("sourceFolder").toString();
     m_recursive = s.value("recursive", false).toBool();
     m_fileType = s.value("fileType", 0).toInt();
@@ -97,7 +97,7 @@ void FileViewSettings::loadSettings()
 }
 void FileViewSettings::saveSettings()
 {
-    QSettings &s = pluginGroupSettings("file-view");
+    QSettings &s = pluginGroupSettings("FileView");
     s.setValue("sourceFolder", m_sourceFolder);
     s.setValue("recursive", m_recursive);
     s.setValue("fileType", m_fileType);

@@ -10,7 +10,7 @@ Pane {
 
     signal backRequested
     property var controller: null
-    property QtObject settings: pluginManager.getPluginSettings("file-view")
+    property QtObject settings: pluginManager.settingsForController(controller)
 
     property bool hasFiles: controller && controller.fileCount > 0
     property bool hasSelection: controller && controller.currentFilePath.length > 0

@@ -6,16 +6,16 @@
         <file>icons/play.svg</file>
         <file>icons/trash.svg</file>
         <file>icons/undo.svg</file>
-	<file>icons/card-batch-rename.svg</file>
-	<file>icons/card-image-converter.svg</file>
-	<file>icons/card-image-crop.svg</file>
-	<file>icons/card-name-converter.svg</file>
-	<file>icons/card-video-subtitle.svg</file>
+	<file>icons/card-BatchRename.svg</file>
+	<file>icons/card-ImageConverter.svg</file>
+	<file>icons/card-ImageCrop.svg</file>
+	<file>icons/card-NameConverter.svg</file>
+	<file>icons/card-VideoSubtitle.svg</file>
 	<file>icons/settings.svg</file>
 	<file>icons/eye.svg</file>
-	<file>icons/card-custom-subtitle.svg</file>
-	<file>icons/card-subtitle-adjust.svg</file>
-	<file>icons/card-file-view.svg</file>
+	<file>icons/card-CustomSubtitle.svg</file>
+	<file>icons/card-SubtitleAdjust.svg</file>
+	<file>icons/card-FileView.svg</file>
 	<file>icons/media-play.svg</file>
     <file>icons/media-pause.svg</file>
 	<file>icons/media-seekadd.svg</file>

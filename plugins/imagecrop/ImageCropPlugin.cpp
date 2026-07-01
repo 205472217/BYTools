@@ -11,7 +11,7 @@ ImageCropPlugin::ImageCropPlugin(QObject *parent)
 
 QString ImageCropPlugin::id() const
 {
-    return "image-crop";
+    return "ImageCrop";
 }
 
 QString ImageCropPlugin::name() const
@@ -42,7 +42,7 @@ int ImageCropPlugin::order() const
 void ImageCropPlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger("image-crop");
+        m_logger = new PluginLogger("ImageCrop");
     if (!m_settings) {
         m_settings = new ImageCropSettings(this);
     }

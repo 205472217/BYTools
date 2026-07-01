@@ -20,12 +20,10 @@ ApplicationWindow {
 
     // 关闭保护：有任务执行时确认是否退出
     onClosing: function(closeEvent) {
-        var pluginIds = ["name-converter", "batch-rename", "image-converter",
-                         "image-crop", "video-subtitle", "custom-subtitle",
-                         "subtitle-adjust", "file-view"]
+        var ids = pluginManager.allPluginIds()
         var anyProcessing = false
-        for (var i = 0; i < pluginIds.length; i++) {
-            var ctrl = pluginManager.getPlugin(pluginIds[i])
+        for (var i = 0; i < ids.length; i++) {
+            var ctrl = pluginManager.getPlugin(ids[i])
             if (ctrl && ctrl.isProcessing) {
                 anyProcessing = true
                 break
@@ -116,6 +114,13 @@ ApplicationWindow {
         }
     }
 
+    function navigateBack() {
+        if (stackView.busy || window._navGuard) return
+        window._navGuard = true
+        stackView.pop()
+        window.currentFeatureId = ""
+    }
+
     Component {
         id: homePage
 
@@ -129,144 +134,9 @@ ApplicationWindow {
 
                 window.currentFeatureId = featureId
 
-                if (featureId === "name-converter") {
-                    stackView.push(nameConverterPageComponent, {controller: controller})
-                } else if (featureId === "batch-rename") {
-                    stackView.push(batchRenamePageComponent, {controller: controller})
-                } else if (featureId === "image-converter") {
-                    stackView.push(imageConverterPageComponent, {controller: controller})
-                } else if (featureId === "image-crop") {
-                    stackView.push(imageCropPageComponent, {controller: controller})
-                } else if (featureId === "video-subtitle") {
-                    stackView.push(videoSubtitlePageComponent, {controller: controller})
-                } else if (featureId === "custom-subtitle") {
-                    stackView.push(customSubtitlePageComponent, {controller: controller})
-                } else if (featureId === "subtitle-adjust") {
-                    stackView.push(subtitleAdjustPageComponent, {controller: controller})
-                } else if (featureId === "file-view") {
-                    stackView.push(fileViewPageComponent, {controller: controller})
-                }
-            }
-        }
-    }
-
-    Component {
-        id: nameConverterPageComponent
-
-        NameConverterPage {
-            onBackRequested: {
-                if (stackView.busy || window._navGuard) return
-                window._navGuard = true
-                stackView.pop()
-                window.currentFeatureId = ""
-            }
-        }
-    }
-
-    Component {
-        id: batchRenamePageComponent
-
-        BatchRenamePage {
-            onBackRequested: {
-                if (stackView.busy || window._navGuard) return
-                window._navGuard = true
-                stackView.pop()
-                window.currentFeatureId = ""
-            }
-        }
-    }
-
-    Component {
-        id: imageConverterPageComponent
-
-        ImageConverterPage {
-            onBackRequested: {
-                if (stackView.busy || window._navGuard) return
-                window._navGuard = true
-                stackView.pop()
-                window.currentFeatureId = ""
-            }
-        }
-    }
-
-    Component {
-        id: imageCropPageComponent
-
-        ImageCropPage {
-            onBackRequested: {
-                if (stackView.busy || window._navGuard) return
-                window._navGuard = true
-                stackView.pop()
-                window.currentFeatureId = ""
-            }
-        }
-    }
-
-    Component {
-        id: videoSubtitlePageComponent
-
-        VideoSubtitlePage {
-            onBackRequested: {
-                if (stackView.busy || window._navGuard) return
-                window._navGuard = true
-                stackView.pop()
-                window.currentFeatureId = ""
-            }
-            onOpenSettings: {
-                if (stackView.busy || window._navGuard) return
-                window._navGuard = true
-                stackView.push(videoSubtitleSettingsPageComponent)
-            }
-        }
-    }
-
-    Component {
-        id: videoSubtitleSettingsPageComponent
-
-        VideoSubtitleSettingsPage {
-            onBackRequested: {
-                if (stackView.busy || window._navGuard) return
-                window._navGuard = true
-                stackView.pop()
-            }
-        }
-    }
-
-    Component {
-        id: customSubtitlePageComponent
-
-        CustomSubtitlePage {
-            onBackRequested: {
-                if (stackView.busy || window._navGuard) return
-                window._navGuard = true
-                stackView.pop()
-                window.currentFeatureId = ""
-            }
-        }
-    }
-
-    Component {
-        id: subtitleAdjustPageComponent
-
-        SubtitleAdjustPage {
-            onBackRequested: {
-                if (stackView.busy || window._navGuard) return
-                window._navGuard = true
-                stackView.pop()
-                window.currentFeatureId = ""
-            }
-        }
-    }
-
-    Component {
-        id: fileViewPageComponent
-
-        FileViewPage {
-            onBackRequested: {
-                if (stackView.busy || window._navGuard) return
-                window._navGuard = true
-                stackView.pop()
-                window.currentFeatureId = ""
+                var qmlUrl = Qt.resolvedUrl("pages/" + pluginManager.pluginQmlUrl(featureId))
+                var page = stackView.push(qmlUrl, {controller: controller, stackView: stackView, pluginId: featureId})
+                page.backRequested.connect(navigateBack)
             }
         }
     }

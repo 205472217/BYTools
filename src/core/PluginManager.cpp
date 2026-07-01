@@ -108,6 +108,7 @@ void PluginManager::loadPluginsFromDir(const QDir &dir, const QStringList &filte
 
         plugin->initialize();
         m_plugins[pluginId] = {plugin, loader};
+        registerPluginQmlMaps(pluginId);
         m_loadedPluginPaths.append(file.absoluteFilePath());
         loadedPlugins.append(pluginId);
         qDebug() << "✓ 插件已加载:" << pluginId << file.fileName();
@@ -137,6 +138,43 @@ QStringList PluginManager::loadPlugins(const QString &pluginPath)
     loadPluginsFromDir(pluginDir, filters, loadedPlugins);
 
     return loadedPlugins;
+}
+
+QObject* PluginManager::settingsForController(QObject *controller) const
+{
+    for (auto it = m_plugins.constBegin(); it != m_plugins.constEnd(); ++it) {
+        if (it->plugin && it->plugin->getController() == controller)
+            return it->plugin->getSettings();
+    }
+    return nullptr;
+}
+
+QStringList PluginManager::allPluginIds() const
+{
+    return QStringList(m_plugins.keys());
+}
+
+QString PluginManager::pluginQmlUrl(const QString &id, const QString &pageType) const
+{
+    if (pageType == "settings")
+        return m_settingsFiles.value(id);
+    return m_pageFiles.value(id);
+}
+
+void PluginManager::registerPluginQmlMaps(const QString &id)
+{
+    m_pageFiles[id] = id + QStringLiteral("Page.qml");
+    m_settingsFiles[id] = id + QStringLiteral("SettingsPage.qml");
+}
+
+QStringList PluginManager::mpvPluginIds() const
+{
+    QStringList result;
+    for (auto it = m_plugins.constBegin(); it != m_plugins.constEnd(); ++it) {
+        if (it->plugin && it->plugin->needsMpv())
+            result.append(it.key());
+    }
+    return result;
 }
 
 QObject* PluginManager::getPlugin(const QString &id)
@@ -244,6 +282,7 @@ void PluginManager::registerPlugin(PluginInterface *plugin)
     if (plugin && !m_plugins.contains(plugin->id())) {
         plugin->initialize();
         m_plugins[plugin->id()] = {plugin, nullptr};
+        registerPluginQmlMaps(plugin->id());
         emit pluginsChanged();
     }
 }

@@ -10,7 +10,7 @@ CustomSubtitlePlugin::CustomSubtitlePlugin(QObject *parent)
 
 QString CustomSubtitlePlugin::id() const
 {
-    return "custom-subtitle";
+    return "CustomSubtitle";
 }
 
 QString CustomSubtitlePlugin::name() const
@@ -25,7 +25,7 @@ QString CustomSubtitlePlugin::description() const
 
 QString CustomSubtitlePlugin::iconName() const
 {
-    return "custom-subtitle";
+    return "CustomSubtitle";
 }
 
 QString CustomSubtitlePlugin::category() const
@@ -41,7 +41,7 @@ int CustomSubtitlePlugin::order() const
 void CustomSubtitlePlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger("custom-subtitle");
+        m_logger = new PluginLogger("CustomSubtitle");
     if (!m_settings) {
         m_settings = new CustomSubtitleSettings(this);
     }

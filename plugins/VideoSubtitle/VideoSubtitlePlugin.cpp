@@ -12,7 +12,7 @@ VideoSubtitlePlugin::VideoSubtitlePlugin(QObject *parent)
 
 QString VideoSubtitlePlugin::id() const
 {
-    return "video-subtitle";
+    return "VideoSubtitle";
 }
 
 QString VideoSubtitlePlugin::name() const
@@ -43,7 +43,7 @@ int VideoSubtitlePlugin::order() const
 void VideoSubtitlePlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger("video-subtitle");
+        m_logger = new PluginLogger("VideoSubtitle");
     if (!m_settings) {
         m_settings = new VideoSubtitleSettings(m_logger, this);
     }

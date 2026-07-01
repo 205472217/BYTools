@@ -27,6 +27,7 @@ public:
 
     QObject* getController() override;
     QObject* getSettings() override;
+    bool needsMpv() const override;
 
 private:
     PluginLogger *m_logger = nullptr;

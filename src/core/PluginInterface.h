@@ -21,6 +21,7 @@ public:
 
     virtual QObject* getController() = 0;
     virtual QObject* getSettings() { return nullptr; }
+    virtual bool needsMpv() const { return false; }
 };
 
 #define PluginInterface_iid "com.bytools.PluginInterface"

@@ -9,7 +9,7 @@ FileViewPlugin::FileViewPlugin(QObject *parent)
 
 QString FileViewPlugin::id() const
 {
-    return "file-view";
+    return "FileView";
 }
 
 QString FileViewPlugin::name() const
@@ -40,7 +40,7 @@ int FileViewPlugin::order() const
 void FileViewPlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger("file-view");
+        m_logger = new PluginLogger("FileView");
     if (!m_settings) {
         m_settings = new FileViewSettings(this);
     }
@@ -75,4 +75,9 @@ QObject* FileViewPlugin::getController()
 QObject* FileViewPlugin::getSettings()
 {
     return m_settings;
+}
+
+bool FileViewPlugin::needsMpv() const
+{
+    return true;
 }

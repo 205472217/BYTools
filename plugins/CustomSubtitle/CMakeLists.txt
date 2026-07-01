@@ -39,19 +39,19 @@ target_link_libraries(CustomSubtitlePlugin PRIVATE
 
 set_target_properties(CustomSubtitlePlugin PROPERTIES
     OUTPUT_NAME "CustomSubtitle"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/customsubtitle"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/customsubtitle"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/CustomSubtitle"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/CustomSubtitle"
 )
 
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/customsubtitle/plugin.json
+    ${CMAKE_BINARY_DIR}/plugins/CustomSubtitle/plugin.json
     COPYONLY
 )
 
-# ── Python 脚本拷贝（每次构建时自动同步） ──
+# ── Python 脚本拷贝（每次构建时自动同步�?──
 set(PYTHON_SRC_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/python")
-set(PYTHON_DST_DIR  "${CMAKE_BINARY_DIR}/plugins/customsubtitle/python")
+set(PYTHON_DST_DIR  "${CMAKE_BINARY_DIR}/plugins/CustomSubtitle/python")
 
 file(GLOB_RECURSE PYTHON_SCRIPTS "${PYTHON_SRC_DIR}/*.py")
 add_custom_command(

@@ -10,7 +10,7 @@ Pane {
 
     signal backRequested
     property var controller: null
-    property QtObject settings: pluginManager.getPluginSettings("image-crop")
+    property QtObject settings: pluginManager.settingsForController(controller)
 
     // ── Image rendering state ──────────────────────────────────────────
     property real srcW: 0

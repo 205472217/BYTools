@@ -26,13 +26,13 @@ target_link_libraries(ImageCropPlugin PRIVATE Qt6::Core Qt6::Gui PluginCommon)
 
 set_target_properties(ImageCropPlugin PROPERTIES
     OUTPUT_NAME "ImageCrop"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/imagecrop"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/imagecrop"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/ImageCrop"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/ImageCrop"
 )
 
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/imagecrop")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/ImageCrop")
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/imagecrop/plugin.json
+    ${CMAKE_BINARY_DIR}/plugins/ImageCrop/plugin.json
     COPYONLY
 )

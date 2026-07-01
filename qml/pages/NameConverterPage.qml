@@ -11,7 +11,7 @@ Pane {
     signal backRequested()
 
     property var controller: null
-    property QtObject settings: pluginManager.getPluginSettings("name-converter")
+    property QtObject settings: pluginManager.settingsForController(controller)
 
     readonly property int tableLeftPadding: 18
     readonly property int tableRightPadding: 20

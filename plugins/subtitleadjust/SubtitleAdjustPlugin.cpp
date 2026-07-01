@@ -9,7 +9,7 @@ SubtitleAdjustPlugin::SubtitleAdjustPlugin(QObject *parent)
 
 QString SubtitleAdjustPlugin::id() const
 {
-    return "subtitle-adjust";
+    return "SubtitleAdjust";
 }
 
 QString SubtitleAdjustPlugin::name() const
@@ -40,7 +40,7 @@ int SubtitleAdjustPlugin::order() const
 void SubtitleAdjustPlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger("subtitle-adjust");
+        m_logger = new PluginLogger("SubtitleAdjust");
     if (!m_settings) {
         m_settings = new SubtitleAdjustSettings(this);
     }
@@ -75,4 +75,9 @@ QObject* SubtitleAdjustPlugin::getController()
 QObject* SubtitleAdjustPlugin::getSettings()
 {
     return m_settings;
+}
+
+bool SubtitleAdjustPlugin::needsMpv() const
+{
+    return true;
 }

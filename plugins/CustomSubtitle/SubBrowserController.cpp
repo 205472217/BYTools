@@ -29,7 +29,7 @@ SubBrowserController::SubBrowserController(PluginLogger *logger, QObject *parent
 
     initSites();  // 扫描 python/<site>/search.py 文件夹
 
-    QSettings &s = pluginGroupSettings("custom-subtitle");
+    QSettings &s = pluginGroupSettings("CustomSubtitle");
     s.sync();
     QString lastSite = s.value("browserLastSite").toString();
     if (!lastSite.isEmpty() && m_availableSites.contains(lastSite))
@@ -218,7 +218,7 @@ void SubBrowserController::setCurrentSite(const QString &site)
     if (m_currentSite != site) {
         m_currentSite = site;
         emit currentSiteChanged();
-        QSettings &s = pluginGroupSettings("custom-subtitle");
+        QSettings &s = pluginGroupSettings("CustomSubtitle");
         s.setValue("browserLastSite", site);
     }
 }
@@ -304,7 +304,7 @@ void SubBrowserController::search()
     static constexpr int kMaxResultsMin    = 5;
     static constexpr int kMaxResultsMax    = 100;
 
-    QSettings &s = pluginGroupSettings("custom-subtitle");
+    QSettings &s = pluginGroupSettings("CustomSubtitle");
     int maxResults = s.value("browserMaxResults", kDefaultMaxResults).toInt();
     if (maxResults < kMaxResultsMin || maxResults > kMaxResultsMax)
         maxResults = kDefaultMaxResults;

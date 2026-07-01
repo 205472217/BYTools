@@ -26,10 +26,14 @@ public:
     QStringList loadPlugins(const QString &pluginPath = QString());
     Q_INVOKABLE QObject* getPlugin(const QString &id);
     Q_INVOKABLE QObject* getPluginSettings(const QString &id);
+    Q_INVOKABLE QObject* settingsForController(QObject *controller) const;
     Q_INVOKABLE QString pluginDirectory(const QString &id) const;
     Q_INVOKABLE bool fileExists(const QString &filePath) const;
     Q_INVOKABLE bool extractMpvZip(const QString &pluginId);
     Q_INVOKABLE void startMpvExtraction(const QString &pluginId);
+    Q_INVOKABLE QStringList allPluginIds() const;
+    Q_INVOKABLE QString pluginQmlUrl(const QString &id, const QString &pageType = "page") const;
+    Q_INVOKABLE QStringList mpvPluginIds() const;
     bool isMpvExtracting() const;
     void registerPlugin(PluginInterface *plugin);
 
@@ -47,8 +51,11 @@ private:
     };
 
     QMap<QString, PluginEntry> m_plugins;
+    QMap<QString, QString> m_pageFiles;
+    QMap<QString, QString> m_settingsFiles;
     QStringList m_loadedPluginPaths;
     int m_mpvExtractionCount = 0;
 
+    void registerPluginQmlMaps(const QString &id);
     void loadPluginsFromDir(const QDir &dir, const QStringList &filters, QStringList &loadedPlugins);
 };

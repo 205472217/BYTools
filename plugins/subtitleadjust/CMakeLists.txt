@@ -33,14 +33,14 @@ target_link_libraries(SubtitleAdjustPlugin
 
 set_target_properties(SubtitleAdjustPlugin PROPERTIES
     OUTPUT_NAME "SubtitleAdjust"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/subtitleadjust"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/subtitleadjust"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/SubtitleAdjust"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/SubtitleAdjust"
 )
 
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/subtitleadjust")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/SubtitleAdjust")
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/subtitleadjust/plugin.json
+    ${CMAKE_BINARY_DIR}/plugins/SubtitleAdjust/plugin.json
     COPYONLY
 )
 
@@ -50,7 +50,7 @@ endif()
 
 # ── Copy mpv/ directory (if present) ──
 set(MPV_SRC_DIR  "${CMAKE_SOURCE_DIR}/third/mpv")
-set(MPV_DST_DIR  "${CMAKE_BINARY_DIR}/plugins/subtitleadjust/mpv")
+set(MPV_DST_DIR  "${CMAKE_BINARY_DIR}/plugins/SubtitleAdjust/mpv")
 if(EXISTS "${MPV_SRC_DIR}")
     file(GLOB_RECURSE MPV_FILES "${MPV_SRC_DIR}/*")
     add_custom_command(

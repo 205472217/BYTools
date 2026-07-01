@@ -11,7 +11,8 @@ Pane {
 
     signal backRequested
 
-    property QtObject settings: pluginManager.getPluginSettings("video-subtitle")
+    property var controller: null
+    property QtObject settings: pluginManager.settingsForController(controller)
     property string copyFeedback: ""
 
     Timer {

@@ -11,7 +11,7 @@ Pane {
 
     property var controller: null
     property var pal: themeManager.palette
-    property QtObject settings: pluginManager.getPluginSettings("batch-rename")
+    property QtObject settings: pluginManager.settingsForController(controller)
 
     readonly property int tableLeftPadding: 18
     readonly property int tableRightPadding: 20

@@ -10,10 +10,11 @@ Pane {
     property var pal: themeManager.palette
 
     signal backRequested
-    signal openSettings
 
     property var controller: null
-    property QtObject settings: pluginManager.getPluginSettings("video-subtitle")
+    property var stackView: null
+    property string pluginId: ""
+    property QtObject settings: pluginManager.settingsForController(controller)
 
     // Real-time log model — auto-scrolls to end when new items arrive
     ListModel {
@@ -281,7 +282,12 @@ Pane {
                 implicitHeight: 38
                 tooltip: "设置"
                 paletteGroup: "IconBtnEx"
-                onClicked: root.openSettings()
+                onClicked: {
+                    if (!stackView || !pluginId) return
+                    var url = Qt.resolvedUrl(pluginManager.pluginQmlUrl(pluginId, "settings"))
+                    var sp = stackView.push(url, {controller: controller})
+                    sp.backRequested.connect(function() { stackView.pop() })
+                }
             }
         }
 

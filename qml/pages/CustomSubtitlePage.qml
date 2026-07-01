@@ -11,7 +11,7 @@ Pane {
     signal backRequested
 
     property var controller: null
-    property QtObject settings: pluginManager.getPluginSettings("custom-subtitle")
+    property QtObject settings: pluginManager.settingsForController(controller)
 
     padding: 0
     background: Rectangle {

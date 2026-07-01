@@ -37,14 +37,14 @@ target_link_libraries(NameConverterPlugin
 
 set_target_properties(NameConverterPlugin PROPERTIES
     OUTPUT_NAME "NameConverter"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/nameconverter"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/nameconverter"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/NameConverter"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/NameConverter"
 )
 
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/nameconverter")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/NameConverter")
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/nameconverter/plugin.json
+    ${CMAKE_BINARY_DIR}/plugins/NameConverter/plugin.json
     COPYONLY
 )
 

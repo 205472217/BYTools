@@ -26,13 +26,13 @@ target_link_libraries(ImageConverterPlugin PRIVATE Qt6::Core Qt6::Gui PluginComm
 
 set_target_properties(ImageConverterPlugin PROPERTIES
     OUTPUT_NAME "ImageConverter"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/imageconverter"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/imageconverter"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/ImageConverter"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/ImageConverter"
 )
 
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/imageconverter")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/ImageConverter")
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/imageconverter/plugin.json
+    ${CMAKE_BINARY_DIR}/plugins/ImageConverter/plugin.json
     COPYONLY
 )
