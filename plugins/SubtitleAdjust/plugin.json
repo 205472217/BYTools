@@ -1,0 +1,6 @@
+{
+    "id": "subtitle-adjust",
+    "name": "字幕时间调整",
+    "version": "1.0.0",
+    "description": "实时调整字幕时间点以匹配视频"
+}
