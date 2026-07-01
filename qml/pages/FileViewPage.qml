@@ -17,48 +17,53 @@ Pane {
     property bool hasFiles: controller && controller.fileCount > 0
     property bool hasSelection: controller && controller.currentFilePath.length > 0
     property string _lastLogLine: ""
+    property int _activeViewMode: 1  // 上次扫描所用的模式，默认文件模式
     property var _typeNames: ["视频", "音频", "图片"]
 
     // ── mpv 检测（启动时已解压，此处仅检查文件是否存在） ──
     property bool _mpvAvailable: {
-        if (!controller) return false
-        var dir = pluginManager.pluginDirectory("file-view")
-        return dir.length > 0 && pluginManager.fileExists(dir + "/mpv/mpv.exe")
+        if (!controller)
+            return false;
+        var dir = pluginManager.pluginDirectory("file-view");
+        return dir.length > 0 && pluginManager.fileExists(dir + "/mpv/mpv.exe");
     }
-    property string _mpvExePath: _mpvAvailable
-        ? pluginManager.pluginDirectory("file-view") + "/mpv/mpv.exe" : ""
+    property string _mpvExePath: _mpvAvailable ? pluginManager.pluginDirectory("file-view") + "/mpv/mpv.exe" : ""
 
     function safeInfo(key, fallback) {
-        if (!controller || !hasSelection) return fallback || "-"
-        var v = controller.currentFileInfo[key]
-        return v !== undefined ? v : (fallback || "-")
+        if (!controller || !hasSelection)
+            return fallback || "-";
+        var v = controller.currentFileInfo[key];
+        return v !== undefined ? v : (fallback || "-");
     }
 
     function fmtSize(bytes) {
-        if (bytes < 1024) return bytes + " B"
-        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB"
-        if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + " MB"
-        return (bytes / 1073741824).toFixed(2) + " GB"
+        if (bytes < 1024)
+            return bytes + " B";
+        if (bytes < 1048576)
+            return (bytes / 1024).toFixed(1) + " KB";
+        if (bytes < 1073741824)
+            return (bytes / 1048576).toFixed(1) + " MB";
+        return (bytes / 1073741824).toFixed(2) + " GB";
     }
 
     function _hideNativeOverlay() {
-        var p = videoPreviewLoader.item
+        var p = videoPreviewLoader.item;
         if (p && p.setNativeOverlayVisible)
-            p.setNativeOverlayVisible(false)
+            p.setNativeOverlayVisible(false);
     }
     function _showNativeOverlay() {
-        var p = videoPreviewLoader.item
+        var p = videoPreviewLoader.item;
         if (p && p.setNativeOverlayVisible)
-            p.setNativeOverlayVisible(true)
+            p.setNativeOverlayVisible(true);
     }
 
     function selectedFileUrl(url) {
-        var p = url.toString()
+        var p = url.toString();
         if (p.indexOf("file:///") === 0)
-            return p.substring(8)
+            return p.substring(8);
         if (p.indexOf("file://") === 0)
-            return p.substring(7)
-        return p
+            return p.substring(7);
+        return p;
     }
 
     padding: 0
@@ -72,7 +77,8 @@ Pane {
         id: folderDialog
         title: "选择源文件夹"
         onAccepted: {
-            if (controller) controller.sourceFolder = selectedFileUrl(selectedFolder)
+            if (controller)
+                controller.sourceFolder = selectedFileUrl(selectedFolder);
         }
     }
 
@@ -80,29 +86,36 @@ Pane {
     Connections {
         target: controller
         function onLogMessage(message) {
-            if (message.length === 0) return
-            root._lastLogLine = message
+            if (message.length === 0)
+                return;
+            root._lastLogLine = message;
         }
         function onScanFinished() {
             if (controller && controller.fileCount > 0)
-                root._lastLogLine = "扫描完成，共 " + controller.fileCount + " 个文件"
+                root._lastLogLine = "扫描完成，共 " + controller.fileCount + " 个文件";
         }
         function onCurrentModelIndexChanged() {
-            if (controller)
-                fileListView.currentIndex = controller.currentModelIndex
+            if (controller) {
+                fileListView.currentIndex = controller.currentModelIndex;
+                fileGridView.currentIndex = controller.currentModelIndex;
+            }
         }
     }
 
     function navPrevFile() {
-        if (!controller) return
-        var idx = controller.currentModelIndex
-        if (idx > 0) controller.selectFile(idx - 1)
+        if (!controller)
+            return;
+        var idx = controller.currentModelIndex;
+        if (idx > 0)
+            controller.selectFile(idx - 1);
     }
 
     function navNextFile() {
-        if (!controller) return
-        var idx = controller.currentModelIndex
-        if (idx < controller.fileCount - 1) controller.selectFile(idx + 1)
+        if (!controller)
+            return;
+        var idx = controller.currentModelIndex;
+        if (idx < controller.fileCount - 1)
+            controller.selectFile(idx + 1);
     }
 
     // ═══════════════ Main Layout ═══════════════
@@ -122,9 +135,10 @@ Pane {
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
                 onClicked: {
-                    if (controller) controller.cleanTrash()
-                    root._hideNativeOverlay()
-                    root.backRequested()
+                    if (controller)
+                        controller.cleanTrash();
+                    root._hideNativeOverlay();
+                    root.backRequested();
                 }
             }
 
@@ -165,32 +179,7 @@ Pane {
                 anchors.margins: 18
                 spacing: 12
 
-                // Row 1: File type radio
-                RowLayout {
-                    spacing: 0
-                    Layout.fillWidth: true
-
-                    Repeater {
-                        model: root._typeNames
-
-                        RadioButtonEx {
-                            required property int index
-                            required property string modelData
-
-                            implicitWidth: 100
-                            text: modelData
-                            paletteGroup: "RadioButtonEx"
-                            checked: controller ? controller.fileType === index : index === 0
-                            font.pixelSize: 13
-                            onCheckedChanged: {
-                                if (checked && controller && controller.fileType !== index)
-                                    controller.fileType = index
-                            }
-                        }
-                            }
-                        }
-
-                // Row 2: Source folder
+                // Row 1: Source folder
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
@@ -214,18 +203,6 @@ Pane {
                         paletteGroup: "TextFieldEx"
                     }
 
-                    CheckBoxEx {
-                        id: recursiveCheck
-                        implicitWidth: 110
-                        text: "递归子文件夹"
-                        paletteGroup: "CheckBoxEx"
-                        font.pixelSize: 12
-                        checked: controller ? controller.recursive : false
-                        onCheckedChanged: {
-                            if (controller) controller.recursive = checked
-                        }
-                    }
-
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择源文件夹"
@@ -234,12 +211,98 @@ Pane {
                     }
                 }
 
+                // Row 2: File type radio
+                RowLayout {
+                    spacing: 12
+                    Layout.fillWidth: true
+
+                    Label {
+                        id: filterTypeLabel
+                        text: "筛选类型"
+                        color: pal.LabelEx_labelText
+                        font.pixelSize: 12
+                        font.bold: true
+                        Layout.preferredWidth: 72
+                    }
+
+                    Repeater {
+                        model: root._typeNames
+
+                        RadioButtonEx {
+                            required property int index
+                            required property string modelData
+
+                            text: modelData
+                            paletteGroup: "RadioButtonEx"
+                            checked: controller ? controller.fileType === index : index === 0
+                            font.pixelSize: 13
+                            onCheckedChanged: {
+                                if (checked && controller && controller.fileType !== index)
+                                    controller.fileType = index;
+                            }
+                        }
+                    }
+                }
+
                 // Row 3: Start scan button
                 RowLayout {
                     spacing: 12
                     Layout.fillWidth: true
 
-                    Item { Layout.fillWidth: true }
+                    Label {
+                        id: viewTypeLabel
+                        text: "浏览方式"
+                        color: pal.LabelEx_labelText
+                        font.pixelSize: 12
+                        font.bold: true
+                        Layout.preferredWidth: 72
+                    }
+
+                    RadioButtonEx {
+                        id: dirModeRadio
+                        text: "目录模式"
+                        paletteGroup: "RadioButtonEx"
+                        checked: settings.viewMode === 0
+                        font.pixelSize: 13
+                        onCheckedChanged: {
+                            if (checked && controller && settings.viewMode !== 0) {
+                                settings.viewMode = 0
+                                controller.viewMode = 0
+                            }
+                        }
+                    }
+
+                    RadioButtonEx {
+                        id: fileModeRadio
+                        text: "文件模式"
+                        paletteGroup: "RadioButtonEx"
+                        checked: settings.viewMode === 1
+                        font.pixelSize: 13
+                        onCheckedChanged: {
+                            if (checked && controller && settings.viewMode !== 1) {
+                                settings.viewMode = 1
+                                controller.viewMode = 1
+                            }
+                        }
+                    }
+
+                    CheckBoxEx {
+                        id: recursiveCheck
+                        implicitWidth: 110
+                        text: "递归源文件夹"
+                        paletteGroup: "CheckBoxEx"
+                        font.pixelSize: 12
+                        checked: controller ? controller.recursive : false
+                        visible: settings.viewMode === 1
+                        onCheckedChanged: {
+                            if (controller)
+                                controller.recursive = checked;
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
 
                     IconButton {
                         id: startScanBtn
@@ -249,8 +312,10 @@ Pane {
                         paletteGroup: "FileViewPage_scanBtn"
                         enabled: controller && controller.sourceFolder.length > 0
                         onClicked: {
-                            if (!controller) return
-                            controller.startScan()
+                            if (!controller)
+                                return;
+                            root._activeViewMode = settings.viewMode;
+                            controller.startScan();
                         }
                     }
                 }
@@ -304,8 +369,9 @@ Pane {
                     anchors.margins: 5
                     spacing: 5
 
-                    // Sort bar
+                    // Top bar: 文件模式=标题, 目录模式=路径导航
                     Rectangle {
+                        id: topBar
                         Layout.fillWidth: true
                         Layout.preferredHeight: 34
                         radius: 6
@@ -313,99 +379,43 @@ Pane {
                         border.color: pal.SurfaceEx_cardBorderLight
                         border.width: 1
 
+                        // 文件模式：标题
+                        Label {
+                            visible: _activeViewMode === 1
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.left: parent.left
+                            anchors.leftMargin: 12
+                            text: "文件列表"
+                            color: pal.LabelEx_labelText
+                            font.pixelSize: 13
+                            font.bold: true
+                        }
+
+                        // 目录模式：返回 + 路径
                         RowLayout {
+                            visible: _activeViewMode === 0
                             anchors.fill: parent
                             anchors.leftMargin: 4
-                            anchors.rightMargin: 8
+                            anchors.rightMargin: 4
                             spacing: 6
 
-                            Row {
-                                spacing: 1
-
-                                IconButton {
-                                    implicitWidth: 24
-                                    implicitHeight: 24
-                                    iconSource: "qrc:/icons/to-top.svg"
-                                    tooltip: "定位到顶部"
-                                    normalColor: "transparent"
-                                    hoverColor: pal.IconBtnEx_hoverColor
-                                    pressColor: pal.IconBtnEx_pressColor
-                                    borderColor: "transparent"
-                                    defaultBorderColor: "transparent"
-                                    textColor: pal.IconBtnEx_textColor
-                                    onClicked: {
-                                        fileListView.positionViewAtBeginning()
-                                    }
-                                }
-
-                                IconButton {
-                                    implicitWidth: 24
-                                    implicitHeight: 24
-                                    iconSource: "qrc:/icons/to-current.svg"
-                                    tooltip: "定位到当前播放文件"
-                                    normalColor: "transparent"
-                                    hoverColor: pal.IconBtnEx_hoverColor
-                                    pressColor: pal.IconBtnEx_pressColor
-                                    borderColor: "transparent"
-                                    defaultBorderColor: "transparent"
-                                    textColor: pal.IconBtnEx_textColor
-                                    onClicked: {
-                                        if (fileListView.currentIndex >= 0)
-                                            fileListView.positionViewAtIndex(fileListView.currentIndex, ListView.Contain)
-                                    }
-                                }
-
-                                IconButton {
-                                    implicitWidth: 24
-                                    implicitHeight: 24
-                                    iconSource: "qrc:/icons/to-bottom.svg"
-                                    tooltip: "定位到底部"
-                                    normalColor: "transparent"
-                                    hoverColor: pal.IconBtnEx_hoverColor
-                                    pressColor: pal.IconBtnEx_pressColor
-                                    borderColor: "transparent"
-                                    defaultBorderColor: "transparent"
-                                    textColor: pal.IconBtnEx_textColor
-                                    onClicked: {
-                                        fileListView.positionViewAtEnd()
-                                    }
-                                }
+                            IconButton {
+                                implicitWidth: 24
+                                implicitHeight: 24
+                                iconSource: "qrc:/icons/arrow-left.svg"
+                                tooltip: "返回上级目录"
+                                paletteGroup: "IconBtnEx"
+                                enabled: controller && controller.canNavigateUp
+                                onClicked: controller.navigateUp()
                             }
 
-                            Label {
-                                text: "排序:"
-                                color: pal.LabelEx_labelText
-                                font.pixelSize: 11
-                            }
-
-                            ComboBoxEx {
-                                id: sortCombo
+                            TextFieldEx {
                                 Layout.fillWidth: true
                                 implicitHeight: 24
-                                model: ["文件名", "修改时间", "创建时间", "文件大小", "类型"]
-                                currentIndex: controller ? controller.sortField : 0
+                                text: controller ? controller.gridCurrentPath : ""
+                                readOnly: true
                                 font.pixelSize: 11
-                                onActivated: {
-                                    if (controller) controller.sortField = currentIndex
-                                }
-                                paletteGroup: "ComboBoxEx"
-                            }
-
-                            IconButton {
-                                id: sortOrderBtn
-                                implicitWidth: 28
-                                implicitHeight: 24
-                                text: controller && controller.sortAscending ? "▲" : "▼"
-                                tooltip: controller && controller.sortAscending ? "升序" : "降序"
-                                normalColor: "transparent"
-                                hoverColor: pal.IconBtnEx_hoverColor
-                                pressColor: pal.IconBtnEx_pressColor
-                                borderColor: "transparent"
-                                defaultBorderColor: "transparent"
-                                textColor: pal.IconBtnEx_textColor
-                                onClicked: {
-                                    if (controller) controller.sortAscending = !controller.sortAscending
-                                }
+                                paletteGroup: "TextFieldEx"
                             }
                         }
                     }
@@ -417,17 +427,18 @@ Pane {
                         color: pal.SurfaceEx_divider
                     }
 
-                    // List body
+                    // List body + Grid body
                     Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         clip: true
 
+                        // ── List View ──
                         ListView {
                             id: fileListView
                             anchors.fill: parent
                             model: controller ? controller.fileListModel : null
-                            visible: hasFiles
+                            visible: _activeViewMode === 1 && hasFiles
                             currentIndex: -1
                             ScrollBar.vertical: ScrollBar {
                                 policy: ScrollBar.AsNeeded
@@ -450,8 +461,9 @@ Pane {
                                 property bool rowHovered: false
 
                                 color: {
-                                    if (ListView.isCurrentItem) return pal.SurfaceEx_rowSelectedBg
-                                    return index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
+                                    if (ListView.isCurrentItem)
+                                        return pal.SurfaceEx_rowSelectedBg;
+                                    return index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg;
                                 }
 
                                 RowLayout {
@@ -496,10 +508,14 @@ Pane {
                                                 radius: 3
                                                 color: {
                                                     switch (fileDelegate.typeCategory) {
-                                                    case 0: return pal.LabelEx_Video_BgRect
-                                                    case 1: return pal.LabelEx_Audio_BgRect
-                                                    case 2: return pal.LabelEx_Image_BgRect
-                                                    default: return pal.LabelEx_Other_BgRect
+                                                    case 0:
+                                                        return pal.LabelEx_Video_BgRect;
+                                                    case 1:
+                                                        return pal.LabelEx_Audio_BgRect;
+                                                    case 2:
+                                                        return pal.LabelEx_Image_BgRect;
+                                                    default:
+                                                        return pal.LabelEx_Other_BgRect;
                                                     }
                                                 }
 
@@ -509,10 +525,14 @@ Pane {
                                                     text: fileDelegate.fileType
                                                     color: {
                                                         switch (fileDelegate.typeCategory) {
-                                                        case 0: return pal.LabelEx_Video_Text
-                                                        case 1: return pal.LabelEx_Audio_Text
-                                                        case 2: return pal.LabelEx_Image_Text
-                                                        default: return pal.LabelEx_Other_Text
+                                                        case 0:
+                                                            return pal.LabelEx_Video_Text;
+                                                        case 1:
+                                                            return pal.LabelEx_Audio_Text;
+                                                        case 2:
+                                                            return pal.LabelEx_Image_Text;
+                                                        default:
+                                                            return pal.LabelEx_Other_Text;
                                                         }
                                                     }
                                                     font.pixelSize: 10
@@ -525,7 +545,9 @@ Pane {
                                             Layout.fillWidth: true
                                             spacing: 12
 
-                                            Item { Layout.preferredWidth: 28 }
+                                            Item {
+                                                Layout.preferredWidth: 28
+                                            }
 
                                             Label {
                                                 text: fileDelegate.fileSizeDisplay
@@ -534,7 +556,9 @@ Pane {
                                                 elide: Text.ElideRight
                                             }
 
-                                            Item { Layout.fillWidth: true }
+                                            Item {
+                                                Layout.fillWidth: true
+                                            }
 
                                             Label {
                                                 text: fileDelegate.modifiedTimeDisplay
@@ -556,8 +580,9 @@ Pane {
                                     onEntered: fileDelegate.rowHovered = true
                                     onExited: fileDelegate.rowHovered = false
                                     onClicked: {
-                                        fileListView.currentIndex = fileDelegate.index
-                                        if (controller) controller.selectFile(fileDelegate.index)
+                                        fileListView.currentIndex = fileDelegate.index;
+                                        if (controller)
+                                            controller.selectFile(fileDelegate.index);
                                     }
                                 }
 
@@ -570,27 +595,16 @@ Pane {
                                     height: 28
                                     radius: 6
                                     z: 1
-                                    visible: fileDelegate.fileDeleted
-                                            || fileListView.currentIndex === fileDelegate.index
-                                            || fileDelegate.rowHovered
-                                            || delMouse.containsMouse
+                                    visible: fileDelegate.fileDeleted || fileListView.currentIndex === fileDelegate.index || fileDelegate.rowHovered || delMouse.containsMouse
 
-                                    color: delMouse.containsMouse
-                                        ? (fileDelegate.fileDeleted
-                                            ? pal.IconBtnEx_hoverColor
-                                            : pal.IconBtnEx_deleteBgColor)
-                                        : "transparent"
+                                    color: delMouse.containsMouse ? (fileDelegate.fileDeleted ? pal.IconBtnEx_hoverColor : pal.IconBtnEx_deleteBgColor) : "transparent"
                                     border.width: delMouse.containsMouse ? 1 : 0
-                                    border.color: fileDelegate.fileDeleted
-                                        ? pal.SurfaceEx_cardBorderLight
-                                        : (delMouse.containsMouse ? pal.LabelEx_deleteColor : "transparent")
+                                    border.color: fileDelegate.fileDeleted ? pal.SurfaceEx_cardBorderLight : (delMouse.containsMouse ? pal.LabelEx_deleteColor : "transparent")
 
                                     Label {
                                         anchors.centerIn: parent
                                         text: fileDelegate.fileDeleted ? "↩" : "✕"
-                                        color: fileDelegate.fileDeleted
-                                            ? pal.LabelEx_infoText
-                                            : (delMouse.containsMouse ? pal.LabelEx_deleteColor : pal.LabelEx_infoText)
+                                        color: fileDelegate.fileDeleted ? pal.LabelEx_infoText : (delMouse.containsMouse ? pal.LabelEx_deleteColor : pal.LabelEx_infoText)
 
                                         ToolTip {
                                             visible: delMouse.containsMouse
@@ -609,18 +623,18 @@ Pane {
                                         onEntered: fileDelegate.rowHovered = true
                                         onExited: fileDelegate.rowHovered = false
                                         onClicked: {
-                                            if (!controller) return
+                                            if (!controller)
+                                                return;
                                             if (fileDelegate.fileDeleted) {
-                                                controller.restoreFile(fileDelegate.index)
+                                                controller.restoreFile(fileDelegate.index);
                                             } else {
-                                                if (fileDelegate.index === controller.currentModelIndex
-                                                        && videoPreviewLoader.item) {
-                                                    videoPreviewLoader.item.stop()
-                                                    videoPreviewLoader.item.source = ""
+                                                if (fileDelegate.index === controller.currentModelIndex && videoPreviewLoader.item) {
+                                                    videoPreviewLoader.item.stop();
+                                                    videoPreviewLoader.item.source = "";
                                                 }
-                                                var ok = controller.deleteFile(fileDelegate.index)
+                                                var ok = controller.deleteFile(fileDelegate.index);
                                                 if (!ok && fileDelegate.index === controller.currentModelIndex) {
-                                                    root._lastLogLine = "删除失败：文件被占用，请先切换到其他文件再试"
+                                                    root._lastLogLine = "删除失败：文件被占用，请先切换到其他文件再试";
                                                 }
                                             }
                                         }
@@ -629,11 +643,212 @@ Pane {
                             }
                         }
 
+                        // ── Grid View ──
+                        GridView {
+                            id: fileGridView
+                            anchors.fill: parent
+                            anchors.margins: 4
+                            model: controller ? controller.fileListModel : null
+                            visible: _activeViewMode === 0 && hasFiles
+                            cellWidth: 150
+                            cellHeight: 230
+                            currentIndex: -1
+                            ScrollBar.vertical: ScrollBar {
+                                policy: ScrollBar.AsNeeded
+                            }
+                            highlightMoveDuration: 0
+
+                            readonly property real _gridThumbInset: 20 // delegate margin(8) + layout margin(12)
+
+                            delegate: Item {
+                                id: gridDelegateRoot
+                                width: fileGridView.cellWidth
+                                height: fileGridView.cellHeight
+                                required property int index
+                                required property string fileName
+                                required property string filePath
+                                required property string fileType
+                                required property int typeCategory
+                                required property bool isDir
+                                required property string thumbnailPath
+
+                                Rectangle {
+                                    anchors.fill: parent
+                                    anchors.margins: 4
+                                    radius: 8
+                                    color: fileGridView.currentIndex === index
+                                        ? pal.SurfaceEx_rowSelectedBg : "transparent"
+
+                                    ColumnLayout {
+                                        anchors.fill: parent
+                                        anchors.margins: 6
+                                        spacing: 4
+
+                                        Item {
+                                            Layout.fillWidth: true
+                                            Layout.preferredHeight: (fileGridView.cellWidth - fileGridView._gridThumbInset) * 4 / 3
+                                            Layout.alignment: Qt.AlignHCenter
+
+                                            Rectangle {
+                                                anchors.fill: parent
+                                                radius: 6
+                                                color: pal.SurfaceEx_cardBgAlt
+                                                clip: true
+
+                                                Image {
+                                                    anchors.fill: parent
+                                                    asynchronous: true
+                                                    source: {
+                                                        if (thumbnailPath.length > 0)
+                                                            return "file:///" + thumbnailPath.replace(/\\/g, "/");
+                                                        return isDir
+                                                            ? "qrc:/icons/thumb_folder.svg"
+                                                            : "qrc:/icons/thumb_file.svg";
+                                                    }
+                                                    fillMode: isDir ? Image.PreserveAspectFit : Image.PreserveAspectCrop
+                                                    sourceSize.width: 256
+                                                    sourceSize.height: 256
+                                                }
+                                            }
+                                        }
+
+                                        Label {
+                                            Layout.fillWidth: true
+                                            text: fileName
+                                            color: pal.LabelEx_valueText
+                                            font.pixelSize: 11
+                                            elide: Text.ElideRight
+                                            horizontalAlignment: Text.AlignHCenter
+                                            maximumLineCount: 2
+                                            wrapMode: Text.WordWrap
+                                        }
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
+                                    hoverEnabled: true
+                                    onClicked: {
+                                        if (isDir) {
+                                            controller.navigateToDir(filePath);
+                                        } else {
+                                            fileGridView.currentIndex = index;
+                                            controller.selectFile(index);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Right-click context menu
+                        MouseArea {
+                            anchors.fill: parent
+                            acceptedButtons: Qt.RightButton
+                            z: 10
+                            onClicked: {
+                                contentMenu.popup(parent, mouseX, mouseY)
+                            }
+                        }
+
+                        Menu {
+                            id: contentMenu
+
+                            MenuItem {
+                                text: "定位到当前文件"
+                                icon.source: "qrc:/icons/to-current.svg"
+                                onTriggered: {
+                                    var idx = root._activeViewMode === 0
+                                        ? fileGridView.currentIndex
+                                        : fileListView.currentIndex;
+                                    if (idx >= 0) {
+                                        if (root._activeViewMode === 0)
+                                            fileGridView.positionViewAtIndex(idx, GridView.Contain);
+                                        else
+                                            fileListView.positionViewAtIndex(idx, ListView.Contain);
+                                    }
+                                }
+                            }
+                            MenuItem {
+                                text: "定位到顶部"
+                                icon.source: "qrc:/icons/to-top.svg"
+                                onTriggered: {
+                                    if (root._activeViewMode === 0)
+                                        fileGridView.positionViewAtBeginning();
+                                    else
+                                        fileListView.positionViewAtBeginning();
+                                }
+                            }
+                            MenuItem {
+                                text: "定位到底部"
+                                icon.source: "qrc:/icons/to-bottom.svg"
+                                onTriggered: {
+                                    if (root._activeViewMode === 0)
+                                        fileGridView.positionViewAtEnd();
+                                    else
+                                        fileListView.positionViewAtEnd();
+                                }
+                            }
+
+                            MenuSeparator {}
+
+                            Menu {
+                                title: "排序方式"
+                                icon.source: "qrc:/icons/empty.svg"
+                                icon.width: 16
+                                icon.height: 16
+
+                                MenuItem {
+                                    text: "名称"
+                                    checkable: true
+                                    checked: controller ? controller.sortField === 0 : false
+                                    onTriggered: if (controller) controller.sortField = 0
+                                }
+                                MenuItem {
+                                    text: "大小"
+                                    checkable: true
+                                    checked: controller ? controller.sortField === 3 : false
+                                    onTriggered: if (controller) controller.sortField = 3
+                                }
+                                MenuItem {
+                                    text: "日期"
+                                    checkable: true
+                                    checked: controller ? (controller.sortField === 1 || controller.sortField === 2) : false
+                                    onTriggered: if (controller) controller.sortField = 1
+                                }
+                                MenuItem {
+                                    text: "类型"
+                                    checkable: true
+                                    checked: controller ? controller.sortField === 4 : false
+                                    onTriggered: if (controller) controller.sortField = 4
+                                }
+
+                                MenuSeparator {}
+
+                                MenuItem {
+                                    text: "递增"
+                                    checkable: true
+                                    checked: controller ? controller.sortAscending : true
+                                    onTriggered: if (controller) controller.sortAscending = true
+                                }
+                                MenuItem {
+                                    text: "递减"
+                                    checkable: true
+                                    checked: controller ? !controller.sortAscending : false
+                                    onTriggered: if (controller) controller.sortAscending = false
+                                }
+                            }
+                        }
+
                         // Empty state
                         Label {
                             id: emptyListLabel
                             anchors.centerIn: parent
-                            text: "暂无文件，请选择文件夹后点击「开始浏览」"
+                            text: {
+                                if (settings.viewMode === 0)
+                                    return "暂无内容，请选择源文件夹后点击「开始浏览」";
+                                return "暂无文件，请选择源文件夹后点击「开始浏览」";
+                            }
                             color: pal.LabelEx_infoText
                             font.pixelSize: 13
                             visible: !hasFiles
@@ -690,55 +905,54 @@ Pane {
                         Loader {
                             id: videoPreviewLoader
                             anchors.fill: parent
-                            active: hasSelection && controller
-                                    && (controller.currentFileInfo.typeCategory === 0
-                                        || controller.currentFileInfo.typeCategory === 1)
-                            source: root._mpvAvailable
-                                ? "../components/MpvViewer.qml"
-                                : "../components/MediaViewer.qml"
+                            active: hasSelection && controller && (controller.currentFileInfo.typeCategory === 0 || controller.currentFileInfo.typeCategory === 1)
+                            source: root._mpvAvailable ? "../components/MpvViewer.qml" : "../components/MediaViewer.qml"
 
                             onLoaded: {
                                 if (controller) {
                                     if (root._mpvAvailable)
-                                        item.mpvPath = root._mpvExePath
-                                    item.controlsPaletteGroup = "VideoPlayerControls"
-                                    item.source = "file:///" + controller.currentFilePath
+                                        item.mpvPath = root._mpvExePath;
+                                    item.controlsPaletteGroup = "VideoPlayerControls";
+                                    item.source = "file:///" + controller.currentFilePath;
                                     if (settings) {
-                                        item.volume = settings.volume
-                                        item.muted = settings.muted
-                                        item.seekStepMs = settings.seekStepMs
+                                        item.volume = settings.volume;
+                                        item.muted = settings.muted;
+                                        item.seekStepMs = settings.seekStepMs;
                                         if (item.volume < 1)
-                                            item.muted = true
+                                            item.muted = true;
                                     }
-                                    item.play()
-                                    item.previousRequested.connect(function() {
-                                        if (!controller || controller.fileCount === 0) return
-                                        var idx = controller.currentModelIndex
-                                        controller.selectFile(idx > 0 ? idx - 1 : controller.fileCount - 1)
-                                    })
-                                    item.nextRequested.connect(function() {
-                                        if (!controller || controller.fileCount === 0) return
-                                        var idx = controller.currentModelIndex
-                                        controller.selectFile(idx < controller.fileCount - 1 ? idx + 1 : 0)
-                                    })
-                                    item.deleteRequested.connect(function() {
-                                        if (!controller || controller.fileCount === 0) return
-                                        item.stop()
-                                        item.source = ""
-                                        controller.deleteFile(controller.currentModelIndex)
-                                    })
+                                    item.play();
+                                    item.previousRequested.connect(function () {
+                                        if (!controller || controller.fileCount === 0)
+                                            return;
+                                        var idx = controller.currentModelIndex;
+                                        controller.selectFile(idx > 0 ? idx - 1 : controller.fileCount - 1);
+                                    });
+                                    item.nextRequested.connect(function () {
+                                        if (!controller || controller.fileCount === 0)
+                                            return;
+                                        var idx = controller.currentModelIndex;
+                                        controller.selectFile(idx < controller.fileCount - 1 ? idx + 1 : 0);
+                                    });
+                                    item.deleteRequested.connect(function () {
+                                        if (!controller || controller.fileCount === 0)
+                                            return;
+                                        item.stop();
+                                        item.source = "";
+                                        controller.deleteFile(controller.currentModelIndex);
+                                    });
                                 }
                             }
 
                             Connections {
                                 target: controller
                                 function onCurrentFilePathChanged() {
-                                    var p = videoPreviewLoader.item
+                                    var p = videoPreviewLoader.item;
                                     if (p && controller) {
-                                        var newSrc = "file:///" + controller.currentFilePath
+                                        var newSrc = "file:///" + controller.currentFilePath;
                                         if (p.source !== newSrc) {
-                                            p.source = newSrc
-                                            p.play()
+                                            p.source = newSrc;
+                                            p.play();
                                         }
                                     }
                                 }
@@ -748,15 +962,15 @@ Pane {
                                 target: videoPreviewLoader.item
                                 function onVolumeChanged() {
                                     if (settings && videoPreviewLoader.item)
-                                        settings.volume = videoPreviewLoader.item.volume
+                                        settings.volume = videoPreviewLoader.item.volume;
                                 }
                                 function onMutedChanged() {
                                     if (settings && videoPreviewLoader.item)
-                                        settings.muted = videoPreviewLoader.item.muted
+                                        settings.muted = videoPreviewLoader.item.muted;
                                 }
                                 function onSeekStepMsChanged() {
                                     if (settings && videoPreviewLoader.item)
-                                        settings.seekStepMs = videoPreviewLoader.item.seekStepMs
+                                        settings.seekStepMs = videoPreviewLoader.item.seekStepMs;
                                 }
                             }
                         }
@@ -765,45 +979,46 @@ Pane {
                         Loader {
                             id: imagePreviewLoader
                             anchors.fill: parent
-                            active: hasSelection && controller
-                                    && controller.currentFileInfo.typeCategory === 2
+                            active: hasSelection && controller && controller.currentFileInfo.typeCategory === 2
                             source: "../components/ImageViewer.qml"
 
                             onLoaded: {
-                                if (!controller) return
-                                item.source = controller.currentFilePath
-                                item.hasPrevious = controller.currentModelIndex > 0
-                                item.hasNext = controller.currentModelIndex < controller.fileCount - 1
-                                item.previousRequested.connect(function() { navPrevFile() })
-                                item.nextRequested.connect(function() { navNextFile() })
-                                item.deleteRequested.connect(function() {
-                                    if (!controller || controller.fileCount === 0) return
-                                    controller.deleteFile(controller.currentModelIndex)
-                                })
+                                if (!controller)
+                                    return;
+                                item.source = controller.currentFilePath;
+                                item.hasPrevious = controller.currentModelIndex > 0;
+                                item.hasNext = controller.currentModelIndex < controller.fileCount - 1;
+                                item.previousRequested.connect(function () {
+                                    navPrevFile();
+                                });
+                                item.nextRequested.connect(function () {
+                                    navNextFile();
+                                });
+                                item.deleteRequested.connect(function () {
+                                    if (!controller || controller.fileCount === 0)
+                                        return;
+                                    controller.deleteFile(controller.currentModelIndex);
+                                });
                             }
 
                             Connections {
                                 target: controller
                                 function onCurrentFilePathChanged() {
-                                    var p = imagePreviewLoader.item
+                                    var p = imagePreviewLoader.item;
                                     if (p && controller)
-                                        p.source = controller.currentFilePath
+                                        p.source = controller.currentFilePath;
                                 }
                                 function onCurrentModelIndexChanged() {
-                                    var p = imagePreviewLoader.item
+                                    var p = imagePreviewLoader.item;
                                     if (p && controller) {
-                                        p.hasPrevious = controller.currentModelIndex > 0
-                                        p.hasNext = controller.currentModelIndex < controller.fileCount - 1
+                                        p.hasPrevious = controller.currentModelIndex > 0;
+                                        p.hasNext = controller.currentModelIndex < controller.fileCount - 1;
                                     }
                                 }
                             }
                         }
-
-
-
                     }
                 }
-
             }
 
             // ── Right: Properties ──
@@ -881,10 +1096,7 @@ Pane {
                                     font.pixelSize: 11
                                 }
                                 Label {
-                                    text: hasSelection
-                                        ? (controller.currentFileInfo.typeCategoryName
-                                           + " (" + controller.currentFileInfo.fileType + ")")
-                                        : "-"
+                                    text: hasSelection ? (controller.currentFileInfo.typeCategoryName + " (" + controller.currentFileInfo.fileType + ")") : "-"
                                     color: pal.LabelEx_valueText
                                     font.pixelSize: 12
                                 }
@@ -945,7 +1157,9 @@ Pane {
                                 }
                             }
 
-                            Item { Layout.fillHeight: true }
+                            Item {
+                                Layout.fillHeight: true
+                            }
                         }
                     }
                 }

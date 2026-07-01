@@ -47,6 +47,10 @@ QVariant FileListModel::data(const QModelIndex &index, int role) const
         return entry.typeCategory;
     case DeletedRole:
         return entry.deleted;
+    case IsDirRole:
+        return entry.isDir;
+    case ThumbnailPathRole:
+        return entry.thumbnailPath;
     }
     return {};
 }
@@ -65,6 +69,8 @@ QHash<int, QByteArray> FileListModel::roleNames() const
         { FileTypeRole,         "fileType" },
         { TypeCategoryRole,     "typeCategory" },
         { DeletedRole,          "fileDeleted" },
+        { IsDirRole,            "isDir" },
+        { ThumbnailPathRole,    "thumbnailPath" },
     };
 }
 

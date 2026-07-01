@@ -25,6 +25,9 @@ class FileViewController : public QObject
     Q_PROPERTY(QString currentFilePath READ currentFilePath NOTIFY currentFilePathChanged)
     Q_PROPERTY(QVariantMap currentFileInfo READ currentFileInfo NOTIFY currentFileInfoChanged)
     Q_PROPERTY(int currentModelIndex READ currentModelIndex NOTIFY currentModelIndexChanged)
+    Q_PROPERTY(int viewMode READ viewMode WRITE setViewMode NOTIFY viewModeChanged)
+    Q_PROPERTY(QString gridCurrentPath READ gridCurrentPath NOTIFY gridCurrentPathChanged)
+    Q_PROPERTY(bool canNavigateUp READ canNavigateUp NOTIFY canNavigateUpChanged)
 
 public:
     enum FileType { Video = 0, Audio, Image };
@@ -47,12 +50,16 @@ public:
     QString currentFilePath() const;
     QVariantMap currentFileInfo() const;
     int currentModelIndex() const;
+    int viewMode() const;
+    QString gridCurrentPath() const;
+    bool canNavigateUp() const;
 
     void setSourceFolder(const QString &path);
     void setRecursive(bool recursive);
     void setFileType(int type);
     void setSortField(int field);
     void setSortAscending(bool ascending);
+    void setViewMode(int mode);
 
     Q_INVOKABLE void startScan();
     Q_INVOKABLE void cancel();
@@ -61,6 +68,8 @@ public:
     Q_INVOKABLE bool deleteFile(int index);
     Q_INVOKABLE bool restoreFile(int index);
     Q_INVOKABLE void cleanTrash();
+    Q_INVOKABLE void navigateToDir(const QString &path);
+    Q_INVOKABLE void navigateUp();
 
     static QStringList extensionsForType(int fileType);
     static int categoryForExtension(const QString &ext);
@@ -78,13 +87,20 @@ signals:
     void currentFileInfoChanged();
     void currentModelIndexChanged();
     void scanFinished();
+    void viewModeChanged();
+    void gridCurrentPathChanged();
+    void canNavigateUpChanged();
 
 private:
     void doScanWork();
+    void scanListFiles();
+    void scanGridDirectory();
+    void triggerScan();
     void applySort();
     void setCurrentFilePath(const QString &path);
     void setCurrentFileInfo(const QVariantMap &info);
     void setCurrentModelIndex(int index);
+    void setGridCurrentPath(const QString &path);
 
     PluginLogger *m_logger = nullptr;
     FileViewSettings *m_settings = nullptr;
@@ -103,4 +119,7 @@ private:
     QString m_currentFilePath;
     QVariantMap m_currentFileInfo;
     int m_currentModelIndex = -1;
+    int m_viewMode = 1;
+    QString m_gridCurrentPath;
+    bool m_canNavigateUp = false;
 };

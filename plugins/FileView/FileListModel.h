@@ -22,6 +22,8 @@ public:
         QString fileType;
         int typeCategory = 0; // 0=video, 1=audio, 2=image, 3=document
         bool deleted = false;
+        bool isDir = false;
+        QString thumbnailPath;
     };
 
     enum Roles {
@@ -35,7 +37,9 @@ public:
         ModifiedTimeDisplayRole,
         FileTypeRole,
         TypeCategoryRole,
-        DeletedRole
+        DeletedRole,
+        IsDirRole,
+        ThumbnailPathRole
     };
 
     explicit FileListModel(QObject *parent = nullptr);

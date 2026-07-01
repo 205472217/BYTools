@@ -63,6 +63,9 @@ FileListModel *FileViewController::fileListModel() const { return m_fileListMode
 QString FileViewController::currentFilePath() const { return m_currentFilePath; }
 QVariantMap FileViewController::currentFileInfo() const { return m_currentFileInfo; }
 int FileViewController::currentModelIndex() const { return m_currentModelIndex; }
+int FileViewController::viewMode() const { return m_viewMode; }
+QString FileViewController::gridCurrentPath() const { return m_gridCurrentPath; }
+bool FileViewController::canNavigateUp() const { return m_canNavigateUp; }
 
 void FileViewController::setSourceFolder(const QString &path)
 {
@@ -109,6 +112,15 @@ void FileViewController::setSortAscending(bool ascending)
         emit sortAscendingChanged();
         applySort();
     }
+}
+
+void FileViewController::setViewMode(int mode)
+{
+    if (m_viewMode == mode)
+        return;
+    m_viewMode = mode;
+    m_settings->setViewMode(mode);
+    emit viewModeChanged();
 }
 
 // ── 扩展名列表 ──
@@ -165,16 +177,49 @@ void FileViewController::startScan()
     setCurrentFilePath(QString());
     setCurrentFileInfo(emptyFileInfo());
 
-    emit logMessage(QStringLiteral("正在扫描文件夹..."));
-    if (m_recursive)
-        emit logMessage("  启用了递归查找，正在遍历子目录...");
+    if (m_viewMode == 0) {
+        setGridCurrentPath(m_sourceFolder);
+        emit logMessage(QStringLiteral("正在扫描文件夹..."));
+    } else {
+        emit logMessage(QStringLiteral("正在扫描文件夹..."));
+        if (m_recursive)
+            emit logMessage("  启用了递归查找，正在遍历子目录...");
+    }
 
+    triggerScan();
+}
+
+void FileViewController::setGridCurrentPath(const QString &path)
+{
+    if (m_gridCurrentPath != path) {
+        m_gridCurrentPath = path;
+        emit gridCurrentPathChanged();
+
+        bool canUp = m_gridCurrentPath != m_sourceFolder
+            && m_gridCurrentPath.startsWith(m_sourceFolder);
+        if (m_canNavigateUp != canUp) {
+            m_canNavigateUp = canUp;
+            emit canNavigateUpChanged();
+        }
+    }
+}
+
+void FileViewController::triggerScan()
+{
     m_workerRunning = true;
     emit isProcessingChanged();
     m_workerThread.start();
 }
 
 void FileViewController::doScanWork()
+{
+    if (m_viewMode == 0)
+        scanGridDirectory();
+    else
+        scanListFiles();
+}
+
+void FileViewController::scanListFiles()
 {
     QStringList exts = extensionsForType(m_fileType);
 
@@ -217,6 +262,78 @@ void FileViewController::doScanWork()
     }, Qt::QueuedConnection);
 }
 
+void FileViewController::scanGridDirectory()
+{
+    QStringList exts = extensionsForType(m_fileType);
+
+    QList<FileListModel::FileEntry> entries;
+
+    QDir dir(m_gridCurrentPath);
+
+    // Scan subdirectories
+    QFileInfoList dirInfos = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs);
+    for (const QFileInfo &fi : dirInfos) {
+        FileListModel::FileEntry entry;
+        entry.fileName = fi.fileName();
+        entry.filePath = fi.absoluteFilePath();
+        entry.isDir = true;
+        entry.fileSize = fi.size();
+        entry.createdTime = fi.birthTime();
+        entry.modifiedTime = fi.lastModified();
+        entry.fileType = QStringLiteral("文件夹");
+        entry.typeCategory = -1;
+
+        static const QStringList folderThumbNames = {
+            "folder.jpg", "folder.png", "folder.jpeg", "folder.webp"
+        };
+        for (const QString &thumbName : folderThumbNames) {
+            QString thumbPath = fi.absoluteFilePath() + QStringLiteral("/") + thumbName;
+            if (QFileInfo::exists(thumbPath)) {
+                entry.thumbnailPath = thumbPath;
+                break;
+            }
+        }
+
+        entries.append(entry);
+    }
+
+    // Scan files
+    QStringList nameFilters = exts;
+    if (nameFilters.isEmpty())
+        nameFilters << QStringLiteral("*");
+    QFileInfoList fileInfos = dir.entryInfoList(nameFilters, QDir::Files);
+    for (const QFileInfo &fi : fileInfos) {
+        FileListModel::FileEntry entry;
+        entry.fileName = fi.fileName();
+        entry.filePath = fi.absoluteFilePath();
+        entry.originalFilePath = fi.absoluteFilePath();
+        entry.fileSize = fi.size();
+        entry.createdTime = fi.birthTime();
+        entry.modifiedTime = fi.lastModified();
+        entry.fileType = fi.suffix().toLower();
+        entry.typeCategory = categoryForExtension(QStringLiteral(".") + entry.fileType);
+
+        if (entry.typeCategory == Image)
+            entry.thumbnailPath = fi.absoluteFilePath();
+
+        entries.append(entry);
+    }
+
+    m_workerThread.quit();
+
+    QMetaObject::invokeMethod(this, [this, entries]() {
+        m_allEntries = entries;
+        applySort();
+
+        QString msg = QStringLiteral("✓ 扫描完成: 共 %1 项").arg(entries.size());
+        m_logger->info(msg);
+        emit logMessage(msg);
+
+        if (entries.isEmpty())
+            emit logMessage(QStringLiteral("⚠ 当前文件夹为空"));
+    }, Qt::QueuedConnection);
+}
+
 // ── 排序 ──
 
 void FileViewController::applySort()
@@ -226,6 +343,10 @@ void FileViewController::applySort()
 
     std::sort(m_allEntries.begin(), m_allEntries.end(),
               [this, &c](const FileListModel::FileEntry &a, const FileListModel::FileEntry &b) {
+        // In grid mode, directories always come first
+        if (m_viewMode == 0 && a.isDir != b.isDir)
+            return a.isDir;
+
         int cmp = 0;
         switch (m_sortField) {
         case SortName:
@@ -420,6 +541,40 @@ void FileViewController::cleanTrash()
     }
 }
 
+void FileViewController::navigateToDir(const QString &path)
+{
+    if (!QFileInfo(path).isDir())
+        return;
+
+    if (m_workerRunning)
+        cancel();
+
+    setGridCurrentPath(path);
+
+    m_allEntries.clear();
+    m_fileListModel->clear();
+    setCurrentFilePath(QString());
+    setCurrentFileInfo(emptyFileInfo());
+
+    emit logMessage(QStringLiteral("正在扫描文件夹..."));
+    triggerScan();
+}
+
+void FileViewController::navigateUp()
+{
+    QDir dir(m_gridCurrentPath);
+    if (!dir.cdUp())
+        return;
+
+    QString parent = dir.absolutePath();
+    if (!parent.startsWith(m_sourceFolder))
+        return;
+    if (parent == m_gridCurrentPath)
+        return;
+
+    navigateToDir(parent);
+}
+
 void FileViewController::cancel()
 {
     if (m_workerRunning) {
@@ -444,6 +599,7 @@ void FileViewController::reset()
     m_recursive = m_settings->recursive();
     m_sortField = m_settings->sortField();
     m_sortAscending = m_settings->sortAscending();
+    m_viewMode = m_settings->viewMode();
 
     setCurrentFileInfo(emptyFileInfo());
 
@@ -452,6 +608,7 @@ void FileViewController::reset()
     emit recursiveChanged();
     emit sortFieldChanged();
     emit sortAscendingChanged();
+    emit viewModeChanged();
     emit fileCountChanged();
 }
 
