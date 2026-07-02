@@ -22,7 +22,6 @@ void CustomSubtitleSettings::setSubtitleDownloadPath(const QString &path)
 {
     if (m_subtitleDownloadPath != path) {
         m_subtitleDownloadPath = path;
-        emit subtitleDownloadPathChanged();
         saveSettings();
     }
 }
@@ -30,7 +29,6 @@ void CustomSubtitleSettings::setVideoSourcePath(const QString &path)
 {
     if (m_videoSourcePath != path) {
         m_videoSourcePath = path;
-        emit videoSourcePathChanged();
         saveSettings();
     }
 }
@@ -38,7 +36,6 @@ void CustomSubtitleSettings::setRecursive(bool recursive)
 {
     if (m_recursive != recursive) {
         m_recursive = recursive;
-        emit recursiveChanged();
         saveSettings();
     }
 }
@@ -46,7 +43,6 @@ void CustomSubtitleSettings::setMergedOutputPath(const QString &path)
 {
     if (m_mergedOutputPath != path) {
         m_mergedOutputPath = path;
-        emit mergedOutputPathChanged();
         saveSettings();
     }
 }
@@ -54,7 +50,6 @@ void CustomSubtitleSettings::setFfmpegPath(const QString &path)
 {
     if (m_ffmpegPath != path) {
         m_ffmpegPath = path;
-        emit ffmpegPathChanged();
         saveSettings();
     }
 }
@@ -62,7 +57,6 @@ void CustomSubtitleSettings::setGpuAccel(bool enable)
 {
     if (m_gpuAccel != enable) {
         m_gpuAccel = enable;
-        emit gpuAccelChanged();
         saveSettings();
     }
 }
@@ -70,7 +64,6 @@ void CustomSubtitleSettings::setWeakMatch(bool weak)
 {
     if (m_weakMatch != weak) {
         m_weakMatch = weak;
-        emit weakMatchChanged();
         saveSettings();
     }
 }
@@ -78,7 +71,6 @@ void CustomSubtitleSettings::setEnabledPreprocessors(const QStringList &ops)
 {
     if (m_enabledPreprocessors != ops) {
         m_enabledPreprocessors = ops;
-        emit enabledPreprocessorsChanged();
         saveSettings();
     }
 }

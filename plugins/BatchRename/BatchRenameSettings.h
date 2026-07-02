@@ -6,14 +6,6 @@
 class BatchRenameSettings : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString rootPath READ rootPath WRITE setRootPath NOTIFY rootPathChanged)
-    Q_PROPERTY(int fileType READ fileType WRITE setFileType NOTIFY fileTypeChanged)
-    Q_PROPERTY(QString customExtension READ customExtension WRITE setCustomExtension NOTIFY customExtensionChanged)
-    Q_PROPERTY(int renameMode READ renameMode WRITE setRenameMode NOTIFY renameModeChanged)
-    Q_PROPERTY(QString baseName READ baseName WRITE setBaseName NOTIFY baseNameChanged)
-    Q_PROPERTY(QString searchText READ searchText WRITE setSearchText NOTIFY searchTextChanged)
-    Q_PROPERTY(QString replaceText READ replaceText WRITE setReplaceText NOTIFY replaceTextChanged)
-    Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
 
 public:
     explicit BatchRenameSettings(QObject *parent = nullptr);
@@ -36,18 +28,9 @@ public:
     void setReplaceText(const QString &text);
     void setRecursive(bool recursive);
 
+    // ── 其他功能函数 ──
     Q_INVOKABLE void loadSettings();
     Q_INVOKABLE void saveSettings();
-
-signals:
-    void rootPathChanged();
-    void fileTypeChanged();
-    void customExtensionChanged();
-    void renameModeChanged();
-    void baseNameChanged();
-    void searchTextChanged();
-    void replaceTextChanged();
-    void recursiveChanged();
 
 private:
     QString m_rootPath;

@@ -6,20 +6,6 @@
 class ImageConverterSettings : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString rootPath READ rootPath WRITE setRootPath NOTIFY rootPathChanged)
-    Q_PROPERTY(int targetFormat READ targetFormat WRITE setTargetFormat NOTIFY targetFormatChanged)
-    Q_PROPERTY(int quality READ quality WRITE setQuality NOTIFY qualityChanged)
-    Q_PROPERTY(QString bgColor READ bgColor WRITE setBgColor NOTIFY bgColorChanged)
-    Q_PROPERTY(int outputMode READ outputMode WRITE setOutputMode NOTIFY outputModeChanged)
-    Q_PROPERTY(QString outputDir READ outputDir WRITE setOutputDir NOTIFY outputDirChanged)
-    Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
-    Q_PROPERTY(bool convertEnabled READ convertEnabled WRITE setConvertEnabled NOTIFY convertEnabledChanged)
-    Q_PROPERTY(bool resizeEnabled READ resizeEnabled WRITE setResizeEnabled NOTIFY resizeEnabledChanged)
-    Q_PROPERTY(int resizeMode READ resizeMode WRITE setResizeMode NOTIFY resizeModeChanged)
-    Q_PROPERTY(double resizeRatio READ resizeRatio WRITE setResizeRatio NOTIFY resizeRatioChanged)
-    Q_PROPERTY(int resizeWidth READ resizeWidth WRITE setResizeWidth NOTIFY resizeWidthChanged)
-    Q_PROPERTY(int resizeHeight READ resizeHeight WRITE setResizeHeight NOTIFY resizeHeightChanged)
-    Q_PROPERTY(int mode READ mode WRITE setMode NOTIFY modeChanged)
 
 public:
     explicit ImageConverterSettings(QObject *parent = nullptr);
@@ -54,24 +40,9 @@ public:
     void setResizeHeight(int h);
     void setMode(int mode);
 
+    // ── 其他功能函数 ──
     Q_INVOKABLE void loadSettings();
     Q_INVOKABLE void saveSettings();
-
-signals:
-    void rootPathChanged();
-    void targetFormatChanged();
-    void qualityChanged();
-    void bgColorChanged();
-    void outputModeChanged();
-    void outputDirChanged();
-    void recursiveChanged();
-    void convertEnabledChanged();
-    void resizeEnabledChanged();
-    void resizeModeChanged();
-    void resizeRatioChanged();
-    void resizeWidthChanged();
-    void resizeHeightChanged();
-    void modeChanged();
 
 private:
     QString m_rootPath;

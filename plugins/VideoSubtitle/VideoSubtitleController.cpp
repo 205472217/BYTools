@@ -1032,64 +1032,171 @@ void VideoSubtitleController::addRecord(const QString &originalPath, const QStri
 }
 
 // ============================================================
-//  All private helpers below now delegate to VideoSubtitleSettings
+//  Settings-property getter/setter delegation
 // ============================================================
-QString VideoSubtitleController::ffmpegPath() const
-{
-    return m_settings->ffmpegPath();
+
+// --- Tool paths ---
+QString VideoSubtitleController::ffmpegPath() const { return m_settings->ffmpegPath(); }
+void VideoSubtitleController::setFfmpegPath(const QString &path) {
+    if (m_settings->ffmpegPath() != path) {
+        m_settings->setFfmpegPath(path);
+        emit ffmpegPathChanged();
+    }
 }
 
-QString VideoSubtitleController::whisperPath() const
-{
-    return m_settings->whisperPath();
+QString VideoSubtitleController::ffmpegStatus() const { return m_settings->ffmpegStatus(); }
+
+bool VideoSubtitleController::ffmpegDetecting() const { return m_settings->ffmpegDetecting(); }
+
+QString VideoSubtitleController::whisperPath() const { return m_settings->whisperPath(); }
+void VideoSubtitleController::setWhisperPath(const QString &path) {
+    if (m_settings->whisperPath() != path) {
+        m_settings->setWhisperPath(path);
+        emit whisperPathChanged();
+    }
 }
 
-QString VideoSubtitleController::whisperModelPath() const
-{
-    return m_settings->whisperModelPath();
+QString VideoSubtitleController::whisperStatus() const { return m_settings->whisperStatus(); }
+
+bool VideoSubtitleController::whisperDetecting() const { return m_settings->whisperDetecting(); }
+
+int VideoSubtitleController::whisperModel() const { return m_settings->whisperModel(); }
+void VideoSubtitleController::setWhisperModel(int model) {
+    if (m_settings->whisperModel() != model) {
+        m_settings->setWhisperModel(model);
+        emit whisperModelChanged();
+    }
 }
 
-QString VideoSubtitleController::apiKey() const
-{
-    return m_settings->apiKey();
+QString VideoSubtitleController::whisperModelDir() const { return m_settings->whisperModelDir(); }
+void VideoSubtitleController::setWhisperModelDir(const QString &path) {
+    if (m_settings->whisperModelDir() != path) {
+        m_settings->setWhisperModelDir(path);
+        emit whisperModelDirChanged();
+    }
 }
 
-QString VideoSubtitleController::apiUrl() const
-{
-    return m_settings->apiUrl();
+QVariantList VideoSubtitleController::availableModels() const { return m_settings->availableModels(); }
+
+QString VideoSubtitleController::localModelPath() const { return m_settings->localModelPath(); }
+void VideoSubtitleController::setLocalModelPath(const QString &path) {
+    if (m_settings->localModelPath() != path) {
+        m_settings->setLocalModelPath(path);
+        emit localModelPathChanged();
+    }
 }
 
-QString VideoSubtitleController::baiduAppId() const
-{
-    return m_settings->baiduAppId();
+int VideoSubtitleController::audioSegmentDuration() const { return m_settings->audioSegmentDuration(); }
+void VideoSubtitleController::setAudioSegmentDuration(int seconds) {
+    if (m_settings->audioSegmentDuration() != seconds) {
+        m_settings->setAudioSegmentDuration(seconds);
+        emit audioSegmentDurationChanged();
+    }
 }
 
-int VideoSubtitleController::audioSegmentDuration() const
-{
-    return m_settings->audioSegmentDuration();
+// --- Translate engine ---
+int VideoSubtitleController::translateEngine() const { return m_settings->translateEngine(); }
+void VideoSubtitleController::setTranslateEngine(int engine) {
+    if (m_settings->translateEngine() != engine) {
+        m_settings->setTranslateEngine(engine);
+        emit translateEngineChanged();
+    }
 }
 
-int VideoSubtitleController::translateEngine() const
-{
-    return m_settings->translateEngine();
+QStringList VideoSubtitleController::translateEngineNames() const { return m_settings->translateEngineNames(); }
+
+QString VideoSubtitleController::baiduAppId() const { return m_settings->baiduAppId(); }
+void VideoSubtitleController::setBaiduAppId(const QString &appId) {
+    if (m_settings->baiduAppId() != appId) {
+        m_settings->setBaiduAppId(appId);
+        emit baiduAppIdChanged();
+    }
 }
 
-int VideoSubtitleController::defaultFontSize() const
-{
-    return m_settings->defaultFontSize();
+QString VideoSubtitleController::apiKey() const { return m_settings->apiKey(); }
+void VideoSubtitleController::setApiKey(const QString &key) {
+    if (m_settings->apiKey() != key) {
+        m_settings->setApiKey(key);
+        emit apiKeyChanged();
+    }
 }
 
-QString VideoSubtitleController::defaultFontColor() const
-{
-    return m_settings->defaultFontColor();
+QString VideoSubtitleController::apiUrl() const { return m_settings->apiUrl(); }
+void VideoSubtitleController::setApiUrl(const QString &url) {
+    if (m_settings->apiUrl() != url) {
+        m_settings->setApiUrl(url);
+        emit apiUrlChanged();
+    }
 }
 
-QString VideoSubtitleController::defaultBorderColor() const
-{
-    return m_settings->defaultBorderColor();
+QString VideoSubtitleController::apiTestResult() const { return m_settings->apiTestResult(); }
+
+bool VideoSubtitleController::apiTesting() const { return m_settings->apiTesting(); }
+
+QString VideoSubtitleController::libreTranslateUrl() const { return m_settings->libreTranslateUrl(); }
+void VideoSubtitleController::setLibreTranslateUrl(const QString &url) {
+    if (m_settings->libreTranslateUrl() != url) {
+        m_settings->setLibreTranslateUrl(url);
+        emit libreTranslateUrlChanged();
+    }
 }
 
-int VideoSubtitleController::defaultBorderWidth() const
-{
-    return m_settings->defaultBorderWidth();
+QString VideoSubtitleController::libreTranslateStatus() const { return m_settings->libreTranslateStatus(); }
+
+// --- Subtitle style ---
+int VideoSubtitleController::defaultFontSize() const { return m_settings->defaultFontSize(); }
+void VideoSubtitleController::setDefaultFontSize(int size) {
+    if (m_settings->defaultFontSize() != size) {
+        m_settings->setDefaultFontSize(size);
+        emit defaultFontSizeChanged();
+    }
 }
+
+QString VideoSubtitleController::defaultFontColor() const { return m_settings->defaultFontColor(); }
+void VideoSubtitleController::setDefaultFontColor(const QString &color) {
+    if (m_settings->defaultFontColor() != color) {
+        m_settings->setDefaultFontColor(color);
+        emit defaultFontColorChanged();
+    }
+}
+
+QString VideoSubtitleController::defaultBorderColor() const { return m_settings->defaultBorderColor(); }
+void VideoSubtitleController::setDefaultBorderColor(const QString &color) {
+    if (m_settings->defaultBorderColor() != color) {
+        m_settings->setDefaultBorderColor(color);
+        emit defaultBorderColorChanged();
+    }
+}
+
+int VideoSubtitleController::defaultBorderWidth() const { return m_settings->defaultBorderWidth(); }
+void VideoSubtitleController::setDefaultBorderWidth(int width) {
+    if (m_settings->defaultBorderWidth() != width) {
+        m_settings->setDefaultBorderWidth(width);
+        emit defaultBorderWidthChanged();
+    }
+}
+
+// --- GPU & output ---
+bool VideoSubtitleController::useGpuAccel() const { return m_settings->useGpuAccel(); }
+void VideoSubtitleController::setUseGpuAccel(bool enable) {
+    if (m_settings->useGpuAccel() != enable) {
+        m_settings->setUseGpuAccel(enable);
+        emit useGpuAccelChanged();
+    }
+}
+
+QString VideoSubtitleController::gpuAccelInfo() const { return m_settings->gpuAccelInfo(); }
+
+// ============================================================
+//  Q_INVOKABLE delegation to settings
+// ============================================================
+void VideoSubtitleController::testFfmpeg() { m_settings->testFfmpeg(); }
+void VideoSubtitleController::testWhisper() { m_settings->testWhisper(); }
+void VideoSubtitleController::testApiConnection() { m_settings->testApiConnection(); }
+void VideoSubtitleController::saveSettings() { m_settings->saveSettings(); }
+void VideoSubtitleController::loadSettings() { m_settings->loadSettings(); }
+void VideoSubtitleController::resetDefaults() { m_settings->resetDefaults(); }
+bool VideoSubtitleController::isModelDownloaded(int modelIndex) const { return m_settings->isModelDownloaded(modelIndex); }
+void VideoSubtitleController::deleteModel(int modelIndex) { m_settings->deleteModel(modelIndex); }
+QString VideoSubtitleController::modelFileName(int modelIndex) const { return m_settings->modelFileName(modelIndex); }
+qint64 VideoSubtitleController::modelFileSize(int modelIndex) const { return m_settings->modelFileSize(modelIndex); }

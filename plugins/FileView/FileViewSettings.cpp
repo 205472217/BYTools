@@ -23,7 +23,6 @@ void FileViewSettings::setSourceFolder(const QString &path)
 {
     if (m_sourceFolder != path) {
         m_sourceFolder = path;
-        emit sourceFolderChanged();
         saveSettings();
     }
 }
@@ -31,7 +30,6 @@ void FileViewSettings::setRecursive(bool recursive)
 {
     if (m_recursive != recursive) {
         m_recursive = recursive;
-        emit recursiveChanged();
         saveSettings();
     }
 }
@@ -39,7 +37,6 @@ void FileViewSettings::setFileType(int type)
 {
     if (m_fileType != type) {
         m_fileType = type;
-        emit fileTypeChanged();
         saveSettings();
     }
 }
@@ -47,7 +44,6 @@ void FileViewSettings::setSortField(int field)
 {
     if (m_sortField != field) {
         m_sortField = field;
-        emit sortFieldChanged();
         saveSettings();
     }
 }
@@ -55,7 +51,6 @@ void FileViewSettings::setSortAscending(bool ascending)
 {
     if (m_sortAscending != ascending) {
         m_sortAscending = ascending;
-        emit sortAscendingChanged();
         saveSettings();
     }
 }
@@ -65,7 +60,6 @@ void FileViewSettings::setVolume(int vol)
     if (m_volume == vol)
         return;
     m_volume = vol;
-    emit volumeChanged();
     saveSettings();
 }
 void FileViewSettings::setMuted(bool m)
@@ -73,7 +67,6 @@ void FileViewSettings::setMuted(bool m)
     if (m_muted == m)
         return;
     m_muted = m;
-    emit mutedChanged();
     saveSettings();
 }
 void FileViewSettings::setSeekStepMs(int ms)
@@ -81,7 +74,6 @@ void FileViewSettings::setSeekStepMs(int ms)
     if (m_seekStepMs == ms)
         return;
     m_seekStepMs = ms;
-    emit seekStepMsChanged();
     saveSettings();
 }
 
@@ -90,7 +82,6 @@ void FileViewSettings::setViewWay(int mode)
     if (m_viewWay == mode)
         return;
     m_viewWay = mode;
-    emit viewWayChanged();
     saveSettings();
 }
 
@@ -99,7 +90,6 @@ void FileViewSettings::setViewMode(int mode)
     if (m_viewMode == mode)
         return;
     m_viewMode = mode;
-    emit viewModeChanged();
     saveSettings();
 }
 

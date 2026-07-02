@@ -28,7 +28,6 @@ void ImageConverterSettings::setRootPath(const QString &path)
 {
     if (m_rootPath != path) {
         m_rootPath = path;
-        emit rootPathChanged();
         saveSettings();
     }
 }
@@ -36,28 +35,24 @@ void ImageConverterSettings::setTargetFormat(int format)
 {
     if (m_targetFormat != format) {
         m_targetFormat = format;
-        emit targetFormatChanged();
     }
 }
 void ImageConverterSettings::setQuality(int quality)
 {
     if (m_quality != quality) {
         m_quality = quality;
-        emit qualityChanged();
     }
 }
 void ImageConverterSettings::setBgColor(const QString &color)
 {
     if (m_bgColor != color) {
         m_bgColor = color;
-        emit bgColorChanged();
     }
 }
 void ImageConverterSettings::setOutputMode(int mode)
 {
     if (m_outputMode != mode) {
         m_outputMode = mode;
-        emit outputModeChanged();
         saveSettings();
     }
 }
@@ -65,7 +60,6 @@ void ImageConverterSettings::setOutputDir(const QString &dir)
 {
     if (m_outputDir != dir) {
         m_outputDir = dir;
-        emit outputDirChanged();
         saveSettings();
     }
 }
@@ -73,7 +67,6 @@ void ImageConverterSettings::setRecursive(bool recursive)
 {
     if (m_recursive != recursive) {
         m_recursive = recursive;
-        emit recursiveChanged();
         saveSettings();
     }
 }
@@ -81,7 +74,6 @@ void ImageConverterSettings::setConvertEnabled(bool enabled)
 {
     if (m_convertEnabled != enabled) {
         m_convertEnabled = enabled;
-        emit convertEnabledChanged();
         saveSettings();
     }
 }
@@ -89,7 +81,6 @@ void ImageConverterSettings::setResizeEnabled(bool enabled)
 {
     if (m_resizeEnabled != enabled) {
         m_resizeEnabled = enabled;
-        emit resizeEnabledChanged();
         saveSettings();
     }
 }
@@ -97,7 +88,6 @@ void ImageConverterSettings::setResizeMode(int mode)
 {
     if (m_resizeMode != mode) {
         m_resizeMode = mode;
-        emit resizeModeChanged();
         saveSettings();
     }
 }
@@ -106,14 +96,13 @@ void ImageConverterSettings::setResizeRatio(double ratio)
     if (qFuzzyCompare(m_resizeRatio, ratio))
         return;
     m_resizeRatio = ratio;
-    emit resizeRatioChanged();
+
     saveSettings();
 }
 void ImageConverterSettings::setResizeWidth(int w)
 {
     if (m_resizeWidth != w) {
         m_resizeWidth = w;
-        emit resizeWidthChanged();
         saveSettings();
     }
 }
@@ -121,7 +110,6 @@ void ImageConverterSettings::setResizeHeight(int h)
 {
     if (m_resizeHeight != h) {
         m_resizeHeight = h;
-        emit resizeHeightChanged();
         saveSettings();
     }
 }
@@ -129,7 +117,6 @@ void ImageConverterSettings::setMode(int mode)
 {
     if (m_mode != mode) {
         m_mode = mode;
-        emit modeChanged();
         saveSettings();
     }
 }

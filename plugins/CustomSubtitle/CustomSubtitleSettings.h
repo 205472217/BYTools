@@ -7,14 +7,6 @@
 class CustomSubtitleSettings : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString subtitleDownloadPath READ subtitleDownloadPath WRITE setSubtitleDownloadPath NOTIFY subtitleDownloadPathChanged)
-    Q_PROPERTY(QString videoSourcePath READ videoSourcePath WRITE setVideoSourcePath NOTIFY videoSourcePathChanged)
-    Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
-    Q_PROPERTY(QString mergedOutputPath READ mergedOutputPath WRITE setMergedOutputPath NOTIFY mergedOutputPathChanged)
-    Q_PROPERTY(QString ffmpegPath READ ffmpegPath WRITE setFfmpegPath NOTIFY ffmpegPathChanged)
-    Q_PROPERTY(bool gpuAccel READ gpuAccel WRITE setGpuAccel NOTIFY gpuAccelChanged)
-    Q_PROPERTY(bool weakMatch READ weakMatch WRITE setWeakMatch NOTIFY weakMatchChanged)
-    Q_PROPERTY(QStringList enabledPreprocessors READ enabledPreprocessors WRITE setEnabledPreprocessors NOTIFY enabledPreprocessorsChanged)
 
 public:
     explicit CustomSubtitleSettings(QObject *parent = nullptr);
@@ -37,18 +29,9 @@ public:
     void setWeakMatch(bool weak);
     void setEnabledPreprocessors(const QStringList &ops);
 
+    // ── 其他功能函数 ──
     Q_INVOKABLE void loadSettings();
     Q_INVOKABLE void saveSettings();
-
-signals:
-    void subtitleDownloadPathChanged();
-    void videoSourcePathChanged();
-    void recursiveChanged();
-    void mergedOutputPathChanged();
-    void ffmpegPathChanged();
-    void gpuAccelChanged();
-    void weakMatchChanged();
-    void enabledPreprocessorsChanged();
 
 private:
     QString m_subtitleDownloadPath;

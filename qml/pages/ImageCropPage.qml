@@ -12,7 +12,6 @@ Pane {
     property var controller: null
     property var stackView: null
     property string pluginId: ""
-    property QtObject settings: pluginManager.settingsForController(controller)
 
     // ── Image rendering state ──────────────────────────────────────────
     property real srcW: 0
@@ -69,7 +68,7 @@ Pane {
                     p = p.substring(8);
                 else if (p.indexOf("file://") === 0)
                     p = p.substring(7);
-                settings.rootPath = p;
+                controller.rootPath = p;
             }
         }
     }
@@ -84,7 +83,7 @@ Pane {
                     p = p.substring(8);
                 else if (p.indexOf("file://") === 0)
                     p = p.substring(7);
-                settings.outputDir = p;
+                controller.outputDir = p;
             }
         }
     }
@@ -113,7 +112,7 @@ Pane {
         onAccepted: {
             if (controller) {
                 var ok = controller.executeCrop(controller.cropX, controller.cropY, controller.cropW, controller.cropH);
-                if (ok && settings.outputMode === 0) {
+                if (ok && controller.outputMode === 0) {
                     root.initImage();
                 }
             }
@@ -339,7 +338,7 @@ Pane {
                 TextFieldEx {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-                    text: controller ? settings.rootPath : ""
+                    text: controller ? controller.rootPath : ""
                     readOnly: true
                     placeholderText: "点击浏览按钮选择图片文件夹"
                     clip: true
@@ -351,10 +350,10 @@ Pane {
                     implicitWidth: 110
                     text: "递归子文件夹"
                     paletteGroup: "CheckBoxEx"
-                    checked: controller ? settings.recursive : false
+                    checked: controller ? controller.recursive : false
                     onCheckedChanged: {
                         if (controller)
-                            settings.recursive = checked;
+                            controller.recursive = checked;
                     }
                 }
 
@@ -372,7 +371,7 @@ Pane {
                     implicitWidth: 100
                     paletteGroup: "ImageCropPage_loadImageBtn"
                     onClicked: {
-                        if (controller && settings.rootPath.length > 0)
+                        if (controller && controller.rootPath.length > 0)
                             controller.scanImages();
                     }
                 }
@@ -558,13 +557,13 @@ Pane {
                                     }
 
                                     Connections {
-                                        target: settings
+                                        target: controller
                                         function onTargetWidthChanged() {
-                                            if (controller && settings.cropMode === 1 && !root.updatingCropFromDrag)
+                                            if (controller && controller.cropMode === 1 && !root.updatingCropFromDrag)
                                                 root.initCrop();
                                         }
                                         function onTargetHeightChanged() {
-                                            if (controller && settings.cropMode === 1 && !root.updatingCropFromDrag)
+                                            if (controller && controller.cropMode === 1 && !root.updatingCropFromDrag)
                                                 root.initCrop();
                                         }
                                     }
@@ -810,12 +809,12 @@ Pane {
                                         }
 
                                         // ── Sync crop size to pixel values in pixel mode ──
-                                        if (root.controller && root.settings.cropMode === 1 && dragMode !== 1) {
+                                        if (root.controller && root.controller.cropMode === 1 && dragMode !== 1) {
                                             root.updatingCropFromDrag = true;
                                             var sx = root.srcW / root.dispW;
                                             var sy = root.srcH / root.dispH;
-                                            root.settings.targetWidth = Math.round(root.cropW * sx);
-                                            root.settings.targetHeight = Math.round(root.cropH * sy);
+                                            root.controller.targetWidth = Math.round(root.cropW * sx);
+                                            root.controller.targetHeight = Math.round(root.cropH * sy);
                                             root.updatingCropFromDrag = false;
                                         }
                                     }
@@ -1065,10 +1064,10 @@ Pane {
                                     if (!root.cropReady)
                                         return "";
                                     var ratio = controller ? controller.calcEffectiveRatio() : 0;
-                                    if (root.controller && root.settings.cropMode === 0 && ratio > 0) {
+                                    if (root.controller && root.controller.cropMode === 0 && ratio > 0) {
                                         return "裁剪比例 " + (ratio >= 1 ? ratio.toFixed(1) : ("1:" + (1 / ratio).toFixed(1)));
-                                    } else if (root.controller && root.settings.cropMode === 1) {
-                                        return "裁剪尺寸 " + root.settings.targetWidth + " × " + root.settings.targetHeight + " px";
+                                    } else if (root.controller && root.controller.cropMode === 1) {
+                                        return "裁剪尺寸 " + root.controller.targetWidth + " × " + root.controller.targetHeight + " px";
                                     }
                                     return "";
                                 }
@@ -1183,15 +1182,15 @@ Pane {
                             Layout.fillWidth: true
                             height: 26
                             radius: 8
-                            color: controller && settings.cropMode === 0 ? pal.ImageCropPage_ratioTab_color_active : pal.ImageCropPage_ratioTab_color_normal
-                            border.color: controller && settings.cropMode === 0 ? pal.ImageCropPage_ratioTab_borderColor_active : pal.ImageCropPage_ratioTab_borderColor_normal
+                            color: controller && controller.cropMode === 0 ? pal.ImageCropPage_ratioTab_color_active : pal.ImageCropPage_ratioTab_color_normal
+                            border.color: controller && controller.cropMode === 0 ? pal.ImageCropPage_ratioTab_borderColor_active : pal.ImageCropPage_ratioTab_borderColor_normal
                             border.width: 1
 
                             Label {
                                 id: ratioTabLbl
                                 anchors.centerIn: parent
                                 text: "按比例裁剪"
-                                color: controller && settings.cropMode === 0 ? pal.ImageCropPage_ratioTabLbl_color_active : pal.ImageCropPage_ratioTabLbl_color_normal
+                                color: controller && controller.cropMode === 0 ? pal.ImageCropPage_ratioTabLbl_color_active : pal.ImageCropPage_ratioTabLbl_color_normal
                                 font.pixelSize: 12
                                 font.bold: true
                             }
@@ -1200,8 +1199,8 @@ Pane {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    if (controller && settings.cropMode !== 0) {
-                                        settings.cropMode = 0;
+                                    if (controller && controller.cropMode !== 0) {
+                                        controller.cropMode = 0;
                                         root.initCrop();
                                     }
                                 }
@@ -1213,15 +1212,15 @@ Pane {
                             Layout.fillWidth: true
                             height: 26
                             radius: 8
-                            color: controller && settings.cropMode === 1 ? pal.ImageCropPage_pixelTab_color_active : pal.ImageCropPage_pixelTab_color_normal
-                            border.color: controller && settings.cropMode === 1 ? pal.ImageCropPage_pixelTab_borderColor_active : pal.ImageCropPage_pixelTab_borderColor_normal
+                            color: controller && controller.cropMode === 1 ? pal.ImageCropPage_pixelTab_color_active : pal.ImageCropPage_pixelTab_color_normal
+                            border.color: controller && controller.cropMode === 1 ? pal.ImageCropPage_pixelTab_borderColor_active : pal.ImageCropPage_pixelTab_borderColor_normal
                             border.width: 1
 
                             Label {
                                 id: pixelTabLbl
                                 anchors.centerIn: parent
                                 text: "按像素裁剪"
-                                color: controller && settings.cropMode === 1 ? pal.ImageCropPage_pixelTabLbl_color_active : pal.ImageCropPage_pixelTabLbl_color_normal
+                                color: controller && controller.cropMode === 1 ? pal.ImageCropPage_pixelTabLbl_color_active : pal.ImageCropPage_pixelTabLbl_color_normal
                                 font.pixelSize: 12
                                 font.bold: true
                             }
@@ -1230,12 +1229,12 @@ Pane {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
-                                    if (controller && settings.cropMode !== 1) {
+                                    if (controller && controller.cropMode !== 1) {
                                         if (root.srcW > 0 && root.srcH > 0) {
-                                            settings.targetWidth = Math.round(root.srcW);
-                                            settings.targetHeight = Math.round(root.srcH);
+                                            controller.targetWidth = Math.round(root.srcW);
+                                            controller.targetHeight = Math.round(root.srcH);
                                         }
-                                        settings.cropMode = 1;
+                                        controller.cropMode = 1;
                                         root.initCrop();
                                     }
                                 }
@@ -1279,7 +1278,7 @@ Pane {
                                 ColumnLayout {
                                     Layout.fillWidth: true
                                     spacing: 6
-                                    visible: controller ? settings.cropMode === 0 : false
+                                    visible: controller ? controller.cropMode === 0 : false
 
                                     RowLayout {
                                         spacing: 4
@@ -1289,7 +1288,7 @@ Pane {
                                             Rectangle {
                                                 id: ratioBtn
                                                 property int ratioIdx: index
-                                                property bool isSelected: controller && settings.usePresetRatio && settings.presetRatioIndex === ratioIdx
+                                                property bool isSelected: controller && controller.usePresetRatio && controller.presetRatioIndex === ratioIdx
                                                 Layout.preferredWidth: 42
                                                 Layout.preferredHeight: 26
                                                 radius: 5
@@ -1311,8 +1310,8 @@ Pane {
                                                     cursorShape: Qt.PointingHandCursor
                                                     onClicked: {
                                                         if (controller) {
-                                                            settings.usePresetRatio = true;
-                                                            settings.presetRatioIndex = ratioIdx;
+                                                            controller.usePresetRatio = true;
+                                                            controller.presetRatioIndex = ratioIdx;
                                                             root.initCrop();
                                                         }
                                                     }
@@ -1326,15 +1325,15 @@ Pane {
                                             Layout.preferredWidth: 42
                                             Layout.preferredHeight: 26
                                             radius: 5
-                                            color: controller && settings.usePresetRatio && settings.presetRatioIndex === 4 ? pal.ImageCropPage_freeBtn_color_active : pal.ImageCropPage_freeBtn_color_normal
-                                            border.color: controller && settings.usePresetRatio && settings.presetRatioIndex === 4 ? pal.ImageCropPage_freeBtn_borderColor_active : pal.ImageCropPage_freeBtn_borderColor_normal
+                                            color: controller && controller.usePresetRatio && controller.presetRatioIndex === 4 ? pal.ImageCropPage_freeBtn_color_active : pal.ImageCropPage_freeBtn_color_normal
+                                            border.color: controller && controller.usePresetRatio && controller.presetRatioIndex === 4 ? pal.ImageCropPage_freeBtn_borderColor_active : pal.ImageCropPage_freeBtn_borderColor_normal
                                             border.width: 1
 
                                             Label {
                                                 id: freeBtnLbl
                                                 anchors.centerIn: parent
                                                 text: "自由"
-                                                color: controller && settings.usePresetRatio && settings.presetRatioIndex === 4 ? pal.ImageCropPage_freeBtnLbl_color_active : pal.ImageCropPage_freeBtnLbl_color_normal
+                                                color: controller && controller.usePresetRatio && controller.presetRatioIndex === 4 ? pal.ImageCropPage_freeBtnLbl_color_active : pal.ImageCropPage_freeBtnLbl_color_normal
                                                 font.pixelSize: 11
                                                 font.bold: true
                                             }
@@ -1344,8 +1343,8 @@ Pane {
                                                 cursorShape: Qt.PointingHandCursor
                                                 onClicked: {
                                                     if (controller) {
-                                                        settings.usePresetRatio = true;
-                                                        settings.presetRatioIndex = 4;
+                                                        controller.usePresetRatio = true;
+                                                        controller.presetRatioIndex = 4;
                                                         root.initCrop();
                                                     }
                                                 }
@@ -1365,11 +1364,11 @@ Pane {
                                             implicitWidth: 60
                                             text: "自定义"
                                             paletteGroup: "RadioButtonEx"
-                                            checked: controller ? !settings.usePresetRatio : false
+                                            checked: controller ? !controller.usePresetRatio : false
                                             font.pixelSize: 12
                                             onCheckedChanged: {
-                                                if (controller && checked !== !settings.usePresetRatio) {
-                                                    settings.usePresetRatio = !checked;
+                                                if (controller && checked !== !controller.usePresetRatio) {
+                                                    controller.usePresetRatio = !checked;
                                                     root.initCrop();
                                                 }
                                             }
@@ -1378,8 +1377,8 @@ Pane {
                                         TextFieldEx {
                                             Layout.preferredWidth: 50
                                             placeholderText: "宽"
-                                            enabled: controller ? !settings.usePresetRatio : false
-                                            text: controller ? settings.customRatioW.toString() : "1"
+                                            enabled: controller ? !controller.usePresetRatio : false
+                                            text: controller ? controller.customRatioW.toString() : "1"
                                             editType: 1
                                             minNumber: 1
                                             maxNumber: 100
@@ -1389,8 +1388,8 @@ Pane {
                                                     return;
                                                 var v = parseInt(text);
                                                 if (!isNaN(v)) {
-                                                    settings.customRatioW = v;
-                                                    if (settings.cropMode === 0 && !settings.usePresetRatio)
+                                                    controller.customRatioW = v;
+                                                    if (controller.cropMode === 0 && !controller.usePresetRatio)
                                                         root.initCrop();
                                                 }
                                             }
@@ -1398,7 +1397,7 @@ Pane {
                                                 if (!activeFocus && controller) {
                                                     var v = parseInt(text);
                                                     if (isNaN(v))
-                                                        text = settings.customRatioW.toString();
+                                                        text = controller.customRatioW.toString();
                                                 }
                                             }
                                             paletteGroup: "TextFieldEx"
@@ -1415,8 +1414,8 @@ Pane {
                                         TextFieldEx {
                                             Layout.preferredWidth: 50
                                             placeholderText: "高"
-                                            enabled: controller ? !settings.usePresetRatio : false
-                                            text: controller ? settings.customRatioH.toString() : "1"
+                                            enabled: controller ? !controller.usePresetRatio : false
+                                            text: controller ? controller.customRatioH.toString() : "1"
                                             editType: 1
                                             minNumber: 1
                                             maxNumber: 100
@@ -1426,8 +1425,8 @@ Pane {
                                                     return;
                                                 var v = parseInt(text);
                                                 if (!isNaN(v)) {
-                                                    settings.customRatioH = v;
-                                                    if (settings.cropMode === 0 && !settings.usePresetRatio)
+                                                    controller.customRatioH = v;
+                                                    if (controller.cropMode === 0 && !controller.usePresetRatio)
                                                         root.initCrop();
                                                 }
                                             }
@@ -1435,7 +1434,7 @@ Pane {
                                                 if (!activeFocus && controller) {
                                                     var v = parseInt(text);
                                                     if (isNaN(v))
-                                                        text = settings.customRatioH.toString();
+                                                        text = controller.customRatioH.toString();
                                                 }
                                             }
                                             paletteGroup: "TextFieldEx"
@@ -1451,7 +1450,7 @@ Pane {
                                 ColumnLayout {
                                     Layout.fillWidth: true
                                     spacing: 6
-                                    visible: controller ? settings.cropMode === 1 : false
+                                    visible: controller ? controller.cropMode === 1 : false
 
                                     RowLayout {
                                         spacing: 8
@@ -1460,7 +1459,7 @@ Pane {
                                             id: targetWidthField
                                             Layout.preferredWidth: 70
                                             placeholderText: "宽"
-                                            text: controller ? settings.targetWidth.toString() : "800"
+                                            text: controller ? controller.targetWidth.toString() : "800"
                                             editType: 1
                                             minNumber: 1
                                             maxNumber: 9999
@@ -1469,7 +1468,7 @@ Pane {
                                                 if (controller) {
                                                     var v = parseInt(text);
                                                     if (!isNaN(v))
-                                                        settings.targetWidth = v;
+                                                        controller.targetWidth = v;
                                                 }
                                             }
                                             onActiveFocusChanged: {
@@ -1477,7 +1476,7 @@ Pane {
                                                     var v = parseInt(text);
                                                     if (isNaN(v))
                                                         v = 800;
-                                                    settings.targetWidth = v;
+                                                    controller.targetWidth = v;
                                                     text = v.toString();
                                                 }
                                             }
@@ -1495,7 +1494,7 @@ Pane {
                                             id: targetHeightField
                                             Layout.preferredWidth: 70
                                             placeholderText: "高"
-                                            text: controller ? settings.targetHeight.toString() : "600"
+                                            text: controller ? controller.targetHeight.toString() : "600"
                                             editType: 1
                                             minNumber: 1
                                             maxNumber: 9999
@@ -1504,7 +1503,7 @@ Pane {
                                                 if (controller) {
                                                     var v = parseInt(text);
                                                     if (!isNaN(v))
-                                                        settings.targetHeight = v;
+                                                        controller.targetHeight = v;
                                                 }
                                             }
                                             onActiveFocusChanged: {
@@ -1512,7 +1511,7 @@ Pane {
                                                     var v = parseInt(text);
                                                     if (isNaN(v))
                                                         v = 600;
-                                                    settings.targetHeight = v;
+                                                    controller.targetHeight = v;
                                                     text = v.toString();
                                                 }
                                             }
@@ -1578,11 +1577,11 @@ Pane {
                                         implicitWidth: 120
                                         text: "覆盖源文件"
                                         paletteGroup: "RadioButtonEx"
-                                        checked: controller ? settings.outputMode === 0 : true
+                                        checked: controller ? controller.outputMode === 0 : true
                                         font.pixelSize: 12
                                         onCheckedChanged: {
                                             if (checked && controller)
-                                                settings.outputMode = 0;
+                                                controller.outputMode = 0;
                                         }
                                     }
 
@@ -1591,11 +1590,11 @@ Pane {
                                         implicitWidth: 120
                                         text: "输出到新目录"
                                         paletteGroup: "RadioButtonEx"
-                                        checked: controller ? settings.outputMode === 1 : false
+                                        checked: controller ? controller.outputMode === 1 : false
                                         font.pixelSize: 12
                                         onCheckedChanged: {
                                             if (checked && controller)
-                                                settings.outputMode = 1;
+                                                controller.outputMode = 1;
                                         }
                                     }
                                 }
@@ -1608,13 +1607,13 @@ Pane {
                                         id: outputDirField
                                         Layout.fillWidth: true
                                         Layout.alignment: Qt.AlignVCenter | Qt.AlignLeft
-                                        text: controller ? settings.outputDir : ""
-                                        placeholderText: controller ? (settings.rootPath ? settings.rootPath + "_cropped" : "输出到源目录_croppe") : ""
+                                        text: controller ? controller.outputDir : ""
+                                        placeholderText: controller ? (controller.rootPath ? controller.rootPath + "_cropped" : "输出到源目录_croppe") : ""
                                         readOnly: true
                                         clip: true
                                         onTextChanged: {
                                             if (controller)
-                                                settings.outputDir = text;
+                                                controller.outputDir = text;
                                         }
 
                                         ToolTip.visible: outputDirMouse.containsMouse && (text.length > 0 || placeholderText.length > 0)
@@ -1673,13 +1672,13 @@ Pane {
                                 root.syncCropToController();
 
                                 // Check if target dimensions exceed image (pixel mode)
-                                if (settings.cropMode === 1 && (root.srcW < settings.targetWidth || root.srcH < settings.targetHeight)) {
-                                    overflowWarnDialog.detailText = "目标尺寸 " + settings.targetWidth + " × " + settings.targetHeight + " 超出图片实际尺寸 " + root.srcW + " × " + root.srcH + "。\n\n实际裁剪尺寸将以图片可用区域为准，是否继续？";
+                                if (controller.cropMode === 1 && (root.srcW < controller.targetWidth || root.srcH < controller.targetHeight)) {
+                                    overflowWarnDialog.detailText = "目标尺寸 " + controller.targetWidth + " × " + controller.targetHeight + " 超出图片实际尺寸 " + root.srcW + " × " + root.srcH + "。\n\n实际裁剪尺寸将以图片可用区域为准，是否继续？";
                                     overflowWarnDialog.open();
                                     return;
                                 }
                                 var ok = controller.executeCrop(controller.cropX, controller.cropY, controller.cropW, controller.cropH);
-                                if (ok && settings.outputMode === 0) {
+                                if (ok && controller.outputMode === 0) {
                                     root.initImage();
                                 }
                             }

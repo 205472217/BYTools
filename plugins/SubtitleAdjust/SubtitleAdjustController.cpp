@@ -574,6 +574,80 @@ void SubtitleAdjustController::doMatchWork()
     }, Qt::QueuedConnection);
 }
 
+// ── Config properties (delegated to Settings) ──
+
+int SubtitleAdjustController::mode() const { return m_settings->mode(); }
+void SubtitleAdjustController::setMode(int m)
+{
+    if (m_settings->mode() != m) {
+        m_settings->setMode(m);
+        emit modeChanged();
+    }
+}
+
+QString SubtitleAdjustController::videoFolder() const { return m_settings->videoFolder(); }
+void SubtitleAdjustController::setVideoFolder(const QString &path)
+{
+    if (m_settings->videoFolder() != path) {
+        m_settings->setVideoFolder(path);
+        emit videoFolderChanged();
+    }
+}
+
+QString SubtitleAdjustController::subtitleFolder() const { return m_settings->subtitleFolder(); }
+void SubtitleAdjustController::setSubtitleFolder(const QString &path)
+{
+    if (m_settings->subtitleFolder() != path) {
+        m_settings->setSubtitleFolder(path);
+        emit subtitleFolderChanged();
+    }
+}
+
+bool SubtitleAdjustController::recursiveVideo() const { return m_settings->recursiveVideo(); }
+void SubtitleAdjustController::setRecursiveVideo(bool recursive)
+{
+    if (m_settings->recursiveVideo() != recursive) {
+        m_settings->setRecursiveVideo(recursive);
+        emit recursiveVideoChanged();
+    }
+}
+
+bool SubtitleAdjustController::recursiveSubtitle() const { return m_settings->recursiveSubtitle(); }
+void SubtitleAdjustController::setRecursiveSubtitle(bool recursive)
+{
+    if (m_settings->recursiveSubtitle() != recursive) {
+        m_settings->setRecursiveSubtitle(recursive);
+        emit recursiveSubtitleChanged();
+    }
+}
+
+int SubtitleAdjustController::volume() const { return m_settings->volume(); }
+void SubtitleAdjustController::setVolume(int vol)
+{
+    if (m_settings->volume() != vol) {
+        m_settings->setVolume(vol);
+        emit volumeChanged();
+    }
+}
+
+bool SubtitleAdjustController::muted() const { return m_settings->muted(); }
+void SubtitleAdjustController::setMuted(bool m)
+{
+    if (m_settings->muted() != m) {
+        m_settings->setMuted(m);
+        emit mutedChanged();
+    }
+}
+
+int SubtitleAdjustController::seekStepMs() const { return m_settings->seekStepMs(); }
+void SubtitleAdjustController::setSeekStepMs(int ms)
+{
+    if (m_settings->seekStepMs() != ms) {
+        m_settings->setSeekStepMs(ms);
+        emit seekStepMsChanged();
+    }
+}
+
 // ── 导出选项 ──
 
 bool SubtitleAdjustController::overwriteOriginal() const

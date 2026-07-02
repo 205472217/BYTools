@@ -22,7 +22,7 @@ void SubtitleAdjustSettings::setMode(int mode)
 {
     if (m_mode != mode) {
         m_mode = mode;
-        emit modeChanged();
+
         saveSettings();
     }
 }
@@ -30,7 +30,7 @@ void SubtitleAdjustSettings::setVideoFolder(const QString &path)
 {
     if (m_videoFolder != path) {
         m_videoFolder = path;
-        emit videoFolderChanged();
+
         saveSettings();
     }
 }
@@ -38,7 +38,7 @@ void SubtitleAdjustSettings::setSubtitleFolder(const QString &path)
 {
     if (m_subtitleFolder != path) {
         m_subtitleFolder = path;
-        emit subtitleFolderChanged();
+
         saveSettings();
     }
 }
@@ -46,7 +46,7 @@ void SubtitleAdjustSettings::setRecursiveVideo(bool recursive)
 {
     if (m_recursiveVideo != recursive) {
         m_recursiveVideo = recursive;
-        emit recursiveVideoChanged();
+
         saveSettings();
     }
 }
@@ -54,7 +54,7 @@ void SubtitleAdjustSettings::setRecursiveSubtitle(bool recursive)
 {
     if (m_recursiveSubtitle != recursive) {
         m_recursiveSubtitle = recursive;
-        emit recursiveSubtitleChanged();
+
         saveSettings();
     }
 }
@@ -62,7 +62,7 @@ void SubtitleAdjustSettings::setOverwriteOriginal(bool overwrite)
 {
     if (m_overwriteOriginal != overwrite) {
         m_overwriteOriginal = overwrite;
-        emit overwriteOriginalChanged();
+
         saveSettings();
     }
 }
@@ -72,7 +72,7 @@ void SubtitleAdjustSettings::setVolume(int vol)
     if (m_volume == vol)
         return;
     m_volume = vol;
-    emit volumeChanged();
+
     saveSettings();
 }
 void SubtitleAdjustSettings::setMuted(bool m)
@@ -80,7 +80,7 @@ void SubtitleAdjustSettings::setMuted(bool m)
     if (m_muted == m)
         return;
     m_muted = m;
-    emit mutedChanged();
+
     saveSettings();
 }
 void SubtitleAdjustSettings::setSeekStepMs(int ms)
@@ -88,7 +88,7 @@ void SubtitleAdjustSettings::setSeekStepMs(int ms)
     if (m_seekStepMs == ms)
         return;
     m_seekStepMs = ms;
-    emit seekStepMsChanged();
+
     saveSettings();
 }
 

@@ -13,7 +13,6 @@ Pane {
     property var controller: null
     property var stackView: null
     property string pluginId: ""
-    property QtObject settings: pluginManager.settingsForController(controller)
 
     readonly property int tableLeftPadding: 18
     readonly property int tableRightPadding: 20
@@ -44,9 +43,9 @@ Pane {
         id: folderDialog
         title: "选择源文件夹"
         onAccepted: {
-            if (settings) {
-                settings.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
-                if (controller) controller.clearRecords()
+            if (controller) {
+                controller.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
+                controller.clearRecords()
             }
         }
     }
@@ -182,7 +181,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: settings ? settings.rootPath : ""
+                        text: controller ? controller.rootPath : ""
                         readOnly: true
                         placeholderText: "尚未选择"
                         paletteGroup: "TextFieldEx"
@@ -193,10 +192,10 @@ Pane {
                         implicitWidth: 110
                         text: "递归子文件夹"
                         paletteGroup: "CheckBoxEx"
-                        checked: settings ? settings.recursive : false
+                        checked: controller ? controller.recursive : false
                         onCheckedChanged: {
-                            if (settings) {
-                                settings.recursive = checked
+                            if (controller) {
+                                controller.recursive = checked
                             }
                         }
                     }
@@ -226,10 +225,10 @@ Pane {
                         id: processTypeCombo
                         Layout.preferredWidth: 140
                         model: ["仅文件", "仅文件夹", "文件和文件夹"]
-                        currentIndex: settings ? settings.targetType : 2
+                        currentIndex: controller ? controller.targetType : 2
                         onActivated: {
-                            if (settings) {
-                                settings.targetType = currentIndex
+                            if (controller) {
+                                controller.targetType = currentIndex
                             }
                         }
                         paletteGroup: "ComboBoxEx"

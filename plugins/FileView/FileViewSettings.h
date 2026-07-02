@@ -6,16 +6,6 @@
 class FileViewSettings : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QString sourceFolder READ sourceFolder WRITE setSourceFolder NOTIFY sourceFolderChanged)
-    Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
-    Q_PROPERTY(int fileType READ fileType WRITE setFileType NOTIFY fileTypeChanged)
-    Q_PROPERTY(int sortField READ sortField WRITE setSortField NOTIFY sortFieldChanged)
-    Q_PROPERTY(bool sortAscending READ sortAscending WRITE setSortAscending NOTIFY sortAscendingChanged)
-    Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)
-    Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
-    Q_PROPERTY(int seekStepMs READ seekStepMs WRITE setSeekStepMs NOTIFY seekStepMsChanged)
-    Q_PROPERTY(int viewWay READ viewWay WRITE setViewWay NOTIFY viewWayChanged)
-    Q_PROPERTY(int viewMode READ viewMode WRITE setViewMode NOTIFY viewModeChanged)
 
 public:
     explicit FileViewSettings(QObject *parent = nullptr);
@@ -42,20 +32,9 @@ public:
     void setViewWay(int mode);
     void setViewMode(int mode);
 
+    // ── 其他功能函数 ──
     Q_INVOKABLE void loadSettings();
     Q_INVOKABLE void saveSettings();
-
-signals:
-    void sourceFolderChanged();
-    void recursiveChanged();
-    void fileTypeChanged();
-    void sortFieldChanged();
-    void sortAscendingChanged();
-    void volumeChanged();
-    void mutedChanged();
-    void seekStepMsChanged();
-    void viewWayChanged();
-    void viewModeChanged();
 
 private:
     QString m_sourceFolder;

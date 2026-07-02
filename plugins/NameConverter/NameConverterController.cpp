@@ -42,6 +42,28 @@ bool NameConverterController::isProcessing() const
     return m_isProcessing;
 }
 
+QString NameConverterController::rootPath() const { return m_settings->rootPath(); }
+void NameConverterController::setRootPath(const QString &path) {
+    if (m_settings->rootPath() != path) {
+        m_settings->setRootPath(path);
+        emit rootPathChanged();
+    }
+}
+int NameConverterController::targetType() const { return m_settings->targetType(); }
+void NameConverterController::setTargetType(int type) {
+    if (m_settings->targetType() != type) {
+        m_settings->setTargetType(type);
+        emit targetTypeChanged();
+    }
+}
+bool NameConverterController::recursive() const { return m_settings->recursive(); }
+void NameConverterController::setRecursive(bool rec) {
+    if (m_settings->recursive() != rec) {
+        m_settings->setRecursive(rec);
+        emit recursiveChanged();
+    }
+}
+
 void NameConverterController::cancel()
 {
     if (m_workerRunning) {

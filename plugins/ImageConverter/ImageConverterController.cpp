@@ -57,6 +57,106 @@ QVariantList ImageConverterController::records() const
     return result;
 }
 
+// === Config properties (delegated to ImageConverterSettings) ===
+QString ImageConverterController::rootPath() const { return m_settings->rootPath(); }
+void ImageConverterController::setRootPath(const QString &path) {
+    if (m_settings->rootPath() != path) {
+        m_settings->setRootPath(path);
+        emit rootPathChanged();
+    }
+}
+int ImageConverterController::targetFormat() const { return m_settings->targetFormat(); }
+void ImageConverterController::setTargetFormat(int format) {
+    if (m_settings->targetFormat() != format) {
+        m_settings->setTargetFormat(format);
+        emit targetFormatChanged();
+    }
+}
+int ImageConverterController::quality() const { return m_settings->quality(); }
+void ImageConverterController::setQuality(int quality) {
+    if (m_settings->quality() != quality) {
+        m_settings->setQuality(quality);
+        emit qualityChanged();
+    }
+}
+QString ImageConverterController::bgColor() const { return m_settings->bgColor(); }
+void ImageConverterController::setBgColor(const QString &color) {
+    if (m_settings->bgColor() != color) {
+        m_settings->setBgColor(color);
+        emit bgColorChanged();
+    }
+}
+int ImageConverterController::outputMode() const { return m_settings->outputMode(); }
+void ImageConverterController::setOutputMode(int mode) {
+    if (m_settings->outputMode() != mode) {
+        m_settings->setOutputMode(mode);
+        emit outputModeChanged();
+    }
+}
+QString ImageConverterController::outputDir() const { return m_settings->outputDir(); }
+void ImageConverterController::setOutputDir(const QString &dir) {
+    if (m_settings->outputDir() != dir) {
+        m_settings->setOutputDir(dir);
+        emit outputDirChanged();
+    }
+}
+bool ImageConverterController::recursive() const { return m_settings->recursive(); }
+void ImageConverterController::setRecursive(bool recursive) {
+    if (m_settings->recursive() != recursive) {
+        m_settings->setRecursive(recursive);
+        emit recursiveChanged();
+    }
+}
+bool ImageConverterController::convertEnabled() const { return m_settings->convertEnabled(); }
+void ImageConverterController::setConvertEnabled(bool enabled) {
+    if (m_settings->convertEnabled() != enabled) {
+        m_settings->setConvertEnabled(enabled);
+        emit convertEnabledChanged();
+    }
+}
+bool ImageConverterController::resizeEnabled() const { return m_settings->resizeEnabled(); }
+void ImageConverterController::setResizeEnabled(bool enabled) {
+    if (m_settings->resizeEnabled() != enabled) {
+        m_settings->setResizeEnabled(enabled);
+        emit resizeEnabledChanged();
+    }
+}
+int ImageConverterController::resizeMode() const { return m_settings->resizeMode(); }
+void ImageConverterController::setResizeMode(int mode) {
+    if (m_settings->resizeMode() != mode) {
+        m_settings->setResizeMode(mode);
+        emit resizeModeChanged();
+    }
+}
+double ImageConverterController::resizeRatio() const { return m_settings->resizeRatio(); }
+void ImageConverterController::setResizeRatio(double ratio) {
+    if (m_settings->resizeRatio() != ratio) {
+        m_settings->setResizeRatio(ratio);
+        emit resizeRatioChanged();
+    }
+}
+int ImageConverterController::resizeWidth() const { return m_settings->resizeWidth(); }
+void ImageConverterController::setResizeWidth(int w) {
+    if (m_settings->resizeWidth() != w) {
+        m_settings->setResizeWidth(w);
+        emit resizeWidthChanged();
+    }
+}
+int ImageConverterController::resizeHeight() const { return m_settings->resizeHeight(); }
+void ImageConverterController::setResizeHeight(int h) {
+    if (m_settings->resizeHeight() != h) {
+        m_settings->setResizeHeight(h);
+        emit resizeHeightChanged();
+    }
+}
+int ImageConverterController::mode() const { return m_settings->mode(); }
+void ImageConverterController::setMode(int mode) {
+    if (m_settings->mode() != mode) {
+        m_settings->setMode(mode);
+        emit modeChanged();
+    }
+}
+
 void ImageConverterController::executeConvert()
 {
     bool isSingle = (m_settings->mode() == 0);

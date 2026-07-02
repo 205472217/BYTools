@@ -151,6 +151,28 @@ void FileViewController::setViewMode(int mode)
     emit viewModeChanged();
 }
 
+int FileViewController::volume() const { return m_settings->volume(); }
+void FileViewController::setVolume(int vol) {
+    if (m_settings->volume() != vol) {
+        m_settings->setVolume(vol);
+        emit volumeChanged();
+    }
+}
+bool FileViewController::muted() const { return m_settings->muted(); }
+void FileViewController::setMuted(bool m) {
+    if (m_settings->muted() != m) {
+        m_settings->setMuted(m);
+        emit mutedChanged();
+    }
+}
+int FileViewController::seekStepMs() const { return m_settings->seekStepMs(); }
+void FileViewController::setSeekStepMs(int ms) {
+    if (m_settings->seekStepMs() != ms) {
+        m_settings->setSeekStepMs(ms);
+        emit seekStepMsChanged();
+    }
+}
+
 // ── 扩展名列表（全局仅定义一次） ──
 
 namespace {

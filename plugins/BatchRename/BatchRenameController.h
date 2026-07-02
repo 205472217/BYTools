@@ -16,6 +16,15 @@ class BatchRenameController : public QObject
     Q_PROPERTY(bool hasRecords READ hasRecords NOTIFY hasRecordsChanged)
     Q_PROPERTY(bool isProcessing READ isProcessing NOTIFY isProcessingChanged)
     Q_PROPERTY(QVariantList records READ records NOTIFY recordsChanged)
+    // === Config properties (delegated to BatchRenameSettings) ===
+    Q_PROPERTY(QString rootPath READ rootPath WRITE setRootPath NOTIFY rootPathChanged)
+    Q_PROPERTY(int fileType READ fileType WRITE setFileType NOTIFY fileTypeChanged)
+    Q_PROPERTY(QString customExtension READ customExtension WRITE setCustomExtension NOTIFY customExtensionChanged)
+    Q_PROPERTY(int renameMode READ renameMode WRITE setRenameMode NOTIFY renameModeChanged)
+    Q_PROPERTY(QString baseName READ baseName WRITE setBaseName NOTIFY baseNameChanged)
+    Q_PROPERTY(QString searchText READ searchText WRITE setSearchText NOTIFY searchTextChanged)
+    Q_PROPERTY(QString replaceText READ replaceText WRITE setReplaceText NOTIFY replaceTextChanged)
+    Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
 
 public:
     explicit BatchRenameController(PluginLogger *logger, BatchRenameSettings *settings, QObject *parent = nullptr);
@@ -25,6 +34,24 @@ public:
     bool hasRecords() const;
     bool isProcessing() const;
     QVariantList records() const;
+
+    QString rootPath() const;
+    int fileType() const;
+    QString customExtension() const;
+    int renameMode() const;
+    QString baseName() const;
+    QString searchText() const;
+    QString replaceText() const;
+    bool recursive() const;
+
+    void setRootPath(const QString &path);
+    void setFileType(int fileType);
+    void setCustomExtension(const QString &ext);
+    void setRenameMode(int mode);
+    void setBaseName(const QString &name);
+    void setSearchText(const QString &text);
+    void setReplaceText(const QString &text);
+    void setRecursive(bool recursive);
 
     Q_INVOKABLE void executeRename();
     Q_INVOKABLE void cancel();
@@ -41,6 +68,15 @@ signals:
     void recordsChanged();
     void isProcessingChanged();
     void logMessage(const QString &message);
+
+    void rootPathChanged();
+    void fileTypeChanged();
+    void customExtensionChanged();
+    void renameModeChanged();
+    void baseNameChanged();
+    void searchTextChanged();
+    void replaceTextChanged();
+    void recursiveChanged();
 
 private:
     struct RenameRecord {

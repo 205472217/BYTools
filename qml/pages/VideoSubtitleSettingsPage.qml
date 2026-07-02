@@ -12,19 +12,12 @@ Pane {
     signal backRequested
 
     property var controller: null
-    property QtObject settings: pluginManager.settingsForController(controller)
     property string copyFeedback: ""
 
     Timer {
         id: copyTimer
         interval: 3000
         onTriggered: root.copyFeedback = ""
-    }
-
-    Component.onCompleted: {
-        if (settings && typeof settings.loadSettings === 'function') {
-            settings.loadSettings();
-        }
     }
 
     padding: 0
@@ -38,8 +31,8 @@ Pane {
         title: "选择 FFmpeg 可执行文件"
         nameFilters: ["可执行文件 (*.exe)", "所有文件 (*)"]
         onAccepted: {
-            if (settings) {
-                settings.ffmpegPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
+            if (controller) {
+                controller.ffmpegPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
             }
         }
     }
@@ -49,8 +42,8 @@ Pane {
         title: "选择 whisper-cli.exe"
         nameFilters: ["可执行文件 (*.exe)", "所有文件 (*)"]
         onAccepted: {
-            if (settings) {
-                settings.whisperPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
+            if (controller) {
+                controller.whisperPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
             }
         }
     }
@@ -60,27 +53,27 @@ Pane {
         title: "选择 Whisper 模型文件"
         nameFilters: ["模型文件 (*.bin *.ggml)", "所有文件 (*)"]
         onAccepted: {
-            if (settings) {
-                settings.localModelPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
+            if (controller) {
+                controller.localModelPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
             }
         }
     }
 
     ColorDialog {
         id: fontColorDialog
-        selectedColor: settings ? settings.defaultFontColor : pal.SurfaceEx_defaultFontColor
+        selectedColor: controller ? controller.defaultFontColor : pal.SurfaceEx_defaultFontColor
         onAccepted: {
-            if (settings)
-                settings.defaultFontColor = selectedColor.toString();
+            if (controller)
+                controller.defaultFontColor = selectedColor.toString();
         }
     }
 
     ColorDialog {
         id: borderColorDialog
-        selectedColor: settings ? settings.defaultBorderColor : pal.SurfaceEx_defaultBorderColor
+        selectedColor: controller ? controller.defaultBorderColor : pal.SurfaceEx_defaultBorderColor
         onAccepted: {
-            if (settings)
-                settings.defaultBorderColor = selectedColor.toString();
+            if (controller)
+                controller.defaultBorderColor = selectedColor.toString();
         }
     }
 
@@ -131,8 +124,8 @@ Pane {
                 text: "保存设置"
                 paletteGroup: "VideoSubtitleSettingsPage_saveBtn"
                 onClicked: {
-                    if (settings) {
-                        settings.saveSettings();
+                    if (controller) {
+                        controller.saveSettings();
                         root.backRequested();
                     }
                 }
@@ -176,7 +169,7 @@ Pane {
 
                         TextFieldEx {
                             Layout.fillWidth: true
-                            text: settings ? settings.ffmpegPath : ""
+                            text: controller ? controller.ffmpegPath : ""
                             placeholderText: "FFmpeg 可执行文件路径"
                             readOnly: true
                             paletteGroup: "TextFieldEx"
@@ -202,20 +195,20 @@ Pane {
                         Label {
                             id: ffmpegStatusLabel
                             text: {
-                                if (!settings) return "";
-                                if (settings.ffmpegDetecting) return "检测中...";
-                                if (settings.ffmpegPath && settings.ffmpegPath.length > 0) {
-                                    var parts = settings.ffmpegPath.replace(/\\/g, '/').split('/');
-                                    var ok = settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0;
+                                if (!controller) return "";
+                                if (controller.ffmpegDetecting) return "检测中...";
+                                if (controller.ffmpegPath && controller.ffmpegPath.length > 0) {
+                                    var parts = controller.ffmpegPath.replace(/\\/g, '/').split('/');
+                                    var ok = controller.ffmpegStatus.indexOf("已找到") >= 0 || controller.ffmpegStatus.indexOf("已检测到") >= 0;
                                     return "已选择 FFmpeg: " + parts[parts.length - 1] + (ok ? " — 可用" : " — 不可用");
                                 }
                                 return "请点击下载地址进行 FFmpeg 下载";
                             }
                             color: {
-                                if (!settings) return "";
-                                if (settings.ffmpegDetecting) return pal.LabelEx_warningText;
-                                if (settings.ffmpegPath && settings.ffmpegPath.length > 0) {
-                                    var ok = settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0;
+                                if (!controller) return "";
+                                if (controller.ffmpegDetecting) return pal.LabelEx_warningText;
+                                if (controller.ffmpegPath && controller.ffmpegPath.length > 0) {
+                                    var ok = controller.ffmpegStatus.indexOf("已找到") >= 0 || controller.ffmpegStatus.indexOf("已检测到") >= 0;
                                     return ok ? pal.LabelEx_successText : pal.LabelEx_errorText;
                                 }
                                 return pal.LabelEx_errorText;
@@ -263,7 +256,7 @@ Pane {
 
                         TextFieldEx {
                             Layout.fillWidth: true
-                            text: settings ? settings.whisperPath : ""
+                            text: controller ? controller.whisperPath : ""
                             placeholderText: "whisper-cli.exe 路径"
                             readOnly: true
                             paletteGroup: "TextFieldEx"
@@ -289,20 +282,20 @@ Pane {
                         Label {
                             id: whisperStatusLabel
                             text: {
-                                if (!settings) return "";
-                                if (settings.whisperDetecting) return "检测中...";
-                                if (settings.whisperPath && settings.whisperPath.length > 0) {
-                                    var parts = settings.whisperPath.replace(/\\/g, '/').split('/');
-                                    var ok = settings.whisperStatus.indexOf("已找到") >= 0 || settings.whisperStatus.indexOf("已检测到") >= 0;
+                                if (!controller) return "";
+                                if (controller.whisperDetecting) return "检测中...";
+                                if (controller.whisperPath && controller.whisperPath.length > 0) {
+                                    var parts = controller.whisperPath.replace(/\\/g, '/').split('/');
+                                    var ok = controller.whisperStatus.indexOf("已找到") >= 0 || controller.whisperStatus.indexOf("已检测到") >= 0;
                                     return "已选择 Whisper: " + parts[parts.length - 1] + (ok ? " — 可用" : " — 不可用");
                                 }
                                 return "请点击下载地址进行 Whisper 下载";
                             }
                             color: {
-                                if (!settings) return "";
-                                if (settings.whisperDetecting) return pal.LabelEx_warningText;
-                                if (settings.whisperPath && settings.whisperPath.length > 0) {
-                                    var ok = settings.whisperStatus.indexOf("已找到") >= 0 || settings.whisperStatus.indexOf("已检测到") >= 0;
+                                if (!controller) return "";
+                                if (controller.whisperDetecting) return pal.LabelEx_warningText;
+                                if (controller.whisperPath && controller.whisperPath.length > 0) {
+                                    var ok = controller.whisperStatus.indexOf("已找到") >= 0 || controller.whisperStatus.indexOf("已检测到") >= 0;
                                     return ok ? pal.LabelEx_successText : pal.LabelEx_errorText;
                                 }
                                 return pal.LabelEx_errorText;
@@ -350,7 +343,7 @@ Pane {
 
                         TextFieldEx {
                             Layout.fillWidth: true
-                            text: settings ? settings.localModelPath : ""
+                            text: controller ? controller.localModelPath : ""
                             placeholderText: "选择本地 .bin / .ggml 模型文件"
                             readOnly: true
                             paletteGroup: "TextFieldEx"
@@ -376,15 +369,15 @@ Pane {
                         Label {
                             id: modelStatusLabel
                             text: {
-                                if (!settings) return "";
-                                var path = settings.localModelPath;
+                                if (!controller) return "";
+                                var path = controller.localModelPath;
                                 if (path && path.length > 0) {
                                     var parts = path.replace(/\\/g, '/').split('/');
                                     return "已选择模型: " + parts[parts.length - 1];
                                 }
                                 return "请点击下载地址进行模型下载";
                             }
-                            color: settings && settings.localModelPath && settings.localModelPath.length > 0 ? pal.LabelEx_successText : pal.LabelEx_errorText
+                            color: controller && controller.localModelPath && controller.localModelPath.length > 0 ? pal.LabelEx_successText : pal.LabelEx_errorText
                             font.pixelSize: 12
                             elide: Text.ElideRight
                             verticalAlignment: Text.AlignVCenter
@@ -438,11 +431,11 @@ Pane {
 
                         ComboBoxEx {
                             Layout.preferredWidth: 200
-                            model: settings ? settings.translateEngineNames : ["百度翻译"]
-                            currentIndex: settings ? settings.translateEngine : 0
+                            model: controller ? controller.translateEngineNames : ["百度翻译"]
+                            currentIndex: controller ? controller.translateEngine : 0
                             onActivated: {
-                                if (settings)
-                                    settings.translateEngine = currentIndex;
+                                if (controller)
+                                    controller.translateEngine = currentIndex;
                             }
                             paletteGroup: "ComboBoxEx"
                         }
@@ -450,7 +443,7 @@ Pane {
 
                     // ---------- 百度翻译配置 (engine === 0) ----------
                     ColumnLayout {
-                        visible: settings ? settings.translateEngine === 0 : true
+                        visible: controller ? controller.translateEngine === 0 : true
                         Layout.fillWidth: true
                         spacing: 12
 
@@ -470,11 +463,11 @@ Pane {
 
                             TextFieldEx {
                                 Layout.fillWidth: true
-                                text: settings ? settings.baiduAppId : ""
+                                text: controller ? controller.baiduAppId : ""
                                 placeholderText: "百度翻译 API 的 App ID"
                                 onTextChanged: {
-                                    if (settings)
-                                        settings.baiduAppId = text;
+                                    if (controller)
+                                        controller.baiduAppId = text;
                                 }
                                 paletteGroup: "TextFieldEx"
                             }
@@ -497,12 +490,12 @@ Pane {
                             TextFieldEx {
                                 id: baiduApiKeyField
                                 Layout.fillWidth: true
-                                text: settings ? settings.apiKey : ""
+                                text: controller ? controller.apiKey : ""
                                 echoMode: TextInput.Password
                                 placeholderText: "输入百度翻译 Secret Key"
                                 onTextChanged: {
-                                    if (settings)
-                                        settings.apiKey = text;
+                                    if (controller)
+                                        controller.apiKey = text;
                                 }
                                 paletteGroup: "TextFieldEx"
                             }
@@ -533,11 +526,11 @@ Pane {
 
                             TextFieldEx {
                                 Layout.fillWidth: true
-                                text: settings ? settings.apiUrl : ""
+                                text: controller ? controller.apiUrl : ""
                                 placeholderText: "API 地址"
                                 onTextChanged: {
-                                    if (settings)
-                                        settings.apiUrl = text;
+                                    if (controller)
+                                        controller.apiUrl = text;
                                 }
                                 paletteGroup: "TextFieldEx"
                             }
@@ -546,10 +539,10 @@ Pane {
                                 id: testConnectionBtn
                                 text: "测试连接"
                                 paletteGroup: "VideoSubtitleSettingsPage_testConnectionBtn"
-                                enabled: settings ? !settings.apiTesting : false
+                                enabled: controller ? !controller.apiTesting : false
                                 onClicked: {
-                                    if (settings)
-                                        settings.testApiConnection();
+                                    if (controller)
+                                        controller.testApiConnection();
                                 }
                             }
                         }
@@ -565,8 +558,8 @@ Pane {
 
                             Label {
                                 id: apiTestResultLabel
-                                text: settings ? settings.apiTestResult : ""
-                                color: settings && settings.apiTestResult.indexOf("正常") >= 0 ? pal.LabelEx_successText : pal.LabelEx_errorText
+                                text: controller ? controller.apiTestResult : ""
+                                color: controller && controller.apiTestResult.indexOf("正常") >= 0 ? pal.LabelEx_successText : pal.LabelEx_errorText
                                 font.pixelSize: 12
                             }
                         }
@@ -575,7 +568,7 @@ Pane {
                     ColumnLayout {
                         Layout.fillWidth: true
                         spacing: 12
-                        visible: settings ? settings.translateEngine === 1 : false
+                        visible: controller ? controller.translateEngine === 1 : false
 
                         // LibreTranslate Service URL
                         RowLayout {
@@ -593,11 +586,11 @@ Pane {
 
                             TextFieldEx {
                                 Layout.fillWidth: true
-                                text: settings ? settings.libreTranslateUrl : ""
+                                text: controller ? controller.libreTranslateUrl : ""
                                 placeholderText: "http://localhost:5000"
                                 onTextChanged: {
-                                    if (settings)
-                                        settings.libreTranslateUrl = text;
+                                    if (controller)
+                                        controller.libreTranslateUrl = text;
                                 }
                                 paletteGroup: "TextFieldEx"
                             }
@@ -606,10 +599,10 @@ Pane {
                                 id: libreTestBtn
                                 text: "测试连接"
                                 paletteGroup: "VideoSubtitleSettingsPage_libreTestBtn"
-                                enabled: settings ? !settings.apiTesting : false
+                                enabled: controller ? !controller.apiTesting : false
                                 onClicked: {
-                                    if (settings)
-                                        settings.testApiConnection();
+                                    if (controller)
+                                        controller.testApiConnection();
                                 }
                             }
                         }
@@ -625,8 +618,8 @@ Pane {
 
                             Label {
                                 id: libreStatusLabel
-                                text: settings ? settings.libreTranslateStatus : ""
-                                color: settings && settings.libreTranslateStatus.indexOf("正常") >= 0 ? pal.LabelEx_successText : pal.LabelEx_errorText
+                                text: controller ? controller.libreTranslateStatus : ""
+                                color: controller && controller.libreTranslateStatus.indexOf("正常") >= 0 ? pal.LabelEx_successText : pal.LabelEx_errorText
                                 font.pixelSize: 12
                             }
                         }
@@ -890,10 +883,10 @@ Pane {
                         ComboBoxEx {
                             Layout.preferredWidth: 100
                             model: ["14px", "16px", "18px", "20px", "24px", "28px", "32px"]
-                            currentIndex: settings ? (settings.defaultFontSize - 14) / 2 : 3
+                            currentIndex: controller ? (controller.defaultFontSize - 14) / 2 : 3
                             onActivated: {
-                                if (settings)
-                                    settings.defaultFontSize = 14 + currentIndex * 2;
+                                if (controller)
+                                    controller.defaultFontSize = 14 + currentIndex * 2;
                             }
                             paletteGroup: "ComboBoxEx"
                         }
@@ -916,10 +909,10 @@ Pane {
                         ComboBoxEx {
                             Layout.preferredWidth: 72
                             model: ["0px", "1px", "2px", "3px", "4px"]
-                            currentIndex: settings ? settings.defaultBorderWidth : 2
+                            currentIndex: controller ? controller.defaultBorderWidth : 2
                             onActivated: {
-                                if (settings)
-                                    settings.defaultBorderWidth = currentIndex;
+                                if (controller)
+                                    controller.defaultBorderWidth = currentIndex;
                             }
                             paletteGroup: "ComboBoxEx"
                         }
@@ -942,22 +935,22 @@ Pane {
                         ComboBoxEx {
                             Layout.preferredWidth: 100
                             model: ["白色", "蓝色", "红色"]
-                            currentIndex: settings ? settings.subtitleStyle : 0
+                            currentIndex: controller ? controller.subtitleStyle : 0
                             onActivated: {
-                                if (!settings) return;
-                                settings.subtitleStyle = currentIndex;
+                                if (!controller) return;
+                                controller.subtitleStyle = currentIndex;
                                 if (currentIndex === 0) {
                                     // 白色样式：白字黑边
-                                    settings.defaultFontColor = pal.SurfaceEx_subtitlePresetFontColor1;
-                                    settings.defaultBorderColor = pal.SurfaceEx_subtitlePresetBorderColor1;
+                                    controller.defaultFontColor = pal.SurfaceEx_subtitlePresetFontColor1;
+                                    controller.defaultBorderColor = pal.SurfaceEx_subtitlePresetBorderColor1;
                                 } else if (currentIndex === 1) {
                                     // 蓝色样式：蓝字白边
-                                    settings.defaultFontColor = pal.SurfaceEx_subtitlePresetFontColor2;
-                                    settings.defaultBorderColor = pal.SurfaceEx_subtitlePresetBorderColor2;
+                                    controller.defaultFontColor = pal.SurfaceEx_subtitlePresetFontColor2;
+                                    controller.defaultBorderColor = pal.SurfaceEx_subtitlePresetBorderColor2;
                                 } else if (currentIndex === 2) {
                                     // 红色样式：红字白边
-                                    settings.defaultFontColor = pal.SurfaceEx_subtitlePresetFontColor3;
-                                    settings.defaultBorderColor = pal.SurfaceEx_subtitlePresetBorderColor3;
+                                    controller.defaultFontColor = pal.SurfaceEx_subtitlePresetFontColor3;
+                                    controller.defaultBorderColor = pal.SurfaceEx_subtitlePresetBorderColor3;
                                 }
                             }
                             paletteGroup: "ComboBoxEx"
@@ -983,7 +976,7 @@ Pane {
                             width: 28
                             height: 28
                             radius: 6
-                            color: settings ? settings.defaultFontColor : pal.VideoSubtitleSettingsPage_fontColorSwatch_color
+                            color: controller ? controller.defaultFontColor : pal.VideoSubtitleSettingsPage_fontColorSwatch_color
                             border.width: 2
                             border.color: pal.VideoSubtitleSettingsPage_fontColorSwatch_borderColor
 
@@ -1020,7 +1013,7 @@ Pane {
                             width: 28
                             height: 28
                             radius: 6
-                            color: settings ? settings.defaultBorderColor : pal.VideoSubtitleSettingsPage_borderColorSwatch_color
+                            color: controller ? controller.defaultBorderColor : pal.VideoSubtitleSettingsPage_borderColorSwatch_color
                             border.width: 2
                             border.color: pal.VideoSubtitleSettingsPage_borderColorSwatch_borderColor
 
@@ -1052,10 +1045,10 @@ Pane {
                             id: previewLabel
                             anchors.centerIn: parent
                             text: "这是一行字幕文字预览"
-                            color: settings ? settings.defaultFontColor : pal.VideoSubtitleSettingsPage_previewLabel_color
-                            font.pixelSize: settings ? settings.defaultFontSize : 20
+                            color: controller ? controller.defaultFontColor : pal.VideoSubtitleSettingsPage_previewLabel_color
+                            font.pixelSize: controller ? controller.defaultFontSize : 20
                             style: Text.Outline
-                            styleColor: settings ? settings.defaultBorderColor : pal.VideoSubtitleSettingsPage_previewLabel_styleColor
+                            styleColor: controller ? controller.defaultBorderColor : pal.VideoSubtitleSettingsPage_previewLabel_styleColor
                         }
                     }
 
@@ -1086,11 +1079,11 @@ Pane {
                             implicitWidth: 250
                             text: "启用硬件加速（NVENC / QSV / AMF）"
                             paletteGroup: "CheckBoxEx"
-                            checked: settings ? settings.useGpuAccel : false
-                            enabled: settings ? (settings.ffmpegPath.length > 0 && (settings.ffmpegDetecting || settings.ffmpegStatus.indexOf("已找到") >= 0 || settings.ffmpegStatus.indexOf("已检测到") >= 0)) : false
+                            checked: controller ? controller.useGpuAccel : false
+                            enabled: controller ? (controller.ffmpegPath.length > 0 && (controller.ffmpegDetecting || controller.ffmpegStatus.indexOf("已找到") >= 0 || controller.ffmpegStatus.indexOf("已检测到") >= 0)) : false
                             onCheckedChanged: {
-                                if (settings)
-                                    settings.useGpuAccel = checked;
+                                if (controller)
+                                    controller.useGpuAccel = checked;
                             }
                             ToolTip {
                                 text: "使用 GPU 编解码加速字幕烧录，大幅降低 CPU 占用，需要 FFmpeg 支持对应编码器"
@@ -1103,13 +1096,13 @@ Pane {
 
                         Label {
                             id: gpuInfoLabel
-                            text: settings ? settings.gpuAccelInfo : ""
+                            text: controller ? controller.gpuAccelInfo : ""
                             color: {
-                                if (!settings) return pal.LabelEx_infoText;
-                                if (settings.ffmpegDetecting) return pal.LabelEx_warningText;
-                                if (settings.gpuAccelInfo.indexOf("NVENC") >= 0
-                                    || settings.gpuAccelInfo.indexOf("QSV") >= 0
-                                    || settings.gpuAccelInfo.indexOf("AMF") >= 0)
+                                if (!controller) return pal.LabelEx_infoText;
+                                if (controller.ffmpegDetecting) return pal.LabelEx_warningText;
+                                if (controller.gpuAccelInfo.indexOf("NVENC") >= 0
+                                    || controller.gpuAccelInfo.indexOf("QSV") >= 0
+                                    || controller.gpuAccelInfo.indexOf("AMF") >= 0)
                                     return pal.LabelEx_successText;
                                 return pal.LabelEx_infoText;
                             }
@@ -1137,10 +1130,10 @@ Pane {
                             implicitWidth: 150
                             text: "保留 WAV 音频文件"
                             paletteGroup: "CheckBoxEx"
-                            checked: settings ? settings.keepWav : true
+                            checked: controller ? controller.keepWav : true
                             onCheckedChanged: {
-                                if (settings)
-                                    settings.keepWav = checked;
+                                if (controller)
+                                    controller.keepWav = checked;
                             }
                         }
 
@@ -1149,10 +1142,10 @@ Pane {
                             implicitWidth: 150
                             text: "保留原始 SRT 字幕"
                             paletteGroup: "CheckBoxEx"
-                            checked: settings ? settings.keepOriginalSrt : true
+                            checked: controller ? controller.keepOriginalSrt : true
                             onCheckedChanged: {
-                                if (settings)
-                                    settings.keepOriginalSrt = checked;
+                                if (controller)
+                                    controller.keepOriginalSrt = checked;
                             }
                         }
 
@@ -1161,10 +1154,10 @@ Pane {
                             implicitWidth: 150
                             text: "保留翻译后 SRT"
                             paletteGroup: "CheckBoxEx"
-                            checked: settings ? settings.keepTranslatedSrt : true
+                            checked: controller ? controller.keepTranslatedSrt : true
                             onCheckedChanged: {
-                                if (settings)
-                                    settings.keepTranslatedSrt = checked;
+                                if (controller)
+                                    controller.keepTranslatedSrt = checked;
                             }
                         }
 
@@ -1174,7 +1167,7 @@ Pane {
                             id: keepToggleBtn
                             property bool allKept: true
                             Binding on allKept {
-                                value: settings ? (settings.keepWav && settings.keepOriginalSrt && settings.keepTranslatedSrt) : true
+                                value: controller ? (controller.keepWav && controller.keepOriginalSrt && controller.keepTranslatedSrt) : true
                             }
                             text: allKept ? "全部取消" : "全部保留"
                             tooltip: allKept ? "取消勾选所有保留选项" : "勾选所有保留选项"
@@ -1183,11 +1176,11 @@ Pane {
                             borderColor: pal.VideoSubtitleSettingsPage_keepToggleBtn_borderColor
                             textColor: allKept ? pal.VideoSubtitleSettingsPage_keepToggleBtn_textColor_active : pal.VideoSubtitleSettingsPage_keepToggleBtn_textColor_normal
                             onClicked: {
-                                if (settings) {
+                                if (controller) {
                                     var newVal = !allKept;
-                                    settings.keepWav = newVal;
-                                    settings.keepOriginalSrt = newVal;
-                                    settings.keepTranslatedSrt = newVal;
+                                    controller.keepWav = newVal;
+                                    controller.keepOriginalSrt = newVal;
+                                    controller.keepTranslatedSrt = newVal;
                                 }
                             }
                         }

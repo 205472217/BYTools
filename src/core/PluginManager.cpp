@@ -140,15 +140,6 @@ QStringList PluginManager::loadPlugins(const QString &pluginPath)
     return loadedPlugins;
 }
 
-QObject* PluginManager::settingsForController(QObject *controller) const
-{
-    for (auto it = m_plugins.constBegin(); it != m_plugins.constEnd(); ++it) {
-        if (it->plugin && it->plugin->getController() == controller)
-            return it->plugin->getSettings();
-    }
-    return nullptr;
-}
-
 QStringList PluginManager::allPluginIds() const
 {
     return QStringList(m_plugins.keys());

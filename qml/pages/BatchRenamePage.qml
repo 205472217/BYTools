@@ -13,7 +13,6 @@ Pane {
     property var stackView: null
     property string pluginId: ""
     property var pal: themeManager.palette
-    property QtObject settings: pluginManager.settingsForController(controller)
 
     readonly property int tableLeftPadding: 18
     readonly property int tableRightPadding: 20
@@ -44,8 +43,8 @@ Pane {
         id: folderDialog
         title: "选择源文件夹"
         onAccepted: {
-            if (settings) {
-                settings.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
+            if (controller) {
+                controller.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
             }
         }
     }
@@ -152,17 +151,17 @@ Pane {
         }
 
         Rectangle {
-            id: settingsPanel
+            id: controllerPanel
             Layout.fillWidth: true
             Layout.fillHeight: false
-            implicitHeight: settingsColumn.implicitHeight + 36
+            implicitHeight: controllerColumn.implicitHeight + 36
             radius: 10
             color: pal.SurfaceEx_cardBg
             border.color: pal.SurfaceEx_cardBorder
             border.width: 1
 
             ColumnLayout {
-                id: settingsColumn
+                id: controllerColumn
                 anchors.fill: parent
                 anchors.margins: 18
                 spacing: 12
@@ -183,7 +182,7 @@ Pane {
                     TextFieldEx {
                         id: rootPathField
                         Layout.fillWidth: true
-                        text: settings ? settings.rootPath : ""
+                        text: controller ? controller.rootPath : ""
                         readOnly: true
                         placeholderText: "点击选择文件夹"
                         paletteGroup: "TextFieldEx"
@@ -194,10 +193,10 @@ Pane {
                         implicitWidth: 110
                         text: "递归子文件夹"
                         paletteGroup: "CheckBoxEx"
-                        checked: settings ? settings.recursive : false
+                        checked: controller ? controller.recursive : false
                         onCheckedChanged: {
-                            if (settings) {
-                                settings.recursive = checked
+                            if (controller) {
+                                controller.recursive = checked
                             }
                         }
                     }
@@ -232,10 +231,10 @@ Pane {
                             implicitWidth: 40
                             text: "所有"
                             paletteGroup: "RadioButtonEx"
-                            checked: settings ? settings.fileType === 0 : true
+                            checked: controller ? controller.fileType === 0 : true
                             onCheckedChanged: {
-                                if (checked && settings) {
-                                    settings.fileType = 0
+                                if (checked && controller) {
+                                    controller.fileType = 0
                                 }
                             }
                         }
@@ -245,10 +244,10 @@ Pane {
                             implicitWidth: 40
                             text: "视频"
                             paletteGroup: "RadioButtonEx"
-                            checked: settings ? settings.fileType === 1 : false
+                            checked: controller ? controller.fileType === 1 : false
                             onCheckedChanged: {
-                                if (checked && settings) {
-                                    settings.fileType = 1
+                                if (checked && controller) {
+                                    controller.fileType = 1
                                 }
                             }
                         }
@@ -258,10 +257,10 @@ Pane {
                             implicitWidth: 40
                             text: "音频"
                             paletteGroup: "RadioButtonEx"
-                            checked: settings ? settings.fileType === 2 : false
+                            checked: controller ? controller.fileType === 2 : false
                             onCheckedChanged: {
-                                if (checked && settings) {
-                                    settings.fileType = 2
+                                if (checked && controller) {
+                                    controller.fileType = 2
                                 }
                             }
                         }
@@ -271,10 +270,10 @@ Pane {
                             implicitWidth: 40
                             text: "文本"
                             paletteGroup: "RadioButtonEx"
-                            checked: settings ? settings.fileType === 3 : false
+                            checked: controller ? controller.fileType === 3 : false
                             onCheckedChanged: {
-                                if (checked && settings) {
-                                    settings.fileType = 3
+                                if (checked && controller) {
+                                    controller.fileType = 3
                                 }
                             }
                         }
@@ -284,10 +283,10 @@ Pane {
                             implicitWidth: 40
                             text: "图片"
                             paletteGroup: "RadioButtonEx"
-                            checked: settings ? settings.fileType === 4 : false
+                            checked: controller ? controller.fileType === 4 : false
                             onCheckedChanged: {
-                                if (checked && settings) {
-                                    settings.fileType = 4
+                                if (checked && controller) {
+                                    controller.fileType = 4
                                 }
                             }
                         }
@@ -297,10 +296,10 @@ Pane {
                             implicitWidth: 60
                             text: "自定义"
                             paletteGroup: "RadioButtonEx"
-                            checked: settings ? settings.fileType === 5 : false
+                            checked: controller ? controller.fileType === 5 : false
                             onCheckedChanged: {
-                                if (checked && settings) {
-                                    settings.fileType = 5
+                                if (checked && controller) {
+                                    controller.fileType = 5
                                 }
                             }
                         }
@@ -308,13 +307,13 @@ Pane {
                         TextFieldEx {
                             id: customExtField
                             Layout.preferredWidth: 80
-                            text: settings ? settings.customExtension : ""
+                            text: controller ? controller.customExtension : ""
                             placeholderText: ".txt"
-                            enabled: settings ? settings.fileType === 5 : false
+                            enabled: controller ? controller.fileType === 5 : false
                             paletteGroup: "TextFieldEx"
                             onTextChanged: {
-                                if (settings) {
-                                    settings.customExtension = text
+                                if (controller) {
+                                    controller.customExtension = text
                                 }
                             }
                         }
@@ -324,7 +323,7 @@ Pane {
                             text: ""
                             color: pal.LabelEx_infoText
                             font.pixelSize: 12
-                            visible: settings ? settings.fileType !== 5 : false
+                            visible: controller ? controller.fileType !== 5 : false
                         }
                     }
                 }
@@ -347,10 +346,10 @@ Pane {
                         implicitWidth: 80
                         text: "替换文本"
                         paletteGroup: "RadioButtonEx"
-                        checked: settings ? settings.renameMode === 1 : false
+                        checked: controller ? controller.renameMode === 1 : false
                         onCheckedChanged: {
-                            if (checked && settings) {
-                                settings.renameMode = 1
+                            if (checked && controller) {
+                                controller.renameMode = 1
                             }
                         }
                     }
@@ -358,13 +357,13 @@ Pane {
                     TextFieldEx {
                         id: searchTextField
                         Layout.fillWidth: true
-                        text: settings ? settings.searchText : ""
+                        text: controller ? controller.searchText : ""
                         placeholderText: "查找"
                         enabled: replaceRadio.checked
                         paletteGroup: "TextFieldEx"
                         onTextChanged: {
-                            if (settings) {
-                                settings.searchText = text
+                            if (controller) {
+                                controller.searchText = text
                             }
                         }
                     }
@@ -378,13 +377,13 @@ Pane {
                     TextFieldEx {
                         id: replaceTextField
                         Layout.fillWidth: true
-                        text: settings ? settings.replaceText : ""
+                        text: controller ? controller.replaceText : ""
                         placeholderText: "替换"
                         enabled: replaceRadio.checked
                         paletteGroup: "TextFieldEx"
                         onTextChanged: {
-                            if (settings) {
-                                settings.replaceText = text
+                            if (controller) {
+                                controller.replaceText = text
                             }
                         }
                     }
@@ -408,10 +407,10 @@ Pane {
                         implicitWidth: 80
                         text: "指定名称"
                         paletteGroup: "RadioButtonEx"
-                        checked: settings ? settings.renameMode === 0 : true
+                        checked: controller ? controller.renameMode === 0 : true
                         onCheckedChanged: {
-                            if (checked && settings) {
-                                settings.renameMode = 0
+                            if (checked && controller) {
+                                controller.renameMode = 0
                             }
                         }
                     }
@@ -419,13 +418,13 @@ Pane {
                     TextFieldEx {
                         id: baseNameField
                         Layout.fillWidth: true
-                        text: settings ? settings.baseName : ""
+                        text: controller ? controller.baseName : ""
                         placeholderText: "输入文件名"
                         enabled: specifyRadio.checked
                         paletteGroup: "TextFieldEx"
                         onTextChanged: {
-                            if (settings) {
-                                settings.baseName = text
+                            if (controller) {
+                                controller.baseName = text
                             }
                         }
                     }

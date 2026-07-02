@@ -20,6 +20,63 @@ BatchRenameController::BatchRenameController(PluginLogger *logger, BatchRenameSe
     });
 }
 
+QString BatchRenameController::rootPath() const { return m_settings->rootPath(); }
+void BatchRenameController::setRootPath(const QString &path) {
+    if (m_settings->rootPath() != path) {
+        m_settings->setRootPath(path);
+        emit rootPathChanged();
+    }
+}
+int BatchRenameController::fileType() const { return m_settings->fileType(); }
+void BatchRenameController::setFileType(int fileType) {
+    if (m_settings->fileType() != fileType) {
+        m_settings->setFileType(fileType);
+        emit fileTypeChanged();
+    }
+}
+QString BatchRenameController::customExtension() const { return m_settings->customExtension(); }
+void BatchRenameController::setCustomExtension(const QString &ext) {
+    if (m_settings->customExtension() != ext) {
+        m_settings->setCustomExtension(ext);
+        emit customExtensionChanged();
+    }
+}
+int BatchRenameController::renameMode() const { return m_settings->renameMode(); }
+void BatchRenameController::setRenameMode(int mode) {
+    if (m_settings->renameMode() != mode) {
+        m_settings->setRenameMode(mode);
+        emit renameModeChanged();
+    }
+}
+QString BatchRenameController::baseName() const { return m_settings->baseName(); }
+void BatchRenameController::setBaseName(const QString &name) {
+    if (m_settings->baseName() != name) {
+        m_settings->setBaseName(name);
+        emit baseNameChanged();
+    }
+}
+QString BatchRenameController::searchText() const { return m_settings->searchText(); }
+void BatchRenameController::setSearchText(const QString &text) {
+    if (m_settings->searchText() != text) {
+        m_settings->setSearchText(text);
+        emit searchTextChanged();
+    }
+}
+QString BatchRenameController::replaceText() const { return m_settings->replaceText(); }
+void BatchRenameController::setReplaceText(const QString &text) {
+    if (m_settings->replaceText() != text) {
+        m_settings->setReplaceText(text);
+        emit replaceTextChanged();
+    }
+}
+bool BatchRenameController::recursive() const { return m_settings->recursive(); }
+void BatchRenameController::setRecursive(bool recursive) {
+    if (m_settings->recursive() != recursive) {
+        m_settings->setRecursive(recursive);
+        emit recursiveChanged();
+    }
+}
+
 BatchRenameController::~BatchRenameController()
 {
     cancel();

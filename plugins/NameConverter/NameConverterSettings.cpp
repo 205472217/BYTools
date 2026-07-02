@@ -17,7 +17,6 @@ void NameConverterSettings::setRootPath(const QString &path)
 {
     if (m_rootPath != path) {
         m_rootPath = path;
-        emit rootPathChanged();
         saveSettings();
     }
 }
@@ -25,7 +24,6 @@ void NameConverterSettings::setTargetType(int type)
 {
     if (m_targetType != type) {
         m_targetType = type;
-        emit targetTypeChanged();
         saveSettings();
     }
 }
@@ -33,7 +31,6 @@ void NameConverterSettings::setRecursive(bool recursive)
 {
     if (m_recursive != recursive) {
         m_recursive = recursive;
-        emit recursiveChanged();
         saveSettings();
     }
 }

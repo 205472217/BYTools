@@ -22,7 +22,6 @@ void BatchRenameSettings::setRootPath(const QString &path)
 {
     if (m_rootPath != path) {
         m_rootPath = path;
-        emit rootPathChanged();
         saveSettings();
     }
 }
@@ -30,49 +29,42 @@ void BatchRenameSettings::setFileType(int fileType)
 {
     if (m_fileType != fileType) {
         m_fileType = fileType;
-        emit fileTypeChanged();
     }
 }
 void BatchRenameSettings::setCustomExtension(const QString &ext)
 {
     if (m_customExtension != ext) {
         m_customExtension = ext;
-        emit customExtensionChanged();
     }
 }
 void BatchRenameSettings::setRenameMode(int mode)
 {
     if (m_renameMode != mode) {
         m_renameMode = mode;
-        emit renameModeChanged();
     }
 }
 void BatchRenameSettings::setBaseName(const QString &name)
 {
     if (m_baseName != name) {
         m_baseName = name;
-        emit baseNameChanged();
     }
 }
 void BatchRenameSettings::setSearchText(const QString &text)
 {
     if (m_searchText != text) {
         m_searchText = text;
-        emit searchTextChanged();
     }
 }
 void BatchRenameSettings::setReplaceText(const QString &text)
 {
     if (m_replaceText != text) {
         m_replaceText = text;
-        emit replaceTextChanged();
     }
 }
 void BatchRenameSettings::setRecursive(bool recursive)
 {
     if (m_recursive != recursive) {
         m_recursive = recursive;
-        emit recursiveChanged();
         saveSettings();
     }
 }

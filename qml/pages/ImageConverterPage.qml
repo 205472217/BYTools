@@ -13,7 +13,6 @@ Pane {
     property var controller: null
     property var stackView: null
     property string pluginId: ""
-    property QtObject settings: pluginManager.settingsForController(controller)
 
     readonly property int tableLeftPadding: 18
     readonly property int tableRightPadding: 20
@@ -43,7 +42,7 @@ Pane {
             || Math.abs(r - 2.0) < 0.001 || Math.abs(r - 4.0) < 0.001
     }
 
-    readonly property bool isSingleMode: settings ? settings.mode === 0 : false
+    readonly property bool isSingleMode: controller ? controller.mode === 0 : false
 
     padding: 0
     background: Rectangle {
@@ -55,8 +54,8 @@ Pane {
         id: sourceFolderDialog
         title: "选择源文件夹"
         onAccepted: {
-            if (settings) {
-                settings.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
+            if (controller) {
+                controller.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
             }
         }
     }
@@ -65,8 +64,8 @@ Pane {
         id: outputFolderDialog
         title: "选择输出目录"
         onAccepted: {
-            if (settings) {
-                settings.outputDir = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
+            if (controller) {
+                controller.outputDir = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
             }
         }
     }
@@ -84,10 +83,10 @@ Pane {
 
     ColorDialog {
         id: colorDialog
-        selectedColor: settings ? settings.bgColor : pal.ImageConverterPage_colorDialog_defaultColor
+        selectedColor: controller ? controller.bgColor : pal.ImageConverterPage_colorDialog_defaultColor
         onAccepted: {
-            if (settings) {
-                settings.bgColor = selectedColor.toString()
+            if (controller) {
+                controller.bgColor = selectedColor.toString()
             }
         }
     }
@@ -221,8 +220,8 @@ Pane {
                         checked: root.isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
-                            if (checked && settings && settings.mode !== 0)
-                                settings.mode = 0
+                            if (checked && controller && controller.mode !== 0)
+                                controller.mode = 0
                         }
                     }
 
@@ -234,8 +233,8 @@ Pane {
                         checked: !root.isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
-                            if (checked && settings && settings.mode !== 1)
-                                settings.mode = 1
+                            if (checked && controller && controller.mode !== 1)
+                                controller.mode = 1
                         }
                     }
 
@@ -260,7 +259,7 @@ Pane {
                         Layout.fillWidth: true
                         text: root.isSingleMode
                             ? (controller ? controller.sourceFile : "")
-                            : (controller ? settings.rootPath : "")
+                            : (controller ? controller.rootPath : "")
                         readOnly: true
                         placeholderText: root.isSingleMode ? "点击选择文件" : "点击选择文件夹"
                         paletteGroup: "TextFieldEx"
@@ -272,10 +271,10 @@ Pane {
                         implicitWidth: 110
                         text: "递归子文件夹"
                         paletteGroup: "CheckBoxEx"
-                        checked: controller ? settings.recursive : false
+                        checked: controller ? controller.recursive : false
                         onCheckedChanged: {
                             if (controller) {
-                                settings.recursive = checked
+                                controller.recursive = checked
                             }
                         }
                     }
@@ -303,10 +302,10 @@ Pane {
                         Layout.preferredWidth: 80
                         text: "格式转换"
                         paletteGroup: "CheckBoxEx"
-                        checked: controller ? settings.convertEnabled : true
+                        checked: controller ? controller.convertEnabled : true
                         onCheckedChanged: {
                             if (controller) {
-                                settings.convertEnabled = checked
+                                controller.convertEnabled = checked
                             }
                         }
                     }
@@ -314,11 +313,11 @@ Pane {
                     ComboBoxEx {
                         Layout.preferredWidth: 150
                         model: ["PNG", "JPG", "BMP", "WebP", "TIFF"]
-                        currentIndex: controller ? settings.targetFormat : 1
-                        enabled: controller ? settings.convertEnabled : false
+                        currentIndex: controller ? controller.targetFormat : 1
+                        enabled: controller ? controller.convertEnabled : false
                         onActivated: {
                             if (controller) {
-                                settings.targetFormat = currentIndex
+                                controller.targetFormat = currentIndex
                             }
                         }
                         paletteGroup: "ComboBoxEx"
@@ -337,7 +336,7 @@ Pane {
                         color: pal.LabelEx_labelText
                         font.pixelSize: 13
                         font.bold: true
-                        enabled: controller ? settings.convertEnabled : false
+                        enabled: controller ? controller.convertEnabled : false
                     }
 
                     Slider {
@@ -347,26 +346,26 @@ Pane {
                         from: 1
                         to: 100
                         stepSize: 1
-                        enabled: controller ? settings.convertEnabled : false
+                        enabled: controller ? controller.convertEnabled : false
                         Component.onCompleted: {
-                            if (controller) value = settings.quality
+                            if (controller) value = controller.quality
                         }
                         onValueChanged: {
                             if (pressed && controller) {
-                                settings.quality = Math.round(value)
+                                controller.quality = Math.round(value)
                             }
                         }
                     }
 
                     Label {
                         id: qualityValLbl
-                        text: (controller ? settings.quality : 85)
+                        text: (controller ? controller.quality : 85)
                         color: pal.LabelEx_valueText
                         font.pixelSize: 13
                         font.bold: true
                         Layout.preferredWidth: 28
                         horizontalAlignment: Text.AlignRight
-                        enabled: controller ? settings.convertEnabled : false
+                        enabled: controller ? controller.convertEnabled : false
                     }
 
                     Rectangle {
@@ -382,8 +381,8 @@ Pane {
                         text: "PNG转JPG填充背景色"
                         color: pal.LabelEx_labelText
                         font.pixelSize: 13
-                        opacity: controller && settings.targetFormat === 1 ? 1 : 0
-                        enabled: controller && settings.targetFormat === 1
+                        opacity: controller && controller.targetFormat === 1 ? 1 : 0
+                        enabled: controller && controller.targetFormat === 1
                     }
 
                     Rectangle {
@@ -392,15 +391,15 @@ Pane {
                         height: 28
                         radius: 6
                         color: pal.ImageConverterPage_whiteSwatch_color
-                        opacity: controller && settings.targetFormat === 1 ? 1 : 0
-                        enabled: controller && settings.targetFormat === 1
-                        border.width: controller && settings.bgColor === pal.ImageConverterPage_whiteSwatch_color ? 2 : 1
-                        border.color: controller && settings.bgColor === pal.ImageConverterPage_whiteSwatch_color ? pal.ImageConverterPage_whiteSwatch_borderColor_active : pal.ImageConverterPage_whiteSwatch_borderColor_normal
+                        opacity: controller && controller.targetFormat === 1 ? 1 : 0
+                        enabled: controller && controller.targetFormat === 1
+                        border.width: controller && controller.bgColor === pal.ImageConverterPage_whiteSwatch_color ? 2 : 1
+                        border.color: controller && controller.bgColor === pal.ImageConverterPage_whiteSwatch_color ? pal.ImageConverterPage_whiteSwatch_borderColor_active : pal.ImageConverterPage_whiteSwatch_borderColor_normal
 
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: { if (controller) settings.bgColor = pal.ImageConverterPage_whiteSwatch_color }
+                            onClicked: { if (controller) controller.bgColor = pal.ImageConverterPage_whiteSwatch_color }
                         }
                     }
 
@@ -410,15 +409,15 @@ Pane {
                         height: 28
                         radius: 6
                         color: pal.ImageConverterPage_blackSwatch_color
-                        opacity: controller && settings.targetFormat === 1 ? 1 : 0
-                        enabled: controller && settings.targetFormat === 1
-                        border.width: controller && settings.bgColor === pal.ImageConverterPage_blackSwatch_color ? 2 : 1
-                        border.color: controller && settings.bgColor === pal.ImageConverterPage_blackSwatch_color ? pal.ImageConverterPage_blackSwatch_borderColor_active : pal.ImageConverterPage_blackSwatch_borderColor_normal
+                        opacity: controller && controller.targetFormat === 1 ? 1 : 0
+                        enabled: controller && controller.targetFormat === 1
+                        border.width: controller && controller.bgColor === pal.ImageConverterPage_blackSwatch_color ? 2 : 1
+                        border.color: controller && controller.bgColor === pal.ImageConverterPage_blackSwatch_color ? pal.ImageConverterPage_blackSwatch_borderColor_active : pal.ImageConverterPage_blackSwatch_borderColor_normal
 
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: { if (controller) settings.bgColor = pal.ImageConverterPage_blackSwatch_color }
+                            onClicked: { if (controller) controller.bgColor = pal.ImageConverterPage_blackSwatch_color }
                         }
                     }
 
@@ -427,17 +426,17 @@ Pane {
                         width: 42
                         height: 28
                         radius: 6
-                        color: (controller && settings.bgColor !== pal.ImageConverterPage_whiteSwatch_color && settings.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? settings.bgColor : pal.ImageConverterPage_customSwatch_color
-                        opacity: controller && settings.targetFormat === 1 ? 1 : 0
-                        enabled: controller && settings.targetFormat === 1
-                        border.width: (controller && settings.bgColor !== pal.ImageConverterPage_whiteSwatch_color && settings.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? 2 : 1
-                        border.color: (controller && settings.bgColor !== pal.ImageConverterPage_whiteSwatch_color && settings.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? pal.ImageConverterPage_customSwatch_borderColor_active : pal.ImageConverterPage_customSwatch_borderColor_normal
+                        color: (controller && controller.bgColor !== pal.ImageConverterPage_whiteSwatch_color && controller.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? controller.bgColor : pal.ImageConverterPage_customSwatch_color
+                        opacity: controller && controller.targetFormat === 1 ? 1 : 0
+                        enabled: controller && controller.targetFormat === 1
+                        border.width: (controller && controller.bgColor !== pal.ImageConverterPage_whiteSwatch_color && controller.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? 2 : 1
+                        border.color: (controller && controller.bgColor !== pal.ImageConverterPage_whiteSwatch_color && controller.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? pal.ImageConverterPage_customSwatch_borderColor_active : pal.ImageConverterPage_customSwatch_borderColor_normal
 
                         Label {
                             id: customSwatchLabel
                             anchors.centerIn: parent
                             text: "自定义"
-                            color: (controller && settings.bgColor !== pal.ImageConverterPage_whiteSwatch_color && settings.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? pal.ImageConverterPage_customSwatch_textColor_active : pal.ImageConverterPage_customSwatch_textColor_normal
+                            color: (controller && controller.bgColor !== pal.ImageConverterPage_whiteSwatch_color && controller.bgColor !== pal.ImageConverterPage_blackSwatch_color) ? pal.ImageConverterPage_customSwatch_textColor_active : pal.ImageConverterPage_customSwatch_textColor_normal
                             font.pixelSize: 9
                         }
 
@@ -459,10 +458,10 @@ Pane {
                         Layout.preferredWidth: 80
                         text: "宽高缩放"
                         paletteGroup: "CheckBoxEx"
-                        checked: controller ? settings.resizeEnabled : false
+                        checked: controller ? controller.resizeEnabled : false
                         onCheckedChanged: {
                             if (controller) {
-                                settings.resizeEnabled = checked
+                                controller.resizeEnabled = checked
                             }
                         }
                     }
@@ -473,11 +472,11 @@ Pane {
                         implicitWidth: 100
                         text: "按比例缩放"
                         paletteGroup: "RadioButtonEx"
-                        enabled: controller ? settings.resizeEnabled : false
-                        checked: controller ? settings.resizeMode === 0 : true
+                        enabled: controller ? controller.resizeEnabled : false
+                        checked: controller ? controller.resizeMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller) {
-                                settings.resizeMode = 0
+                                controller.resizeMode = 0
                             }
                         }
                     }
@@ -488,11 +487,11 @@ Pane {
                         width: 36
                         height: 26
                         radius: 6
-                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 0) : false
+                        enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 0) : false
                         color: pal.SurfaceEx_cardBg
-                        readonly property bool _active: controller && settings.resizeMode === 0
+                        readonly property bool _active: controller && controller.resizeMode === 0
                             && !customRatioEditing
-                            && Math.abs(settings.resizeRatio - 0.5) < 0.001
+                            && Math.abs(controller.resizeRatio - 0.5) < 0.001
                         border.width: _active ? 2 : 1
                         border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
@@ -510,8 +509,8 @@ Pane {
                             enabled: parent.enabled
                             onClicked: {
                                 if (controller) {
-                                    settings.resizeMode = 0
-                                    settings.resizeRatio = 0.5
+                                    controller.resizeMode = 0
+                                    controller.resizeRatio = 0.5
                                 }
                             }
                         }
@@ -523,11 +522,11 @@ Pane {
                         width: 36
                         height: 26
                         radius: 6
-                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 0) : false
+                        enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 0) : false
                         color: pal.SurfaceEx_cardBg
-                        readonly property bool _active: controller && settings.resizeMode === 0
+                        readonly property bool _active: controller && controller.resizeMode === 0
                             && !customRatioEditing
-                            && Math.abs(settings.resizeRatio - 1.5) < 0.001
+                            && Math.abs(controller.resizeRatio - 1.5) < 0.001
                         border.width: _active ? 2 : 1
                         border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
@@ -545,8 +544,8 @@ Pane {
                             enabled: parent.enabled
                             onClicked: {
                                 if (controller) {
-                                    settings.resizeMode = 0
-                                    settings.resizeRatio = 1.5
+                                    controller.resizeMode = 0
+                                    controller.resizeRatio = 1.5
                                 }
                             }
                         }
@@ -558,11 +557,11 @@ Pane {
                         width: 36
                         height: 26
                         radius: 6
-                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 0) : false
+                        enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 0) : false
                         color: pal.SurfaceEx_cardBg
-                        readonly property bool _active: controller && settings.resizeMode === 0
+                        readonly property bool _active: controller && controller.resizeMode === 0
                             && !customRatioEditing
-                            && Math.abs(settings.resizeRatio - 2.0) < 0.001
+                            && Math.abs(controller.resizeRatio - 2.0) < 0.001
                         border.width: _active ? 2 : 1
                         border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
@@ -580,8 +579,8 @@ Pane {
                             enabled: parent.enabled
                             onClicked: {
                                 if (controller) {
-                                    settings.resizeMode = 0
-                                    settings.resizeRatio = 2.0
+                                    controller.resizeMode = 0
+                                    controller.resizeRatio = 2.0
                                 }
                             }
                         }
@@ -593,11 +592,11 @@ Pane {
                         width: 36
                         height: 26
                         radius: 6
-                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 0) : false
+                        enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 0) : false
                         color: pal.SurfaceEx_cardBg
-                        readonly property bool _active: controller && settings.resizeMode === 0
+                        readonly property bool _active: controller && controller.resizeMode === 0
                             && !customRatioEditing
-                            && Math.abs(settings.resizeRatio - 4.0) < 0.001
+                            && Math.abs(controller.resizeRatio - 4.0) < 0.001
                         border.width: _active ? 2 : 1
                         border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
@@ -615,8 +614,8 @@ Pane {
                             enabled: parent.enabled
                             onClicked: {
                                 if (controller) {
-                                    settings.resizeMode = 0
-                                    settings.resizeRatio = 4.0
+                                    controller.resizeMode = 0
+                                    controller.resizeRatio = 4.0
                                 }
                             }
                         }
@@ -625,43 +624,43 @@ Pane {
                     TextFieldEx {
                         id: customRatioEdit
                         Layout.preferredWidth: 80
-                        placeholderText: controller ? settings.resizeRatio.toString() : ""
+                        placeholderText: controller ? controller.resizeRatio.toString() : ""
                         paletteGroup: "TextFieldEx"
-                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 0) : false
+                        enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 0) : false
                         editType: 2
                         minNumber: 0.1
                         maxNumber: 10
-                        highlightOnValid: controller && settings.resizeMode === 0
-                            && Math.abs(settings.resizeRatio - 0.5) > 0.001
-                            && Math.abs(settings.resizeRatio - 1.5) > 0.001
-                            && Math.abs(settings.resizeRatio - 2.0) > 0.001
-                            && Math.abs(settings.resizeRatio - 4.0) > 0.001
+                        highlightOnValid: controller && controller.resizeMode === 0
+                            && Math.abs(controller.resizeRatio - 0.5) > 0.001
+                            && Math.abs(controller.resizeRatio - 1.5) > 0.001
+                            && Math.abs(controller.resizeRatio - 2.0) > 0.001
+                            && Math.abs(controller.resizeRatio - 4.0) > 0.001
                         onEditingFinished: {
                             var t = text.trim()
                             if (t === "") {
-                                text = settings.resizeRatio.toString()
+                                text = controller.resizeRatio.toString()
                                 return
                             }
                             var val = parseFloat(t)
                             if (!isNaN(val)) {
                                 val = Math.max(0.1, Math.min(10, val))
                                 if (val !== parseFloat(t)) text = val.toString()
-                                settings.resizeMode = 0
-                                settings.resizeRatio = val
+                                controller.resizeMode = 0
+                                controller.resizeRatio = val
                             }
                         }
                         onActiveFocusChanged: {
                             customRatioEditing = activeFocus
                             if (activeFocus && controller) {
-                                settings.resizeMode = 0
+                                controller.resizeMode = 0
                             }
                         }
                     }
 
                     Connections {
-                        target: controller ? settings : null
+                        target: controller ? controller : null
                         function onResizeRatioChanged() {
-                            customRatioEdit.text = settings.resizeRatio.toString()
+                            customRatioEdit.text = controller.resizeRatio.toString()
                         }
                     }
 
@@ -671,7 +670,7 @@ Pane {
                         width: 1
                         height: 24
                         color: pal.SurfaceEx_divider
-                        enabled: controller ? settings.resizeEnabled : false
+                        enabled: controller ? controller.resizeEnabled : false
                     }
 
                     // 指定宽高缩放
@@ -680,11 +679,11 @@ Pane {
                         implicitWidth: 120
                         text: "指定宽高缩放"
                         paletteGroup: "RadioButtonEx"
-                        enabled: controller ? settings.resizeEnabled : false
-                        checked: controller ? settings.resizeMode === 1 : true
+                        enabled: controller ? controller.resizeEnabled : false
+                        checked: controller ? controller.resizeMode === 1 : true
                         onCheckedChanged: {
                             if (checked && controller) {
-                                settings.resizeMode = 1
+                                controller.resizeMode = 1
                             }
                         }
                     }
@@ -697,17 +696,17 @@ Pane {
                         editType: 1
                         minNumber: 1
                         maxNumber: 9999
-                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 1) : false
-                        text: controller ? settings.resizeWidth.toString() : ""
+                        enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 1) : false
+                        text: controller ? controller.resizeWidth.toString() : ""
                         onEditingFinished: {
                             var val = parseInt(text)
                             if (!isNaN(val) && controller) {
-                                settings.resizeWidth = val
+                                controller.resizeWidth = val
                             }
                         }
                         onActiveFocusChanged: {
-                            if (activeFocus && controller && settings.resizeMode !== 1) {
-                                settings.resizeMode = 1
+                            if (activeFocus && controller && controller.resizeMode !== 1) {
+                                controller.resizeMode = 1
                             }
                         }
                     }
@@ -718,7 +717,7 @@ Pane {
                         color: pal.LabelEx_labelText
                         font.pixelSize: 15
                         font.bold: true
-                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 1) : false
+                        enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 1) : false
                     }
 
                     TextFieldEx {
@@ -729,17 +728,17 @@ Pane {
                         editType: 1
                         minNumber: 1
                         maxNumber: 9999
-                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 1) : false
-                        text: controller ? settings.resizeHeight.toString() : ""
+                        enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 1) : false
+                        text: controller ? controller.resizeHeight.toString() : ""
                         onEditingFinished: {
                             var val = parseInt(text)
                             if (!isNaN(val) && controller) {
-                                settings.resizeHeight = val
+                                controller.resizeHeight = val
                             }
                         }
                         onActiveFocusChanged: {
-                            if (activeFocus && controller && settings.resizeMode !== 1) {
-                                settings.resizeMode = 1
+                            if (activeFocus && controller && controller.resizeMode !== 1) {
+                                controller.resizeMode = 1
                             }
                         }
                     }
@@ -749,7 +748,7 @@ Pane {
                         text: "像素"
                         color: pal.LabelEx_infoText
                         font.pixelSize: 12
-                        enabled: controller ? (settings.resizeEnabled && settings.resizeMode === 1) : false
+                        enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 1) : false
                     }
 
                     Item { Layout.fillWidth: true }
@@ -774,10 +773,10 @@ Pane {
                         implicitWidth: 120
                         text: "替换原文件"
                         paletteGroup: "RadioButtonEx"
-                        checked: controller ? settings.outputMode === 0 : true
+                        checked: controller ? controller.outputMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller) {
-                                settings.outputMode = 0
+                                controller.outputMode = 0
                             }
                         }
                     }
@@ -787,23 +786,23 @@ Pane {
                         implicitWidth: 120
                         text: "输出到新目录"
                         paletteGroup: "RadioButtonEx"
-                        checked: controller ? settings.outputMode === 1 : false
+                        checked: controller ? controller.outputMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller) {
-                                settings.outputMode = 1
+                                controller.outputMode = 1
                             }
                         }
                     }
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? settings.outputDir : ""
-                        placeholderText: controller ? (settings.rootPath ? settings.rootPath + "_converted" : "自动在源目录后添加 _converted") : ""
+                        text: controller ? controller.outputDir : ""
+                        placeholderText: controller ? (controller.rootPath ? controller.rootPath + "_converted" : "自动在源目录后添加 _converted") : ""
                         readOnly: true
                         enabled: newDirRadio.checked
                         onTextChanged: {
                             if (controller) {
-                                settings.outputDir = text
+                                controller.outputDir = text
                             }
                         }
                         paletteGroup: "TextFieldEx"

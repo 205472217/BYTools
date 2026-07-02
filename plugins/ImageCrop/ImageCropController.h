@@ -27,6 +27,19 @@ class ImageCropController : public QObject
     Q_PROPERTY(int imageVersion READ imageVersion NOTIFY imageVersionChanged)
     Q_PROPERTY(bool canRestoreCurrent READ canRestoreCurrent NOTIFY canRestoreCurrentChanged)
 
+    // === Config properties (delegated to ImageCropSettings) ===
+    Q_PROPERTY(QString rootPath READ rootPath WRITE setRootPath NOTIFY rootPathChanged)
+    Q_PROPERTY(bool recursive READ recursive WRITE setRecursive NOTIFY recursiveChanged)
+    Q_PROPERTY(int cropMode READ cropMode WRITE setCropMode NOTIFY cropModeChanged)
+    Q_PROPERTY(int presetRatioIndex READ presetRatioIndex WRITE setPresetRatioIndex NOTIFY presetRatioIndexChanged)
+    Q_PROPERTY(bool usePresetRatio READ usePresetRatio WRITE setUsePresetRatio NOTIFY usePresetRatioChanged)
+    Q_PROPERTY(int customRatioW READ customRatioW WRITE setCustomRatioW NOTIFY customRatioWChanged)
+    Q_PROPERTY(int customRatioH READ customRatioH WRITE setCustomRatioH NOTIFY customRatioHChanged)
+    Q_PROPERTY(int targetWidth READ targetWidth WRITE setTargetWidth NOTIFY targetWidthChanged)
+    Q_PROPERTY(int targetHeight READ targetHeight WRITE setTargetHeight NOTIFY targetHeightChanged)
+    Q_PROPERTY(int outputMode READ outputMode WRITE setOutputMode NOTIFY outputModeChanged)
+    Q_PROPERTY(QString outputDir READ outputDir WRITE setOutputDir NOTIFY outputDirChanged)
+
 public:
     explicit ImageCropController(PluginLogger *logger, ImageCropSettings *settings, QObject *parent = nullptr);
     ~ImageCropController();
@@ -67,6 +80,32 @@ public:
     Q_INVOKABLE void reset();
     Q_INVOKABLE void resetCropRect();
 
+    // === Config property getters (delegated to ImageCropSettings) ===
+    QString rootPath() const;
+    bool recursive() const;
+    int cropMode() const;
+    int presetRatioIndex() const;
+    bool usePresetRatio() const;
+    int customRatioW() const;
+    int customRatioH() const;
+    int targetWidth() const;
+    int targetHeight() const;
+    int outputMode() const;
+    QString outputDir() const;
+
+    // === Config property setters (delegated to ImageCropSettings) ===
+    void setRootPath(const QString &path);
+    void setRecursive(bool recursive);
+    void setCropMode(int mode);
+    void setPresetRatioIndex(int index);
+    void setUsePresetRatio(bool use);
+    void setCustomRatioW(int w);
+    void setCustomRatioH(int h);
+    void setTargetWidth(int w);
+    void setTargetHeight(int h);
+    void setOutputMode(int mode);
+    void setOutputDir(const QString &dir);
+
     // Crop calculation helpers (moved from QML business logic)
     Q_INVOKABLE double calcEffectiveRatio() const;
     Q_INVOKABLE QVariantMap constrainToRatio(double rawW, double rawH) const;
@@ -92,6 +131,19 @@ signals:
     void imageVersionChanged();
     void canRestoreCurrentChanged();
     void logMessage(const QString &message);
+
+    // === Config property signals (delegated to ImageCropSettings) ===
+    void rootPathChanged();
+    void recursiveChanged();
+    void cropModeChanged();
+    void presetRatioIndexChanged();
+    void usePresetRatioChanged();
+    void customRatioWChanged();
+    void customRatioHChanged();
+    void targetWidthChanged();
+    void targetHeightChanged();
+    void outputModeChanged();
+    void outputDirChanged();
 
 private:
     struct CropRecord {

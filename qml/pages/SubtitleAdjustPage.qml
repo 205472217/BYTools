@@ -12,10 +12,9 @@ Pane {
     property var controller: null
     property var stackView: null
     property string pluginId: ""
-    property QtObject settings: pluginManager.settingsForController(controller)
 
     property bool hasVideo: controller && controller.currentVideoPath.length > 0
-    property bool isSingleMode: controller ? settings.mode === 0 : true
+    property bool isSingleMode: controller ? controller.mode === 0 : true
 
     // ── mpv 检测（启动时已解压，此处仅检查文件是否存在） ──
     property bool _mpvAvailable: {
@@ -83,11 +82,11 @@ Pane {
     focus: true
     Keys.onLeftPressed: {
         var p = videoDisplayLoader.item
-        if (p) p.position = Math.max(0, p.position - settings.seekStepMs)
+        if (p) p.position = Math.max(0, p.position - controller.seekStepMs)
     }
     Keys.onRightPressed: {
         var p = videoDisplayLoader.item
-        if (p) p.position = Math.min(p.duration, p.position + settings.seekStepMs)
+        if (p) p.position = Math.min(p.duration, p.position + controller.seekStepMs)
     }
 
     padding: 0
@@ -119,7 +118,7 @@ Pane {
         id: videoFolderDialog
         title: "选择视频文件夹"
         onAccepted: {
-            if (controller) settings.videoFolder = selectedFileUrl(selectedFolder)
+            if (controller) controller.videoFolder = selectedFileUrl(selectedFolder)
         }
     }
 
@@ -127,7 +126,7 @@ Pane {
         id: subtitleFolderDialog
         title: "选择字幕文件夹"
         onAccepted: {
-            if (controller) settings.subtitleFolder = selectedFileUrl(selectedFolder)
+            if (controller) controller.subtitleFolder = selectedFileUrl(selectedFolder)
         }
     }
 
@@ -292,16 +291,16 @@ Pane {
     Connections {
         target: videoDisplayLoader.item
         function onVolumeChanged() {
-            if (settings && videoDisplayLoader.item)
-                settings.volume = videoDisplayLoader.item.volume
+            if (controller && videoDisplayLoader.item)
+                controller.volume = videoDisplayLoader.item.volume
         }
         function onMutedChanged() {
-            if (settings && videoDisplayLoader.item)
-                settings.muted = videoDisplayLoader.item.muted
+            if (controller && videoDisplayLoader.item)
+                controller.muted = videoDisplayLoader.item.muted
         }
         function onSeekStepMsChanged() {
-            if (settings && videoDisplayLoader.item)
-                settings.seekStepMs = videoDisplayLoader.item.seekStepMs
+            if (controller && videoDisplayLoader.item)
+                controller.seekStepMs = videoDisplayLoader.item.seekStepMs
         }
     }
 
@@ -393,8 +392,8 @@ Pane {
                         checked: isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
-                            if (checked && controller && settings.mode !== 0)
-                                settings.mode = 0
+                            if (checked && controller && controller.mode !== 0)
+                                controller.mode = 0
                         }
                     }
 
@@ -406,8 +405,8 @@ Pane {
                         checked: !isSingleMode
                         font.pixelSize: 13
                         onCheckedChanged: {
-                            if (checked && controller && settings.mode !== 1)
-                                settings.mode = 1
+                            if (checked && controller && controller.mode !== 1)
+                                controller.mode = 1
                         }
                     }
 
@@ -433,7 +432,7 @@ Pane {
                         font.pixelSize: 11
                         text: isSingleMode
                             ? (controller ? controller.videoPath : "")
-                            : (controller ? settings.videoFolder : "")
+                            : (controller ? controller.videoFolder : "")
                         readOnly: true
                         placeholderText: isSingleMode ? "选择视频文件" : "选择视频文件夹"
                         clip: true
@@ -447,9 +446,9 @@ Pane {
                         paletteGroup: "CheckBoxEx"
                         font.pixelSize: 12
                         visible: !isSingleMode
-                        checked: controller ? settings.recursiveVideo : false
+                        checked: controller ? controller.recursiveVideo : false
                         onCheckedChanged: {
-                            if (controller) settings.recursiveVideo = checked
+                            if (controller) controller.recursiveVideo = checked
                         }
                     }
 
@@ -480,7 +479,7 @@ Pane {
                         font.pixelSize: 11
                         text: isSingleMode
                             ? (controller ? controller.subtitlePath : "")
-                            : (controller ? settings.subtitleFolder : "")
+                            : (controller ? controller.subtitleFolder : "")
                         readOnly: true
                         placeholderText: isSingleMode ? "选择字幕文件" : "选择字幕文件夹"
                         clip: true
@@ -494,9 +493,9 @@ Pane {
                         paletteGroup: "CheckBoxEx"
                         font.pixelSize: 12
                         visible: !isSingleMode
-                        checked: controller ? settings.recursiveSubtitle : false
+                        checked: controller ? controller.recursiveSubtitle : false
                         onCheckedChanged: {
-                            if (controller) settings.recursiveSubtitle = checked
+                            if (controller) controller.recursiveSubtitle = checked
                         }
                     }
 
@@ -526,7 +525,7 @@ Pane {
                             if (isSingleMode)
                                 return controller.videoPath.length > 0 && controller.subtitlePath.length > 0
                             else
-                                return settings.videoFolder.length > 0 && settings.subtitleFolder.length > 0
+                                return controller.videoFolder.length > 0 && controller.subtitleFolder.length > 0
                         }
                         onClicked: {
                             if (controller) controller.startMatch()
@@ -799,10 +798,10 @@ Pane {
                                 item.showPreviousNext = false
                                 item.source = "file:///" + (controller ? controller.currentVideoPath : "")
                                 item.play()
-                                if (settings) {
-                                    item.volume = settings.volume
-                                    item.muted = settings.muted
-                                    item.seekStepMs = settings.seekStepMs
+                                if (controller) {
+                                    item.volume = controller.volume
+                                    item.muted = controller.muted
+                                    item.seekStepMs = controller.seekStepMs
                                     if (item.volume < 1)
                                         item.muted = true
                                 }
@@ -1064,9 +1063,9 @@ Pane {
                         text: "替换原字幕文件"
                         paletteGroup: "CheckBoxEx"
                         font.pixelSize: 12
-                        checked: controller ? settings.overwriteOriginal : false
+                        checked: controller ? controller.overwriteOriginal : false
                         onCheckedChanged: {
-                            if (controller) settings.overwriteOriginal = checked
+                            if (controller) controller.overwriteOriginal = checked
                         }
                     }
 

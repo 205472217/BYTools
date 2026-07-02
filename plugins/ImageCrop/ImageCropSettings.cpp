@@ -25,7 +25,6 @@ void ImageCropSettings::setRootPath(const QString &path)
 {
     if (m_rootPath != path) {
         m_rootPath = path;
-        emit rootPathChanged();
         saveSettings();
     }
 }
@@ -33,7 +32,6 @@ void ImageCropSettings::setRecursive(bool recursive)
 {
     if (m_recursive != recursive) {
         m_recursive = recursive;
-        emit recursiveChanged();
         saveSettings();
     }
 }
@@ -41,21 +39,18 @@ void ImageCropSettings::setCropMode(int mode)
 {
     if (m_cropMode != mode) {
         m_cropMode = mode;
-        emit cropModeChanged();
     }
 }
 void ImageCropSettings::setPresetRatioIndex(int index)
 {
     if (m_presetRatioIndex != index) {
         m_presetRatioIndex = index;
-        emit presetRatioIndexChanged();
     }
 }
 void ImageCropSettings::setUsePresetRatio(bool use)
 {
     if (m_usePresetRatio != use) {
         m_usePresetRatio = use;
-        emit usePresetRatioChanged();
     }
 }
 void ImageCropSettings::setCustomRatioW(int w)
@@ -63,7 +58,6 @@ void ImageCropSettings::setCustomRatioW(int w)
     if (w < 1) w = 1;
     if (m_customRatioW != w) {
         m_customRatioW = w;
-        emit customRatioWChanged();
     }
 }
 void ImageCropSettings::setCustomRatioH(int h)
@@ -71,7 +65,6 @@ void ImageCropSettings::setCustomRatioH(int h)
     if (h < 1) h = 1;
     if (m_customRatioH != h) {
         m_customRatioH = h;
-        emit customRatioHChanged();
     }
 }
 void ImageCropSettings::setTargetWidth(int w)
@@ -79,7 +72,6 @@ void ImageCropSettings::setTargetWidth(int w)
     if (w < 1) w = 1;
     if (m_targetWidth != w) {
         m_targetWidth = w;
-        emit targetWidthChanged();
     }
 }
 void ImageCropSettings::setTargetHeight(int h)
@@ -87,14 +79,12 @@ void ImageCropSettings::setTargetHeight(int h)
     if (h < 1) h = 1;
     if (m_targetHeight != h) {
         m_targetHeight = h;
-        emit targetHeightChanged();
     }
 }
 void ImageCropSettings::setOutputMode(int mode)
 {
     if (m_outputMode != mode) {
         m_outputMode = mode;
-        emit outputModeChanged();
         saveSettings();
     }
 }
@@ -102,7 +92,6 @@ void ImageCropSettings::setOutputDir(const QString &dir)
 {
     if (m_outputDir != dir) {
         m_outputDir = dir;
-        emit outputDirChanged();
         saveSettings();
     }
 }

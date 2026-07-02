@@ -55,6 +55,40 @@ class VideoSubtitleController : public QObject
     Q_PROPERTY(int stepTranslate READ stepTranslate CONSTANT)
     Q_PROPERTY(int stepBurnSubtitle READ stepBurnSubtitle CONSTANT)
 
+    // === Tool paths ===
+    Q_PROPERTY(QString ffmpegPath READ ffmpegPath WRITE setFfmpegPath NOTIFY ffmpegPathChanged)
+    Q_PROPERTY(QString ffmpegStatus READ ffmpegStatus NOTIFY ffmpegStatusChanged)
+    Q_PROPERTY(bool ffmpegDetecting READ ffmpegDetecting NOTIFY ffmpegDetectingChanged)
+    Q_PROPERTY(QString whisperPath READ whisperPath WRITE setWhisperPath NOTIFY whisperPathChanged)
+    Q_PROPERTY(QString whisperStatus READ whisperStatus NOTIFY whisperStatusChanged)
+    Q_PROPERTY(bool whisperDetecting READ whisperDetecting NOTIFY whisperDetectingChanged)
+    Q_PROPERTY(int whisperModel READ whisperModel WRITE setWhisperModel NOTIFY whisperModelChanged)
+    Q_PROPERTY(QString whisperModelDir READ whisperModelDir WRITE setWhisperModelDir NOTIFY whisperModelDirChanged)
+    Q_PROPERTY(QVariantList availableModels READ availableModels NOTIFY availableModelsChanged)
+    Q_PROPERTY(QString localModelPath READ localModelPath WRITE setLocalModelPath NOTIFY localModelPathChanged)
+    Q_PROPERTY(int audioSegmentDuration READ audioSegmentDuration WRITE setAudioSegmentDuration NOTIFY audioSegmentDurationChanged)
+
+    // === Translate engine ===
+    Q_PROPERTY(int translateEngine READ translateEngine WRITE setTranslateEngine NOTIFY translateEngineChanged)
+    Q_PROPERTY(QStringList translateEngineNames READ translateEngineNames CONSTANT)
+    Q_PROPERTY(QString baiduAppId READ baiduAppId WRITE setBaiduAppId NOTIFY baiduAppIdChanged)
+    Q_PROPERTY(QString apiKey READ apiKey WRITE setApiKey NOTIFY apiKeyChanged)
+    Q_PROPERTY(QString apiUrl READ apiUrl WRITE setApiUrl NOTIFY apiUrlChanged)
+    Q_PROPERTY(QString apiTestResult READ apiTestResult NOTIFY apiTestResultChanged)
+    Q_PROPERTY(bool apiTesting READ apiTesting NOTIFY apiTestingChanged)
+    Q_PROPERTY(QString libreTranslateUrl READ libreTranslateUrl WRITE setLibreTranslateUrl NOTIFY libreTranslateUrlChanged)
+    Q_PROPERTY(QString libreTranslateStatus READ libreTranslateStatus NOTIFY libreTranslateStatusChanged)
+
+    // === Subtitle style ===
+    Q_PROPERTY(int defaultFontSize READ defaultFontSize WRITE setDefaultFontSize NOTIFY defaultFontSizeChanged)
+    Q_PROPERTY(QString defaultFontColor READ defaultFontColor WRITE setDefaultFontColor NOTIFY defaultFontColorChanged)
+    Q_PROPERTY(QString defaultBorderColor READ defaultBorderColor WRITE setDefaultBorderColor NOTIFY defaultBorderColorChanged)
+    Q_PROPERTY(int defaultBorderWidth READ defaultBorderWidth WRITE setDefaultBorderWidth NOTIFY defaultBorderWidthChanged)
+
+    // === GPU & output ===
+    Q_PROPERTY(bool useGpuAccel READ useGpuAccel WRITE setUseGpuAccel NOTIFY useGpuAccelChanged)
+    Q_PROPERTY(QString gpuAccelInfo READ gpuAccelInfo NOTIFY gpuAccelInfoChanged)
+
 public:
     enum Step { StepNone = 0, StepExtractAudio, StepTranscribe, StepTranslate, StepBurnSubtitle };
     explicit VideoSubtitleController(PluginLogger *logger, VideoSubtitleSettings *settings, QObject *parent = nullptr);
@@ -88,6 +122,40 @@ public:
     int stepTranslate() const { return StepTranslate; }
     int stepBurnSubtitle() const { return StepBurnSubtitle; }
 
+    // === Tool paths getters ===
+    QString ffmpegPath() const;
+    QString ffmpegStatus() const;
+    bool ffmpegDetecting() const;
+    QString whisperPath() const;
+    QString whisperStatus() const;
+    bool whisperDetecting() const;
+    int whisperModel() const;
+    QString whisperModelDir() const;
+    QVariantList availableModels() const;
+    QString localModelPath() const;
+    int audioSegmentDuration() const;
+
+    // === Translate engine getters ===
+    int translateEngine() const;
+    QStringList translateEngineNames() const;
+    QString baiduAppId() const;
+    QString apiKey() const;
+    QString apiUrl() const;
+    QString apiTestResult() const;
+    bool apiTesting() const;
+    QString libreTranslateUrl() const;
+    QString libreTranslateStatus() const;
+
+    // === Subtitle style getters ===
+    int defaultFontSize() const;
+    QString defaultFontColor() const;
+    QString defaultBorderColor() const;
+    int defaultBorderWidth() const;
+
+    // === GPU & output getters ===
+    bool useGpuAccel() const;
+    QString gpuAccelInfo() const;
+
     // Setters
     void setInputPath(const QString &path);
     void setInputMode(int mode);
@@ -114,11 +182,47 @@ public:
     void setEnableTranslate(bool enabled);
     void setEnableBurnSubtitle(bool enabled);
 
+    // === Tool paths setters ===
+    void setFfmpegPath(const QString &path);
+    void setWhisperPath(const QString &path);
+    void setWhisperModel(int model);
+    void setWhisperModelDir(const QString &path);
+    void setLocalModelPath(const QString &path);
+    void setAudioSegmentDuration(int seconds);
+
+    // === Translate engine setters ===
+    void setTranslateEngine(int engine);
+    void setBaiduAppId(const QString &appId);
+    void setApiKey(const QString &key);
+    void setApiUrl(const QString &url);
+    void setLibreTranslateUrl(const QString &url);
+
+    // === Subtitle style setters ===
+    void setDefaultFontSize(int size);
+    void setDefaultFontColor(const QString &color);
+    void setDefaultBorderColor(const QString &color);
+    void setDefaultBorderWidth(int width);
+
+    // === GPU & output setters ===
+    void setUseGpuAccel(bool enable);
+
     Q_INVOKABLE void execute();
     Q_INVOKABLE void cancel();
     Q_INVOKABLE void clearRecords();
     Q_INVOKABLE void reset();
     Q_INVOKABLE void requestStopAfterCount(int count, bool shutdown = false);
+
+    // Settings delegation
+    Q_INVOKABLE void testFfmpeg();
+    Q_INVOKABLE void testWhisper();
+    Q_INVOKABLE void testApiConnection();
+    Q_INVOKABLE void saveSettings();
+    Q_INVOKABLE void loadSettings();
+    Q_INVOKABLE void resetDefaults();
+    Q_INVOKABLE bool isModelDownloaded(int modelIndex) const;
+    Q_INVOKABLE void deleteModel(int modelIndex);
+    Q_INVOKABLE QString modelFileName(int modelIndex) const;
+    Q_INVOKABLE qint64 modelFileSize(int modelIndex) const;
 
 signals:
     void inputPathChanged();
@@ -147,6 +251,39 @@ signals:
     void logMessage(const QString &message);
     void logDetail(const QString &message);
 
+    // === Tool paths signals ===
+    void ffmpegPathChanged();
+    void ffmpegStatusChanged();
+    void ffmpegDetectingChanged();
+    void whisperPathChanged();
+    void whisperStatusChanged();
+    void whisperDetectingChanged();
+    void whisperModelChanged();
+    void whisperModelDirChanged();
+    void availableModelsChanged();
+    void localModelPathChanged();
+    void audioSegmentDurationChanged();
+
+    // === Translate engine signals ===
+    void translateEngineChanged();
+    void baiduAppIdChanged();
+    void apiKeyChanged();
+    void apiUrlChanged();
+    void apiTestResultChanged();
+    void apiTestingChanged();
+    void libreTranslateUrlChanged();
+    void libreTranslateStatusChanged();
+
+    // === Subtitle style signals ===
+    void defaultFontSizeChanged();
+    void defaultFontColorChanged();
+    void defaultBorderColorChanged();
+    void defaultBorderWidthChanged();
+
+    // === GPU & output signals ===
+    void useGpuAccelChanged();
+    void gpuAccelInfoChanged();
+
 private slots:
     void onAudioExtracted(bool success, const QString &audioPath, const QString &error);
     void onTranscribeFinished(bool success, const QString &srtPath, const QString &error);
@@ -168,19 +305,6 @@ private:
     void addRecord(const QString &originalPath, const QString &outputPath,
                    bool success, const QString &status);
     static QString stepNameForStep(int step);
-    // Read settings through VideoSubtitleSettings
-    QString ffmpegPath() const;
-    QString whisperPath() const;
-    QString whisperModelPath() const;
-    QString apiKey() const;
-    QString apiUrl() const;
-    QString baiduAppId() const;
-    int translateEngine() const;
-    int defaultFontSize() const;
-    QString defaultFontColor() const;
-    QString defaultBorderColor() const;
-    int defaultBorderWidth() const;
-    int audioSegmentDuration() const;
 
     QThread m_workerThread;
     bool m_workerRunning = false;

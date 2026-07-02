@@ -28,6 +28,10 @@ class FileViewController : public QObject
     Q_PROPERTY(int currentModelIndex READ currentModelIndex NOTIFY currentModelIndexChanged)
     Q_PROPERTY(int viewWay READ viewWay WRITE setViewWay NOTIFY viewWayChanged)
     Q_PROPERTY(int viewMode READ viewMode WRITE setViewMode NOTIFY viewModeChanged)
+    // === Config properties (delegated to FileViewSettings) ===
+    Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
+    Q_PROPERTY(int seekStepMs READ seekStepMs WRITE setSeekStepMs NOTIFY seekStepMsChanged)
     Q_PROPERTY(QString currentPath READ currentPath NOTIFY currentPathChanged)
     Q_PROPERTY(bool canNavigateUp READ canNavigateUp NOTIFY canNavigateUpChanged)
 
@@ -64,6 +68,12 @@ public:
     void setSortAscending(bool ascending);
     void setViewWay(int mode);
     void setViewMode(int mode);
+    int volume() const;
+    bool muted() const;
+    int seekStepMs() const;
+    void setVolume(int vol);
+    void setMuted(bool m);
+    void setSeekStepMs(int ms);
 
     Q_INVOKABLE void startScan();
     Q_INVOKABLE void cancel();
@@ -93,6 +103,9 @@ signals:
     void scanFinished();
     void viewWayChanged();
     void viewModeChanged();
+    void volumeChanged();
+    void mutedChanged();
+    void seekStepMsChanged();
     void currentPathChanged();
     void canNavigateUpChanged();
 

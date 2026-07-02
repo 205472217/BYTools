@@ -14,7 +14,6 @@ Pane {
     property var controller: null
     property var stackView: null
     property string pluginId: ""
-    property QtObject settings: pluginManager.settingsForController(controller)
 
     // Real-time log model — auto-scrolls to end when new items arrive
     ListModel {
@@ -144,7 +143,7 @@ Pane {
         id: inputFolderDialog
         title: "选择输入路径"
         onAccepted: {
-            if (settings) {
+            if (controller) {
                 controller.inputPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
             }
         }
@@ -155,7 +154,7 @@ Pane {
         title: "选择视频文件"
         nameFilters: ["视频文件 (*.mp4 *.mkv *.avi *.mov *.wmv *.flv *.ts)", "所有文件 (*)"]
         onAccepted: {
-            if (settings) {
+            if (controller) {
                 controller.inputPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
             }
         }

@@ -109,6 +109,107 @@ bool ImageCropController::canRestoreCurrent() const
     return !m_backups.isEmpty();
 }
 
+// ── Config Properties (delegated to ImageCropSettings) ─────────────────
+
+QString ImageCropController::rootPath() const { return m_settings->rootPath(); }
+void ImageCropController::setRootPath(const QString &path)
+{
+    if (m_settings->rootPath() != path) {
+        m_settings->setRootPath(path);
+        emit rootPathChanged();
+    }
+}
+
+bool ImageCropController::recursive() const { return m_settings->recursive(); }
+void ImageCropController::setRecursive(bool recursive)
+{
+    if (m_settings->recursive() != recursive) {
+        m_settings->setRecursive(recursive);
+        emit recursiveChanged();
+    }
+}
+
+int ImageCropController::cropMode() const { return m_settings->cropMode(); }
+void ImageCropController::setCropMode(int mode)
+{
+    if (m_settings->cropMode() != mode) {
+        m_settings->setCropMode(mode);
+        emit cropModeChanged();
+    }
+}
+
+int ImageCropController::presetRatioIndex() const { return m_settings->presetRatioIndex(); }
+void ImageCropController::setPresetRatioIndex(int index)
+{
+    if (m_settings->presetRatioIndex() != index) {
+        m_settings->setPresetRatioIndex(index);
+        emit presetRatioIndexChanged();
+    }
+}
+
+bool ImageCropController::usePresetRatio() const { return m_settings->usePresetRatio(); }
+void ImageCropController::setUsePresetRatio(bool use)
+{
+    if (m_settings->usePresetRatio() != use) {
+        m_settings->setUsePresetRatio(use);
+        emit usePresetRatioChanged();
+    }
+}
+
+int ImageCropController::customRatioW() const { return m_settings->customRatioW(); }
+void ImageCropController::setCustomRatioW(int w)
+{
+    if (m_settings->customRatioW() != w) {
+        m_settings->setCustomRatioW(w);
+        emit customRatioWChanged();
+    }
+}
+
+int ImageCropController::customRatioH() const { return m_settings->customRatioH(); }
+void ImageCropController::setCustomRatioH(int h)
+{
+    if (m_settings->customRatioH() != h) {
+        m_settings->setCustomRatioH(h);
+        emit customRatioHChanged();
+    }
+}
+
+int ImageCropController::targetWidth() const { return m_settings->targetWidth(); }
+void ImageCropController::setTargetWidth(int w)
+{
+    if (m_settings->targetWidth() != w) {
+        m_settings->setTargetWidth(w);
+        emit targetWidthChanged();
+    }
+}
+
+int ImageCropController::targetHeight() const { return m_settings->targetHeight(); }
+void ImageCropController::setTargetHeight(int h)
+{
+    if (m_settings->targetHeight() != h) {
+        m_settings->setTargetHeight(h);
+        emit targetHeightChanged();
+    }
+}
+
+int ImageCropController::outputMode() const { return m_settings->outputMode(); }
+void ImageCropController::setOutputMode(int mode)
+{
+    if (m_settings->outputMode() != mode) {
+        m_settings->setOutputMode(mode);
+        emit outputModeChanged();
+    }
+}
+
+QString ImageCropController::outputDir() const { return m_settings->outputDir(); }
+void ImageCropController::setOutputDir(const QString &dir)
+{
+    if (m_settings->outputDir() != dir) {
+        m_settings->setOutputDir(dir);
+        emit outputDirChanged();
+    }
+}
+
 // ── Image Scanning ─────────────────────────────────────────────────────
 
 void ImageCropController::scanImages()

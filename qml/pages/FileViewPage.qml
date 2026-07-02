@@ -12,7 +12,6 @@ Pane {
     property var controller: null
     property var stackView: null
     property string pluginId: ""
-    property QtObject settings: pluginManager.settingsForController(controller)
 
     property bool hasFiles: controller && controller.fileCount > 0
     property bool hasSelection: controller && controller.currentFilePath.length > 0
@@ -897,10 +896,10 @@ Pane {
                                         item.mpvPath = root._mpvExePath;
                                     item.controlsPaletteGroup = "VideoPlayerControls";
                                     item.source = "file:///" + controller.currentFilePath;
-                                    if (settings) {
-                                        item.volume = settings.volume;
-                                        item.muted = settings.muted;
-                                        item.seekStepMs = settings.seekStepMs;
+                                    if (controller) {
+                                        item.volume = controller.volume;
+                                        item.muted = controller.muted;
+                                        item.seekStepMs = controller.seekStepMs;
                                         if (item.volume < 1)
                                             item.muted = true;
                                     }
@@ -945,16 +944,16 @@ Pane {
                             Connections {
                                 target: videoPreviewLoader.item
                                 function onVolumeChanged() {
-                                    if (settings && videoPreviewLoader.item)
-                                        settings.volume = videoPreviewLoader.item.volume;
+                                    if (controller && videoPreviewLoader.item)
+                                        controller.volume = videoPreviewLoader.item.volume;
                                 }
                                 function onMutedChanged() {
-                                    if (settings && videoPreviewLoader.item)
-                                        settings.muted = videoPreviewLoader.item.muted;
+                                    if (controller && videoPreviewLoader.item)
+                                        controller.muted = videoPreviewLoader.item.muted;
                                 }
                                 function onSeekStepMsChanged() {
-                                    if (settings && videoPreviewLoader.item)
-                                        settings.seekStepMs = videoPreviewLoader.item.seekStepMs;
+                                    if (controller && videoPreviewLoader.item)
+                                        controller.seekStepMs = videoPreviewLoader.item.seekStepMs;
                                 }
                             }
                         }

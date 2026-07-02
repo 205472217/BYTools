@@ -30,6 +30,17 @@ class SubtitleAdjustController : public QObject
     // === 映射表模型 ===
     Q_PROPERTY(MatchPairModel* matchModel READ matchModel CONSTANT)
 
+    // === Config properties (delegated to SubtitleAdjustSettings) ===
+    Q_PROPERTY(int mode READ mode WRITE setMode NOTIFY modeChanged)
+    Q_PROPERTY(QString videoFolder READ videoFolder WRITE setVideoFolder NOTIFY videoFolderChanged)
+    Q_PROPERTY(QString subtitleFolder READ subtitleFolder WRITE setSubtitleFolder NOTIFY subtitleFolderChanged)
+    Q_PROPERTY(bool recursiveVideo READ recursiveVideo WRITE setRecursiveVideo NOTIFY recursiveVideoChanged)
+    Q_PROPERTY(bool recursiveSubtitle READ recursiveSubtitle WRITE setRecursiveSubtitle NOTIFY recursiveSubtitleChanged)
+    Q_PROPERTY(bool overwriteOriginal READ overwriteOriginal WRITE setOverwriteOriginal NOTIFY overwriteOriginalChanged)
+    Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)
+    Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
+    Q_PROPERTY(int seekStepMs READ seekStepMs WRITE setSeekStepMs NOTIFY seekStepMsChanged)
+
 public:
     struct SubtitleEntry {
         qint64 startTime = 0;   // ms
@@ -41,8 +52,24 @@ public:
     ~SubtitleAdjustController() override;
 
     // ── Config properties (delegated to Settings) ──
+    int mode() const;
+    void setMode(int mode);
+    QString videoFolder() const;
+    void setVideoFolder(const QString &path);
+    QString subtitleFolder() const;
+    void setSubtitleFolder(const QString &path);
+    bool recursiveVideo() const;
+    void setRecursiveVideo(bool recursive);
+    bool recursiveSubtitle() const;
+    void setRecursiveSubtitle(bool recursive);
     bool overwriteOriginal() const;
     void setOverwriteOriginal(bool overwrite);
+    int volume() const;
+    void setVolume(int vol);
+    bool muted() const;
+    void setMuted(bool m);
+    int seekStepMs() const;
+    void setSeekStepMs(int ms);
 
     // ── 单文件模式 ──
     QString videoPath() const;
@@ -78,7 +105,15 @@ public:
     Q_INVOKABLE QString getSubtitleTextAt(qint64 positionMs);
 
 signals:
+    void modeChanged();
+    void videoFolderChanged();
+    void subtitleFolderChanged();
+    void recursiveVideoChanged();
+    void recursiveSubtitleChanged();
     void overwriteOriginalChanged();
+    void volumeChanged();
+    void mutedChanged();
+    void seekStepMsChanged();
     void logMessage(const QString &message);
     void videoPathChanged();
     void subtitlePathChanged();
