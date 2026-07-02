@@ -728,6 +728,8 @@ Pane {
                                     radius: 8
                                     color: fileGridView.currentIndex === index
                                         ? pal.SurfaceEx_rowSelectedBg : "transparent"
+                                    border.width: isDir ? 1.5 : 0
+                                    border.color: isDir ? pal.FileViewPage_GridView_FolderBolder : "transparent"
 
                                     ColumnLayout {
                                         anchors.fill: parent

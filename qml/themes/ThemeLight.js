@@ -413,4 +413,6 @@ var palette = {
     FileViewPage_scanBtn_hoverColor: "#1d4ed8",
     FileViewPage_scanBtn_borderColor: "#1d4ed8",
     FileViewPage_scanBtn_textColor: "#ffffff",
+    // 文件夹视图边框
+    FileViewPage_GridView_FolderBolder: "#06A8F5",
 }
