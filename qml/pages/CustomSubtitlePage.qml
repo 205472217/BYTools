@@ -1055,7 +1055,9 @@ Pane {
                                             hoverEnabled: true
                                             cursorShape: Qt.PointingHandCursor
                                             propagateComposedEvents: true
-                                            onPressed: mouse.accepted = false
+                                            onPressed: function (mouse) {
+                                                mouse.accepted = false;
+                                            }
                                         }
                                     }
                                 }
