@@ -194,9 +194,8 @@ Pane {
                         paletteGroup: "CheckBoxEx"
                         checked: controller ? controller.recursive : false
                         onCheckedChanged: {
-                            if (controller) {
+                            if (controller && controller.recursive !== checked)
                                 controller.recursive = checked
-                            }
                         }
                     }
 

@@ -195,9 +195,8 @@ Pane {
                         paletteGroup: "CheckBoxEx"
                         checked: controller ? controller.recursive : false
                         onCheckedChanged: {
-                            if (controller) {
+                            if (controller && controller.recursive !== checked)
                                 controller.recursive = checked
-                            }
                         }
                     }
 
@@ -233,9 +232,8 @@ Pane {
                             paletteGroup: "RadioButtonEx"
                             checked: controller ? controller.fileType === 0 : true
                             onCheckedChanged: {
-                                if (checked && controller) {
+                                if (checked && controller && controller.fileType !== 0)
                                     controller.fileType = 0
-                                }
                             }
                         }
 
@@ -246,9 +244,8 @@ Pane {
                             paletteGroup: "RadioButtonEx"
                             checked: controller ? controller.fileType === 1 : false
                             onCheckedChanged: {
-                                if (checked && controller) {
+                                if (checked && controller && controller.fileType !== 1)
                                     controller.fileType = 1
-                                }
                             }
                         }
 
@@ -259,9 +256,8 @@ Pane {
                             paletteGroup: "RadioButtonEx"
                             checked: controller ? controller.fileType === 2 : false
                             onCheckedChanged: {
-                                if (checked && controller) {
+                                if (checked && controller && controller.fileType !== 2)
                                     controller.fileType = 2
-                                }
                             }
                         }
 
@@ -272,9 +268,8 @@ Pane {
                             paletteGroup: "RadioButtonEx"
                             checked: controller ? controller.fileType === 3 : false
                             onCheckedChanged: {
-                                if (checked && controller) {
+                                if (checked && controller && controller.fileType !== 3)
                                     controller.fileType = 3
-                                }
                             }
                         }
 
@@ -285,9 +280,8 @@ Pane {
                             paletteGroup: "RadioButtonEx"
                             checked: controller ? controller.fileType === 4 : false
                             onCheckedChanged: {
-                                if (checked && controller) {
+                                if (checked && controller && controller.fileType !== 4)
                                     controller.fileType = 4
-                                }
                             }
                         }
 
@@ -298,9 +292,8 @@ Pane {
                             paletteGroup: "RadioButtonEx"
                             checked: controller ? controller.fileType === 5 : false
                             onCheckedChanged: {
-                                if (checked && controller) {
+                                if (checked && controller && controller.fileType !== 5)
                                     controller.fileType = 5
-                                }
                             }
                         }
 
@@ -348,9 +341,8 @@ Pane {
                         paletteGroup: "RadioButtonEx"
                         checked: controller ? controller.renameMode === 1 : false
                         onCheckedChanged: {
-                            if (checked && controller) {
+                            if (checked && controller && controller.renameMode !== 1)
                                 controller.renameMode = 1
-                            }
                         }
                     }
 
@@ -409,9 +401,8 @@ Pane {
                         paletteGroup: "RadioButtonEx"
                         checked: controller ? controller.renameMode === 0 : true
                         onCheckedChanged: {
-                            if (checked && controller) {
+                            if (checked && controller && controller.renameMode !== 0)
                                 controller.renameMode = 0
-                            }
                         }
                     }
 

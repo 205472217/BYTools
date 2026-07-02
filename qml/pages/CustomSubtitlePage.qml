@@ -389,7 +389,7 @@ Pane {
                         font.pixelSize: 11
                         enabled: !controller || controller.currentStep === controller.stepNone
                         onCheckedChanged: {
-                            if (controller)
+                            if (controller && controller.recursive !== checked)
                                 controller.recursive = checked;
                         }
                     }
@@ -1363,7 +1363,7 @@ Pane {
                                     font.pixelSize: 11
                                     enabled: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
-                                        if (controller)
+                                        if (controller && controller.gpuAccel !== checked)
                                             controller.gpuAccel = checked;
                                     }
                                 }
@@ -1524,7 +1524,7 @@ Pane {
                                     font.pixelSize: 11
                                     enabled: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
-                                        if (controller)
+                                        if (controller && controller.weakMatch !== checked)
                                             controller.weakMatch = checked;
                                     }
                                 }

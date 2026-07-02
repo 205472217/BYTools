@@ -352,7 +352,7 @@ Pane {
                     paletteGroup: "CheckBoxEx"
                     checked: controller ? controller.recursive : false
                     onCheckedChanged: {
-                        if (controller)
+                        if (controller && controller.recursive !== checked)
                             controller.recursive = checked;
                     }
                 }
@@ -1580,7 +1580,7 @@ Pane {
                                         checked: controller ? controller.outputMode === 0 : true
                                         font.pixelSize: 12
                                         onCheckedChanged: {
-                                            if (checked && controller)
+                                            if (checked && controller && controller.outputMode !== 0)
                                                 controller.outputMode = 0;
                                         }
                                     }
@@ -1593,7 +1593,7 @@ Pane {
                                         checked: controller ? controller.outputMode === 1 : false
                                         font.pixelSize: 12
                                         onCheckedChanged: {
-                                            if (checked && controller)
+                                            if (checked && controller && controller.outputMode !== 1)
                                                 controller.outputMode = 1;
                                         }
                                     }

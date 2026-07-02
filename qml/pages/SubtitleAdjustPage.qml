@@ -448,7 +448,8 @@ Pane {
                         visible: !isSingleMode
                         checked: controller ? controller.recursiveVideo : false
                         onCheckedChanged: {
-                            if (controller) controller.recursiveVideo = checked
+                            if (controller && controller.recursiveVideo !== checked)
+                                controller.recursiveVideo = checked
                         }
                     }
 
@@ -495,7 +496,8 @@ Pane {
                         visible: !isSingleMode
                         checked: controller ? controller.recursiveSubtitle : false
                         onCheckedChanged: {
-                            if (controller) controller.recursiveSubtitle = checked
+                            if (controller && controller.recursiveSubtitle !== checked)
+                                controller.recursiveSubtitle = checked
                         }
                     }
 
@@ -1065,7 +1067,8 @@ Pane {
                         font.pixelSize: 12
                         checked: controller ? controller.overwriteOriginal : false
                         onCheckedChanged: {
-                            if (controller) controller.overwriteOriginal = checked
+                            if (controller && controller.overwriteOriginal !== checked)
+                                controller.overwriteOriginal = checked
                         }
                     }
 

@@ -273,9 +273,8 @@ Pane {
                         paletteGroup: "CheckBoxEx"
                         checked: controller ? controller.recursive : false
                         onCheckedChanged: {
-                            if (controller) {
+                            if (controller && controller.recursive !== checked)
                                 controller.recursive = checked
-                            }
                         }
                     }
 
@@ -304,9 +303,8 @@ Pane {
                         paletteGroup: "CheckBoxEx"
                         checked: controller ? controller.convertEnabled : true
                         onCheckedChanged: {
-                            if (controller) {
+                            if (controller && controller.convertEnabled !== checked)
                                 controller.convertEnabled = checked
-                            }
                         }
                     }
 
@@ -460,9 +458,8 @@ Pane {
                         paletteGroup: "CheckBoxEx"
                         checked: controller ? controller.resizeEnabled : false
                         onCheckedChanged: {
-                            if (controller) {
+                            if (controller && controller.resizeEnabled !== checked)
                                 controller.resizeEnabled = checked
-                            }
                         }
                     }
 
@@ -475,9 +472,8 @@ Pane {
                         enabled: controller ? controller.resizeEnabled : false
                         checked: controller ? controller.resizeMode === 0 : true
                         onCheckedChanged: {
-                            if (checked && controller) {
+                            if (checked && controller && controller.resizeMode !== 0)
                                 controller.resizeMode = 0
-                            }
                         }
                     }
 
@@ -682,9 +678,8 @@ Pane {
                         enabled: controller ? controller.resizeEnabled : false
                         checked: controller ? controller.resizeMode === 1 : true
                         onCheckedChanged: {
-                            if (checked && controller) {
+                            if (checked && controller && controller.resizeMode !== 1)
                                 controller.resizeMode = 1
-                            }
                         }
                     }
 
@@ -775,9 +770,8 @@ Pane {
                         paletteGroup: "RadioButtonEx"
                         checked: controller ? controller.outputMode === 0 : true
                         onCheckedChanged: {
-                            if (checked && controller) {
+                            if (checked && controller && controller.outputMode !== 0)
                                 controller.outputMode = 0
-                            }
                         }
                     }
 
@@ -788,9 +782,8 @@ Pane {
                         paletteGroup: "RadioButtonEx"
                         checked: controller ? controller.outputMode === 1 : false
                         onCheckedChanged: {
-                            if (checked && controller) {
+                            if (checked && controller && controller.outputMode !== 1)
                                 controller.outputMode = 1
-                            }
                         }
                     }
 

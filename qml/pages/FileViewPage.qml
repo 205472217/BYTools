@@ -312,7 +312,7 @@ Pane {
                         checked: controller ? controller.recursive : false
                         visible: controller ? controller.viewWay === 1 : false
                         onCheckedChanged: {
-                            if (controller)
+                            if (controller && controller.recursive !== checked)
                                 controller.recursive = checked;
                         }
                     }

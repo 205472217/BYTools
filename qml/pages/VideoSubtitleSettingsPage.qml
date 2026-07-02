@@ -1082,7 +1082,7 @@ Pane {
                             checked: controller ? controller.useGpuAccel : false
                             enabled: controller ? (controller.ffmpegPath.length > 0 && (controller.ffmpegDetecting || controller.ffmpegStatus.indexOf("已找到") >= 0 || controller.ffmpegStatus.indexOf("已检测到") >= 0)) : false
                             onCheckedChanged: {
-                                if (controller)
+                                if (controller && controller.useGpuAccel !== checked)
                                     controller.useGpuAccel = checked;
                             }
                             ToolTip {
@@ -1132,7 +1132,7 @@ Pane {
                             paletteGroup: "CheckBoxEx"
                             checked: controller ? controller.keepWav : true
                             onCheckedChanged: {
-                                if (controller)
+                                if (controller && controller.keepWav !== checked)
                                     controller.keepWav = checked;
                             }
                         }
@@ -1144,7 +1144,7 @@ Pane {
                             paletteGroup: "CheckBoxEx"
                             checked: controller ? controller.keepOriginalSrt : true
                             onCheckedChanged: {
-                                if (controller)
+                                if (controller && controller.keepOriginalSrt !== checked)
                                     controller.keepOriginalSrt = checked;
                             }
                         }
@@ -1156,7 +1156,7 @@ Pane {
                             paletteGroup: "CheckBoxEx"
                             checked: controller ? controller.keepTranslatedSrt : true
                             onCheckedChanged: {
-                                if (controller)
+                                if (controller && controller.keepTranslatedSrt !== checked)
                                     controller.keepTranslatedSrt = checked;
                             }
                         }

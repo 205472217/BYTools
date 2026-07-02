@@ -328,7 +328,7 @@ Pane {
                         checked: controller ? controller.inputMode === 0 : true
                         paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
-                            if (checked && controller) {
+                            if (checked && controller && controller.inputMode !== 0) {
                                 controller.inputMode = 0;
                                 controller.inputPath = "";
                             }
@@ -342,7 +342,7 @@ Pane {
                         checked: controller ? controller.inputMode === 1 : false
                         paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
-                            if (checked && controller) {
+                            if (checked && controller && controller.inputMode !== 1) {
                                 controller.inputMode = 1;
                                 controller.inputPath = "";
                             }
@@ -357,7 +357,7 @@ Pane {
                         visible: controller ? controller.inputMode === 1 : false
                         paletteGroup: "CheckBoxEx"
                         onCheckedChanged: {
-                            if (controller)
+                            if (controller && controller.recursive !== checked)
                                 controller.recursive = checked;
                         }
                     }
@@ -433,7 +433,7 @@ Pane {
                             opacity: 1.0
                             paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
-                                if (controller)
+                                if (controller && controller.enableAudioExtraction !== checked)
                                     controller.enableAudioExtraction = checked;
                                 if (!checked && controller) {
                                     controller.enableTranscribe = false;
@@ -452,7 +452,7 @@ Pane {
                             opacity: 1.0
                             paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
-                                if (controller)
+                                if (controller && controller.enableTranscribe !== checked)
                                     controller.enableTranscribe = checked;
                                 if (!checked && controller) {
                                     controller.enableTranslate = false;
@@ -475,7 +475,7 @@ Pane {
                             opacity: 1.0
                             paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
-                                if (controller)
+                                if (controller && controller.enableTranslate !== checked)
                                     controller.enableTranslate = checked;
                             }
                             ToolTip {
@@ -494,7 +494,7 @@ Pane {
                             opacity: 1.0
                             paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
-                                if (controller)
+                                if (controller && controller.enableBurnSubtitle !== checked)
                                     controller.enableBurnSubtitle = checked;
                             }
                             ToolTip {
@@ -593,7 +593,7 @@ Pane {
                         enabled: stepTranslate.checked
                         paletteGroup: "CheckBoxEx"
                         onCheckedChanged: {
-                            if (controller)
+                            if (controller && controller.translateMusic !== checked)
                                 controller.translateMusic = checked;
                         }
                     }
@@ -624,7 +624,7 @@ Pane {
                         checked: controller ? controller.outputMode === 0 : true
                         paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
-                            if (checked && controller)
+                            if (checked && controller && controller.outputMode !== 0)
                                 controller.outputMode = 0;
                         }
                     }
@@ -636,7 +636,7 @@ Pane {
                         checked: controller ? controller.outputMode === 1 : false
                         paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
-                            if (checked && controller)
+                            if (checked && controller && controller.outputMode !== 1)
                                 controller.outputMode = 1;
                         }
                     }
