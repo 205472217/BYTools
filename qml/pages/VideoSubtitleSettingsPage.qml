@@ -1,7 +1,7 @@
 import QtQuick
+import QtQuick.Dialogs
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
 import "../components"
 
 Pane {
@@ -119,17 +119,6 @@ Pane {
                 Layout.fillWidth: true
             }
 
-            IconButton {
-                id: saveBtn
-                text: "保存设置"
-                paletteGroup: "VideoSubtitleSettingsPage_saveBtn"
-                onClicked: {
-                    if (controller) {
-                        controller.saveSettings();
-                        root.backRequested();
-                    }
-                }
-            }
         }
 
         // Settings card

@@ -1,7 +1,7 @@
 import QtQuick
+import QtQuick.Dialogs
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
 import "../components"
 
 Pane {
@@ -137,55 +137,29 @@ Pane {
         modal: true
         anchors.centerIn: parent
         width: 420
-        standardButtons: Dialog.NoButton
-        closePolicy: Dialog.CloseOnEscape
+        standardButtons: Dialog.Ok | Dialog.Cancel
+
         onOpened: root._hideNativeOverlay()
         onClosed: root._showNativeOverlay()
 
-        contentItem: ColumnLayout {
-            spacing: 8
-            Layout.margins: 4
-
-            Label {
-                id: backConfirmMsg
-                text: "当前页面有数据，返回首页将清空当前数据，是否继续？"
-                color: pal.LabelEx_statusText
-                font.pixelSize: 14
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-                Layout.bottomMargin: 8
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                Item { Layout.fillWidth: true }
-
-                IconButton {
-                    id: backCancelBtn
-                    text: "取消"
-                    tooltip: "不返回，继续当前操作"
-                    paletteGroup: "BackCancelBtn"
-                    implicitWidth: 100
-                    implicitHeight: 38
-                    onClicked: backConfirmDialog.close()
-                }
-
-                IconButton {
-                    id: backConfirmBtn
-                    text: "返回首页"
-                    tooltip: "清空数据并返回首页"
-                    paletteGroup: "BackConfirmBtn"
-                    implicitWidth: 120
-                    implicitHeight: 38
-                    onClicked: {
-                        if (controller) controller.reset()
-                        backConfirmDialog.close()
-                        root._hideNativeOverlay()
-                        root.backRequested()
-                    }
+        contentItem: Label {
+            text: "当前页面有数据，返回首页将清空当前数据，是否继续？"
+            color: pal.LabelEx_statusText
+            font.pixelSize: 14
+            wrapMode: Text.WordWrap
+            focus: true
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    backConfirmDialog.accept()
+                    event.accepted = true
                 }
             }
+        }
+
+        onAccepted: {
+            if (controller) controller.reset()
+            root._hideNativeOverlay()
+            root.backRequested()
         }
     }
 
@@ -196,58 +170,32 @@ Pane {
         modal: true
         anchors.centerIn: parent
         width: 420
-        standardButtons: Dialog.NoButton
-        closePolicy: Dialog.CloseOnEscape
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        
         onOpened: root._hideNativeOverlay()
         onClosed: root._showNativeOverlay()
 
         property int targetIndex: -1
 
-        contentItem: ColumnLayout {
-            spacing: 8
-            Layout.margins: 4
-
-            Label {
-                id: unsavedMsg
-                text: "当前字幕调整尚未导出，切换将丢失进度，是否继续？"
-                color: pal.LabelEx_statusText
-                font.pixelSize: 14
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-                Layout.bottomMargin: 8
+        contentItem: Label {
+            text: "当前字幕调整尚未导出，切换将丢失进度，是否继续？"
+            color: pal.LabelEx_statusText
+            font.pixelSize: 14
+            wrapMode: Text.WordWrap
+            focus: true
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    unsavedDialog.accept()
+                    event.accepted = true
+                }
             }
+        }
 
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                Item { Layout.fillWidth: true }
-
-                IconButton {
-                    id: cancelBtn
-                    text: "取消"
-                    tooltip: "不切换，继续当前调整"
-                    paletteGroup: "SubtitleAdjustPage_cancelBtn"
-                    implicitWidth: 100
-                    implicitHeight: 38
-                    onClicked: unsavedDialog.close()
-                }
-
-                IconButton {
-                    id: continueBtn
-                    text: "继续切换"
-                    tooltip: "放弃当前调整，切换到选中项"
-                    paletteGroup: "SubtitleAdjustPage_continueBtn"
-                    implicitWidth: 120
-                    implicitHeight: 38
-                    onClicked: {
-                        var idx = unsavedDialog.targetIndex
-                        unsavedDialog.close()
-                        if (controller) {
-                            controller.setOffsetMs(0)
-                            controller.startAdjust(idx)
-                        }
-                    }
-                }
+        onAccepted: {
+            var idx = unsavedDialog.targetIndex
+            if (controller) {
+                controller.setOffsetMs(0)
+                controller.startAdjust(idx)
             }
         }
     }
@@ -564,7 +512,8 @@ Pane {
                         elide: Text.ElideRight
                     }
                 }
-            } 
+}
+
         }
 
         // ═══════════════ Bottom: 3-Column Layout ═══════════════
@@ -1092,6 +1041,7 @@ Pane {
             }
         }
     }
+
 }
 
 

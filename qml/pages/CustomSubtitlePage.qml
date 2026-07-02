@@ -1,7 +1,7 @@
 import QtQuick
+import QtQuick.Dialogs
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
 import "../components"
 
 Pane {
@@ -65,51 +65,25 @@ Pane {
         modal: true
         anchors.centerIn: parent
         width: 420
-        standardButtons: Dialog.NoButton
-        closePolicy: Dialog.CloseOnEscape
+        standardButtons: Dialog.Ok | Dialog.Cancel
 
-        contentItem: ColumnLayout {
-            spacing: 8
-            Layout.margins: 4
-
-            Label {
-                text: "当前有任务正在处理中，返回首页将中断执行，是否继续？"
-                color: pal.LabelEx_statusText
-                font.pixelSize: 14
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-                Layout.bottomMargin: 8
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                Item { Layout.fillWidth: true }
-
-                IconButton {
-                    id: backCancelBtn
-                    text: "取消"
-                    tooltip: "不返回，继续当前处理"
-                    paletteGroup: "IconBtnEx"
-                    implicitWidth: 100
-                    implicitHeight: 38
-                    onClicked: backConfirmDialog.close()
-                }
-
-                IconButton {
-                    id: backConfirmBtn
-                    text: "返回首页"
-                    tooltip: "中断任务并返回首页"
-                    paletteGroup: "BackConfirmBtn"
-                    implicitWidth: 120
-                    implicitHeight: 38
-                    onClicked: {
-                        if (controller) { controller.reset() }
-                        backConfirmDialog.close()
-                        root.backRequested()
-                    }
+        contentItem: Label {
+            text: "当前有任务正在处理中，返回首页将中断执行，是否继续？"
+            color: pal.LabelEx_statusText
+            font.pixelSize: 14
+            wrapMode: Text.WordWrap
+            focus: true
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    backConfirmDialog.accept()
+                    event.accepted = true
                 }
             }
+        }
+
+        onAccepted: {
+            if (controller) { controller.reset() }
+            root.backRequested()
         }
     }
 
@@ -122,54 +96,27 @@ Pane {
         modal: true
         anchors.centerIn: parent
         width: 400
-        standardButtons: Dialog.NoButton
-        closePolicy: Dialog.CloseOnEscape
+        standardButtons: Dialog.Ok | Dialog.Cancel
 
-        contentItem: ColumnLayout {
-            spacing: 8
-            Layout.margins: 4
-
-            Label {
-                text: "该字幕已下载，是否重新下载并覆盖？"
-                color: pal.LabelEx_statusText
-                font.pixelSize: 14
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-                Layout.bottomMargin: 8
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                Item { Layout.fillWidth: true }
-
-                IconButton {
-                    text: "取消"
-                    tooltip: "取消重新下载"
-                    paletteGroup: "IconBtnEx"
-                    implicitWidth: 100
-                    implicitHeight: 38
-                    onClicked: redownloadDialog.close()
-                }
-
-                IconButton {
-                    text: "确认"
-                    tooltip: "重新下载并覆盖"
-                    normalColor: pal.CustomSubtitlePage_downloadBtn_normalColor
-                    hoverColor: pal.CustomSubtitlePage_downloadBtn_hoverColor
-                    borderColor: pal.CustomSubtitlePage_downloadBtn_borderColor
-                    textColor: pal.CustomSubtitlePage_downloadBtn_textColor
-                    implicitWidth: 100
-                    implicitHeight: 38
-                    onClicked: {
-                        redownloadDialog.close()
-                        if (browserCtrl && _redownloadIndex >= 0) {
-                            browserCtrl.download(_redownloadIndex);
-                        }
-                        _redownloadIndex = -1;
-                    }
+        contentItem: Label {
+            text: "该字幕已下载，是否重新下载并覆盖？"
+            color: pal.LabelEx_statusText
+            font.pixelSize: 14
+            wrapMode: Text.WordWrap
+            focus: true
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    redownloadDialog.accept()
+                    event.accepted = true
                 }
             }
+        }
+
+        onAccepted: {
+            if (browserCtrl && _redownloadIndex >= 0) {
+                browserCtrl.download(_redownloadIndex);
+            }
+            _redownloadIndex = -1;
         }
     }
 
@@ -401,8 +348,8 @@ Pane {
                         paletteGroup: "IconBtnEx"
                         onClicked: videoSourceFolderDialog.open()
                     }
-                }
-                
+}
+
                 // Row 3: 合成输出路径
                 RowLayout {
                     spacing: 12
@@ -793,7 +740,6 @@ Pane {
                                 tooltip: "清空记录"
                                 visible: !searchBusyIndicator.visible
                                 enabled: !searchBusyIndicator.visible && searchResultsModel.count > 0 && (!controller || controller.currentStep === controller.stepNone) && (!browserCtrl || !browserCtrl.previewing)
-                    paletteGroup: "BackCancelBtn"
                                 onClicked: searchResultsModel.clear()
                             }
                         }
@@ -1558,4 +1504,5 @@ Pane {
             }
         }
     }
+
 }

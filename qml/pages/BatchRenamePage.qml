@@ -1,6 +1,6 @@
 import QtQuick
-import QtQuick.Controls
 import QtQuick.Dialogs
+import QtQuick.Controls
 import QtQuick.Layouts
 import "../components"
 
@@ -56,52 +56,25 @@ Pane {
         modal: true
         anchors.centerIn: parent
         width: 400
-        standardButtons: Dialog.NoButton
-        closePolicy: Dialog.CloseOnEscape
+        standardButtons: Dialog.Ok | Dialog.Cancel
 
-        contentItem: ColumnLayout {
-            spacing: 8
-            Layout.margins: 4
-
-            Label {
-                id: backConfirmMsg
-                text: "当前有批量重命名任务正在处理中，返回首页将中断执行，是否继续？"
-                color: pal.LabelEx_statusText
-                font.pixelSize: 14
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-                Layout.bottomMargin: 8
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
-                Item { Layout.fillWidth: true }
-
-                IconButton {
-                    id: cancelBtn
-                    text: "取消"
-                    tooltip: "不返回，继续当前任务"
-                    paletteGroup: "BackCancelBtn"
-                    implicitWidth: 100
-                    implicitHeight: 38
-                    onClicked: backConfirmDialog.close()
-                }
-
-                IconButton {
-                    id: returnHomeBtn
-                    text: "返回首页"
-                    tooltip: "中断任务并返回首页"
-                    paletteGroup: "BackConfirmBtn"
-                    implicitWidth: 120
-                    implicitHeight: 38
-                    onClicked: {
-                        if (controller) { controller.reset(); }
-                        backConfirmDialog.close();
-                        root.backRequested();
-                    }
+        contentItem: Label {
+            text: "当前有批量重命名任务正在处理中，返回首页将中断执行，是否继续？"
+            color: pal.LabelEx_statusText
+            font.pixelSize: 14
+            wrapMode: Text.WordWrap
+            focus: true
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    backConfirmDialog.accept()
+                    event.accepted = true
                 }
             }
+        }
+
+        onAccepted: {
+            if (controller) { controller.reset(); }
+            root.backRequested();
         }
     }
 
@@ -733,4 +706,6 @@ Pane {
             }
         }
     }
+
 }
+

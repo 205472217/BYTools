@@ -196,15 +196,6 @@ var palette = {
     FeatureCard_descriptionColor: "#94a3b8",                // 功能卡片-描述
     FeatureCard_arrowColor: "#4a4d56",                      // 功能卡片-箭头
     FeatureCard_hoverArrowColor: "#60a5fa",                 // 功能卡片-箭头(悬停)
-    // 通用-返回确认对话框(按钮)
-    BackCancelBtn_normalColor: "#383b44",
-    BackCancelBtn_hoverColor: "#4a4d56",
-    BackCancelBtn_borderColor: "#4a4d56",
-    BackCancelBtn_textColor: "#cbd5e1",
-    BackConfirmBtn_normalColor: "#f87171",
-    BackConfirmBtn_hoverColor: "#ef4444",
-    BackConfirmBtn_borderColor: "#ef4444",
-    BackConfirmBtn_textColor: "#ffffff",
 
     // ── BatchRenamePage ─────────────────────────────────────
     BatchRenamePage_advancedLabel_color: "#94a3b8",                     // 批量重命名-高级选项标签
@@ -332,11 +323,6 @@ var palette = {
     VideoSubtitleSettingsPage_keepToggleBtn_borderColor: "#4a4d56",
     VideoSubtitleSettingsPage_keepToggleBtn_textColor_active: "#ffffff",
     VideoSubtitleSettingsPage_keepToggleBtn_textColor_normal: "#ffffff",
-    // 字幕设置-保存(按钮)
-    VideoSubtitleSettingsPage_saveBtn_normalColor: "#60a5fa",
-    VideoSubtitleSettingsPage_saveBtn_hoverColor: "#2563eb",
-    VideoSubtitleSettingsPage_saveBtn_borderColor: "#2563eb",
-
     // ── CustomSubtitlePage ──────────────────────────────────
     CustomSubtitlePage_keywordInputBg_color: "#252830",                 // 自定义字幕-关键词输入框背景
     CustomSubtitlePage_keywordInputBg_borderColor_active: "#60a5fa",    // 自定义字幕-关键词输入框边框(激活)
@@ -401,16 +387,6 @@ var palette = {
     SubtitleAdjustPage_videoOverlay_color: "#000000",                   // 字幕校对-视频遮罩
     SubtitleAdjustPage_subtitleOverlay_color: "#C0000000",              // 字幕校对-字幕遮罩
     SubtitleAdjustPage_subtitleText_color: "#e2e8f0",                   // 字幕校对-字幕文字
-    // 字幕校对-取消(按钮)
-    SubtitleAdjustPage_cancelBtn_normalColor: "#383b44",
-    SubtitleAdjustPage_cancelBtn_hoverColor: "#4a4d56",
-    SubtitleAdjustPage_cancelBtn_borderColor: "#4a4d56",
-    SubtitleAdjustPage_cancelBtn_textColor: "#cbd5e1",
-    // 字幕校对-继续(按钮)
-    SubtitleAdjustPage_continueBtn_normalColor: "#f87171",
-    SubtitleAdjustPage_continueBtn_hoverColor: "#ef4444",
-    SubtitleAdjustPage_continueBtn_borderColor: "#ef4444",
-    SubtitleAdjustPage_continueBtn_textColor: "#ffffff",
     // 字幕校对-开始映射(按钮)
     SubtitleAdjustPage_startMapBtn_normalColor: "#60a5fa",
     SubtitleAdjustPage_startMapBtn_hoverColor: "#2563eb",

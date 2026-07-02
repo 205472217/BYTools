@@ -39,6 +39,7 @@ ApplicationWindow {
         id: confirmCloseDialog
         title: "确认退出"
         standardButtons: Dialog.Yes | Dialog.No
+        
         closePolicy: Popup.CloseOnEscape
         x: Math.round((window.width - width) / 2)
         y: Math.round((window.height - height) / 2)

@@ -1,7 +1,7 @@
 import QtQuick
+import QtQuick.Dialogs
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
 import "../components"
 
 Pane {
@@ -21,11 +21,28 @@ Pane {
     property int _contextMenuIndex: -1
     readonly property var _activeView: controller && controller.viewMode === 1 ? fileGridView : fileListView
 
-    MessageDialog {
+    Dialog {
         id: confirmDeleteDialog
         title: "确认删除"
-        text: "确定要永久删除该文件吗？\n此操作不可恢复！"
-        buttons: MessageDialog.Yes | MessageDialog.No
+        modal: true
+        anchors.centerIn: parent
+        width: 400
+        standardButtons: Dialog.Ok | Dialog.Cancel
+
+        contentItem: Label {
+            text: "确定要永久删除该文件吗？\n此操作不可恢复！"
+            color: pal.LabelEx_statusText
+            font.pixelSize: 14
+            wrapMode: Text.WordWrap
+            focus: true
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    confirmDeleteDialog.accept()
+                    event.accepted = true
+                }
+            }
+        }
+
         onAccepted: {
             if (!controller || controller.currentModelIndex < 0)
                 return;
@@ -38,6 +55,39 @@ Pane {
                     imagePreviewLoader.item.source = "";
                 controller.deleteFile(controller.currentModelIndex);
             }
+        }
+    }
+
+    // ── 返回确认 ──
+    Dialog {
+        id: backConfirmDialog
+        title: "确认返回"
+        modal: true
+        anchors.centerIn: parent
+        width: 400
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        
+        onOpened: root._hideNativeOverlay()
+        onClosed: root._showNativeOverlay()
+
+        contentItem: Label {
+            text: "当前有视频正在播放，返回首页将中断播放，是否继续？"
+            color: pal.LabelEx_statusText
+            font.pixelSize: 14
+            wrapMode: Text.WordWrap
+            focus: true
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    backConfirmDialog.accept()
+                    event.accepted = true
+                }
+            }
+        }
+
+        onAccepted: {
+            if (controller) { controller.reset() }
+            root._hideNativeOverlay()
+            root.backRequested()
         }
     }
 
@@ -156,8 +206,12 @@ Pane {
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
                 onClicked: {
-                    root._hideNativeOverlay();
-                    root.backRequested();
+                    if ((controller && controller.isProcessing) || videoPreviewLoader.active) {
+                        backConfirmDialog.open();
+                    } else {
+                        root._hideNativeOverlay();
+                        root.backRequested();
+                    }
                 }
             }
 
@@ -561,7 +615,7 @@ Pane {
                                                     default:
                                                         return pal.LabelEx_Other_BgRect;
                                                     }
-                                                }
+}
 
                                                 Label {
                                                     id: typeTagText
@@ -1188,4 +1242,5 @@ Pane {
             }
         }
     }
+
 }
