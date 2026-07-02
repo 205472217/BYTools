@@ -14,6 +14,7 @@ class FileViewSettings : public QObject
     Q_PROPERTY(int volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
     Q_PROPERTY(int seekStepMs READ seekStepMs WRITE setSeekStepMs NOTIFY seekStepMsChanged)
+    Q_PROPERTY(int viewWay READ viewWay WRITE setViewWay NOTIFY viewWayChanged)
     Q_PROPERTY(int viewMode READ viewMode WRITE setViewMode NOTIFY viewModeChanged)
 
 public:
@@ -27,6 +28,7 @@ public:
     int volume() const;
     bool muted() const;
     int seekStepMs() const;
+    int viewWay() const;
     int viewMode() const;
 
     void setSourceFolder(const QString &path);
@@ -37,6 +39,7 @@ public:
     void setVolume(int vol);
     void setMuted(bool m);
     void setSeekStepMs(int ms);
+    void setViewWay(int mode);
     void setViewMode(int mode);
 
     Q_INVOKABLE void loadSettings();
@@ -51,6 +54,7 @@ signals:
     void volumeChanged();
     void mutedChanged();
     void seekStepMsChanged();
+    void viewWayChanged();
     void viewModeChanged();
 
 private:
@@ -62,5 +66,6 @@ private:
     int m_volume = 100;
     bool m_muted = false;
     int m_seekStepMs = 5000;
-    int m_viewMode = 1;
+    int m_viewWay = 0;
+    int m_viewMode = 0;
 };

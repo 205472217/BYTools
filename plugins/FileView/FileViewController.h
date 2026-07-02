@@ -26,8 +26,9 @@ class FileViewController : public QObject
     Q_PROPERTY(QString currentFilePath READ currentFilePath NOTIFY currentFilePathChanged)
     Q_PROPERTY(QVariantMap currentFileInfo READ currentFileInfo NOTIFY currentFileInfoChanged)
     Q_PROPERTY(int currentModelIndex READ currentModelIndex NOTIFY currentModelIndexChanged)
+    Q_PROPERTY(int viewWay READ viewWay WRITE setViewWay NOTIFY viewWayChanged)
     Q_PROPERTY(int viewMode READ viewMode WRITE setViewMode NOTIFY viewModeChanged)
-    Q_PROPERTY(QString gridCurrentPath READ gridCurrentPath NOTIFY gridCurrentPathChanged)
+    Q_PROPERTY(QString currentPath READ currentPath NOTIFY currentPathChanged)
     Q_PROPERTY(bool canNavigateUp READ canNavigateUp NOTIFY canNavigateUpChanged)
 
 public:
@@ -51,8 +52,9 @@ public:
     QString currentFilePath() const;
     QVariantMap currentFileInfo() const;
     int currentModelIndex() const;
+    int viewWay() const;
     int viewMode() const;
-    QString gridCurrentPath() const;
+    QString currentPath() const;
     bool canNavigateUp() const;
 
     void setSourceFolder(const QString &path);
@@ -60,6 +62,7 @@ public:
     void setFileType(int type);
     void setSortField(int field);
     void setSortAscending(bool ascending);
+    void setViewWay(int mode);
     void setViewMode(int mode);
 
     Q_INVOKABLE void startScan();
@@ -88,20 +91,21 @@ signals:
     void currentFileInfoChanged();
     void currentModelIndexChanged();
     void scanFinished();
+    void viewWayChanged();
     void viewModeChanged();
-    void gridCurrentPathChanged();
+    void currentPathChanged();
     void canNavigateUpChanged();
 
 private:
     void doScanWork();
-    void scanListFiles();
-    void scanGridDirectory();
+    void scanFiles();
+    void scanDirectorys();
     void triggerScan();
     void applySort();
     void setCurrentFilePath(const QString &path);
     void setCurrentFileInfo(const QVariantMap &info);
     void setCurrentModelIndex(int index);
-    void setGridCurrentPath(const QString &path);
+    void setCurrentPath(const QString &path);
 
     void startThumbnailGeneration();
     void onThumbnailReady(const QString &filePath, const QString &thumbnailPath);
@@ -124,7 +128,8 @@ private:
     QString m_currentFilePath;
     QVariantMap m_currentFileInfo;
     int m_currentModelIndex = -1;
-    int m_viewMode = 1;
-    QString m_gridCurrentPath;
+    int m_viewWay = 0;
+    int m_viewMode = 0;
+    QString m_currentPath;
     bool m_canNavigateUp = false;
 };

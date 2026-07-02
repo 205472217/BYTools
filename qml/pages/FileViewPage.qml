@@ -17,9 +17,10 @@ Pane {
     property bool hasFiles: controller && controller.fileCount > 0
     property bool hasSelection: controller && controller.currentFilePath.length > 0
     property string _lastLogLine: ""
-    property int _activeViewMode: 1  // 上次扫描所用的模式，默认文件模式
+    property int _activeViewWay: 0  // 上次扫描所用的浏览方式，默认目录模式
     property var _typeNames: ["视频", "音频", "图片", "全部"]
     property int _contextMenuIndex: -1
+    readonly property var _activeView: controller && controller.viewMode === 1 ? fileGridView : fileListView
 
     MessageDialog {
         id: confirmDeleteDialog
@@ -281,12 +282,12 @@ Pane {
                         id: dirModeRadio
                         text: "目录模式"
                         paletteGroup: "RadioButtonEx"
-                        checked: settings.viewMode === 0
+                        checked: settings.viewWay === 0
                         font.pixelSize: 13
                         onCheckedChanged: {
-                            if (checked && controller && settings.viewMode !== 0) {
-                                settings.viewMode = 0
-                                controller.viewMode = 0
+                            if (checked && controller && settings.viewWay !== 0) {
+                                settings.viewWay = 0
+                                controller.viewWay = 0
                             }
                         }
                     }
@@ -295,12 +296,12 @@ Pane {
                         id: fileModeRadio
                         text: "文件模式"
                         paletteGroup: "RadioButtonEx"
-                        checked: settings.viewMode === 1
+                        checked: settings.viewWay === 1
                         font.pixelSize: 13
                         onCheckedChanged: {
-                            if (checked && controller && settings.viewMode !== 1) {
-                                settings.viewMode = 1
-                                controller.viewMode = 1
+                            if (checked && controller && settings.viewWay !== 1) {
+                                settings.viewWay = 1
+                                controller.viewWay = 1
                             }
                         }
                     }
@@ -312,7 +313,7 @@ Pane {
                         paletteGroup: "CheckBoxEx"
                         font.pixelSize: 12
                         checked: controller ? controller.recursive : false
-                        visible: settings.viewMode === 1
+                        visible: settings.viewWay === 1
                         onCheckedChanged: {
                             if (controller)
                                 controller.recursive = checked;
@@ -333,7 +334,7 @@ Pane {
                         onClicked: {
                             if (!controller)
                                 return;
-                            root._activeViewMode = settings.viewMode;
+                            root._activeViewWay = settings.viewWay;
                             controller.startScan();
                         }
                     }
@@ -398,21 +399,9 @@ Pane {
                         border.color: pal.SurfaceEx_cardBorderLight
                         border.width: 1
 
-                        // 文件模式：标题
-                        Label {
-                            visible: _activeViewMode === 1
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.left: parent.left
-                            anchors.leftMargin: 12
-                            text: "文件列表"
-                            color: pal.LabelEx_labelText
-                            font.pixelSize: 13
-                            font.bold: true
-                        }
-
-                        // 目录模式：返回 + 路径
+                        // 目录模式：返回 + 路径 + 切换视图
                         RowLayout {
-                            visible: _activeViewMode === 0
+                            visible: _activeViewWay === 0
                             anchors.fill: parent
                             anchors.leftMargin: 4
                             anchors.rightMargin: 4
@@ -431,10 +420,50 @@ Pane {
                             TextFieldEx {
                                 Layout.fillWidth: true
                                 implicitHeight: 24
-                                text: controller ? controller.gridCurrentPath : ""
+                                text: controller ? controller.currentPath : ""
                                 readOnly: true
                                 font.pixelSize: 11
                                 paletteGroup: "TextFieldEx"
+                            }
+
+                            ViewToggleBtn {
+                                iconType: controller && controller.viewMode === 0 ? "grid" : "list"
+                                tip: controller && controller.viewMode === 0 ? "网格" : "列表"
+                                paletteGroup: "ViewToggleBtn"
+                                onClicked: {
+                                    if (controller)
+                                        controller.viewMode = controller.viewMode === 0 ? 1 : 0
+                                }
+                            }
+                        }
+
+                        // 文件模式：标题 + 切换视图
+                        RowLayout {
+                            visible: _activeViewWay === 1
+                            anchors.fill: parent
+                            anchors.leftMargin: 4
+                            anchors.rightMargin: 4
+                            spacing: 6
+
+                            Label {
+                                Layout.alignment: Qt.AlignVCenter
+                                Layout.leftMargin: 12
+                                text: "文件模式"
+                                color: pal.LabelEx_labelText
+                                font.pixelSize: 13
+                                font.bold: true
+                            }
+
+                            Item { Layout.fillWidth: true }
+
+                            ViewToggleBtn {
+                                iconType: controller && controller.viewMode === 0 ? "grid" : "list"
+                                tip: controller && controller.viewMode === 0 ? "网格" : "列表"
+                                paletteGroup: "ViewToggleBtn"
+                                onClicked: {
+                                    if (controller)
+                                        controller.viewMode = controller.viewMode === 0 ? 1 : 0
+                                }
                             }
                         }
                     }
@@ -457,8 +486,8 @@ Pane {
                             id: fileListView
                             anchors.fill: parent
                             model: controller ? controller.fileListModel : null
-                            visible: _activeViewMode === 1 && hasFiles
-                            currentIndex: -1
+                            visible: controller && controller.viewMode === 0 && hasFiles
+                            currentIndex: controller ? controller.currentModelIndex : -1
                             ScrollBar.vertical: ScrollBar {
                                 policy: ScrollBar.AsNeeded
                             }
@@ -471,10 +500,12 @@ Pane {
                                 height: 48
                                 required property int index
                                 required property string fileName
+                                required property string filePath
                                 required property string fileSizeDisplay
                                 required property string modifiedTimeDisplay
                                 required property string fileType
                                 required property int typeCategory
+                                required property bool isDir
 
                                 property bool rowHovered: false
 
@@ -599,8 +630,10 @@ Pane {
                                         if (mouse.button === Qt.RightButton) {
                                             root._contextMenuIndex = fileDelegate.index;
                                             contentMenu.popup();
+                                        } else if (fileDelegate.isDir) {
+                                            if (controller)
+                                                controller.navigateToDir(fileDelegate.filePath);
                                         } else {
-                                            fileListView.currentIndex = fileDelegate.index;
                                             if (controller)
                                                 controller.selectFile(fileDelegate.index);
                                         }
@@ -615,10 +648,10 @@ Pane {
                             anchors.fill: parent
                             anchors.margins: 4
                             model: controller ? controller.fileListModel : null
-                            visible: _activeViewMode === 0 && hasFiles
+                            visible: controller && controller.viewMode === 1 && hasFiles
                             cellWidth: 150
                             cellHeight: 230
-                            currentIndex: -1
+                            currentIndex: controller ? controller.currentModelIndex : -1
                             ScrollBar.vertical: ScrollBar {
                                 policy: ScrollBar.AsNeeded
                             }
@@ -703,7 +736,6 @@ Pane {
                                         } else if (isDir) {
                                             controller.navigateToDir(filePath);
                                         } else {
-                                            fileGridView.currentIndex = index;
                                             controller.selectFile(index);
                                         }
                                     }
@@ -718,36 +750,20 @@ Pane {
                                 text: "定位到当前文件"
                                 icon.source: "qrc:/icons/to-current.svg"
                                 onTriggered: {
-                                    var idx = root._activeViewMode === 0
-                                        ? fileGridView.currentIndex
-                                        : fileListView.currentIndex;
-                                    if (idx >= 0) {
-                                        if (root._activeViewMode === 0)
-                                            fileGridView.positionViewAtIndex(idx, GridView.Contain);
-                                        else
-                                            fileListView.positionViewAtIndex(idx, ListView.Contain);
-                                    }
+                                    var idx = root._activeView.currentIndex;
+                                    if (idx >= 0)
+                                        root._activeView.positionViewAtIndex(idx, ListView.Contain);
                                 }
                             }
                             MenuItem {
                                 text: "定位到顶部"
                                 icon.source: "qrc:/icons/to-top.svg"
-                                onTriggered: {
-                                    if (root._activeViewMode === 0)
-                                        fileGridView.positionViewAtBeginning();
-                                    else
-                                        fileListView.positionViewAtBeginning();
-                                }
+                                onTriggered: root._activeView.positionViewAtBeginning()
                             }
                             MenuItem {
                                 text: "定位到底部"
                                 icon.source: "qrc:/icons/to-bottom.svg"
-                                onTriggered: {
-                                    if (root._activeViewMode === 0)
-                                        fileGridView.positionViewAtEnd();
-                                    else
-                                        fileListView.positionViewAtEnd();
-                                }
+                                onTriggered: root._activeView.positionViewAtEnd()
                             }
 
                             MenuSeparator {}
@@ -814,7 +830,7 @@ Pane {
                             id: emptyListLabel
                             anchors.centerIn: parent
                             text: {
-                                if (settings.viewMode === 0)
+                                if (settings.viewWay === 0)
                                     return "暂无内容，请选择源文件夹后点击「开始浏览」";
                                 return "暂无文件，请选择源文件夹后点击「开始浏览」";
                             }

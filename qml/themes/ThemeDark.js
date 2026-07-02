@@ -65,6 +65,9 @@ var palette = {
     IconBtnEx_overlayBgHoverColor: "#383b44",
     IconBtnEx_overlayTextColor: "#f1f5f9",
     IconBtnEx_overlayTextHoverColor: "#1e293b",
+    // ── 视图切换按钮 ──────────────────────────────────────────
+    ViewToggleBtn_normalColor: "#e2e8f0",
+    ViewToggleBtn_hoverColor: "#f1f5f9",
 
     // ═════════════════════════════
     //  类别6: 视频播放器覆盖层按钮

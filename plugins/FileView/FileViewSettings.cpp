@@ -15,6 +15,7 @@ bool FileViewSettings::sortAscending() const { return m_sortAscending; }
 int FileViewSettings::volume() const { return m_volume; }
 bool FileViewSettings::muted() const { return m_muted; }
 int FileViewSettings::seekStepMs() const { return m_seekStepMs; }
+int FileViewSettings::viewWay() const { return m_viewWay; }
 int FileViewSettings::viewMode() const { return m_viewMode; }
 
 void FileViewSettings::setSourceFolder(const QString &path)
@@ -83,6 +84,15 @@ void FileViewSettings::setSeekStepMs(int ms)
     saveSettings();
 }
 
+void FileViewSettings::setViewWay(int mode)
+{
+    if (m_viewWay == mode)
+        return;
+    m_viewWay = mode;
+    emit viewWayChanged();
+    saveSettings();
+}
+
 void FileViewSettings::setViewMode(int mode)
 {
     if (m_viewMode == mode)
@@ -104,7 +114,8 @@ void FileViewSettings::loadSettings()
     m_volume = qBound(0, qRound(v), 100);
     m_muted = s.value("muted", false).toBool();
     m_seekStepMs = s.value("seekStepMs", 5000).toInt();
-    m_viewMode = s.value("viewMode", 1).toInt();
+    m_viewWay = s.value("viewWay", 0).toInt();
+    m_viewMode = s.value("viewMode", 0).toInt();
 }
 void FileViewSettings::saveSettings()
 {
@@ -117,6 +128,7 @@ void FileViewSettings::saveSettings()
     s.setValue("volume", m_volume);
     s.setValue("muted", m_muted);
     s.setValue("seekStepMs", m_seekStepMs);
+    s.setValue("viewWay", m_viewWay);
     s.setValue("viewMode", m_viewMode);
     s.sync();
 }

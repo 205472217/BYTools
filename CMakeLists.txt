@@ -48,6 +48,7 @@ set(BYTOOLS_QML_FILES
     qml/components/ComboBoxEx.qml
     qml/components/CheckBoxEx.qml
     qml/components/RadioButtonEx.qml
+    qml/components/ViewToggleBtn.qml
     qml/components/ImageViewer.qml
     qml/components/MpvViewer.qml
     qml/pages/HomePage.qml
