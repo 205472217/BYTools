@@ -13,7 +13,7 @@ class ImageCropPlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
-    static constexpr const char* kIniSection = "image-crop";
+    static constexpr const char* PluginKey = "ImageCrop";
 
     ImageCropPlugin(QObject *parent = nullptr);
 

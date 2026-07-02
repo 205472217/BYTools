@@ -1,9 +1,12 @@
 ﻿#include "SubBrowserController.h"
+#include "CustomSubtitlePlugin.h"
 #include "Logger.h"
 #include "SettingsHelper.h"
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -24,12 +27,16 @@ SubBrowserController::SubBrowserController(PluginLogger *logger, QObject *parent
     m_scriptsDir  = findScriptsDir();
     m_pythonAvailable = !m_pythonPath.isEmpty() && !m_scriptsDir.isEmpty();
 
+    m_cacheDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
+                 + "/CustomSubtitleCache";
+    QDir().mkpath(m_cacheDir);
+
     if (m_pythonAvailable)
         checkDependencies();
 
     initSites();  // 扫描 python/<site>/search.py 文件夹
 
-    QSettings &s = pluginGroupSettings("CustomSubtitle");
+    QSettings &s = pluginGroupSettings(CustomSubtitlePlugin::PluginKey);
     s.sync();
     QString lastSite = s.value("browserLastSite").toString();
     if (!lastSite.isEmpty() && m_availableSites.contains(lastSite))
@@ -212,13 +219,16 @@ bool SubBrowserController::pythonAvailable()  const { return m_pythonAvailable; 
 bool SubBrowserController::dependenciesMet() const { return m_dependenciesMet; }
 int SubBrowserController::searchProgress() const { return m_searchProgress; }
 QString SubBrowserController::searchProgressMessage() const { return m_searchProgressMessage; }
+bool SubBrowserController::previewing() const { return m_previewing; }
+QString SubBrowserController::previewContent() const { return m_previewContent; }
+int SubBrowserController::cachedIndex() const { return m_cachedIndex; }
 
 void SubBrowserController::setCurrentSite(const QString &site)
 {
     if (m_currentSite != site) {
         m_currentSite = site;
         emit currentSiteChanged();
-        QSettings &s = pluginGroupSettings("CustomSubtitle");
+        QSettings &s = pluginGroupSettings(CustomSubtitlePlugin::PluginKey);
         s.setValue("browserLastSite", site);
     }
 }
@@ -273,6 +283,14 @@ void SubBrowserController::search()
     // m_currentSite 即 python/ 下的文件夹名，直接传给 Python
     const QString &siteKey = m_currentSite;
 
+    // 新搜索前清空预览缓存和下载状态
+    m_downloadedIndices.clear();
+    clearPreview();
+    QDir cacheDir(m_cacheDir);
+    if (cacheDir.exists())
+        cacheDir.removeRecursively();
+    QDir().mkpath(m_cacheDir);
+
     m_searching = true;
     m_searchResults.clear();
     m_searchStatus = QStringLiteral("正在搜索...");
@@ -304,7 +322,7 @@ void SubBrowserController::search()
     static constexpr int kMaxResultsMin    = 5;
     static constexpr int kMaxResultsMax    = 100;
 
-    QSettings &s = pluginGroupSettings("CustomSubtitle");
+    QSettings &s = pluginGroupSettings(CustomSubtitlePlugin::PluginKey);
     int maxResults = s.value("browserMaxResults", kDefaultMaxResults).toInt();
     if (maxResults < kMaxResultsMin || maxResults > kMaxResultsMax)
         maxResults = kDefaultMaxResults;
@@ -514,6 +532,109 @@ void SubBrowserController::onSearchTimeout()
 }
 
 // ══════════════════════════════════════════════════════════
+//  预览（下载到缓存）
+// ══════════════════════════════════════════════════════════
+void SubBrowserController::preview(int index)
+{
+    if (m_previewing || m_downloading) return;
+    if (index < 0 || index >= m_searchResults.size()) return;
+
+    QVariantMap item = m_searchResults[index].toMap();
+    QString url      = item.value("downloadUrl").toString();
+    QString fileName = item.value("fileName").toString();
+    QString language = item.value("language").toString();
+    if (url.isEmpty()) return;
+
+    m_cachedIndex = index;
+    m_cachedFilePath.clear();
+    m_previewContent.clear();
+    m_previewing = true;
+    m_isPreviewDownload = true;
+    emit cachedIndexChanged();
+    emit previewContentChanged();
+    emit previewingChanged();
+
+    if (m_logger)
+        m_logger->info(QStringLiteral("SubBrowser: 预览下载 '%1' (%2) → %3")
+                           .arg(fileName, language, m_cacheDir));
+
+    QJsonObject req;
+    req["url"]        = url;
+    req["file_name"]  = fileName;
+    req["output_dir"] = m_cacheDir;
+    req["language"]   = language;
+    QByteArray jsonData = QJsonDocument(req).toJson(QJsonDocument::Compact);
+
+    if (m_downloadProcess) {
+        m_downloadProcess->disconnect();
+        m_downloadProcess->kill();
+        m_downloadProcess->waitForFinished(3000);
+        m_downloadProcess->deleteLater();
+    }
+
+    m_downloadProcess = new QProcess(this);
+    connect(m_downloadProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, &SubBrowserController::onDownloadProcessFinished);
+    connect(m_downloadProcess, &QProcess::errorOccurred,
+            this, &SubBrowserController::onDownloadProcessError);
+
+    if (!m_downloadTimer) {
+        m_downloadTimer = new QTimer(this);
+        m_downloadTimer->setSingleShot(true);
+        connect(m_downloadTimer, &QTimer::timeout, this, &SubBrowserController::onDownloadTimeout);
+    }
+
+    QString script = m_scriptsDir + "/download.py";
+    m_downloadProcess->start(m_pythonPath, {"-u", script});
+    m_downloadProcess->write(jsonData);
+    m_downloadProcess->closeWriteChannel();
+    m_downloadTimer->start(kDownloadTimeoutMs);
+}
+
+void SubBrowserController::clearPreview()
+{
+    m_cachedIndex = -1;
+    m_cachedFilePath.clear();
+    m_previewContent.clear();
+    emit cachedIndexChanged();
+    emit previewContentChanged();
+}
+
+bool SubBrowserController::isDownloaded(int index) const
+{
+    return m_downloadedIndices.contains(index);
+}
+
+void SubBrowserController::savePreviewToDownload()
+{
+    if (m_downloadPath.isEmpty()) {
+        m_searchStatus = QStringLiteral("请先在上方设置字幕下载路径");
+        emit searchStatusChanged(); emit logMessage(m_searchStatus);
+        return;
+    }
+    if (m_cachedIndex < 0 || m_cachedFilePath.isEmpty()) {
+        m_searchStatus = QStringLiteral("没有可保存的预览缓存");
+        emit searchStatusChanged(); emit logMessage(m_searchStatus);
+        return;
+    }
+
+    QFileInfo fi(m_cachedFilePath);
+    QString destPath = m_downloadPath + "/" + fi.fileName();
+    if (QFile::exists(destPath))
+        QFile::remove(destPath);
+    if (QFile::copy(m_cachedFilePath, destPath)) {
+        m_downloadedIndices.insert(m_cachedIndex);
+        m_searchStatus = QStringLiteral("已保存: %1").arg(destPath);
+        if (m_logger) m_logger->info(m_searchStatus);
+    } else {
+        m_searchStatus = QStringLiteral("文件保存失败: %1").arg(destPath);
+        if (m_logger) m_logger->warn(m_searchStatus);
+    }
+    emit searchStatusChanged();
+    emit logMessage(m_searchStatus);
+}
+
+// ══════════════════════════════════════════════════════════
 //  下载
 // ══════════════════════════════════════════════════════════
 void SubBrowserController::download(int index)
@@ -527,12 +648,32 @@ void SubBrowserController::download(int index)
         return;
     }
 
+    // 如果有预览缓存且匹配，直接从缓存复制到下载目录
+    if (index == m_cachedIndex && !m_cachedFilePath.isEmpty()) {
+        QFileInfo fi(m_cachedFilePath);
+        QString destPath = m_downloadPath + "/" + fi.fileName();
+        if (QFile::exists(destPath))
+            QFile::remove(destPath);
+        if (QFile::copy(m_cachedFilePath, destPath)) {
+            m_downloadedIndices.insert(index);
+            m_searchStatus = QStringLiteral("下载完成: %1").arg(destPath);
+            if (m_logger) m_logger->info(m_searchStatus);
+        } else {
+            m_searchStatus = QStringLiteral("文件复制失败: %1").arg(destPath);
+            if (m_logger) m_logger->warn(m_searchStatus);
+        }
+        emit searchStatusChanged();
+        emit logMessage(m_searchStatus);
+        return;
+    }
+
     QVariantMap item = m_searchResults[index].toMap();
     QString url      = item.value("downloadUrl").toString();
     QString fileName = item.value("fileName").toString();
     QString language = item.value("language").toString();
     if (url.isEmpty()) return;
 
+    m_currentDownloadIndex = index;
     m_downloading = true;
     m_downloadingFile = fileName;
     emit downloadingChanged(); emit downloadingFileChanged();
@@ -581,11 +722,26 @@ void SubBrowserController::onDownloadProcessFinished(int exitCode, QProcess::Exi
     if (!m_downloadProcess)
         return;
 
+    bool wasPreview = m_isPreviewDownload;
+    m_isPreviewDownload = false;
+
     if (exitStatus != QProcess::NormalExit || exitCode != 0) {
         QByteArray err = m_downloadProcess->readAllStandardError();
-        m_searchStatus = QStringLiteral("下载失败: %1").arg(QString::fromUtf8(err).trimmed());
-        m_downloading = false;
-        emit downloadingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
+        QString msg = QStringLiteral("下载失败: %1").arg(QString::fromUtf8(err).trimmed());
+
+        if (wasPreview) {
+            m_previewing = false;
+            m_cachedIndex = -1;
+            emit previewingChanged();
+            emit cachedIndexChanged();
+        } else {
+            m_currentDownloadIndex = -1;
+            m_downloading = false;
+            emit downloadingChanged();
+        }
+
+        m_searchStatus = msg;
+        emit searchStatusChanged(); emit logMessage(m_searchStatus);
         if (m_logger) m_logger->warn(m_searchStatus);
         m_downloadProcess->deleteLater(); m_downloadProcess = nullptr;
         return;
@@ -597,23 +753,62 @@ void SubBrowserController::onDownloadProcessFinished(int exitCode, QProcess::Exi
     QJsonParseError pe;
     QJsonDocument doc = QJsonDocument::fromJson(out, &pe);
     if (pe.error != QJsonParseError::NoError || !doc.isObject()) {
-        m_searchStatus = QStringLiteral("下载结果解析失败");
-        m_downloading = false;
-        emit downloadingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
+        QString msg = QStringLiteral("下载结果解析失败");
+
+        if (wasPreview) {
+            m_previewing = false;
+            m_cachedIndex = -1;
+            emit previewingChanged();
+            emit cachedIndexChanged();
+        } else {
+            m_currentDownloadIndex = -1;
+            m_downloading = false;
+            emit downloadingChanged();
+        }
+
+        m_searchStatus = msg;
+        emit searchStatusChanged(); emit logMessage(m_searchStatus);
         return;
     }
 
     QJsonObject root = doc.object();
-    if (root.value("ok").toBool(false)) {
-        m_searchStatus = QStringLiteral("下载完成: %1").arg(root.value("file_path").toString());
-        if (m_logger) m_logger->info(m_searchStatus);
+
+    if (wasPreview) {
+        m_previewing = false;
+        emit previewingChanged();
+
+        if (root.value("ok").toBool(false)) {
+            m_cachedFilePath = root.value("file_path").toString();
+            QFile file(m_cachedFilePath);
+            if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                m_previewContent = QString::fromUtf8(file.readAll());
+                file.close();
+            }
+            emit cachedIndexChanged();
+            emit previewContentChanged();
+            m_searchStatus = QStringLiteral("预览就绪");
+            if (m_logger) m_logger->info(QStringLiteral("SubBrowser: 预览就绪 %1").arg(m_cachedFilePath));
+        } else {
+            m_cachedIndex = -1;
+            emit cachedIndexChanged();
+            m_searchStatus = QStringLiteral("预览下载失败: %1").arg(root.value("error").toString());
+            if (m_logger) m_logger->warn(m_searchStatus);
+        }
     } else {
-        m_searchStatus = QStringLiteral("下载失败: %1").arg(root.value("error").toString());
-        if (m_logger) m_logger->warn(m_searchStatus);
+        if (root.value("ok").toBool(false)) {
+            m_downloadedIndices.insert(m_currentDownloadIndex);
+            m_searchStatus = QStringLiteral("下载完成: %1").arg(root.value("file_path").toString());
+            if (m_logger) m_logger->info(m_searchStatus);
+        } else {
+            m_currentDownloadIndex = -1;
+            m_searchStatus = QStringLiteral("下载失败: %1").arg(root.value("error").toString());
+            if (m_logger) m_logger->warn(m_searchStatus);
+        }
+        m_downloading = false;
+        emit downloadingChanged();
     }
 
-    m_downloading = false;
-    emit downloadingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
+    emit searchStatusChanged(); emit logMessage(m_searchStatus);
 }
 
 void SubBrowserController::onDownloadProcessError(QProcess::ProcessError error)
@@ -623,12 +818,26 @@ void SubBrowserController::onDownloadProcessError(QProcess::ProcessError error)
     if (!m_downloadProcess)
         return;
 
+    bool wasPreview = m_isPreviewDownload;
+    m_isPreviewDownload = false;
+
     QString msg = (error == QProcess::FailedToStart)
         ? QStringLiteral("Python 进程启动失败")
         : QStringLiteral("下载进程错误");
+
+    if (wasPreview) {
+        m_previewing = false;
+        m_cachedIndex = -1;
+        emit previewingChanged();
+        emit cachedIndexChanged();
+    } else {
+        m_currentDownloadIndex = -1;
+        m_downloading = false;
+        emit downloadingChanged();
+    }
+
     m_searchStatus = msg;
-    m_downloading = false;
-    emit downloadingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
+    emit searchStatusChanged(); emit logMessage(m_searchStatus);
     m_downloadProcess->deleteLater(); m_downloadProcess = nullptr;
 }
 
@@ -641,9 +850,23 @@ void SubBrowserController::onDownloadTimeout()
         m_downloadProcess->deleteLater();
         m_downloadProcess = nullptr;
     }
-    m_downloading = false;
+
+    bool wasPreview = m_isPreviewDownload;
+    m_isPreviewDownload = false;
+
+    if (wasPreview) {
+        m_previewing = false;
+        m_cachedIndex = -1;
+        emit previewingChanged();
+        emit cachedIndexChanged();
+    } else {
+        m_currentDownloadIndex = -1;
+        m_downloading = false;
+        emit downloadingChanged();
+    }
+
     m_searchStatus = QStringLiteral("下载超时");
-    emit downloadingChanged(); emit searchStatusChanged(); emit logMessage(m_searchStatus);
+    emit searchStatusChanged(); emit logMessage(m_searchStatus);
 }
 
 void SubBrowserController::openDownloadFolder()

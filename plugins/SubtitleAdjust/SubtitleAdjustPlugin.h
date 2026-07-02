@@ -13,6 +13,8 @@ class SubtitleAdjustPlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
+    static constexpr const char* PluginKey = "SubtitleAdjust";
+
     SubtitleAdjustPlugin(QObject *parent = nullptr);
 
     QString id() const override;

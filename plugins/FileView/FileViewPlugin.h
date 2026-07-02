@@ -13,6 +13,8 @@ class FileViewPlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
+    static constexpr const char* PluginKey = "FileView";
+
     FileViewPlugin(QObject *parent = nullptr);
 
     QString id() const override;

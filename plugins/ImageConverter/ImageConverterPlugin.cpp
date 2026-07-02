@@ -11,7 +11,7 @@ ImageConverterPlugin::ImageConverterPlugin(QObject *parent)
 
 QString ImageConverterPlugin::id() const
 {
-    return "ImageConverter";
+    return PluginKey;
 }
 
 QString ImageConverterPlugin::name() const
@@ -42,7 +42,7 @@ int ImageConverterPlugin::order() const
 void ImageConverterPlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger("ImageConverter");
+        m_logger = new PluginLogger(PluginKey);
     if (!m_settings) {
         m_settings = new ImageConverterSettings(this);
     }

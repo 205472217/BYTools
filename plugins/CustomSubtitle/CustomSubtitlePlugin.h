@@ -13,7 +13,7 @@ class CustomSubtitlePlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
-    static constexpr const char* kIniSection = "custom-subtitle";
+    static constexpr const char* PluginKey = "CustomSubtitle";
 
     explicit CustomSubtitlePlugin(QObject *parent = nullptr);
 

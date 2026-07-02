@@ -11,7 +11,7 @@ BatchRenamePlugin::BatchRenamePlugin(QObject *parent)
 
 QString BatchRenamePlugin::id() const
 {
-    return "BatchRename";
+    return PluginKey;
 }
 
 QString BatchRenamePlugin::name() const
@@ -42,7 +42,7 @@ int BatchRenamePlugin::order() const
 void BatchRenamePlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger("BatchRename");
+        m_logger = new PluginLogger(PluginKey);
     if (!m_settings) {
         m_settings = new BatchRenameSettings(this);
     }

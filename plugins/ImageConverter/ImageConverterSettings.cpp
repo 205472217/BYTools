@@ -136,7 +136,7 @@ void ImageConverterSettings::setMode(int mode)
 
 void ImageConverterSettings::loadSettings()
 {
-    QSettings &s = pluginGroupSettings(ImageConverterPlugin::kIniSection);
+    QSettings &s = pluginGroupSettings(ImageConverterPlugin::PluginKey);
     m_rootPath = s.value("rootPath").toString();
     m_outputMode = s.value("outputMode", 0).toInt();
     m_outputDir = s.value("outputDir").toString();
@@ -151,7 +151,7 @@ void ImageConverterSettings::loadSettings()
 }
 void ImageConverterSettings::saveSettings()
 {
-    QSettings &s = pluginGroupSettings(ImageConverterPlugin::kIniSection);
+    QSettings &s = pluginGroupSettings(ImageConverterPlugin::PluginKey);
     s.setValue("rootPath", m_rootPath);
     s.setValue("outputMode", m_outputMode);
     s.setValue("outputDir", m_outputDir);

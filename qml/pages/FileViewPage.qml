@@ -282,11 +282,10 @@ Pane {
                         id: dirModeRadio
                         text: "目录模式"
                         paletteGroup: "RadioButtonEx"
-                        checked: settings.viewWay === 0
+                        checked: controller.viewWay === 0
                         font.pixelSize: 13
                         onCheckedChanged: {
-                            if (checked && controller && settings.viewWay !== 0) {
-                                settings.viewWay = 0
+                            if (checked && controller && controller.viewWay !== 0) {
                                 controller.viewWay = 0
                             }
                         }
@@ -296,11 +295,10 @@ Pane {
                         id: fileModeRadio
                         text: "文件模式"
                         paletteGroup: "RadioButtonEx"
-                        checked: settings.viewWay === 1
+                        checked: controller.viewWay === 1
                         font.pixelSize: 13
                         onCheckedChanged: {
-                            if (checked && controller && settings.viewWay !== 1) {
-                                settings.viewWay = 1
+                            if (checked && controller && controller.viewWay !== 1) {
                                 controller.viewWay = 1
                             }
                         }
@@ -313,7 +311,7 @@ Pane {
                         paletteGroup: "CheckBoxEx"
                         font.pixelSize: 12
                         checked: controller ? controller.recursive : false
-                        visible: settings.viewWay === 1
+                        visible: controller ? controller.viewWay === 1 : false
                         onCheckedChanged: {
                             if (controller)
                                 controller.recursive = checked;
@@ -334,7 +332,7 @@ Pane {
                         onClicked: {
                             if (!controller)
                                 return;
-                            root._activeViewWay = settings.viewWay;
+                            root._activeViewWay = controller.viewWay;
                             controller.startScan();
                         }
                     }
@@ -830,7 +828,7 @@ Pane {
                             id: emptyListLabel
                             anchors.centerIn: parent
                             text: {
-                                if (settings.viewWay === 0)
+                                if (controller.viewWay === 0)
                                     return "暂无内容，请选择源文件夹后点击「开始浏览」";
                                 return "暂无文件，请选择源文件夹后点击「开始浏览」";
                             }

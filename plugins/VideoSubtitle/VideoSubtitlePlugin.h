@@ -13,7 +13,7 @@ class VideoSubtitlePlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
-    static constexpr const char* kIniSection = "video-subtitle";
+    static constexpr const char* PluginKey = "VideoSubtitle";
 
     VideoSubtitlePlugin(QObject *parent = nullptr);
 

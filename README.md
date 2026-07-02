@@ -23,14 +23,14 @@ src/
   app/                         应用控制器
   core/                        核心模块（插件管理器、接口定义）
 plugins/                       插件目录
-  nameconverter/               繁简转换插件
-  batchrename/                 批量重命名插件
-  imageconverter/              图片处理插件
-  imagecrop/                   图片裁剪插件
-  videosubtitle/               视频字幕翻译插件
-  customsubtitle/              自定义视频字幕插件
-  subtitleadjust/              调整字幕时码插件
-  fileview/                    文件浏览插件
+  NameConverter/               繁简转换插件
+  BatchRename/                 批量重命名插件
+  ImageConverter/              图片处理插件
+  ImageCrop/                   图片裁剪插件
+  VideoSubtitle/               视频字幕翻译插件
+  CustomSubtitle/              自定义视频字幕插件
+  SubtitleAdjust/              调整字幕时码插件
+  FileView/                    文件浏览插件
 qml/
   components/                  可复用界面组件
   pages/                       页面
@@ -48,17 +48,17 @@ resources/                     图标、资源文件
 BYTools/
   BYTools.exe                  应用可执行文件
   plugins/                     插件目录
-    card-customsubtitle/       自定义视频字幕插件
+    NameConverter/             繁简转换插件
+    BatchRename/               批量重命名插件
+    ImageConverter/            图片处理插件
+    ImageCrop/                 图片裁剪插件
+    VideoSubtitle/             视频字幕翻译插件
+    CustomSubtitle/            自定义视频字幕插件
       python/                  自定义字幕插件访问字幕网站的python脚本（目前支持网站: subtitlecat）
-    card-fileview/             文件浏览插件
+    SubtitleAdjust/            调整字幕时码插件
       mpv                      内嵌第三方播放器所需
-    card-subtitleadjust/       调整字幕时码插件
+    FileView/                  文件浏览插件
       mpv                      内嵌第三方播放器所需
-    card-videosubtitle/        视频字幕翻译插件
-    card-nameconverter/        繁简转换插件
-    card-batchrename/          批量重命名插件
-    card-imageconverter/       图片处理插件
-    card-imagecrop/            图片裁剪插件
   third/                       第三方程序
     ffmpeg/                    可用的ffmpeg(自定义字幕、视频字幕翻译，在最后烧录视频+字幕时需要)
     model/                     模型存放目录（whisper语音识别模型，模型太大未上传,需手动下载）

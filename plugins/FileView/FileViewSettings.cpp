@@ -1,4 +1,5 @@
 #include "FileViewSettings.h"
+#include "FileViewPlugin.h"
 #include "SettingsHelper.h"
 
 FileViewSettings::FileViewSettings(QObject *parent)
@@ -104,7 +105,7 @@ void FileViewSettings::setViewMode(int mode)
 
 void FileViewSettings::loadSettings()
 {
-    QSettings &s = pluginGroupSettings("FileView");
+    QSettings &s = pluginGroupSettings(FileViewPlugin::PluginKey);
     m_sourceFolder = s.value("sourceFolder").toString();
     m_recursive = s.value("recursive", false).toBool();
     m_fileType = s.value("fileType", 0).toInt();
@@ -119,7 +120,7 @@ void FileViewSettings::loadSettings()
 }
 void FileViewSettings::saveSettings()
 {
-    QSettings &s = pluginGroupSettings("FileView");
+    QSettings &s = pluginGroupSettings(FileViewPlugin::PluginKey);
     s.setValue("sourceFolder", m_sourceFolder);
     s.setValue("recursive", m_recursive);
     s.setValue("fileType", m_fileType);

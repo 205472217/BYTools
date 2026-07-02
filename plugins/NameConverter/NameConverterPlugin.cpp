@@ -10,7 +10,7 @@ NameConverterPlugin::NameConverterPlugin(QObject *parent)
 
 QString NameConverterPlugin::id() const
 {
-    return "NameConverter";
+    return PluginKey;
 }
 
 QString NameConverterPlugin::name() const
@@ -41,7 +41,7 @@ int NameConverterPlugin::order() const
 void NameConverterPlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger("NameConverter");
+        m_logger = new PluginLogger(PluginKey);
     if (!m_settings) {
         m_settings = new NameConverterSettings(this);
     }

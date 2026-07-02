@@ -13,7 +13,7 @@ class BatchRenamePlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
-    static constexpr const char* kIniSection = "batch-rename";
+    static constexpr const char* PluginKey = "BatchRename";
 
     BatchRenamePlugin(QObject *parent = nullptr);
 

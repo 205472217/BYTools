@@ -47,6 +47,10 @@ FileViewController::FileViewController(PluginLogger *logger, FileViewSettings *s
                 this, &FileViewController::onThumbnailReady);
     }
 
+    // 从持久化设置同步缓存成员
+    m_viewWay = m_settings->viewWay();
+    m_viewMode = m_settings->viewMode();
+
     connect(&m_workerThread, &QThread::started,
             this, &FileViewController::doScanWork, Qt::DirectConnection);
     connect(&m_workerThread, &QThread::finished, this, [this]() {

@@ -1,5 +1,6 @@
 #include "VideoSubtitleSettings.h"
 #include "VideoSubtitlePlugin.h"
+#include "SettingsHelper.h"
 #include "Logger.h"
 #include "FFmpegService.h"
 #include "FfmpegUtils.h"
@@ -28,12 +29,10 @@ const QVector<VideoSubtitleSettings::ModelInfo> VideoSubtitleSettings::MODEL_INF
 VideoSubtitleSettings::VideoSubtitleSettings(PluginLogger *logger, QObject *parent)
     : QObject(parent)
     , m_logger(logger)
-    , m_settings(configPath(), QSettings::IniFormat)
     , m_networkManager(new QNetworkAccessManager(this))
     , m_testReply(nullptr)
     , m_libreTranslateUrl("http://localhost:5000")
 {
-    m_settings.beginGroup(VideoSubtitlePlugin::kIniSection);
     m_whisperModelDir = QCoreApplication::applicationDirPath() + "/plugins/videosubtitle";
 
     m_detectWatcher = new QFutureWatcher<ToolsDetectResult>(this);
@@ -122,6 +121,7 @@ void VideoSubtitleSettings::setFfmpegPath(const QString &path)
         emit ffmpegDetectingChanged();
         emit ffmpegStatusChanged();
         emit gpuAccelInfoChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setWhisperPath(const QString &path)
@@ -135,6 +135,7 @@ void VideoSubtitleSettings::setWhisperPath(const QString &path)
             m_whisperStatus = path.isEmpty() ? "未配置" : "无法找到 whisper.cpp";
         }
         emit whisperStatusChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setWhisperModel(int model)
@@ -142,6 +143,7 @@ void VideoSubtitleSettings::setWhisperModel(int model)
     if (m_whisperModel != model && model >= 0 && model < MODEL_INFOS.size()) {
         m_whisperModel = model;
         emit whisperModelChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setWhisperModelDir(const QString &path)
@@ -150,6 +152,7 @@ void VideoSubtitleSettings::setWhisperModelDir(const QString &path)
         m_whisperModelDir = path;
         emit whisperModelDirChanged();
         emit availableModelsChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setLocalModelPath(const QString &path)
@@ -157,6 +160,7 @@ void VideoSubtitleSettings::setLocalModelPath(const QString &path)
     if (m_localModelPath != path) {
         m_localModelPath = path;
         emit localModelPathChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setAudioSegmentDuration(int seconds)
@@ -164,6 +168,7 @@ void VideoSubtitleSettings::setAudioSegmentDuration(int seconds)
     if (m_audioSegmentDuration != seconds) {
         m_audioSegmentDuration = seconds;
         emit audioSegmentDurationChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setTranslateEngine(int engine)
@@ -173,6 +178,7 @@ void VideoSubtitleSettings::setTranslateEngine(int engine)
         updateApiUrlForEngine(engine);
         emit translateEngineChanged();
         emit apiUrlChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setApiKey(const QString &key)
@@ -180,6 +186,7 @@ void VideoSubtitleSettings::setApiKey(const QString &key)
     if (m_apiKey != key) {
         m_apiKey = key;
         emit apiKeyChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setBaiduAppId(const QString &appId)
@@ -187,6 +194,7 @@ void VideoSubtitleSettings::setBaiduAppId(const QString &appId)
     if (m_baiduAppId != appId) {
         m_baiduAppId = appId;
         emit baiduAppIdChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setApiUrl(const QString &url)
@@ -194,6 +202,7 @@ void VideoSubtitleSettings::setApiUrl(const QString &url)
     if (m_apiUrl != url) {
         m_apiUrl = url;
         emit apiUrlChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setSubtitleStyle(int style)
@@ -201,6 +210,7 @@ void VideoSubtitleSettings::setSubtitleStyle(int style)
     if (m_subtitleStyle != style) {
         m_subtitleStyle = style;
         emit subtitleStyleChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setKeepWav(bool keep)
@@ -208,6 +218,7 @@ void VideoSubtitleSettings::setKeepWav(bool keep)
     if (m_keepWav != keep) {
         m_keepWav = keep;
         emit keepWavChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setKeepOriginalSrt(bool keep)
@@ -215,6 +226,7 @@ void VideoSubtitleSettings::setKeepOriginalSrt(bool keep)
     if (m_keepOriginalSrt != keep) {
         m_keepOriginalSrt = keep;
         emit keepOriginalSrtChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setKeepTranslatedSrt(bool keep)
@@ -222,6 +234,7 @@ void VideoSubtitleSettings::setKeepTranslatedSrt(bool keep)
     if (m_keepTranslatedSrt != keep) {
         m_keepTranslatedSrt = keep;
         emit keepTranslatedSrtChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setDefaultFontSize(int size)
@@ -229,6 +242,7 @@ void VideoSubtitleSettings::setDefaultFontSize(int size)
     if (m_defaultFontSize != size) {
         m_defaultFontSize = size;
         emit defaultFontSizeChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setDefaultFontColor(const QString &color)
@@ -236,6 +250,7 @@ void VideoSubtitleSettings::setDefaultFontColor(const QString &color)
     if (m_defaultFontColor != color) {
         m_defaultFontColor = color;
         emit defaultFontColorChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setDefaultBorderColor(const QString &color)
@@ -243,6 +258,7 @@ void VideoSubtitleSettings::setDefaultBorderColor(const QString &color)
     if (m_defaultBorderColor != color) {
         m_defaultBorderColor = color;
         emit defaultBorderColorChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setDefaultBorderWidth(int width)
@@ -250,6 +266,7 @@ void VideoSubtitleSettings::setDefaultBorderWidth(int width)
     if (m_defaultBorderWidth != width) {
         m_defaultBorderWidth = width;
         emit defaultBorderWidthChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setUseGpuAccel(bool enable)
@@ -257,6 +274,7 @@ void VideoSubtitleSettings::setUseGpuAccel(bool enable)
     if (m_useGpuAccel != enable) {
         m_useGpuAccel = enable;
         emit useGpuAccelChanged();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setLibreTranslateUrl(const QString &url)
@@ -264,6 +282,7 @@ void VideoSubtitleSettings::setLibreTranslateUrl(const QString &url)
     if (m_libreTranslateUrl != url) {
         m_libreTranslateUrl = url;
         emit libreTranslateUrlChanged();
+        saveSettings();
     }
 }
 
@@ -273,8 +292,7 @@ void VideoSubtitleSettings::setInputPath(const QString &path)
     if (m_inputPath != path) {
         m_inputPath = path;
         emit inputPathChanged();
-        m_settings.setValue("inputPath", path);
-        m_settings.sync();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setInputMode(int mode)
@@ -282,8 +300,7 @@ void VideoSubtitleSettings::setInputMode(int mode)
     if (m_inputMode != mode) {
         m_inputMode = mode;
         emit inputModeChanged();
-        m_settings.setValue("inputMode", mode);
-        m_settings.sync();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setRecursive(bool recursive)
@@ -291,8 +308,7 @@ void VideoSubtitleSettings::setRecursive(bool recursive)
     if (m_recursive != recursive) {
         m_recursive = recursive;
         emit recursiveChanged();
-        m_settings.setValue("recursive", recursive);
-        m_settings.sync();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setSourceLanguage(const QString &lang)
@@ -300,8 +316,7 @@ void VideoSubtitleSettings::setSourceLanguage(const QString &lang)
     if (m_sourceLanguage != lang) {
         m_sourceLanguage = lang;
         emit sourceLanguageChanged();
-        m_settings.setValue("sourceLanguage", lang);
-        m_settings.sync();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setTargetLanguage(const QString &lang)
@@ -309,8 +324,7 @@ void VideoSubtitleSettings::setTargetLanguage(const QString &lang)
     if (m_targetLanguage != lang) {
         m_targetLanguage = lang;
         emit targetLanguageChanged();
-        m_settings.setValue("targetLanguage", lang);
-        m_settings.sync();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setTranslateMusic(bool enabled)
@@ -318,8 +332,7 @@ void VideoSubtitleSettings::setTranslateMusic(bool enabled)
     if (m_translateMusic != enabled) {
         m_translateMusic = enabled;
         emit translateMusicChanged();
-        m_settings.setValue("translateMusic", enabled);
-        m_settings.sync();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setOutputMode(int mode)
@@ -327,8 +340,7 @@ void VideoSubtitleSettings::setOutputMode(int mode)
     if (m_outputMode != mode) {
         m_outputMode = mode;
         emit outputModeChanged();
-        m_settings.setValue("outputMode", mode);
-        m_settings.sync();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setOutputDir(const QString &dir)
@@ -336,8 +348,7 @@ void VideoSubtitleSettings::setOutputDir(const QString &dir)
     if (m_outputDir != dir) {
         m_outputDir = dir;
         emit outputDirChanged();
-        m_settings.setValue("outputDir", dir);
-        m_settings.sync();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setEnableAudioExtraction(bool enabled)
@@ -345,8 +356,7 @@ void VideoSubtitleSettings::setEnableAudioExtraction(bool enabled)
     if (m_enableAudioExtraction != enabled) {
         m_enableAudioExtraction = enabled;
         emit enableAudioExtractionChanged();
-        m_settings.setValue("enableAudioExtraction", enabled);
-        m_settings.sync();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setEnableTranscribe(bool enabled)
@@ -354,8 +364,7 @@ void VideoSubtitleSettings::setEnableTranscribe(bool enabled)
     if (m_enableTranscribe != enabled) {
         m_enableTranscribe = enabled;
         emit enableTranscribeChanged();
-        m_settings.setValue("enableTranscribe", enabled);
-        m_settings.sync();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setEnableTranslate(bool enabled)
@@ -363,8 +372,7 @@ void VideoSubtitleSettings::setEnableTranslate(bool enabled)
     if (m_enableTranslate != enabled) {
         m_enableTranslate = enabled;
         emit enableTranslateChanged();
-        m_settings.setValue("enableTranslate", enabled);
-        m_settings.sync();
+        saveSettings();
     }
 }
 void VideoSubtitleSettings::setEnableBurnSubtitle(bool enabled)
@@ -372,48 +380,47 @@ void VideoSubtitleSettings::setEnableBurnSubtitle(bool enabled)
     if (m_enableBurnSubtitle != enabled) {
         m_enableBurnSubtitle = enabled;
         emit enableBurnSubtitleChanged();
-        m_settings.setValue("enableBurnSubtitle", enabled);
-        m_settings.sync();
+        saveSettings();
     }
 }
 
 // ── 其他功能函数 ──
 void VideoSubtitleSettings::loadSettings()
 {
-    m_settings.sync();
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::PluginKey);
 
-    m_ffmpegPath = m_settings.value("ffmpegPath").toString();
-    m_whisperPath = m_settings.value("whisperPath").toString();
-    m_whisperModel = m_settings.value("whisperModel", 3).toInt();
-    m_whisperModelDir = m_settings.value("whisperModelDir", m_whisperModelDir).toString();
-    m_localModelPath = m_settings.value("localModelPath").toString();
-    m_audioSegmentDuration = m_settings.value("audioSegmentDuration", 10).toInt();
-    m_translateEngine = m_settings.value("translateEngine", 0).toInt();
-    m_apiKey = QByteArray::fromBase64(m_settings.value("apiKey").toByteArray());
-    m_baiduAppId = m_settings.value("baiduAppId").toString();
-    m_apiUrl = m_settings.value("apiUrl").toString();
-    m_subtitleStyle = m_settings.value("subtitleStyle", 0).toInt();
-    m_keepWav = m_settings.value("keepWav", true).toBool();
-    m_keepOriginalSrt = m_settings.value("keepOriginalSrt", true).toBool();
-    m_keepTranslatedSrt = m_settings.value("keepTranslatedSrt", true).toBool();
-    m_defaultFontSize = m_settings.value("defaultFontSize", 20).toInt();
-    m_defaultFontColor = m_settings.value("defaultFontColor", "#FFFFFF").toString();
-    m_defaultBorderColor = m_settings.value("defaultBorderColor", "#000000").toString();
-    m_defaultBorderWidth = m_settings.value("defaultBorderWidth", 2).toInt();
-    m_useGpuAccel = m_settings.value("useGpuAccel", false).toBool();
-    m_libreTranslateUrl = m_settings.value("libreTranslateUrl", "http://localhost:5000").toString();
-    m_inputPath = m_settings.value("inputPath").toString();
-    m_inputMode = m_settings.value("inputMode", 0).toInt();
-    m_recursive = m_settings.value("recursive", false).toBool();
-    m_sourceLanguage = m_settings.value("sourceLanguage", "auto").toString();
-    m_targetLanguage = m_settings.value("targetLanguage", "zh").toString();
-    m_translateMusic = m_settings.value("translateMusic", false).toBool();
-    m_outputMode = m_settings.value("outputMode", 0).toInt();
-    m_outputDir = m_settings.value("outputDir").toString();
-    m_enableAudioExtraction = m_settings.value("enableAudioExtraction", true).toBool();
-    m_enableTranscribe = m_settings.value("enableTranscribe", true).toBool();
-    m_enableTranslate = m_settings.value("enableTranslate", true).toBool();
-    m_enableBurnSubtitle = m_settings.value("enableBurnSubtitle", true).toBool();
+    m_ffmpegPath = s.value("ffmpegPath").toString();
+    m_whisperPath = s.value("whisperPath").toString();
+    m_whisperModel = s.value("whisperModel", 3).toInt();
+    m_whisperModelDir = s.value("whisperModelDir", m_whisperModelDir).toString();
+    m_localModelPath = s.value("localModelPath").toString();
+    m_audioSegmentDuration = s.value("audioSegmentDuration", 10).toInt();
+    m_translateEngine = s.value("translateEngine", 0).toInt();
+    m_apiKey = QByteArray::fromBase64(s.value("apiKey").toByteArray());
+    m_baiduAppId = s.value("baiduAppId").toString();
+    m_apiUrl = s.value("apiUrl").toString();
+    m_subtitleStyle = s.value("subtitleStyle", 0).toInt();
+    m_keepWav = s.value("keepWav", true).toBool();
+    m_keepOriginalSrt = s.value("keepOriginalSrt", true).toBool();
+    m_keepTranslatedSrt = s.value("keepTranslatedSrt", true).toBool();
+    m_defaultFontSize = s.value("defaultFontSize", 20).toInt();
+    m_defaultFontColor = s.value("defaultFontColor", "#FFFFFF").toString();
+    m_defaultBorderColor = s.value("defaultBorderColor", "#000000").toString();
+    m_defaultBorderWidth = s.value("defaultBorderWidth", 2).toInt();
+    m_useGpuAccel = s.value("useGpuAccel", false).toBool();
+    m_libreTranslateUrl = s.value("libreTranslateUrl", "http://localhost:5000").toString();
+    m_inputPath = s.value("inputPath").toString();
+    m_inputMode = s.value("inputMode", 0).toInt();
+    m_recursive = s.value("recursive", false).toBool();
+    m_sourceLanguage = s.value("sourceLanguage", "auto").toString();
+    m_targetLanguage = s.value("targetLanguage", "zh").toString();
+    m_translateMusic = s.value("translateMusic", false).toBool();
+    m_outputMode = s.value("outputMode", 0).toInt();
+    m_outputDir = s.value("outputDir").toString();
+    m_enableAudioExtraction = s.value("enableAudioExtraction", true).toBool();
+    m_enableTranscribe = s.value("enableTranscribe", true).toBool();
+    m_enableTranslate = s.value("enableTranslate", true).toBool();
+    m_enableBurnSubtitle = s.value("enableBurnSubtitle", true).toBool();
 
     // Fast bundled scan (synchronous, just file enumeration)
     bool changed = false;
@@ -505,39 +512,40 @@ void VideoSubtitleSettings::loadSettings()
 }
 void VideoSubtitleSettings::saveSettings()
 {
-    m_settings.setValue("ffmpegPath", m_ffmpegPath);
-    m_settings.setValue("whisperPath", m_whisperPath);
-    m_settings.setValue("whisperModel", m_whisperModel);
-    m_settings.setValue("localModelPath", m_localModelPath);
-    m_settings.setValue("whisperModelDir", m_whisperModelDir);
-    m_settings.setValue("audioSegmentDuration", m_audioSegmentDuration);
-    m_settings.setValue("translateEngine", m_translateEngine);
-    m_settings.setValue("apiKey", QString(m_apiKey.toUtf8().toBase64()));
-    m_settings.setValue("baiduAppId", m_baiduAppId);
-    m_settings.setValue("apiUrl", m_apiUrl);
-    m_settings.setValue("subtitleStyle", m_subtitleStyle);
-    m_settings.setValue("keepWav", m_keepWav);
-    m_settings.setValue("keepOriginalSrt", m_keepOriginalSrt);
-    m_settings.setValue("keepTranslatedSrt", m_keepTranslatedSrt);
-    m_settings.setValue("defaultFontSize", m_defaultFontSize);
-    m_settings.setValue("defaultFontColor", m_defaultFontColor);
-    m_settings.setValue("defaultBorderColor", m_defaultBorderColor);
-    m_settings.setValue("defaultBorderWidth", m_defaultBorderWidth);
-    m_settings.setValue("useGpuAccel", m_useGpuAccel);
-    m_settings.setValue("libreTranslateUrl", m_libreTranslateUrl);
-    m_settings.setValue("inputPath", m_inputPath);
-    m_settings.setValue("inputMode", m_inputMode);
-    m_settings.setValue("recursive", m_recursive);
-    m_settings.setValue("sourceLanguage", m_sourceLanguage);
-    m_settings.setValue("targetLanguage", m_targetLanguage);
-    m_settings.setValue("translateMusic", m_translateMusic);
-    m_settings.setValue("outputMode", m_outputMode);
-    m_settings.setValue("outputDir", m_outputDir);
-    m_settings.setValue("enableAudioExtraction", m_enableAudioExtraction);
-    m_settings.setValue("enableTranscribe", m_enableTranscribe);
-    m_settings.setValue("enableTranslate", m_enableTranslate);
-    m_settings.setValue("enableBurnSubtitle", m_enableBurnSubtitle);
-    m_settings.sync();
+    QSettings &s = pluginGroupSettings(VideoSubtitlePlugin::PluginKey);
+    s.setValue("ffmpegPath", m_ffmpegPath);
+    s.setValue("whisperPath", m_whisperPath);
+    s.setValue("whisperModel", m_whisperModel);
+    s.setValue("localModelPath", m_localModelPath);
+    s.setValue("whisperModelDir", m_whisperModelDir);
+    s.setValue("audioSegmentDuration", m_audioSegmentDuration);
+    s.setValue("translateEngine", m_translateEngine);
+    s.setValue("apiKey", QString(m_apiKey.toUtf8().toBase64()));
+    s.setValue("baiduAppId", m_baiduAppId);
+    s.setValue("apiUrl", m_apiUrl);
+    s.setValue("subtitleStyle", m_subtitleStyle);
+    s.setValue("keepWav", m_keepWav);
+    s.setValue("keepOriginalSrt", m_keepOriginalSrt);
+    s.setValue("keepTranslatedSrt", m_keepTranslatedSrt);
+    s.setValue("defaultFontSize", m_defaultFontSize);
+    s.setValue("defaultFontColor", m_defaultFontColor);
+    s.setValue("defaultBorderColor", m_defaultBorderColor);
+    s.setValue("defaultBorderWidth", m_defaultBorderWidth);
+    s.setValue("useGpuAccel", m_useGpuAccel);
+    s.setValue("libreTranslateUrl", m_libreTranslateUrl);
+    s.setValue("inputPath", m_inputPath);
+    s.setValue("inputMode", m_inputMode);
+    s.setValue("recursive", m_recursive);
+    s.setValue("sourceLanguage", m_sourceLanguage);
+    s.setValue("targetLanguage", m_targetLanguage);
+    s.setValue("translateMusic", m_translateMusic);
+    s.setValue("outputMode", m_outputMode);
+    s.setValue("outputDir", m_outputDir);
+    s.setValue("enableAudioExtraction", m_enableAudioExtraction);
+    s.setValue("enableTranscribe", m_enableTranscribe);
+    s.setValue("enableTranslate", m_enableTranslate);
+    s.setValue("enableBurnSubtitle", m_enableBurnSubtitle);
+    s.sync();
 
     emit settingsChanged();
 }

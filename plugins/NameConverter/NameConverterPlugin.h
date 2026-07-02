@@ -13,7 +13,7 @@ class NameConverterPlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
-    static constexpr const char* kIniSection = "name-converter";
+    static constexpr const char* PluginKey = "NameConverter";
 
     NameConverterPlugin(QObject *parent = nullptr);
 

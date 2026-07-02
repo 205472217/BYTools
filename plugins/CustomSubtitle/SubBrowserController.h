@@ -6,6 +6,8 @@
 #include <QVariantList>
 #include <QProcess>
 #include <QTimer>
+#include <QDir>
+#include <QSet>
 
 class PluginLogger;
 
@@ -38,6 +40,11 @@ class SubBrowserController : public QObject
     Q_PROPERTY(bool pythonAvailable READ pythonAvailable NOTIFY pythonAvailableChanged)
     Q_PROPERTY(bool dependenciesMet READ dependenciesMet NOTIFY dependenciesMetChanged)
 
+    // === 预览（缓存） ===
+    Q_PROPERTY(bool previewing READ previewing NOTIFY previewingChanged)
+    Q_PROPERTY(QString previewContent READ previewContent NOTIFY previewContentChanged)
+    Q_PROPERTY(int cachedIndex READ cachedIndex NOTIFY cachedIndexChanged)
+
 public:
     explicit SubBrowserController(PluginLogger *logger, QObject *parent = nullptr);
     ~SubBrowserController();
@@ -57,6 +64,9 @@ public:
     bool dependenciesMet() const;
     int searchProgress() const;
     QString searchProgressMessage() const;
+    bool previewing() const;
+    QString previewContent() const;
+    int cachedIndex() const;
 
     void setCurrentSite(const QString &site);
     void setKeyword(const QString &keyword);
@@ -66,6 +76,10 @@ public:
     Q_INVOKABLE void search();
     Q_INVOKABLE void stopSearch();
     Q_INVOKABLE void download(int index);
+    Q_INVOKABLE void preview(int index);
+    Q_INVOKABLE void clearPreview();
+    Q_INVOKABLE void savePreviewToDownload();
+    Q_INVOKABLE bool isDownloaded(int index) const;
     Q_INVOKABLE void openDownloadFolder();
     Q_INVOKABLE void checkDependencies();
 
@@ -85,6 +99,9 @@ signals:
     void logMessage(const QString &message);
     void searchProgressChanged();
     void searchProgressMessageChanged();
+    void previewingChanged();
+    void previewContentChanged();
+    void cachedIndexChanged();
 
 private slots:
     void onSearchProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
@@ -122,6 +139,17 @@ private:
     bool m_dependenciesMet = false;
     QString m_pythonPath;
     QString m_scriptsDir;
+
+    // === 预览 / 缓存 ===
+    QString m_cacheDir;
+    int m_cachedIndex = -1;
+    QString m_cachedFilePath;
+    bool m_previewing = false;
+    QString m_previewContent;
+    bool m_isPreviewDownload = false;
+
+    QSet<int> m_downloadedIndices;
+    int m_currentDownloadIndex = -1;
 
     QProcess *m_searchProcess = nullptr;
     QProcess *m_downloadProcess = nullptr;

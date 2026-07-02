@@ -13,7 +13,7 @@ class ImageConverterPlugin : public QObject, public PluginInterface
     Q_INTERFACES(PluginInterface)
 
 public:
-    static constexpr const char* kIniSection = "image-converter";
+    static constexpr const char* PluginKey = "ImageConverter";
 
     ImageConverterPlugin(QObject *parent = nullptr);
 

@@ -85,7 +85,7 @@ void CustomSubtitleSettings::setEnabledPreprocessors(const QStringList &ops)
 
 void CustomSubtitleSettings::loadSettings()
 {
-    QSettings &s = pluginGroupSettings(CustomSubtitlePlugin::kIniSection);
+    QSettings &s = pluginGroupSettings(CustomSubtitlePlugin::PluginKey);
     m_subtitleDownloadPath = s.value("customSubtitleDownloadPath").toString();
     m_videoSourcePath = s.value("customVideoSourcePath").toString();
     m_recursive = s.value("customRecursive", false).toBool();
@@ -97,7 +97,7 @@ void CustomSubtitleSettings::loadSettings()
 }
 void CustomSubtitleSettings::saveSettings()
 {
-    QSettings &s = pluginGroupSettings(CustomSubtitlePlugin::kIniSection);
+    QSettings &s = pluginGroupSettings(CustomSubtitlePlugin::PluginKey);
     s.setValue("customSubtitleDownloadPath", m_subtitleDownloadPath);
     s.setValue("customVideoSourcePath", m_videoSourcePath);
     s.setValue("customRecursive", m_recursive);

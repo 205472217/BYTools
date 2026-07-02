@@ -79,13 +79,13 @@ void BatchRenameSettings::setRecursive(bool recursive)
 
 void BatchRenameSettings::loadSettings()
 {
-    QSettings &s = pluginGroupSettings(BatchRenamePlugin::kIniSection);
+    QSettings &s = pluginGroupSettings(BatchRenamePlugin::PluginKey);
     m_rootPath = s.value("rootPath").toString();
     m_recursive = s.value("recursive", false).toBool();
 }
 void BatchRenameSettings::saveSettings()
 {
-    QSettings &s = pluginGroupSettings(BatchRenamePlugin::kIniSection);
+    QSettings &s = pluginGroupSettings(BatchRenamePlugin::PluginKey);
     s.setValue("rootPath", m_rootPath);
     s.setValue("recursive", m_recursive);
     s.sync();

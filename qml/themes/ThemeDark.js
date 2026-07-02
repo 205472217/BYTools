@@ -360,11 +360,21 @@ var palette = {
     CustomSubtitlePage_installBtnBg_color_normal: "#fbbf24",
     CustomSubtitlePage_installBtnBg_borderColor: "#f59e0b",
     CustomSubtitlePage_installBtnText_color: "#ffffff",
+    // 自定义字幕-预览(按钮)
+    CustomSubtitlePage_previewBtn_normalColor: "#60a5fa",
+    CustomSubtitlePage_previewBtn_hoverColor: "#3b82f6",
+    CustomSubtitlePage_previewBtn_borderColor: "#3b82f6",
+    CustomSubtitlePage_previewBtn_textColor: "#ffffff",
     // 自定义字幕-下载(按钮)
     CustomSubtitlePage_downloadBtn_normalColor: "#34d399",
     CustomSubtitlePage_downloadBtn_hoverColor: "#22c55e",
     CustomSubtitlePage_downloadBtn_borderColor: "#22c55e",
     CustomSubtitlePage_downloadBtn_textColor: "#ffffff",
+    // 自定义字幕-已下载(按钮)
+    CustomSubtitlePage_downloadedBtn_normalColor: "#6b7280",
+    CustomSubtitlePage_downloadedBtn_hoverColor: "#4b5563",
+    CustomSubtitlePage_downloadedBtn_borderColor: "#4b5563",
+    CustomSubtitlePage_downloadedBtn_textColor: "#ffffff",
     // 自定义字幕-步骤2-执行(按钮)
     CustomSubtitlePage_step2ExecBtn_normalColor_normal: "#3b82f6",
     CustomSubtitlePage_step2ExecBtn_hoverColor: "#60a5fa",

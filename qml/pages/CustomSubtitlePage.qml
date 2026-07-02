@@ -27,7 +27,7 @@ Pane {
         title: "选择字幕下载路径"
         onAccepted: {
             if (controller)
-                settings.subtitleDownloadPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
+                controller.subtitleDownloadPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
         }
     }
 
@@ -36,7 +36,7 @@ Pane {
         title: "选择原视频路径"
         onAccepted: {
             if (controller)
-                settings.videoSourcePath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
+                controller.videoSourcePath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
         }
     }
 
@@ -45,7 +45,7 @@ Pane {
         title: "选择合成视频路径"
         onAccepted: {
             if (controller)
-                settings.mergedOutputPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
+                controller.mergedOutputPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
         }
     }
 
@@ -55,7 +55,7 @@ Pane {
         nameFilters: ["ffmpeg (ffmpeg.exe)", "All Files (*)"]
         onAccepted: {
             if (controller)
-                settings.ffmpegPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
+                controller.ffmpegPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
         }
     }
 
@@ -114,6 +114,66 @@ Pane {
         }
     }
 
+    // ── 重新下载确认对话框 ──────────────────────────────
+    property int _redownloadIndex: -1
+
+    Dialog {
+        id: redownloadDialog
+        title: "重新下载"
+        modal: true
+        anchors.centerIn: parent
+        width: 400
+        standardButtons: Dialog.NoButton
+        closePolicy: Dialog.CloseOnEscape
+
+        contentItem: ColumnLayout {
+            spacing: 8
+            Layout.margins: 4
+
+            Label {
+                text: "该字幕已下载，是否重新下载并覆盖？"
+                color: pal.LabelEx_statusText
+                font.pixelSize: 14
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+                Layout.bottomMargin: 8
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 12
+                Item { Layout.fillWidth: true }
+
+                IconButton {
+                    text: "取消"
+                    tooltip: "取消重新下载"
+                    paletteGroup: "IconBtnEx"
+                    implicitWidth: 100
+                    implicitHeight: 38
+                    onClicked: redownloadDialog.close()
+                }
+
+                IconButton {
+                    text: "确认"
+                    tooltip: "重新下载并覆盖"
+                    normalColor: pal.CustomSubtitlePage_downloadBtn_normalColor
+                    hoverColor: pal.CustomSubtitlePage_downloadBtn_hoverColor
+                    borderColor: pal.CustomSubtitlePage_downloadBtn_borderColor
+                    textColor: pal.CustomSubtitlePage_downloadBtn_textColor
+                    implicitWidth: 100
+                    implicitHeight: 38
+                    onClicked: {
+                        redownloadDialog.close()
+                        if (browserCtrl && _redownloadIndex >= 0) {
+                            browserCtrl.download(_redownloadIndex);
+                        }
+                        _redownloadIndex = -1;
+                    }
+                }
+            }
+        }
+    }
+
     // ── Log state ──
     property string _lastLogLine: ""
 
@@ -138,12 +198,12 @@ Pane {
             if (_preprocessModel.get(i).checked)
                 list.push(_preprocessModel.get(i).key);
         }
-        settings.enabledPreprocessors = list;
+                controller.enabledPreprocessors = list;
     }
 
     function _loadPreprocessors() {
         if (!controller) return;
-        var stored = settings.enabledPreprocessors;
+        var stored = controller.enabledPreprocessors;
         for (var i = 0; i < _preprocessModel.count; ++i) {
             _preprocessModel.get(i).checked = stored.indexOf(_preprocessModel.get(i).key) >= 0;
         }
@@ -282,7 +342,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? settings.subtitleDownloadPath : ""
+                        text: controller ? controller.subtitleDownloadPath : ""
                         readOnly: true
                         placeholderText: "字幕文件下载后保存的目录路径"
                         font.pixelSize: 11
@@ -314,7 +374,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? settings.videoSourcePath : ""
+                        text: controller ? controller.videoSourcePath : ""
                         readOnly: true
                         placeholderText: "存放原视频的目录路径"
                         font.pixelSize: 11
@@ -326,12 +386,12 @@ Pane {
                         implicitWidth: 110
                         text: "递归子文件夹"
                         paletteGroup: "CheckBoxEx"
-                        checked: controller ? settings.recursive : false
+                        checked: controller ? controller.recursive : false
                         font.pixelSize: 11
                         enabled: !controller || controller.currentStep === controller.stepNone
                         onCheckedChanged: {
                             if (controller)
-                                settings.recursive = checked;
+                                controller.recursive = checked;
                         }
                     }
 
@@ -360,7 +420,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? settings.mergedOutputPath : ""
+                        text: controller ? controller.mergedOutputPath : ""
                         readOnly: true
                         placeholderText: "合成视频+字幕后，文件的输出路径"
                         font.pixelSize: 11
@@ -392,7 +452,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? settings.ffmpegPath : ""
+                        text: controller ? controller.ffmpegPath : ""
                         readOnly: true
                         placeholderText: "选择 ffmpeg.exe 路径（用于合成视频+字幕）"
                         font.pixelSize: 11
@@ -703,7 +763,7 @@ Pane {
                                 hoverColor: browserCtrl && browserCtrl.searching ? pal.CustomSubtitlePage_searchBtn_hoverColor_active : pal.CustomSubtitlePage_searchBtn_hoverColor_normal
                                 borderColor: normalColor
                                 textColor: pal.CustomSubtitlePage_searchBtn_textColor
-                                enabled: !controller || (controller.currentStep === controller.stepNone || controller.currentStep === controller.stepSearch)
+                                enabled: (!controller || controller.currentStep === controller.stepNone || controller.currentStep === controller.stepSearch) && (!browserCtrl || !browserCtrl.previewing)
                                 onClicked: {
                                     if (browserCtrl && browserCtrl.searching) {
                                         browserCtrl.stopSearch();
@@ -733,7 +793,7 @@ Pane {
                                 iconSource: "qrc:/icons/trash.svg"
                                 tooltip: "清空记录"
                                 visible: !searchBusyIndicator.visible
-                                enabled: !searchBusyIndicator.visible && searchResultsModel.count > 0 && (!controller || controller.currentStep === controller.stepNone)
+                                enabled: !searchBusyIndicator.visible && searchResultsModel.count > 0 && (!controller || controller.currentStep === controller.stepNone) && (!browserCtrl || !browserCtrl.previewing)
                     paletteGroup: "BackCancelBtn"
                                 onClicked: searchResultsModel.clear()
                             }
@@ -754,253 +814,344 @@ Pane {
                         Layout.fillHeight: true
                         color: "transparent"
 
-                        // 空状态提示
-                        Column {
-                            anchors.centerIn: parent
-                            spacing: 10
-                            visible: searchResultsModel.count === 0 && !searchBusyIndicator.running
-
-                            // Python 不可用警告
-                            Column {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                spacing: 8
-                                visible: browserCtrl && !browserCtrl.pythonAvailable
-
-                                Label {
-                                    id: pyWarnEmoji
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "⚠️"
-                                    font.pixelSize: 28
-                                    color: pal.LabelEx_warningText
-                                }
-                                Label {
-                                    id: pyWarnTitle
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "Python 不可用"
-                                    color: pal.LabelEx_warningText
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                }
-                                Label {
-                                    id: pyWarnDesc
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "请安装 Python 3.10+，并确保在系统 PATH 中"
-                                    color: pal.LabelEx_warningText
-                                    font.pixelSize: 12
-                                    horizontalAlignment: Text.AlignHCenter
-                                    width: 320
-                                    wrapMode: Text.WordWrap
-                                }
-                            }
-
-                            // Python 依赖缺失警告
-                            Column {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                spacing: 8
-                                visible: browserCtrl && browserCtrl.pythonAvailable && !browserCtrl.dependenciesMet
-
-                                Label {
-                                    id: depWarnEmoji
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "📦"
-                                    font.pixelSize: 28
-                                    color: pal.LabelEx_warningText
-                                }
-                                Label {
-                                    id: depWarnTitle
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "缺少 Python 依赖库"
-                                    color: pal.LabelEx_warningText
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                }
-                                Label {
-                                    id: depWarnDesc
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "请安装 lxml 库"
-                                    color: pal.LabelEx_warningText
-                                    font.pixelSize: 12
-                                    horizontalAlignment: Text.AlignHCenter
-                                    width: 320
-                                    wrapMode: Text.WordWrap
-                                }
-                                TextField {
-                                    id: pipCmdField
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "pip install lxml"
-                                    color: pal.LabelEx_codeText
-                                    font.pixelSize: 12
-                                    font.family: "Consolas, 'Courier New', monospace"
-                                    font.bold: true
-                                    padding: 6
-                                    background: Rectangle {
-                                        id: pipCmdBg
-                                        radius: 4
-                                        color: pal.CustomSubtitlePage_pipCmdBg_color
-                                        border.color: pal.CustomSubtitlePage_pipCmdBg_borderColor
-                                        border.width: 1
-                                    }
-                                }
-                                Button {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "检查安装"
-                                    enabled: !controller || controller.currentStep === controller.stepNone
-                                    onClicked: browserCtrl.checkDependencies()
-                                    background: Rectangle {
-                                        id: installBtnBg
-                                        radius: 4
-                                        color: parent.hovered ? pal.CustomSubtitlePage_installBtnBg_color_hover : pal.CustomSubtitlePage_installBtnBg_color_normal
-                                        border.color: pal.CustomSubtitlePage_installBtnBg_borderColor
-                                        border.width: 1
-                                    }
-                                    contentItem: Text {
-                                        id: installBtnText
-                                        text: parent.text
-                                        color: pal.CustomSubtitlePage_installBtnText_color
-                                        font.pixelSize: 12
-                                        horizontalAlignment: Text.AlignHCenter
-                                        verticalAlignment: Text.AlignVCenter
-                                    }
-                                }
-                            }
-
-                            // 正常空状态
-                            Column {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                spacing: 10
-                                visible: !browserCtrl || (browserCtrl.pythonAvailable && browserCtrl.dependenciesMet)
-
-                                Label {
-                                    id: emptySearchEmoji
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "🔍"
-                                    font.pixelSize: 28
-                                    color: pal.LabelEx_infoText
-                                }
-                                Label {
-                                    id: emptySearchTitle
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "输入关键字搜索字幕"
-                                    color: pal.LabelEx_infoText
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                }
-                                Label {
-                                    id: emptySearchDesc
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: "选择左侧网站，输入片名或关键字，点击搜索"
-                                    color: pal.LabelEx_infoText
-                                    font.pixelSize: 12
-                                }
-                            }
-                        }
-
-                        // 结果列表
-                        ListView {
-                            id: searchResultsList
+                        Item {
                             anchors.fill: parent
-                            anchors.margins: 4
-                            clip: true
-                            spacing: 2
-                            visible: searchResultsModel.count > 0
 
-                            model: ListModel {
-                                id: searchResultsModel
-                                // 从 controller.browserController.searchResults 同步
-                                // ListElement {
-                                //     site: "SubtitleCat"
-                                //     language: "English"
-                                //     fileName: "The.Matrix.1999.srt"
-                                //     downloadUrl: "https://..."
-                                // }
+                            // 背景层：空状态 + 列表
+                            ColumnLayout {
+                                anchors.fill: parent
+                                spacing: 0
+
+                                // 空状态提示
+                                Item {
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    visible: searchResultsModel.count === 0 && !searchBusyIndicator.running
+
+                                    Column {
+                                        anchors.centerIn: parent
+                                        spacing: 10
+
+                                        Column {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            spacing: 8
+                                            visible: browserCtrl && !browserCtrl.pythonAvailable
+
+                                            Label {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "⚠️"
+                                                font.pixelSize: 28
+                                                color: pal.LabelEx_warningText
+                                            }
+                                            Label {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "Python 不可用"
+                                                color: pal.LabelEx_warningText
+                                                font.pixelSize: 14
+                                                font.bold: true
+                                            }
+                                            Label {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "请安装 Python 3.10+，并确保在系统 PATH 中"
+                                                color: pal.LabelEx_warningText
+                                                font.pixelSize: 12
+                                                horizontalAlignment: Text.AlignHCenter
+                                                width: 320
+                                                wrapMode: Text.WordWrap
+                                            }
+                                        }
+
+                                        Column {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            spacing: 8
+                                            visible: browserCtrl && browserCtrl.pythonAvailable && !browserCtrl.dependenciesMet
+
+                                            Label {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "📦"
+                                                font.pixelSize: 28
+                                                color: pal.LabelEx_warningText
+                                            }
+                                            Label {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "缺少 Python 依赖库"
+                                                color: pal.LabelEx_warningText
+                                                font.pixelSize: 14
+                                                font.bold: true
+                                            }
+                                            Label {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "请安装 lxml 库"
+                                                color: pal.LabelEx_warningText
+                                                font.pixelSize: 12
+                                                horizontalAlignment: Text.AlignHCenter
+                                                width: 320
+                                                wrapMode: Text.WordWrap
+                                            }
+                                            TextField {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "pip install lxml"
+                                                color: pal.LabelEx_codeText
+                                                font.pixelSize: 12
+                                                font.family: "Consolas, 'Courier New', monospace"
+                                                font.bold: true
+                                                padding: 6
+                                                background: Rectangle {
+                                                    radius: 4
+                                                    color: pal.CustomSubtitlePage_pipCmdBg_color
+                                                    border.color: pal.CustomSubtitlePage_pipCmdBg_borderColor
+                                                    border.width: 1
+                                                }
+                                            }
+                                            Button {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "检查安装"
+                                                enabled: !controller || controller.currentStep === controller.stepNone
+                                                onClicked: browserCtrl.checkDependencies()
+                                                background: Rectangle {
+                                                    radius: 4
+                                                    color: parent.hovered ? pal.CustomSubtitlePage_installBtnBg_color_hover : pal.CustomSubtitlePage_installBtnBg_color_normal
+                                                    border.color: pal.CustomSubtitlePage_installBtnBg_borderColor
+                                                    border.width: 1
+                                                }
+                                                contentItem: Text {
+                                                    text: parent.text
+                                                    color: pal.CustomSubtitlePage_installBtnText_color
+                                                    font.pixelSize: 12
+                                                    horizontalAlignment: Text.AlignHCenter
+                                                    verticalAlignment: Text.AlignVCenter
+                                                }
+                                            }
+                                        }
+
+                                        Column {
+                                            anchors.horizontalCenter: parent.horizontalCenter
+                                            spacing: 10
+                                            visible: !browserCtrl || (browserCtrl.pythonAvailable && browserCtrl.dependenciesMet)
+
+                                            Label {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "🔍"
+                                                font.pixelSize: 28
+                                                color: pal.LabelEx_infoText
+                                            }
+                                            Label {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "输入关键字搜索字幕"
+                                                color: pal.LabelEx_infoText
+                                                font.pixelSize: 14
+                                                font.bold: true
+                                            }
+                                            Label {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "选择左侧网站，输入片名或关键字，点击搜索"
+                                                color: pal.LabelEx_infoText
+                                                font.pixelSize: 12
+                                            }
+                                        }
+                                    }
+                                }
+
+                                // 结果列表
+                                ListView {
+                                    id: searchResultsList
+                                    Layout.fillWidth: true
+                                    Layout.fillHeight: true
+                                    Layout.margins: 4
+                                    clip: true
+                                    spacing: 2
+                                    visible: searchResultsModel.count > 0
+
+                                    model: ListModel {
+                                        id: searchResultsModel
+                                    }
+
+                                    delegate: Rectangle {
+                                        id: resultItem
+                                        width: searchResultsList.width
+                                        height: 48
+                                        radius: 4
+                                        color: itemMouse.containsMouse ? pal.CustomSubtitlePage_resultItem_color_hover : pal.CustomSubtitlePage_resultItem_color_normal
+                                        border.color: itemMouse.containsMouse ? pal.CustomSubtitlePage_resultItem_borderColor_hover : pal.CustomSubtitlePage_resultItem_borderColor_normal
+                                        border.width: 1
+
+                                        RowLayout {
+                                            anchors.fill: parent
+                                            anchors.leftMargin: 12
+                                            anchors.rightMargin: 8
+                                            spacing: 10
+
+                                            Rectangle {
+                                                Layout.preferredWidth: 52
+                                                Layout.preferredHeight: 22
+                                                radius: 4
+                                                color: pal.CustomSubtitlePage_langTag_color
+
+                                                Label {
+                                                    anchors.centerIn: parent
+                                                    text: model.language || ""
+                                                    color: pal.LabelEx_statusText
+                                                    font.pixelSize: 10
+                                                    font.bold: true
+                                                }
+                                            }
+
+                                            Label {
+                                                Layout.fillWidth: true
+                                                text: model.fileName || ""
+                                                color: pal.LabelEx_valueText
+                                                font.pixelSize: 12
+                                                elide: Text.ElideRight
+                                            }
+
+                                            Label {
+                                                text: model.site || ""
+                                                color: pal.LabelEx_infoText
+                                                font.pixelSize: 10
+                                                Layout.preferredWidth: 80
+                                                horizontalAlignment: Text.AlignRight
+                                            }
+
+                                            IconButton {
+                                                id: previewBtn
+                                                Layout.preferredWidth: 64
+                                                text: "预览"
+                                                tooltip: "预览此字幕文件内容"
+                                                normalColor: browserCtrl && browserCtrl.cachedIndex === index ? pal.CustomSubtitlePage_previewBtn_hoverColor : pal.CustomSubtitlePage_previewBtn_normalColor
+                                                hoverColor: pal.CustomSubtitlePage_previewBtn_hoverColor
+                                                borderColor: pal.CustomSubtitlePage_previewBtn_borderColor
+                                                textColor: pal.CustomSubtitlePage_previewBtn_textColor
+                                                enabled: browserCtrl && !browserCtrl.previewing && !browserCtrl.downloading && (!controller || controller.currentStep === controller.stepNone)
+                                                onClicked: {
+                                                    if (browserCtrl) browserCtrl.preview(index);
+                                                }
+                                            }
+
+                                            IconButton {
+                                                id: downloadBtn
+                                                Layout.preferredWidth: 64
+                                                text: browserCtrl && browserCtrl.isDownloaded(index) ? "已下载" : "下载"
+                                                tooltip: browserCtrl && browserCtrl.isDownloaded(index) ? "点击可重新下载" : "下载此字幕文件"
+                                                normalColor: browserCtrl && browserCtrl.isDownloaded(index) ? pal.CustomSubtitlePage_downloadedBtn_normalColor : pal.CustomSubtitlePage_downloadBtn_normalColor
+                                                hoverColor: browserCtrl && browserCtrl.isDownloaded(index) ? pal.CustomSubtitlePage_downloadedBtn_hoverColor : pal.CustomSubtitlePage_downloadBtn_hoverColor
+                                                borderColor: browserCtrl && browserCtrl.isDownloaded(index) ? pal.CustomSubtitlePage_downloadedBtn_borderColor : pal.CustomSubtitlePage_downloadBtn_borderColor
+                                                textColor: browserCtrl && browserCtrl.isDownloaded(index) ? pal.CustomSubtitlePage_downloadedBtn_textColor : pal.CustomSubtitlePage_downloadBtn_textColor
+                                                enabled: browserCtrl && !browserCtrl.downloading && (!controller || controller.currentStep === controller.stepNone)
+                                                onClicked: {
+                                                    if (!browserCtrl) return;
+                                                    if (browserCtrl.isDownloaded(index)) {
+                                                        _redownloadIndex = index;
+                                                        redownloadDialog.open();
+                                                    } else {
+                                                        browserCtrl.download(index);
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            id: itemMouse
+                                            anchors.fill: parent
+                                            hoverEnabled: true
+                                            cursorShape: Qt.PointingHandCursor
+                                            propagateComposedEvents: true
+                                            onPressed: mouse.accepted = false
+                                        }
+                                    }
+                                }
                             }
 
-                            delegate: Rectangle {
-                                id: resultItem
-                                width: searchResultsList.width
-                                height: 48
-                                radius: 4
-                                color: itemMouse.containsMouse ? pal.CustomSubtitlePage_resultItem_color_hover : pal.CustomSubtitlePage_resultItem_color_normal
-                                border.color: itemMouse.containsMouse ? pal.CustomSubtitlePage_resultItem_borderColor_hover : pal.CustomSubtitlePage_resultItem_borderColor_normal
-                                border.width: 1
+                            // 预览覆盖层（完全覆盖列表区域）
+                            Rectangle {
+                                id: previewPanel
+                                anchors.fill: parent
+                                visible: browserCtrl && browserCtrl.previewContent.length > 0
+                                z: 10
+                                color: pal.SurfaceEx_cardBgAlt
+                                clip: true
 
-                                RowLayout {
+                                ColumnLayout {
                                     anchors.fill: parent
-                                    anchors.leftMargin: 12
-                                    anchors.rightMargin: 8
-                                    spacing: 10
+                                    anchors.margins: 8
+                                    spacing: 4
 
-                                    // 语言标签
-                                    Rectangle {
-                                        id: langTag
-                                        Layout.preferredWidth: 52
-                                        Layout.preferredHeight: 22
-                                        radius: 4
-                                        color: pal.CustomSubtitlePage_langTag_color
+                                    RowLayout {
+                                        Layout.fillWidth: true
 
                                         Label {
-                                            id: langLabel
-                                            anchors.centerIn: parent
-                                            text: model.language || ""
-                                            color: pal.LabelEx_statusText
-                                            font.pixelSize: 10
+                                            text: "字幕预览"
                                             font.bold: true
+                                            font.pixelSize: 12
+                                            color: pal.LabelEx_titleText
+                                        }
+
+                                        Item { Layout.fillWidth: true }
+
+                                        IconButton {
+                                            id: savePreviewBtn
+                                            Layout.preferredWidth: 64
+                                            text: "保存"
+                                            tooltip: "保存到下载目录"
+                                            normalColor: pal.CustomSubtitlePage_downloadBtn_normalColor
+                                            hoverColor: pal.CustomSubtitlePage_downloadBtn_hoverColor
+                                            borderColor: pal.CustomSubtitlePage_downloadBtn_borderColor
+                                            textColor: pal.CustomSubtitlePage_downloadBtn_textColor
+                                            enabled: !browserCtrl || (!browserCtrl.downloading && !browserCtrl.previewing)
+                                            onClicked: {
+                                                if (browserCtrl) browserCtrl.savePreviewToDownload();
+                                            }
+                                        }
+
+                                        IconButton {
+                                            Layout.preferredWidth: 48
+                                            text: "关闭"
+                                            paletteGroup: "IconBtnEx"
+                                            onClicked: {
+                                                if (browserCtrl) browserCtrl.clearPreview();
+                                            }
                                         }
                                     }
 
-                                    // 文件名
-                                    Label {
-                                        id: fileNameLabel
+                                    Rectangle {
                                         Layout.fillWidth: true
-                                        text: model.fileName || ""
-                                        color: pal.LabelEx_valueText
-                                        font.pixelSize: 12
-                                        elide: Text.ElideRight
-                                    }
+                                        Layout.fillHeight: true
+                                        color: pal.SurfaceEx_pageBg
+                                        radius: 2
 
-                                    // 站点来源
-                                    Label {
-                                        id: siteLabel
-                                        text: model.site || ""
-                                        color: pal.LabelEx_infoText
-                                        font.pixelSize: 10
-                                        Layout.preferredWidth: 80
-                                        horizontalAlignment: Text.AlignRight
-                                    }
+                                        ScrollView {
+                                            anchors.fill: parent
+                                            anchors.margins: 2
+                                            clip: true
+                                            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-                                    // 下载按钮
-                                    IconButton {
-                                        id: downloadBtn
-                                        Layout.preferredWidth: 64
-                                        text: "下载"
-                                        tooltip: "下载此字幕文件"
-                                        paletteGroup: "CustomSubtitlePage_downloadBtn"
-                                        enabled: browserCtrl && !browserCtrl.downloading && (!controller || controller.currentStep === controller.stepNone)
-                                        onClicked: {
-                                            if (browserCtrl) browserCtrl.download(index);
+                                            TextArea {
+                                                text: browserCtrl ? browserCtrl.previewContent : ""
+                                                readOnly: true
+                                                font.family: "Consolas, 'Courier New', monospace"
+                                                font.pixelSize: 11
+                                                color: pal.LabelEx_valueText
+                                                background: Item {}
+                                                selectByMouse: true
+                                                wrapMode: TextEdit.Wrap
+                                                leftPadding: 6
+                                                rightPadding: 6
+                                                topPadding: 4
+                                                bottomPadding: 4
+                                            }
                                         }
                                     }
-                                }
-
-                                MouseArea {
-                                    id: itemMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    cursorShape: Qt.PointingHandCursor
-                                    // 不拦截下载按钮的点击
-                                    propagateComposedEvents: true
-                                    onPressed: mouse.accepted = false
                                 }
                             }
-                        }
 
-                        BusyIndicator {
-                            id: downloadBusyIndicator
-                            anchors.centerIn: parent
-                            width: 40
-                            height: 40
-                            running: browserCtrl ? browserCtrl.downloading : false
-                            visible: running
+                            // 下载中指示器
+                            BusyIndicator {
+                                anchors.centerIn: parent
+                                width: 40
+                                height: 40
+                                z: 20
+                                running: browserCtrl ? browserCtrl.downloading : false
+                                visible: running
+                            }
                         }
                     }
                 }
@@ -1207,12 +1358,12 @@ Pane {
                                     Layout.fillWidth: true
                                     text: "GPU加速"
                                     paletteGroup: "CheckBoxEx"
-                                    checked: controller ? settings.gpuAccel : false
+                                    checked: controller ? controller.gpuAccel : false
                                     font.pixelSize: 11
                                     enabled: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
                                         if (controller)
-                                            settings.gpuAccel = checked;
+                                            controller.gpuAccel = checked;
                                     }
                                 }
 
@@ -1368,12 +1519,12 @@ Pane {
                                     Layout.fillWidth: true
                                     text: "名称弱匹配"
                                     paletteGroup: "CheckBoxEx"
-                                    checked: controller ? settings.weakMatch : false
+                                    checked: controller ? controller.weakMatch : false
                                     font.pixelSize: 11
                                     enabled: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
                                         if (controller)
-                                            settings.weakMatch = checked;
+                                            controller.weakMatch = checked;
                                     }
                                 }
 

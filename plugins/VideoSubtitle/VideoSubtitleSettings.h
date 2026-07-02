@@ -1,12 +1,10 @@
 #pragma once
 
 #include <QObject>
-#include <QSettings>
 #include <QVariantList>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QFutureWatcher>
-#include "Config.h"
 
 class PluginLogger;
 
@@ -18,9 +16,6 @@ struct ToolsDetectResult {
 class VideoSubtitleSettings : public QObject
 {
     Q_OBJECT
-
-    // 共享 config.ini 路径
-    static QString configPath() { return pluginConfigFilePath(); }
 
     // ── 设置页 ──
     Q_PROPERTY(QString ffmpegPath READ ffmpegPath WRITE setFfmpegPath NOTIFY ffmpegPathChanged)
@@ -224,7 +219,6 @@ private:
     void testLibreTranslateConnection();
 
     PluginLogger *m_logger = nullptr;
-    QSettings m_settings;
     QFutureWatcher<ToolsDetectResult> *m_detectWatcher = nullptr;
     bool m_ffmpegDetecting = false;
     bool m_whisperDetecting = false;

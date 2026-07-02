@@ -1,4 +1,5 @@
 #include "SubtitleAdjustSettings.h"
+#include "SubtitleAdjustPlugin.h"
 #include "SettingsHelper.h"
 
 SubtitleAdjustSettings::SubtitleAdjustSettings(QObject *parent)
@@ -93,7 +94,7 @@ void SubtitleAdjustSettings::setSeekStepMs(int ms)
 
 void SubtitleAdjustSettings::loadSettings()
 {
-    QSettings &s = pluginGroupSettings("SubtitleAdjust");
+    QSettings &s = pluginGroupSettings(SubtitleAdjustPlugin::PluginKey);
     m_mode = s.value("mode", 0).toInt();
     m_videoFolder = s.value("videoFolder").toString();
     m_subtitleFolder = s.value("subtitleFolder").toString();
@@ -106,7 +107,7 @@ void SubtitleAdjustSettings::loadSettings()
 }
 void SubtitleAdjustSettings::saveSettings()
 {
-    QSettings &s = pluginGroupSettings("SubtitleAdjust");
+    QSettings &s = pluginGroupSettings(SubtitleAdjustPlugin::PluginKey);
     s.setValue("mode", m_mode);
     s.setValue("videoFolder", m_videoFolder);
     s.setValue("subtitleFolder", m_subtitleFolder);

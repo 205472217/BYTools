@@ -109,7 +109,7 @@ void ImageCropSettings::setOutputDir(const QString &dir)
 
 void ImageCropSettings::loadSettings()
 {
-    QSettings &s = pluginGroupSettings(ImageCropPlugin::kIniSection);
+    QSettings &s = pluginGroupSettings(ImageCropPlugin::PluginKey);
     m_rootPath = s.value("rootPath").toString();
     m_recursive = s.value("recursive", false).toBool();
     m_outputMode = s.value("outputMode", 0).toInt();
@@ -117,7 +117,7 @@ void ImageCropSettings::loadSettings()
 }
 void ImageCropSettings::saveSettings()
 {
-    QSettings &s = pluginGroupSettings(ImageCropPlugin::kIniSection);
+    QSettings &s = pluginGroupSettings(ImageCropPlugin::PluginKey);
     s.setValue("rootPath", m_rootPath);
     s.setValue("recursive", m_recursive);
     s.setValue("outputMode", m_outputMode);

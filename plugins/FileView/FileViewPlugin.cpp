@@ -9,7 +9,7 @@ FileViewPlugin::FileViewPlugin(QObject *parent)
 
 QString FileViewPlugin::id() const
 {
-    return "FileView";
+    return PluginKey;
 }
 
 QString FileViewPlugin::name() const
@@ -40,7 +40,7 @@ int FileViewPlugin::order() const
 void FileViewPlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger("FileView");
+        m_logger = new PluginLogger(PluginKey);
     if (!m_settings) {
         m_settings = new FileViewSettings(this);
     }

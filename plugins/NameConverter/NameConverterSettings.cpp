@@ -40,14 +40,14 @@ void NameConverterSettings::setRecursive(bool recursive)
 
 void NameConverterSettings::loadSettings()
 {
-    QSettings &s = pluginGroupSettings(NameConverterPlugin::kIniSection);
+    QSettings &s = pluginGroupSettings(NameConverterPlugin::PluginKey);
     m_rootPath = s.value("rootPath").toString();
     m_targetType = s.value("targetType", 2).toInt();
     m_recursive = s.value("recursive", false).toBool();
 }
 void NameConverterSettings::saveSettings()
 {
-    QSettings &s = pluginGroupSettings(NameConverterPlugin::kIniSection);
+    QSettings &s = pluginGroupSettings(NameConverterPlugin::PluginKey);
     s.setValue("rootPath", m_rootPath);
     s.setValue("targetType", m_targetType);
     s.setValue("recursive", m_recursive);

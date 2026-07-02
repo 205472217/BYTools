@@ -145,7 +145,7 @@ Pane {
         title: "选择输入路径"
         onAccepted: {
             if (settings) {
-                settings.inputPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
+                controller.inputPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
             }
         }
     }
@@ -156,7 +156,7 @@ Pane {
         nameFilters: ["视频文件 (*.mp4 *.mkv *.avi *.mov *.wmv *.flv *.ts)", "所有文件 (*)"]
         onAccepted: {
             if (settings) {
-                settings.inputPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
+                controller.inputPath = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
             }
         }
     }
@@ -166,7 +166,7 @@ Pane {
         title: "选择输出目录"
         onAccepted: {
             if (controller) {
-                settings.outputDir = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
+                controller.outputDir = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
             }
         }
     }
@@ -326,12 +326,12 @@ Pane {
                         id: singleFileRadio
                         implicitWidth: 100
                         text: "单个视频"
-                        checked: controller ? settings.inputMode === 0 : true
+                        checked: controller ? controller.inputMode === 0 : true
                         paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
                             if (checked && controller) {
-                                settings.inputMode = 0;
-                                settings.inputPath = "";
+                                controller.inputMode = 0;
+                                controller.inputPath = "";
                             }
                         }
                     }
@@ -340,12 +340,12 @@ Pane {
                         id: batchFolderRadio
                         implicitWidth: 100
                         text: "文件夹批量"
-                        checked: controller ? settings.inputMode === 1 : false
+                        checked: controller ? controller.inputMode === 1 : false
                         paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
                             if (checked && controller) {
-                                settings.inputMode = 1;
-                                settings.inputPath = "";
+                                controller.inputMode = 1;
+                                controller.inputPath = "";
                             }
                         }
                     }
@@ -354,12 +354,12 @@ Pane {
                         id: recursiveCheck
                         implicitWidth: 110
                         text: "递归子文件夹"
-                        checked: controller ? settings.recursive : false
-                        visible: controller ? settings.inputMode === 1 : false
+                        checked: controller ? controller.recursive : false
+                        visible: controller ? controller.inputMode === 1 : false
                         paletteGroup: "CheckBoxEx"
                         onCheckedChanged: {
                             if (controller)
-                                settings.recursive = checked;
+                                controller.recursive = checked;
                         }
                     }
 
@@ -384,7 +384,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: settings ? settings.inputPath : ""
+                        text: controller ? controller.inputPath : ""
                         readOnly: true
                         placeholderText: "选择视频文件或文件夹"
                         paletteGroup: "TextFieldEx"
@@ -395,7 +395,7 @@ Pane {
                         tooltip: "选择文件"
                         paletteGroup: "IconBtnEx"
                         onClicked: {
-                            if (controller && settings.inputMode === 0) {
+                            if (controller && controller.inputMode === 0) {
                                 inputFileDialog.open();
                             } else {
                                 inputFolderDialog.open();
@@ -430,16 +430,16 @@ Pane {
                             id: stepAudio
                             implicitWidth: 90
                             text: "1. 分离音频"
-                            checked: controller ? settings.enableAudioExtraction : true
+                            checked: controller ? controller.enableAudioExtraction : true
                             opacity: 1.0
                             paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
                                 if (controller)
-                                    settings.enableAudioExtraction = checked;
+                                    controller.enableAudioExtraction = checked;
                                 if (!checked && controller) {
-                                    settings.enableTranscribe = false;
-                                    settings.enableTranslate = false;
-                                    settings.enableBurnSubtitle = false;
+                                    controller.enableTranscribe = false;
+                                    controller.enableTranslate = false;
+                                    controller.enableBurnSubtitle = false;
                                 }
                             }
                         }
@@ -448,16 +448,16 @@ Pane {
                             id: stepTranscribe
                             implicitWidth: 160
                             text: "2. 语音识别(音频→SRT)"
-                            checked: controller ? settings.enableTranscribe : true
+                            checked: controller ? controller.enableTranscribe : true
                             enabled: stepAudio.checked
                             opacity: 1.0
                             paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
                                 if (controller)
-                                    settings.enableTranscribe = checked;
+                                    controller.enableTranscribe = checked;
                                 if (!checked && controller) {
-                                    settings.enableTranslate = false;
-                                    settings.enableBurnSubtitle = false;
+                                    controller.enableTranslate = false;
+                                    controller.enableBurnSubtitle = false;
                                 }
                             }
                             ToolTip {
@@ -471,13 +471,13 @@ Pane {
                             id: stepTranslate
                             implicitWidth: 90
                             text: "3. 翻译字幕"
-                            checked: controller ? settings.enableTranslate : true
+                            checked: controller ? controller.enableTranslate : true
                             enabled: stepAudio.checked && stepTranscribe.checked
                             opacity: 1.0
                             paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
                                 if (controller)
-                                    settings.enableTranslate = checked;
+                                    controller.enableTranslate = checked;
                             }
                             ToolTip {
                                 text: "请先勾选「1. 分离音频」和「2. 语音识别」"
@@ -490,13 +490,13 @@ Pane {
                             id: stepBurn
                             text: "4. 烧录字幕"
                             implicitWidth: 90
-                            checked: controller ? settings.enableBurnSubtitle : true
+                            checked: controller ? controller.enableBurnSubtitle : true
                             enabled: stepAudio.checked && stepTranscribe.checked
                             opacity: 1.0
                             paletteGroup: "CheckBoxEx"
                             onCheckedChanged: {
                                 if (controller)
-                                    settings.enableBurnSubtitle = checked;
+                                    controller.enableBurnSubtitle = checked;
                             }
                             ToolTip {
                                 text: "请先勾选「1. 分离音频」和「2. 语音识别」"
@@ -536,7 +536,7 @@ Pane {
                         currentIndex: {
                             if (!controller)
                                 return 0;
-                            switch (settings.sourceLanguage) {
+                            switch (controller.sourceLanguage) {
                             case "auto": return 0;
                             case "en":   return 1;
                             case "zh":   return 2;
@@ -549,7 +549,7 @@ Pane {
                         onActivated: {
                             if (!controller) return;
                             var langs = ["auto", "en", "zh", "ja", "ko", "ru"];
-                            settings.sourceLanguage = langs[currentIndex];
+                            controller.sourceLanguage = langs[currentIndex];
                         }
                         paletteGroup: "ComboBoxEx"
                     }
@@ -568,7 +568,7 @@ Pane {
                         model: ["中文", "英文", "日文", "韩文"]
                         currentIndex: {
                             if (!controller) return 0;
-                            switch (settings.targetLanguage) {
+                            switch (controller.targetLanguage) {
                             case "zh": return 0;
                             case "en": return 1;
                             case "ja": return 2;
@@ -579,7 +579,7 @@ Pane {
                         onActivated: {
                             if (!controller) return;
                             var langs = ["zh", "en", "ja", "ko"];
-                            settings.targetLanguage = langs[currentIndex];
+                            controller.targetLanguage = langs[currentIndex];
                         }
                         paletteGroup: "ComboBoxEx"
                     }
@@ -588,14 +588,14 @@ Pane {
                         id: musicCheck
                         implicitWidth: 110
                         text: "背景音乐(翻译+烧录)"
-                        checked: controller ? settings.translateMusic : false
+                        checked: controller ? controller.translateMusic : false
                         font.pixelSize: 11
                         Layout.fillWidth: true
                         enabled: stepTranslate.checked
                         paletteGroup: "CheckBoxEx"
                         onCheckedChanged: {
                             if (controller)
-                                settings.translateMusic = checked;
+                                controller.translateMusic = checked;
                         }
                     }
 
@@ -622,11 +622,11 @@ Pane {
                         id: sameDirRadio
                         implicitWidth: 80
                         text: "同目录"
-                        checked: controller ? settings.outputMode === 0 : true
+                        checked: controller ? controller.outputMode === 0 : true
                         paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
                             if (checked && controller)
-                                settings.outputMode = 0;
+                                controller.outputMode = 0;
                         }
                     }
 
@@ -634,27 +634,27 @@ Pane {
                         id: specifyDirRadio
                         implicitWidth: 80
                         text: "指定目录"
-                        checked: controller ? settings.outputMode === 1 : false
+                        checked: controller ? controller.outputMode === 1 : false
                         paletteGroup: "RadioButtonEx"
                         onCheckedChanged: {
                             if (checked && controller)
-                                settings.outputMode = 1;
+                                controller.outputMode = 1;
                         }
                     }
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: controller ? settings.outputDir : ""
+                        text: controller ? controller.outputDir : ""
                         placeholderText: "输出目录"
                         readOnly: true
-                        enabled: controller ? settings.outputMode === 1 : false
+                        enabled: controller ? controller.outputMode === 1 : false
                         paletteGroup: "TextFieldEx"
                     }
 
                     IconButton {
                         iconSource: "qrc:/icons/folder.svg"
                         tooltip: "选择输出目录"
-                        enabled: controller ? settings.outputMode === 1 : false
+                        enabled: controller ? controller.outputMode === 1 : false
                         paletteGroup: "IconBtnEx"
                         onClicked: outputFolderDialog.open()
                     }

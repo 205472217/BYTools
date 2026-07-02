@@ -32,45 +32,45 @@ if exist "third\model" (
 )
 
 ::==========================plugins===============================
-:: Copy batchrename plugin
-mkdir "%PLUGIN_OUT%\card-batchrename"
-copy "build\plugins\batchrename\libBatchRename.dll" "%PLUGIN_OUT%\card-batchrename"
+:: Copy BatchRename plugin
+mkdir "%PLUGIN_OUT%\BatchRename"
+copy "build\plugins\BatchRename\libBatchRename.dll" "%PLUGIN_OUT%\BatchRename"
 
-:: Copy imageconverter plugin
-mkdir "%PLUGIN_OUT%\card-imageconverter"
-copy "build\plugins\imageconverter\libImageConverter.dll" "%PLUGIN_OUT%\card-imageconverter"
+:: Copy ImageConverter plugin
+mkdir "%PLUGIN_OUT%\ImageConverter"
+copy "build\plugins\ImageConverter\libImageConverter.dll" "%PLUGIN_OUT%\ImageConverter"
 
-:: Copy imagecrop plugin
-mkdir "%PLUGIN_OUT%\card-imagecrop"
-copy "build\plugins\imagecrop\libImageCrop.dll" "%PLUGIN_OUT%\card-imagecrop"
+:: Copy ImageCrop plugin
+mkdir "%PLUGIN_OUT%\ImageCrop"
+copy "build\plugins\ImageCrop\libImageCrop.dll" "%PLUGIN_OUT%\ImageCrop"
 
-:: Copy nameconverter plugin
-mkdir "%PLUGIN_OUT%\card-nameconverter"
-copy "build\plugins\nameconverter\libNameConverter.dll" "%PLUGIN_OUT%\card-nameconverter"
+:: Copy NameConverter plugin
+mkdir "%PLUGIN_OUT%\NameConverter"
+copy "build\plugins\NameConverter\libNameConverter.dll" "%PLUGIN_OUT%\NameConverter"
 
-:: Copy videosubtitle plugin
-mkdir "%PLUGIN_OUT%\card-videosubtitle"
-copy "build\plugins\videosubtitle\libVideoSubtitle.dll" "%PLUGIN_OUT%\card-videosubtitle"
+:: Copy VideoSubtitle plugin
+mkdir "%PLUGIN_OUT%\VideoSubtitle"
+copy "build\plugins\VideoSubtitle\libVideoSubtitle.dll" "%PLUGIN_OUT%\VideoSubtitle"
 
-:: Copy customsubtitle plugin
-mkdir "%PLUGIN_OUT%\card-customsubtitle"
-copy "build\plugins\customsubtitle\libCustomSubtitle.dll" "%PLUGIN_OUT%\card-customsubtitle"
-if exist "plugins\customsubtitle\python" (
-    xcopy /E /I "plugins\customsubtitle\python" "%PLUGIN_OUT%\card-customsubtitle\python"
+:: Copy CustomSubtitle plugin
+mkdir "%PLUGIN_OUT%\CustomSubtitle"
+copy "build\plugins\CustomSubtitle\libCustomSubtitle.dll" "%PLUGIN_OUT%\CustomSubtitle"
+if exist "plugins\CustomSubtitle\python" (
+    xcopy /E /I "plugins\CustomSubtitle\python" "%PLUGIN_OUT%\CustomSubtitle\python"
 )
 
 :: Copy adjustsubtitle plugin
-mkdir "%PLUGIN_OUT%\card-subtitleadjust"
-copy "build\plugins\subtitleadjust\libSubtitleAdjust.dll" "%PLUGIN_OUT%\card-subtitleadjust"
+mkdir "%PLUGIN_OUT%\SubtitleAdjust"
+copy "build\plugins\SubtitleAdjust\libSubtitleAdjust.dll" "%PLUGIN_OUT%\SubtitleAdjust"
 if exist "third\mpv" (
-    xcopy /E /I "third\mpv" "%PLUGIN_OUT%\card-subtitleadjust\mpv"
+    xcopy /E /I "third\mpv" "%PLUGIN_OUT%\SubtitleAdjust\mpv"
 )
 
-:: Copy fileview plugin
-mkdir "%PLUGIN_OUT%\card-fileview"
-copy "build\plugins\fileview\libFileView.dll" "%PLUGIN_OUT%\card-fileview"
+:: Copy FileView plugin
+mkdir "%PLUGIN_OUT%\FileView"
+copy "build\plugins\FileView\libFileView.dll" "%PLUGIN_OUT%\FileView"
 if exist "third\mpv" (
-    xcopy /E /I "third\mpv" "%PLUGIN_OUT%\card-fileview\mpv"
+    xcopy /E /I "third\mpv" "%PLUGIN_OUT%\FileView\mpv"
 )
 ::==========================plugins===============================
 
