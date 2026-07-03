@@ -21,6 +21,21 @@ Pane {
     property int _contextMenuIndex: -1
     readonly property var _activeView: controller && controller.viewMode === 1 ? fileGridView : fileListView
 
+    property string tipText: ""
+    property bool showTip: false
+
+    onShowTipChanged: {
+        if (showTip) {
+            tipDismissTimer.restart();
+        }
+    }
+
+    Timer {
+        id: tipDismissTimer
+        interval: 1800
+        onTriggered: root.showTip = false
+    }
+
     ConfirmDialog {
         id: confirmDeleteDialog
         dialogTitle: "确认删除"
@@ -141,17 +156,31 @@ Pane {
     function navPrevFile() {
         if (!controller)
             return;
+        var isImage = controller.currentFileInfo.typeCategory === 2;
         var idx = controller.prevFileInCategory(controller.currentModelIndex);
-        if (idx >= 0)
+        if (idx >= 0) {
+            var isWrapping = idx > controller.currentModelIndex;
             controller.selectFile(idx);
+            if (isWrapping && isImage) {
+                tipText = "当前浏览最后一张图片";
+                showTip = true;
+            }
+        }
     }
 
     function navNextFile() {
         if (!controller)
             return;
+        var isImage = controller.currentFileInfo.typeCategory === 2;
         var idx = controller.nextFileInCategory(controller.currentModelIndex);
-        if (idx >= 0)
+        if (idx >= 0) {
+            var isWrapping = idx < controller.currentModelIndex;
             controller.selectFile(idx);
+            if (isWrapping && isImage) {
+                tipText = "当前浏览第一张图片";
+                showTip = true;
+            }
+        }
     }
 
     // ═══════════════ Main Layout ═══════════════
@@ -1033,6 +1062,40 @@ Pane {
                                         p.hasNext = controller.nextFileInCategory(controller.currentModelIndex) >= 0;
                                     }
                                 }
+                            }
+                        }
+
+                        // ── Auto-dismiss Tip (centered in preview area) ──
+                        Rectangle {
+                            id: tipOverlay
+                            anchors.centerIn: parent
+                            width: tipLabel.implicitWidth + 32
+                            height: 36
+                            radius: 18
+                            color: pal.SurfaceEx_overlay
+                            z: 100
+                            opacity: 0
+                            visible: opacity > 0
+
+                            Behavior on opacity {
+                                NumberAnimation {
+                                    duration: 200
+                                }
+                            }
+
+                            Connections {
+                                target: root
+                                function onShowTipChanged() {
+                                    tipOverlay.opacity = root.showTip ? 1 : 0;
+                                }
+                            }
+
+                            Label {
+                                id: tipLabel
+                                anchors.centerIn: parent
+                                text: root.tipText
+                                color: pal.LabelEx_infoText
+                                font.pixelSize: 13
                             }
                         }
                     }
