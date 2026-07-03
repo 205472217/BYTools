@@ -624,6 +624,7 @@ void SubBrowserController::savePreviewToDownload()
         QFile::remove(destPath);
     if (QFile::copy(m_cachedFilePath, destPath)) {
         m_downloadedIndices.insert(m_cachedIndex);
+        emit downloadedIndexChanged(m_cachedIndex, true);
         m_searchStatus = QStringLiteral("已保存: %1").arg(destPath);
         if (m_logger) m_logger->info(m_searchStatus);
     } else {
@@ -656,6 +657,7 @@ void SubBrowserController::download(int index)
             QFile::remove(destPath);
         if (QFile::copy(m_cachedFilePath, destPath)) {
             m_downloadedIndices.insert(index);
+            emit downloadedIndexChanged(index, true);
             m_searchStatus = QStringLiteral("下载完成: %1").arg(destPath);
             if (m_logger) m_logger->info(m_searchStatus);
         } else {
@@ -797,6 +799,7 @@ void SubBrowserController::onDownloadProcessFinished(int exitCode, QProcess::Exi
     } else {
         if (root.value("ok").toBool(false)) {
             m_downloadedIndices.insert(m_currentDownloadIndex);
+            emit downloadedIndexChanged(m_currentDownloadIndex, true);
             m_searchStatus = QStringLiteral("下载完成: %1").arg(root.value("file_path").toString());
             if (m_logger) m_logger->info(m_searchStatus);
         } else {

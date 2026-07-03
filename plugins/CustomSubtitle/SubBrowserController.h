@@ -102,6 +102,7 @@ signals:
     void previewingChanged();
     void previewContentChanged();
     void cachedIndexChanged();
+    void downloadedIndexChanged(int index, bool downloaded);
 
 private slots:
     void onSearchProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);

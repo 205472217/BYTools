@@ -737,6 +737,7 @@ Pane {
                                 id: clearSearchRecords
                                 Layout.preferredWidth: 30
                                 iconSource: "qrc:/icons/trash.svg"
+                                paletteGroup: "IconBtnEx"
                                 tooltip: "清空记录"
                                 visible: !searchBusyIndicator.visible
                                 enabled: !searchBusyIndicator.visible && searchResultsModel.count > 0 && (!controller || controller.currentStep === controller.stepNone) && (!browserCtrl || !browserCtrl.previewing)
@@ -919,6 +920,16 @@ Pane {
                                         color: itemMouse.containsMouse ? pal.CustomSubtitlePage_resultItem_color_hover : pal.CustomSubtitlePage_resultItem_color_normal
                                         border.color: itemMouse.containsMouse ? pal.CustomSubtitlePage_resultItem_borderColor_hover : pal.CustomSubtitlePage_resultItem_borderColor_normal
                                         border.width: 1
+                                        property bool itemDownloaded: browserCtrl ? browserCtrl.isDownloaded(index) : false
+
+                                        Connections {
+                                            target: browserCtrl
+                                            function onDownloadedIndexChanged(idx, downloaded) {
+                                                if (idx === index) {
+                                                    resultItem.itemDownloaded = downloaded;
+                                                }
+                                            }
+                                        }
 
                                         RowLayout {
                                             anchors.fill: parent
@@ -975,16 +986,16 @@ Pane {
                                             IconButton {
                                                 id: downloadBtn
                                                 Layout.preferredWidth: 64
-                                                text: browserCtrl && browserCtrl.isDownloaded(index) ? "已下载" : "下载"
-                                                tooltip: browserCtrl && browserCtrl.isDownloaded(index) ? "点击可重新下载" : "下载此字幕文件"
-                                                normalColor: browserCtrl && browserCtrl.isDownloaded(index) ? pal.CustomSubtitlePage_downloadedBtn_normalColor : pal.CustomSubtitlePage_downloadBtn_normalColor
-                                                hoverColor: browserCtrl && browserCtrl.isDownloaded(index) ? pal.CustomSubtitlePage_downloadedBtn_hoverColor : pal.CustomSubtitlePage_downloadBtn_hoverColor
-                                                borderColor: browserCtrl && browserCtrl.isDownloaded(index) ? pal.CustomSubtitlePage_downloadedBtn_borderColor : pal.CustomSubtitlePage_downloadBtn_borderColor
-                                                textColor: browserCtrl && browserCtrl.isDownloaded(index) ? pal.CustomSubtitlePage_downloadedBtn_textColor : pal.CustomSubtitlePage_downloadBtn_textColor
+                                                text: resultItem.itemDownloaded ? "已下载" : "下载"
+                                                tooltip: resultItem.itemDownloaded ? "点击可重新下载" : "下载此字幕文件"
+                                                normalColor: resultItem.itemDownloaded ? pal.CustomSubtitlePage_downloadedBtn_normalColor : pal.CustomSubtitlePage_downloadBtn_normalColor
+                                                hoverColor: resultItem.itemDownloaded ? pal.CustomSubtitlePage_downloadedBtn_hoverColor : pal.CustomSubtitlePage_downloadBtn_hoverColor
+                                                borderColor: resultItem.itemDownloaded ? pal.CustomSubtitlePage_downloadedBtn_borderColor : pal.CustomSubtitlePage_downloadBtn_borderColor
+                                                textColor: resultItem.itemDownloaded ? pal.CustomSubtitlePage_downloadedBtn_textColor : pal.CustomSubtitlePage_downloadBtn_textColor
                                                 enabled: browserCtrl && !browserCtrl.downloading && (!controller || controller.currentStep === controller.stepNone)
                                                 onClicked: {
                                                     if (!browserCtrl) return;
-                                                    if (browserCtrl.isDownloaded(index)) {
+                                                    if (resultItem.itemDownloaded) {
                                                         _redownloadIndex = index;
                                                         redownloadDialog.open();
                                                     } else {
@@ -1017,6 +1028,28 @@ Pane {
                                 color: pal.SurfaceEx_cardBgAlt
                                 clip: true
 
+                                property bool previewDownloaded: false
+
+                                function _updatePreviewDownloaded() {
+                                    if (browserCtrl && browserCtrl.cachedIndex >= 0)
+                                        previewDownloaded = browserCtrl.isDownloaded(browserCtrl.cachedIndex);
+                                    else
+                                        previewDownloaded = false;
+                                }
+
+                                Connections {
+                                    target: browserCtrl
+                                    function onCachedIndexChanged() {
+                                        previewPanel._updatePreviewDownloaded();
+                                    }
+                                    function onDownloadedIndexChanged(idx, downloaded) {
+                                        if (idx === browserCtrl.cachedIndex)
+                                            previewDownloaded = downloaded;
+                                    }
+                                }
+
+                                Component.onCompleted: _updatePreviewDownloaded()
+
                                 ColumnLayout {
                                     anchors.fill: parent
                                     anchors.margins: 8
@@ -1037,12 +1070,12 @@ Pane {
                                         IconButton {
                                             id: savePreviewBtn
                                             Layout.preferredWidth: 64
-                                            text: "保存"
-                                            tooltip: "保存到下载目录"
-                                            normalColor: pal.CustomSubtitlePage_downloadBtn_normalColor
-                                            hoverColor: pal.CustomSubtitlePage_downloadBtn_hoverColor
-                                            borderColor: pal.CustomSubtitlePage_downloadBtn_borderColor
-                                            textColor: pal.CustomSubtitlePage_downloadBtn_textColor
+                                            text: previewPanel.previewDownloaded ? "已下载" : "保存"
+                                            tooltip: previewPanel.previewDownloaded ? "已保存到下载目录" : "保存到下载目录"
+                                            normalColor: previewPanel.previewDownloaded ? pal.CustomSubtitlePage_downloadedBtn_normalColor : pal.CustomSubtitlePage_downloadBtn_normalColor
+                                            hoverColor: previewPanel.previewDownloaded ? pal.CustomSubtitlePage_downloadedBtn_hoverColor : pal.CustomSubtitlePage_downloadBtn_hoverColor
+                                            borderColor: previewPanel.previewDownloaded ? pal.CustomSubtitlePage_downloadedBtn_borderColor : pal.CustomSubtitlePage_downloadBtn_borderColor
+                                            textColor: previewPanel.previewDownloaded ? pal.CustomSubtitlePage_downloadedBtn_textColor : pal.CustomSubtitlePage_downloadBtn_textColor
                                             enabled: !browserCtrl || (!browserCtrl.downloading && !browserCtrl.previewing)
                                             onClicked: {
                                                 if (browserCtrl) browserCtrl.savePreviewToDownload();
