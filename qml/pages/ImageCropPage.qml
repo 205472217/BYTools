@@ -249,7 +249,7 @@ Pane {
             spacing: 12
 
             IconButton {
-                iconSource: "qrc:/icons/arrow-left.svg"
+                iconSource: "qrc:/icons/global_back.svg"
                 implicitHeight: 38
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
@@ -331,7 +331,7 @@ Pane {
                 }
 
                 IconButton {
-                    iconSource: "qrc:/icons/folder.svg"
+                    iconSource: "qrc:/icons/global_folder.svg"
                     tooltip: "选择源文件夹"
                     paletteGroup: "IconBtnEx"
                     onClicked: sourceFolderDialog.open()
@@ -382,7 +382,7 @@ Pane {
             }
 
             IconButton {
-                iconSource: "qrc:/icons/undo.svg"
+                iconSource: "qrc:/icons/global_undo.svg"
                 tooltip: "还原当前图片的裁剪"
                 visible: controller ? controller.canRestoreCurrent : false
                 paletteGroup: "IconBtnEx"
@@ -1606,7 +1606,7 @@ Pane {
                                     }
 
                                     IconButton {
-                                        iconSource: "qrc:/icons/folder.svg"
+                                        iconSource: "qrc:/icons/global_folder.svg"
                                         tooltip: "选择输出目录"
                                         paletteGroup: "IconBtnEx"
                                         onClicked: outputFolderDialog.open()
@@ -1636,7 +1636,7 @@ Pane {
                             implicitWidth: 150
                             Layout.fillWidth: true
                             text: "开始处理"
-                            iconSource: "qrc:/icons/play.svg"
+                            iconSource: "qrc:/icons/global_start.svg"
                             tooltip: "开始裁剪图片"
                             paletteGroup: "ImageCropPage_execBtn"
                             onClicked: {

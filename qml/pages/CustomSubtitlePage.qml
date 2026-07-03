@@ -214,7 +214,7 @@ Pane {
             spacing: 12
 
             IconButton {
-                iconSource: "qrc:/icons/arrow-left.svg"
+                iconSource: "qrc:/icons/global_back.svg"
                 implicitHeight: 38
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
@@ -296,7 +296,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
+                        iconSource: "qrc:/icons/global_folder.svg"
                         tooltip: "选择下载路径"
                         enabled: !controller || controller.currentStep === controller.stepNone
                         paletteGroup: "IconBtnEx"
@@ -342,7 +342,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
+                        iconSource: "qrc:/icons/global_folder.svg"
                         tooltip: "选择视频目录"
                         enabled: !controller || controller.currentStep === controller.stepNone
                         paletteGroup: "IconBtnEx"
@@ -374,7 +374,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
+                        iconSource: "qrc:/icons/global_folder.svg"
                         tooltip: "选择合成输出路径"
                         enabled: !controller || controller.currentStep === controller.stepNone
                         paletteGroup: "IconBtnEx"
@@ -423,7 +423,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
+                        iconSource: "qrc:/icons/global_folder.svg"
                         tooltip: "选择 ffmpeg.exe"
                         enabled: !controller || controller.currentStep === controller.stepNone
                         paletteGroup: "IconBtnEx"
@@ -736,7 +736,7 @@ Pane {
                             IconButton {
                                 id: clearSearchRecords
                                 Layout.preferredWidth: 30
-                                iconSource: "qrc:/icons/trash.svg"
+                                iconSource: "qrc:/icons/global_trash.svg"
                                 paletteGroup: "IconBtnEx"
                                 tooltip: "清空记录"
                                 visible: !searchBusyIndicator.visible

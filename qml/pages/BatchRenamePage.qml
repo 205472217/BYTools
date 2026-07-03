@@ -89,7 +89,7 @@ Pane {
 
                     IconButton {
                         id: backBtn
-                        iconSource: "qrc:/icons/arrow-left.svg"
+                        iconSource: "qrc:/icons/global_back.svg"
                         implicitHeight: 38
                         tooltip: "返回"
                         paletteGroup: "IconBtnEx"
@@ -174,7 +174,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
+                        iconSource: "qrc:/icons/global_folder.svg"
                         tooltip: "选择源文件夹"
                         paletteGroup: "IconBtnEx"
                         onClicked: folderDialog.open()
@@ -394,7 +394,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/trash.svg"
+                        iconSource: "qrc:/icons/global_trash.svg"
                         tooltip: "清空记录"
                         visible: controller ? controller.hasRecords : false
                         paletteGroup: "IconBtnEx"
@@ -409,7 +409,7 @@ Pane {
                         id: executeBtn
                         implicitWidth: 110
                         text: "开始处理"
-                        iconSource: "qrc:/icons/play.svg"
+                        iconSource: "qrc:/icons/global_start.svg"
                         tooltip: "开始批量重命名"
                         paletteGroup: "BatchRenamePage_executeBtn"
                         onClicked: {
@@ -453,7 +453,7 @@ Pane {
             }
 
             IconButton {
-                iconSource: "qrc:/icons/undo.svg"
+                iconSource: "qrc:/icons/global_undo.svg"
                 tooltip: "批量还原"
                 visible: controller ? controller.hasRecords : false
                 paletteGroup: "IconBtnEx"
@@ -662,7 +662,7 @@ Pane {
                             x: root.actionColumnX
                             width: root.actionColumnWidth
                             anchors.verticalCenter: parent.verticalCenter
-                            iconSource: "qrc:/icons/undo.svg"
+                            iconSource: "qrc:/icons/global_undo.svg"
                             tooltip: modelData.success ? "还原" : "失败项无法还原"
                             enabled: modelData.success
                             paletteGroup: "IconBtnEx"

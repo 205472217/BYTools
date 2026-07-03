@@ -276,7 +276,7 @@ Pane {
             spacing: 12
 
             IconButton {
-                iconSource: "qrc:/icons/arrow-left.svg"
+                iconSource: "qrc:/icons/global_back.svg"
                 implicitHeight: 38
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
@@ -402,7 +402,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
+                        iconSource: "qrc:/icons/global_folder.svg"
                         tooltip: isSingleMode ? "选择视频文件" : "选择视频文件夹"
                         paletteGroup: "IconBtnEx"
                         onClicked: isSingleMode ? videoFileDialog.open() : videoFolderDialog.open()
@@ -450,7 +450,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
+                        iconSource: "qrc:/icons/global_folder.svg"
                         tooltip: isSingleMode ? "选择字幕文件" : "选择字幕文件夹"
                         paletteGroup: "IconBtnEx"
                         onClicked: isSingleMode ? subtitleFileDialog.open() : subtitleFolderDialog.open()

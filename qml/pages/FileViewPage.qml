@@ -201,7 +201,7 @@ Pane {
             spacing: 12
 
             IconButton {
-                iconSource: "qrc:/icons/arrow-left.svg"
+                iconSource: "qrc:/icons/global_back.svg"
                 implicitHeight: 38
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
@@ -277,7 +277,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
+                        iconSource: "qrc:/icons/global_folder.svg"
                         tooltip: "选择源文件夹"
                         paletteGroup: "IconBtnEx"
                         onClicked: folderDialog.open()
@@ -461,7 +461,7 @@ Pane {
                             IconButton {
                                 implicitWidth: 24
                                 implicitHeight: 24
-                                iconSource: "qrc:/icons/arrow-left.svg"
+                                iconSource: "qrc:/icons/global_back.svg"
                                 tooltip: "返回上级目录"
                                 paletteGroup: "IconBtnEx"
                                 enabled: controller && controller.canNavigateUp
@@ -801,7 +801,7 @@ Pane {
 
                             MenuItem {
                                 text: "定位到当前文件"
-                                icon.source: "qrc:/icons/to-current.svg"
+                                icon.source: "qrc:/icons/to_current.svg"
                                 onTriggered: {
                                     var idx = root._activeView.currentIndex;
                                     if (idx >= 0)
@@ -810,12 +810,12 @@ Pane {
                             }
                             MenuItem {
                                 text: "定位到顶部"
-                                icon.source: "qrc:/icons/to-top.svg"
+                                icon.source: "qrc:/icons/to_top.svg"
                                 onTriggered: root._activeView.positionViewAtBeginning()
                             }
                             MenuItem {
                                 text: "定位到底部"
-                                icon.source: "qrc:/icons/to-bottom.svg"
+                                icon.source: "qrc:/icons/to_bottom.svg"
                                 onTriggered: root._activeView.positionViewAtEnd()
                             }
 
@@ -823,7 +823,7 @@ Pane {
 
                             Menu {
                                 title: "排序方式"
-                                icon.source: "qrc:/icons/empty.svg"
+                                icon.source: "qrc:/icons/global_empty.svg"
                                 icon.width: 16
                                 icon.height: 16
 
@@ -872,7 +872,7 @@ Pane {
 
                             MenuItem {
                                 text: "删除"
-                                icon.source: "qrc:/icons/trash.svg"
+                                icon.source: "qrc:/icons/global_trash.svg"
                                 enabled: controller && controller.currentModelIndex >= 0 && root._contextMenuIndex === controller.currentModelIndex
                                 onTriggered: confirmDeleteDialog.open()
                             }

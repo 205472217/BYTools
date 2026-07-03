@@ -88,7 +88,7 @@ Pane {
             spacing: 12
 
             IconButton {
-                iconSource: "qrc:/icons/arrow-left.svg"
+                iconSource: "qrc:/icons/global_back.svg"
                 implicitHeight: 38
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
@@ -165,7 +165,7 @@ Pane {
                         }
 
                         IconButton {
-                            iconSource: "qrc:/icons/folder.svg"
+                            iconSource: "qrc:/icons/global_folder.svg"
                             tooltip: "浏览"
                             paletteGroup: "IconBtnEx"
                             onClicked: ffmpegFileDialog.open()
@@ -252,7 +252,7 @@ Pane {
                         }
 
                         IconButton {
-                            iconSource: "qrc:/icons/folder.svg"
+                            iconSource: "qrc:/icons/global_folder.svg"
                             tooltip: "浏览"
                             paletteGroup: "IconBtnEx"
                             onClicked: whisperFileDialog.open()
@@ -339,7 +339,7 @@ Pane {
                         }
 
                         IconButton {
-                            iconSource: "qrc:/icons/folder.svg"
+                            iconSource: "qrc:/icons/global_folder.svg"
                             tooltip: "浏览"
                             paletteGroup: "IconBtnEx"
                             onClicked: modelFileDialog.open()
@@ -490,7 +490,7 @@ Pane {
                             }
 
                             IconButton {
-                                iconSource: "qrc:/icons/eye.svg"
+                                iconSource: "qrc:/icons/global_eye.svg"
                                 tooltip: baiduApiKeyField.echoMode === TextInput.Password ? "显示" : "隐藏"
                                 paletteGroup: "IconBtnEx"
                                 onClicked: {

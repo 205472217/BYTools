@@ -210,7 +210,7 @@ Pane {
             spacing: 12
 
             IconButton {
-                iconSource: "qrc:/icons/arrow-left.svg"
+                iconSource: "qrc:/icons/global_back.svg"
                 implicitHeight: 38
                 tooltip: "返回"
                 paletteGroup: "IconBtnEx"
@@ -248,7 +248,7 @@ Pane {
 }
 
             IconButton {
-                iconSource: "qrc:/icons/settings.svg"
+                iconSource: "qrc:/icons/global_settings.svg"
                 implicitHeight: 38
                 tooltip: "设置"
                 paletteGroup: "IconBtnEx"
@@ -352,7 +352,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
+                        iconSource: "qrc:/icons/global_folder.svg"
                         tooltip: "选择文件"
                         paletteGroup: "IconBtnEx"
                         onClicked: {
@@ -613,7 +613,7 @@ Pane {
                     }
 
                     IconButton {
-                        iconSource: "qrc:/icons/folder.svg"
+                        iconSource: "qrc:/icons/global_folder.svg"
                         tooltip: "选择输出目录"
                         enabled: controller ? controller.outputMode === 1 : false
                         paletteGroup: "IconBtnEx"
@@ -624,7 +624,7 @@ Pane {
                         id: startBtn
                         implicitWidth: 150
                         text: controller && controller.isProcessing ? "中止处理" : "开始处理"
-                        iconSource: controller && controller.isProcessing ? "" : "qrc:/icons/play.svg"
+                        iconSource: controller && controller.isProcessing ? "" : "qrc:/icons/global_start.svg"
                         tooltip: controller && controller.isProcessing ? "中止处理" : "开始处理"
                         normalColor: controller && controller.isProcessing ? pal.VideoSubtitlePage_startBtn_normalColor_active : pal.VideoSubtitlePage_startBtn_normalColor_normal
                         hoverColor: controller && controller.isProcessing ? pal.VideoSubtitlePage_startBtn_hoverColor_active : pal.VideoSubtitlePage_startBtn_hoverColor_normal
@@ -688,7 +688,7 @@ Pane {
 
                     IconButton {
                         id: clearLogButton
-                        iconSource: "qrc:/icons/trash.svg"
+                        iconSource: "qrc:/icons/global_trash.svg"
                         tooltip: "清空日志"
                         visible: !controller.isProcessing && logModel.count > 0
                         paletteGroup: "IconBtnEx"

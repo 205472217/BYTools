@@ -202,7 +202,7 @@ Pane {
                         Layout.fillWidth: true
                         titleText: modelData.name
                         descriptionText: modelData.description
-                        iconSource: "qrc:/icons/card-" + modelData.id + ".svg"
+                        iconSource: "qrc:/icons/card_" + modelData.id + ".svg"
                         paletteGroup: "FeatureCard"
                         onClicked: root.openFeature(modelData.id)
                     }
@@ -290,7 +290,7 @@ Pane {
                             Layout.fillWidth: true
                             titleText: modelData.name
                             descriptionText: modelData.description
-                            iconSource: "qrc:/icons/card-" + modelData.id + ".svg"
+                            iconSource: "qrc:/icons/card_" + modelData.id + ".svg"
                             paletteGroup: "FeatureCard"
                             onClicked: root.openFeature(modelData.id)
                         }

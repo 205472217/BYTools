@@ -219,7 +219,7 @@ Item {
 
                 IconButton {
                     implicitWidth: 28
-                    iconSource: "qrc:/icons/media-previous.svg"
+                    iconSource: "qrc:/icons/media_previous.svg"
                     tooltip: "上一个"
                     paletteGroup: root.controlsPaletteGroup
                     visible: root.showPreviousNext
@@ -228,7 +228,7 @@ Item {
 
                 IconButton {
                     implicitWidth: 28
-                    iconSource: "qrc:/icons/media-seekdec.svg"
+                    iconSource: "qrc:/icons/media_seekdec.svg"
                     tooltip: "快退"
                     paletteGroup: root.controlsPaletteGroup
                     visible: root.showSeekButtons
@@ -240,7 +240,7 @@ Item {
                 IconButton {
                     implicitWidth: 32
                     property bool isPlaying: mpvPlayer.playbackState === MpvPlayer.Playing
-                    iconSource: isPlaying ? "qrc:/icons/media-pause.svg" : "qrc:/icons/media-play.svg"
+                    iconSource: isPlaying ? "qrc:/icons/media_pause.svg" : "qrc:/icons/media_play.svg"
                     tooltip: isPlaying ? "暂停" : "播放"
                     paletteGroup: root.controlsPaletteGroup
                     onClicked: {
@@ -253,7 +253,7 @@ Item {
 
                 IconButton {
                     implicitWidth: 28
-                    iconSource: "qrc:/icons/media-seekadd.svg"
+                    iconSource: "qrc:/icons/media_seekadd.svg"
                     tooltip: "快进"
                     paletteGroup: root.controlsPaletteGroup
                     visible: root.showSeekButtons
@@ -264,7 +264,7 @@ Item {
 
                 IconButton {
                     implicitWidth: 28
-                    iconSource: "qrc:/icons/media-next.svg"
+                    iconSource: "qrc:/icons/media_next.svg"
                     tooltip: "下一个"
                     paletteGroup: root.controlsPaletteGroup
                     visible: root.showPreviousNext
@@ -304,7 +304,7 @@ Item {
                     id: muteBtn
                     implicitWidth: 28
                     property bool _isMuted: mpvPlayer.muted || root.volume < 1
-                    iconSource: _isMuted ? "qrc:/icons/media-mute.svg" : "qrc:/icons/media-volume.svg"
+                    iconSource: _isMuted ? "qrc:/icons/media_mute.svg" : "qrc:/icons/media_volume.svg"
                     tooltip: _isMuted ? "取消静音" : "静音"
                     paletteGroup: root.controlsPaletteGroup
                     onClicked: {
