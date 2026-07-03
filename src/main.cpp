@@ -23,16 +23,19 @@ int main(int argc, char *argv[])
     qDebug() << "Loaded plugins count:" << loadedPlugins.count();
     qDebug() << "Loaded plugins:" << loadedPlugins;
 
+    QQmlApplicationEngine engine;
+#ifdef Q_OS_WIN
+
     // 启动时异步解压 mpv.zip，不阻塞界面
     for (const QString &mpvId : PluginManager::instance()->mpvPluginIds())
         PluginManager::instance()->startMpvExtraction(mpvId);
-
-    QQmlApplicationEngine engine;
+    // 注册 MpvPlayer 类型
     qmlRegisterType<MpvPlayer>("BYTools", 1, 0, "MpvPlayer");
+
+#endif
 
     engine.rootContext()->setContextProperty("pluginManager", PluginManager::instance());
     engine.rootContext()->setContextProperty("themeManager", ThemeManager::instance());
-
 
     QObject::connect(
         &engine,

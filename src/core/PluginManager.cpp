@@ -283,6 +283,23 @@ bool PluginManager::isMpvExtracting() const
     return m_mpvExtractionCount > 0;
 }
 
+QVariantList PluginManager::pluginsForCategory(const QString &category) const
+{
+    QVariantList result;
+    for (const auto &entry : m_plugins) {
+        if (entry.plugin && entry.plugin->category() == category) {
+            QVariantMap item;
+            item["id"] = entry.plugin->id();
+            item["name"] = entry.plugin->name();
+            item["description"] = entry.plugin->description();
+            item["iconName"] = entry.plugin->iconName();
+            item["category"] = entry.plugin->category();
+            result.append(item);
+        }
+    }
+    return result;
+}
+
 void PluginManager::registerPlugin(PluginInterface *plugin)
 {
     if (plugin && !m_plugins.contains(plugin->id())) {

@@ -1,6 +1,0 @@
-{
-    "id": "image-converter",
-    "name": "图片处理",
-    "description": "批量转换图片格式、缩放尺寸，支持递归子文件夹",
-    "version": "1.0.0"
-}

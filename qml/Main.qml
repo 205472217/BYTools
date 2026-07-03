@@ -92,7 +92,7 @@ ApplicationWindow {
         id: transitionOverlay
         anchors.fill: stackView
         z: stackView.z + 1
-        color: "#40000000"
+        color: pal.SurfaceEx_overlay
         visible: stackView.busy
 
         MouseArea {

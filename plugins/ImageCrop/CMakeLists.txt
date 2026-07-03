@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21)
 
 project(ImageCropPlugin LANGUAGES CXX)
 
@@ -15,7 +15,6 @@ add_library(ImageCropPlugin MODULE
     ImageCropController.h
     ImageCropSettings.cpp
     ImageCropSettings.h
-    plugin.json
 )
 
 target_include_directories(ImageCropPlugin PRIVATE
@@ -28,11 +27,4 @@ set_target_properties(ImageCropPlugin PROPERTIES
     OUTPUT_NAME "ImageCrop"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/ImageCrop"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/ImageCrop"
-)
-
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/ImageCrop")
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/ImageCrop/plugin.json
-    COPYONLY
 )

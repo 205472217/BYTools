@@ -12,8 +12,10 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Quick QuickControls2 Core)
 qt_standard_project_setup(REQUIRES 6.5)
 
 set(BYTOOLS_PLATFORM_SOURCES)
+set(BYTOOLS_PLATFORM_QML_FILES)
 if(WIN32)
-    list(APPEND BYTOOLS_PLATFORM_SOURCES resources/app.rc)
+    list(APPEND BYTOOLS_PLATFORM_SOURCES resources/app.rc src/core/MpvPlayer.h src/core/MpvPlayer.cpp)
+    list(APPEND BYTOOLS_PLATFORM_QML_FILES qml/components/MpvViewer.qml)
 endif()
 
 
@@ -25,8 +27,6 @@ qt_add_executable(BYTools
     src/core/PluginManager.cpp
     src/core/ThemeManager.h
     src/core/ThemeManager.cpp
-    src/core/MpvPlayer.h
-    src/core/MpvPlayer.cpp
     ${BYTOOLS_PLATFORM_SOURCES}
 )
 
@@ -48,7 +48,7 @@ set(BYTOOLS_QML_FILES
     qml/components/RadioButtonEx.qml
     qml/components/ViewToggleBtn.qml
     qml/components/ImageViewer.qml
-    qml/components/MpvViewer.qml
+    ${BYTOOLS_PLATFORM_QML_FILES}
     qml/pages/HomePage.qml
     qml/pages/NameConverterPage.qml
     qml/pages/BatchRenamePage.qml

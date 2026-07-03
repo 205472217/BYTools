@@ -116,6 +116,17 @@ public:
     Q_INVOKABLE int hitTest(int mx, int my, int cropX, int cropY, int cropW, int cropH, int cornerHitSize) const;
     Q_INVOKABLE static QString extractFileName(const QString &filePath);
 
+    // Drag computation (moved from QML business logic)
+    Q_INVOKABLE QVariantMap computeCropDrag(
+        int dragMode,
+        double startMX, double startMY,
+        double mouseX, double mouseY,
+        double startCropX, double startCropY,
+        double startCropW, double startCropH,
+        double dispW, double dispH,
+        int cropMode, double srcW, double srcH) const;
+    Q_INVOKABLE static int cursorShapeForHit(int hitMode);
+
 signals:
     void cropXChanged();
     void cropYChanged();

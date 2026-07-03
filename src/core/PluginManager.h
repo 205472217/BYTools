@@ -34,6 +34,7 @@ public:
     Q_INVOKABLE QString pluginQmlUrl(const QString &id, const QString &pageType = "page") const;
     Q_INVOKABLE QStringList mpvPluginIds() const;
     Q_INVOKABLE bool hasProcessingTasks() const;
+    Q_INVOKABLE QVariantList pluginsForCategory(const QString &category) const;
     bool isMpvExtracting() const;
     void registerPlugin(PluginInterface *plugin);
 

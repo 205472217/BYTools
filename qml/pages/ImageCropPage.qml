@@ -109,11 +109,9 @@ Pane {
         var pad = 48;
         var cw = Math.max(imageContainer.width - pad * 2, 1);
         var ch = Math.max(imageContainer.height - pad * 2, 1);
-        var scaleX = cw / srcW;
-        var scaleY = ch / srcH;
-        var s = Math.min(scaleX, scaleY);
-        dispW = Math.round(srcW * s);
-        dispH = Math.round(srcH * s);
+        var result = controller.calcDisplayDimensions(cw, ch, srcW, srcH);
+        dispW = result.dispW;
+        dispH = result.dispH;
     }
 
     // ── Initialize crop when image loads ───────────────────────────────
@@ -525,34 +523,12 @@ Pane {
                                     property real cornerHitSize: 14
 
                                     function cursorForMode(mode) {
-                                        if (mode === 1)
-                                            return Qt.SizeAllCursor;
-                                        if (mode === 2)
-                                            return Qt.SizeFDiagCursor;
-                                        if (mode === 3)
-                                            return Qt.SizeBDiagCursor;
-                                        if (mode === 4)
-                                            return Qt.SizeBDiagCursor;
-                                        if (mode === 5)
-                                            return Qt.SizeFDiagCursor;
-                                        if (mode === 6 || mode === 7)
-                                            return Qt.SizeVerCursor;
-                                        if (mode === 8 || mode === 9)
-                                            return Qt.SizeHorCursor;
+                                        if (mode > 0)
+                                            return controller ? controller.cursorShapeForHit(mode) : Qt.ArrowCursor;
                                         if (!containsMouse)
                                             return Qt.ArrowCursor;
                                         var h = controller ? controller.hitTest(mouseX, mouseY, root.cropX, root.cropY, root.cropW, root.cropH, cornerHitSize) : 0;
-                                        if (h === 1)
-                                            return Qt.SizeAllCursor;
-                                        if (h === 2 || h === 5)
-                                            return Qt.SizeFDiagCursor;
-                                        if (h === 3 || h === 4)
-                                            return Qt.SizeBDiagCursor;
-                                        if (h === 6 || h === 7)
-                                            return Qt.SizeVerCursor;
-                                        if (h === 8 || h === 9)
-                                            return Qt.SizeHorCursor;
-                                        return Qt.ArrowCursor;
+                                        return controller ? controller.cursorShapeForHit(h) : Qt.ArrowCursor;
                                     }
 
                                     cursorShape: cursorForMode(dragMode > 0 ? dragMode : 0)
@@ -574,184 +550,20 @@ Pane {
                                     onPositionChanged: function (mouse) {
                                         if (dragMode === 0)
                                             return;
-                                        var dx = mouse.x - startMX;
-                                        var dy = mouse.y - startMY;
-                                        var nx, ny, nw, nh, c, maxW, maxH;
-                                        if (dragMode === 1) {
-                                            // Move — clamp to image bounds
-                                            nx = startCropX + dx;
-                                            ny = startCropY + dy;
-                                            root.cropX = Math.max(0, Math.min(nx, root.dispW - root.cropW));
-                                            root.cropY = Math.max(0, Math.min(ny, root.dispH - root.cropH));
-                                        } else if (dragMode === 2) {
-                                            // TL — fixed corner is BR
-                                            nw = startCropW - dx;
-                                            nh = startCropH - dy;
-                                            c = controller ? controller.constrainToRatio(nw, nh) : {w: nw, h: nh};
-                                            nw = c.w;
-                                            nh = c.h;
-                                            maxW = startCropX + startCropW;
-                                            maxH = startCropY + startCropH;
-                                            if (nw > maxW) {
-                                                nw = maxW;
-                                                nh = Math.round(nw / (controller ? controller.calcEffectiveRatio() : 1)) || nh;
-                                            }
-                                            if (nh > maxH) {
-                                                nh = maxH;
-                                                nw = Math.round(nh * (controller ? controller.calcEffectiveRatio() : 1)) || nw;
-                                            }
-                                            root.cropX = maxW - nw;
-                                            root.cropY = maxH - nh;
-                                            root.cropW = nw;
-                                            root.cropH = nh;
-                                        } else if (dragMode === 3) {
-                                            // TR — fixed corner is BL
-                                            nw = startCropW + dx;
-                                            nh = startCropH - dy;
-                                            c = controller ? controller.constrainToRatio(nw, nh) : {w: nw, h: nh};
-                                            nw = c.w;
-                                            nh = c.h;
-                                            maxW = root.dispW - startCropX;
-                                            maxH = startCropY + startCropH;
-                                            if (nw > maxW) {
-                                                nw = maxW;
-                                                nh = Math.round(nw / (controller ? controller.calcEffectiveRatio() : 1)) || nh;
-                                            }
-                                            if (nh > maxH) {
-                                                nh = maxH;
-                                                nw = Math.round(nh * (controller ? controller.calcEffectiveRatio() : 1)) || nw;
-                                            }
-                                            root.cropX = startCropX;
-                                            root.cropY = maxH - nh;
-                                            root.cropW = nw;
-                                            root.cropH = nh;
-                                        } else if (dragMode === 4) {
-                                            // BL — fixed corner is TR
-                                            nw = startCropW - dx;
-                                            nh = startCropH + dy;
-                                            c = controller ? controller.constrainToRatio(nw, nh) : {w: nw, h: nh};
-                                            nw = c.w;
-                                            nh = c.h;
-                                            maxW = startCropX + startCropW;
-                                            maxH = root.dispH - startCropY;
-                                            if (nw > maxW) {
-                                                nw = maxW;
-                                                nh = Math.round(nw / (controller ? controller.calcEffectiveRatio() : 1)) || nh;
-                                            }
-                                            if (nh > maxH) {
-                                                nh = maxH;
-                                                nw = Math.round(nh * (controller ? controller.calcEffectiveRatio() : 1)) || nw;
-                                            }
-                                            root.cropX = maxW - nw;
-                                            root.cropY = startCropY;
-                                            root.cropW = nw;
-                                            root.cropH = nh;
-                                        } else if (dragMode === 5) {
-                                            // BR — fixed corner is TL
-                                            nw = startCropW + dx;
-                                            nh = startCropH + dy;
-                                            c = controller ? controller.constrainToRatio(nw, nh) : {w: nw, h: nh};
-                                            nw = c.w;
-                                            nh = c.h;
-                                            maxW = root.dispW - startCropX;
-                                            maxH = root.dispH - startCropY;
-                                            if (nw > maxW) {
-                                                nw = maxW;
-                                                nh = Math.round(nw / (controller ? controller.calcEffectiveRatio() : 1)) || nh;
-                                            }
-                                            if (nh > maxH) {
-                                                nh = maxH;
-                                                nw = Math.round(nh * (controller ? controller.calcEffectiveRatio() : 1)) || nw;
-                                            }
-                                            root.cropX = startCropX;
-                                            root.cropY = startCropY;
-                                            root.cropW = nw;
-                                            root.cropH = nh;
-                                        } else if (dragMode === 6) {
-                                            // Top edge — bottom fixed
-                                            nh = startCropH - dy;
-                                            nw = startCropW;
-                                            if (controller) {
-                                                c = controller.constrainToRatio(nw, nh);
-                                                nw = c.w;
-                                                nh = c.h;
-                                            }
-                                            maxH = startCropY + startCropH;
-                                            if (nh > maxH) {
-                                                nh = maxH;
-                                                if (controller)
-                                                    nw = Math.round(nh * controller.calcEffectiveRatio()) || nw;
-                                            }
-                                            if (nh < 20) nh = 20;
-                                            root.cropY = maxH - nh;
-                                            root.cropH = nh;
-                                            root.cropW = nw;
-                                        } else if (dragMode === 7) {
-                                            // Bottom edge — top fixed
-                                            nh = startCropH + dy;
-                                            nw = startCropW;
-                                            if (controller) {
-                                                c = controller.constrainToRatio(nw, nh);
-                                                nw = c.w;
-                                                nh = c.h;
-                                            }
-                                            maxH = root.dispH - startCropY;
-                                            if (nh > maxH) {
-                                                nh = maxH;
-                                                if (controller)
-                                                    nw = Math.round(nh * controller.calcEffectiveRatio()) || nw;
-                                            }
-                                            if (nh < 20) nh = 20;
-                                            root.cropY = startCropY;
-                                            root.cropH = nh;
-                                            root.cropW = nw;
-                                        } else if (dragMode === 8) {
-                                            // Left edge — right fixed
-                                            nw = startCropW - dx;
-                                            nh = startCropH;
-                                            if (controller) {
-                                                c = controller.constrainToRatio(nw, nh);
-                                                nw = c.w;
-                                                nh = c.h;
-                                            }
-                                            maxW = startCropX + startCropW;
-                                            if (nw > maxW) {
-                                                nw = maxW;
-                                                if (controller)
-                                                    nh = Math.round(nw / controller.calcEffectiveRatio()) || nh;
-                                            }
-                                            if (nw < 20) nw = 20;
-                                            root.cropX = maxW - nw;
-                                            root.cropW = nw;
-                                            root.cropH = nh;
-                                        } else if (dragMode === 9) {
-                                            // Right edge — left fixed
-                                            nw = startCropW + dx;
-                                            nh = startCropH;
-                                            if (controller) {
-                                                c = controller.constrainToRatio(nw, nh);
-                                                nw = c.w;
-                                                nh = c.h;
-                                            }
-                                            maxW = root.dispW - startCropX;
-                                            if (nw > maxW) {
-                                                nw = maxW;
-                                                if (controller)
-                                                    nh = Math.round(nw / controller.calcEffectiveRatio()) || nh;
-                                            }
-                                            if (nw < 20) nw = 20;
-                                            root.cropX = startCropX;
-                                            root.cropW = nw;
-                                            root.cropH = nh;
-                                        }
+                                        var result = root.controller.computeCropDrag(
+                                            dragMode, startMX, startMY, mouse.x, mouse.y,
+                                            startCropX, startCropY, startCropW, startCropH,
+                                            root.dispW, root.dispH,
+                                            root.controller.cropMode, root.srcW, root.srcH);
+                                        root.cropX = result.x;
+                                        root.cropY = result.y;
+                                        root.cropW = result.w;
+                                        root.cropH = result.h;
 
-                                        // ── Sync crop size to pixel values in pixel mode ──
-                                        if (root.controller && root.controller.cropMode === 1 && dragMode !== 1) {
+                                        if (dragMode !== 1 && result.targetWidth !== undefined) {
                                             root.updatingCropFromDrag = true;
-                                            var sx = root.srcW / root.dispW;
-                                            var sy = root.srcH / root.dispH;
-                                            root.controller.targetWidth = Math.round(root.cropW * sx);
-                                            root.controller.targetHeight = Math.round(root.cropH * sy);
+                                            root.controller.targetWidth = result.targetWidth;
+                                            root.controller.targetHeight = result.targetHeight;
                                             root.updatingCropFromDrag = false;
                                         }
                                     }

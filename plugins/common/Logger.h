@@ -7,8 +7,8 @@
 
 /**
  * 日志工具类，每个插件持有独立实例。
- * 例：PluginLogger logger("custom-subtitle")
- *     → 日志输出到 <exe_dir>/log/custom-subtitle_YYYY-MM-DD.log
+ * 例：PluginLogger logger(PluginKey)
+ *     → 日志输出到 <exe_dir>/log/<PluginKey>_YYYY-MM-DD.log
  */
 class PluginLogger
 {

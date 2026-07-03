@@ -282,9 +282,7 @@ Pane {
                     rowSpacing: 18
 
                     Repeater {
-                        model: pluginManager.plugins.filter(function(f) {
-                            return f.category === pluginManager.pluginCategories[tabBar.currentIndex]
-                        })
+                        model: pluginManager.pluginsForCategory(pluginManager.pluginCategories[tabBar.currentIndex])
 
                         FeatureCard {
                             Layout.fillWidth: true

@@ -784,3 +784,135 @@ QString ImageCropController::extractFileName(const QString &filePath)
         return p.mid(idx + 1);
     return p;
 }
+
+// ── Drag Computation (moved from QML) ─────────────────────────────────
+
+QVariantMap ImageCropController::computeCropDrag(
+    int dragMode,
+    double startMX, double startMY,
+    double mouseX, double mouseY,
+    double startCropX, double startCropY,
+    double startCropW, double startCropH,
+    double dispW, double dispH,
+    int cropMode, double srcW, double srcH) const
+{
+    QVariantMap result;
+    constexpr int MIN_SIZE = 20;
+    double dx = mouseX - startMX;
+    double dy = mouseY - startMY;
+    double nx, ny, nw, nh;
+
+    if (dragMode == 1) {
+        nx = startCropX + dx;
+        ny = startCropY + dy;
+        result["x"] = qBound(0.0, nx, dispW - (startCropW));
+        result["y"] = qBound(0.0, ny, dispH - (startCropH));
+        result["w"] = startCropW;
+        result["h"] = startCropH;
+    } else if (dragMode >= 2 && dragMode <= 5) {
+        QVariantMap c;
+        double maxW, maxH;
+        if (dragMode == 2) {
+            nw = startCropW - dx; nh = startCropH - dy;
+            c = constrainToRatio(nw, nh);
+            nw = c["w"].toDouble(); nh = c["h"].toDouble();
+            maxW = startCropX + startCropW;
+            maxH = startCropY + startCropH;
+            if (nw > maxW) { nw = maxW; nh = qRound(nw / (calcEffectiveRatio() > 0 ? calcEffectiveRatio() : 1)); }
+            if (nh > maxH) { nh = maxH; nw = qRound(nh * (calcEffectiveRatio() > 0 ? calcEffectiveRatio() : 1)); }
+            result["x"] = maxW - nw; result["y"] = maxH - nh;
+        } else if (dragMode == 3) {
+            nw = startCropW + dx; nh = startCropH - dy;
+            c = constrainToRatio(nw, nh);
+            nw = c["w"].toDouble(); nh = c["h"].toDouble();
+            maxW = dispW - startCropX;
+            maxH = startCropY + startCropH;
+            if (nw > maxW) { nw = maxW; nh = qRound(nw / (calcEffectiveRatio() > 0 ? calcEffectiveRatio() : 1)); }
+            if (nh > maxH) { nh = maxH; nw = qRound(nh * (calcEffectiveRatio() > 0 ? calcEffectiveRatio() : 1)); }
+            result["x"] = startCropX; result["y"] = maxH - nh;
+        } else if (dragMode == 4) {
+            nw = startCropW - dx; nh = startCropH + dy;
+            c = constrainToRatio(nw, nh);
+            nw = c["w"].toDouble(); nh = c["h"].toDouble();
+            maxW = startCropX + startCropW;
+            maxH = dispH - startCropY;
+            if (nw > maxW) { nw = maxW; nh = qRound(nw / (calcEffectiveRatio() > 0 ? calcEffectiveRatio() : 1)); }
+            if (nh > maxH) { nh = maxH; nw = qRound(nh * (calcEffectiveRatio() > 0 ? calcEffectiveRatio() : 1)); }
+            result["x"] = maxW - nw; result["y"] = startCropY;
+        } else {
+            nw = startCropW + dx; nh = startCropH + dy;
+            c = constrainToRatio(nw, nh);
+            nw = c["w"].toDouble(); nh = c["h"].toDouble();
+            maxW = dispW - startCropX;
+            maxH = dispH - startCropY;
+            if (nw > maxW) { nw = maxW; nh = qRound(nw / (calcEffectiveRatio() > 0 ? calcEffectiveRatio() : 1)); }
+            if (nh > maxH) { nh = maxH; nw = qRound(nh * (calcEffectiveRatio() > 0 ? calcEffectiveRatio() : 1)); }
+            result["x"] = startCropX; result["y"] = startCropY;
+        }
+        result["w"] = nw; result["h"] = nh;
+    } else if (dragMode == 6 || dragMode == 7) {
+        if (dragMode == 6) {
+            nh = startCropH - dy; nw = startCropW;
+            QVariantMap c = constrainToRatio(nw, nh);
+            nw = c["w"].toDouble(); nh = c["h"].toDouble();
+            double maxH = startCropY + startCropH;
+            if (nh > maxH) { nh = maxH; if (calcEffectiveRatio() > 0) nw = qRound(nh * calcEffectiveRatio()); }
+            if (nh < MIN_SIZE) nh = MIN_SIZE;
+            result["x"] = startCropX; result["y"] = maxH - nh;
+        } else {
+            nh = startCropH + dy; nw = startCropW;
+            QVariantMap c = constrainToRatio(nw, nh);
+            nw = c["w"].toDouble(); nh = c["h"].toDouble();
+            double maxH = dispH - startCropY;
+            if (nh > maxH) { nh = maxH; if (calcEffectiveRatio() > 0) nw = qRound(nh * calcEffectiveRatio()); }
+            if (nh < MIN_SIZE) nh = MIN_SIZE;
+            result["x"] = startCropX; result["y"] = startCropY;
+        }
+        result["w"] = nw; result["h"] = nh;
+    } else if (dragMode == 8 || dragMode == 9) {
+        if (dragMode == 8) {
+            nw = startCropW - dx; nh = startCropH;
+            QVariantMap c = constrainToRatio(nw, nh);
+            nw = c["w"].toDouble(); nh = c["h"].toDouble();
+            double maxW = startCropX + startCropW;
+            if (nw > maxW) { nw = maxW; if (calcEffectiveRatio() > 0) nh = qRound(nw / calcEffectiveRatio()); }
+            if (nw < MIN_SIZE) nw = MIN_SIZE;
+            result["x"] = maxW - nw;
+        } else {
+            nw = startCropW + dx; nh = startCropH;
+            QVariantMap c = constrainToRatio(nw, nh);
+            nw = c["w"].toDouble(); nh = c["h"].toDouble();
+            double maxW = dispW - startCropX;
+            if (nw > maxW) { nw = maxW; if (calcEffectiveRatio() > 0) nh = qRound(nw / calcEffectiveRatio()); }
+            if (nw < MIN_SIZE) nw = MIN_SIZE;
+            result["x"] = startCropX;
+        }
+        result["y"] = startCropY; result["w"] = nw; result["h"] = nh;
+    }
+
+    // Pixel mode sync (convert display coordinates to source pixel coordinates)
+    if (cropMode == 1 && dragMode != 1) {
+        double sx = dispW > 0 ? srcW / dispW : 1;
+        double sy = dispH > 0 ? srcH / dispH : 1;
+        result["targetWidth"] = qRound(result["w"].toDouble() * sx);
+        result["targetHeight"] = qRound(result["h"].toDouble() * sy);
+    }
+
+    return result;
+}
+
+int ImageCropController::cursorShapeForHit(int hitMode)
+{
+    switch (hitMode) {
+    case 1:  return Qt::SizeAllCursor;
+    case 2:  return Qt::SizeFDiagCursor;
+    case 3:  return Qt::SizeBDiagCursor;
+    case 4:  return Qt::SizeBDiagCursor;
+    case 5:  return Qt::SizeFDiagCursor;
+    case 6:
+    case 7:  return Qt::SizeVerCursor;
+    case 8:
+    case 9:  return Qt::SizeHorCursor;
+    default: return Qt::ArrowCursor;
+    }
+}

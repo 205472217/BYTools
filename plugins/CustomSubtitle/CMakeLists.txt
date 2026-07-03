@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21)
 
 project(CustomSubtitlePlugin LANGUAGES CXX)
 
@@ -24,7 +24,6 @@ add_library(CustomSubtitlePlugin MODULE
     FFmpegMergeService.h
     VideoReplaceService.cpp
     VideoReplaceService.h
-    plugin.json
 )
 
 target_include_directories(CustomSubtitlePlugin PRIVATE
@@ -41,12 +40,6 @@ set_target_properties(CustomSubtitlePlugin PROPERTIES
     OUTPUT_NAME "CustomSubtitle"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/CustomSubtitle"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/CustomSubtitle"
-)
-
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/CustomSubtitle/plugin.json
-    COPYONLY
 )
 
 # ── Python 脚本拷贝（每次构建时自动同步�?──

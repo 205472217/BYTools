@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21)
 
 project(BatchRenamePlugin LANGUAGES CXX)
 
@@ -15,7 +15,6 @@ add_library(BatchRenamePlugin MODULE
     BatchRenameController.h
     BatchRenameSettings.cpp
     BatchRenameSettings.h
-    plugin.json
 )
 
 target_include_directories(BatchRenamePlugin PRIVATE
@@ -28,11 +27,4 @@ set_target_properties(BatchRenamePlugin PROPERTIES
     OUTPUT_NAME "BatchRename"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/BatchRename"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/BatchRename"
-)
-
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/BatchRename")
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/BatchRename/plugin.json
-    COPYONLY
 )

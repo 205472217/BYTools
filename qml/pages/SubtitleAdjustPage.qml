@@ -19,11 +19,11 @@ Pane {
     // ── mpv 检测（启动时已解压，此处仅检查文件是否存在） ──
     property bool _mpvAvailable: {
         if (!controller) return false
-        var dir = pluginManager.pluginDirectory("subtitle-adjust")
+        var dir = pluginManager.pluginDirectory(root.pluginId)
         return dir.length > 0 && pluginManager.fileExists(dir + "/mpv/mpv.exe")
     }
     property string _mpvExePath: _mpvAvailable
-        ? pluginManager.pluginDirectory("subtitle-adjust") + "/mpv/mpv.exe" : ""
+        ? pluginManager.pluginDirectory(root.pluginId) + "/mpv/mpv.exe" : ""
 
     property int stepMs: 100
     property int maxOffsetMs: 60000 // 默认 ±1 分钟

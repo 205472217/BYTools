@@ -39,13 +39,6 @@ set_target_properties(NameConverterPlugin PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/NameConverter"
 )
 
-file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/NameConverter")
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/NameConverter/plugin.json
-    COPYONLY
-)
-
 if(WIN32)
     target_compile_definitions(NameConverterPlugin PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
 endif()

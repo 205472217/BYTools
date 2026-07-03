@@ -57,10 +57,10 @@ Pane {
     property bool _mpvAvailable: {
         if (!controller)
             return false;
-        var dir = pluginManager.pluginDirectory("file-view");
+        var dir = pluginManager.pluginDirectory(root.pluginId);
         return dir.length > 0 && pluginManager.fileExists(dir + "/mpv/mpv.exe");
     }
-    property string _mpvExePath: _mpvAvailable ? pluginManager.pluginDirectory("file-view") + "/mpv/mpv.exe" : ""
+    property string _mpvExePath: _mpvAvailable ? pluginManager.pluginDirectory(root.pluginId) + "/mpv/mpv.exe" : ""
 
     function safeInfo(key, fallback) {
         if (!controller || !hasSelection)

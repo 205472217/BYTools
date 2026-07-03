@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.16)
+﻿cmake_minimum_required(VERSION 3.21)
 
 project(VideoSubtitlePlugin LANGUAGES CXX)
 
@@ -23,7 +23,6 @@ add_library(VideoSubtitlePlugin MODULE
     SubtitleService.h
     FFmpegService.cpp
     FFmpegService.h
-    plugin.json
 )
 
 target_include_directories(VideoSubtitlePlugin PRIVATE
@@ -42,9 +41,3 @@ set_target_properties(VideoSubtitlePlugin PROPERTIES
 )
 
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/plugins/VideoSubtitle/models")
-
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/plugin.json
-    ${CMAKE_BINARY_DIR}/plugins/VideoSubtitle/plugin.json
-    COPYONLY
-)
