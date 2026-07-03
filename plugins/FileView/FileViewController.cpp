@@ -384,6 +384,14 @@ void FileViewController::scanDirectorys()
     for (const QFileInfo &fi : fileInfos) {
         if (QThread::currentThread()->isInterruptionRequested())
             return;
+
+        // Skip folder cover images (folder.jpg/png/jpeg/webp)
+        static const QStringList folderCoverNames = {
+            "folder.jpg", "folder.png", "folder.jpeg", "folder.webp"
+        };
+        if (folderCoverNames.contains(fi.fileName().toLower()))
+            continue;
+
         FileListModel::FileEntry entry;
         entry.fileName = fi.fileName();
         entry.filePath = fi.absoluteFilePath();

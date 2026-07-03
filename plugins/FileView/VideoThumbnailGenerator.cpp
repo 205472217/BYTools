@@ -75,9 +75,18 @@ void VideoThumbnailGenerator::processNext()
     double durationSec = durationMs / 1000.0;
     int maxSeek = 0;
     if (durationSec > 0) {
-        double seek = durationSec / 10.0;
-        req.seekTime = qMin(static_cast<int>(seek), 30);
-        maxSeek = static_cast<int>(durationSec) - 2;
+        bool isLongVideo = (durationSec / 10.0 >= 30);
+        if (req.retryCount == 0) {
+            if (isLongVideo) {
+                req.seekTime = 5;
+                maxSeek = 30;
+            } else {
+                req.seekTime = static_cast<int>(durationSec / 10.0);
+                maxSeek = static_cast<int>(durationSec) - 2;
+            }
+        } else {
+            maxSeek = isLongVideo ? 30 : static_cast<int>(durationSec) - 2;
+        }
     }
 
     m_process = new QProcess(this);
@@ -93,7 +102,7 @@ void VideoThumbnailGenerator::processNext()
         if (status == QProcess::NormalExit && exitCode == 0
             && QFileInfo::exists(outPath)) {
             int nextSeek = req.seekTime + 5;
-            bool canRetry = req.retryCount < 3 && nextSeek < maxSeek;
+            bool canRetry = req.retryCount < 5 && nextSeek <= maxSeek;
             if (canRetry && isMostlyBlack(outPath)) {
                 QFile::remove(outPath);
                 ThumbnailRequest retry = req;
@@ -122,7 +131,7 @@ bool VideoThumbnailGenerator::isMostlyBlack(const QString &imagePath)
 {
     QImage img(imagePath);
     if (img.isNull())
-        return false;
+        return true;
 
     img = img.scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
