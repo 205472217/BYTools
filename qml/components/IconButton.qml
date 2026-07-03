@@ -13,16 +13,16 @@ Item {
 
     // ── 主题支持 ──
     property string paletteGroup: ""
-    property color normalColor: "#ffffff"
-    property color hoverColor: "#eef4ff"
-    property color pressColor: "#dce7fa"
-    property color borderColor: "#d8dee9"
+    property color normalColor: "#FFFFFF"
+    property color hoverColor: "#EEF4FF"
+    property color pressColor: "#DCE7FA"
+    property color borderColor: "#D8DEE9"
     property color defaultBorderColor: "#BDBDBD"
-    property color disabledColor: "#f1f5f9"
-    property color disabledBorderColor: "#e2e8f0"
-    property color textColor: "#ffffff"
-    property color disabledTextColor: "#94a3b8"
-    property color shadowColor: "#1e3a5f"
+    property color disabledColor: "#F1F5F9"
+    property color disabledBorderColor: "#E2E8F0"
+    property color textColor: "#FFFFFF"
+    property color disabledTextColor: "#94A3B8"
+    property color shadowColor: "#1E3A5F"
 
     readonly property var _p: themeManager.palette
     readonly property color _normalColor:

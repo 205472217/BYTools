@@ -48,7 +48,7 @@ private:
     QString m_rootPath;
     int m_targetFormat = 1;
     int m_quality = 85;
-    QString m_bgColor = "#ffffff";
+    QString m_bgColor = "#FFFFFF";
     int m_outputMode = 0;
     QString m_outputDir;
     bool m_recursive = false;

@@ -27,10 +27,10 @@ Item {
     // ── 主题支持 ──
     property string controlsPaletteGroup: ""
     property color controlsBgColor: "#D0000000"
-    property color controlsTextColor: "#ffffff"
+    property color controlsTextColor: "#FFFFFF"
     property color sliderTrackColor: "#40ffffff"
-    property color sliderProgressColor: "#ffffff"
-    property color sliderHandleColor: "#ffffff"
+    property color sliderProgressColor: "#FFFFFF"
+    property color sliderHandleColor: "#FFFFFF"
 
     readonly property var _p: themeManager.palette
     readonly property color _controlsBgColor:

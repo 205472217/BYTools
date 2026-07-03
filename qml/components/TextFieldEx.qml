@@ -69,18 +69,18 @@ TextField {
 
     // ── 主题支持 ──
     property string paletteGroup: ""
-    property color bgColor: "#ffffff"
-    property color disabledBgColor: "#f8fafc"
-    property color textColor: "#1e293b"
-    property color disabledTextColor: "#94a3b8"
-    property color phColor: "#b0bec5"
-    property color selColor: "#3b82f6"
-    property color selTextColor: "#ffffff"
+    property color bgColor: "#FFFFFF"
+    property color disabledBgColor: "#F8FAFC"
+    property color textColor: "#1E293B"
+    property color disabledTextColor: "#94A3B8"
+    property color phColor: "#B0BEC5"
+    property color selColor: "#3B82F6"
+    property color selTextColor: "#FFFFFF"
     property color borderColor: "#BDBDBD"
-    property color disabledBorderColor: "#e2e8f0"
-    property color focusBorderColor: "#3b82f6"
-    property color focusRingColor: "#3b82f6"
-    property color cursorColor: "#3b82f6"
+    property color disabledBorderColor: "#E2E8F0"
+    property color focusBorderColor: "#3B82F6"
+    property color focusRingColor: "#3B82F6"
+    property color cursorColor: "#3B82F6"
 
     readonly property var _p: themeManager.palette
     readonly property color _bgColor:

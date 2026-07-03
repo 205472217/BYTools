@@ -27,10 +27,10 @@ Item {
     // ── 主题支持 ──
     property string controlsPaletteGroup: ""
     property color controlsBgColor: "#D0000000"
-    property color controlsTextColor: "#ffffff"
+    property color controlsTextColor: "#FFFFFF"
     property color sliderTrackColor: "#40ffffff"
-    property color sliderProgressColor: "#ffffff"
-    property color sliderHandleColor: "#ffffff"
+    property color sliderProgressColor: "#FFFFFF"
+    property color sliderHandleColor: "#FFFFFF"
 
     readonly property var _p: themeManager.palette
     readonly property color _controlsBgColor:
@@ -96,7 +96,7 @@ Item {
                 radius: 20
                 color: "transparent"
                 border.width: 3
-                border.color: "#ffffff"
+                border.color: "#FFFFFF"
 
                 Rectangle {
                     anchors.centerIn: parent
@@ -105,7 +105,7 @@ Item {
                     radius: 15
                     color: "transparent"
                     border.width: 3
-                    border.color: "#60a5fa"
+                    border.color: "#60A5FA"
 
                     NumberAnimation on rotation {
                         from: 0
@@ -119,7 +119,7 @@ Item {
             Label {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "正在加载..."
-                color: "#ffffff"
+                color: "#FFFFFF"
                 font.pixelSize: 14
             }
         }

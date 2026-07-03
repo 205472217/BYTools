@@ -19,10 +19,10 @@ Item {
 
     // ── 主题支持 ──
     property string paletteGroup: ""
-    property color activeColor: "#26c6da"
-    property color hoverColor: "#ffffff"
-    property color normalColor: "#cccccc"
-    property color dimColor: "#5a6470"
+    property color activeColor: "#26C6DA"
+    property color hoverColor: "#FFFFFF"
+    property color normalColor: "#CCCCCC"
+    property color dimColor: "#5A6470"
 
     readonly property var _p: themeManager.palette
     readonly property color _activeColor:
