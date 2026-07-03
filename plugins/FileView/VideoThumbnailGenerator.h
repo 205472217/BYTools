@@ -15,6 +15,7 @@ public:
         QString filePath;
         QDateTime modifiedTime;
         int seekTime = 30;
+        int retryCount = 0;
     };
 
     explicit VideoThumbnailGenerator(QObject *parent = nullptr);

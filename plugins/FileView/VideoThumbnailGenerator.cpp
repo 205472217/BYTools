@@ -1,6 +1,7 @@
 #include "VideoThumbnailGenerator.h"
 #include "GlobalConfig.h"
 #include "FileViewPlugin.h"
+#include "FfmpegUtils.h"
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -70,10 +71,19 @@ void VideoThumbnailGenerator::processNext()
         m_process = nullptr;
     }
 
+    qint64 durationMs = getVideoDuration(m_ffmpegPath, req.filePath);
+    double durationSec = durationMs / 1000.0;
+    int maxSeek = 0;
+    if (durationSec > 0) {
+        double seek = durationSec / 10.0;
+        req.seekTime = qMin(static_cast<int>(seek), 30);
+        maxSeek = static_cast<int>(durationSec) - 2;
+    }
+
     m_process = new QProcess(this);
     QProcess *proc = m_process;
     connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, [this, proc, req, outPath](int exitCode, QProcess::ExitStatus status) {
+            this, [this, proc, req, outPath, maxSeek](int exitCode, QProcess::ExitStatus status) {
         if (m_process != proc)
             return;
 
@@ -82,10 +92,13 @@ void VideoThumbnailGenerator::processNext()
 
         if (status == QProcess::NormalExit && exitCode == 0
             && QFileInfo::exists(outPath)) {
-            if (req.seekTime < 60 && isMostlyBlack(outPath)) {
+            int nextSeek = req.seekTime + 5;
+            bool canRetry = req.retryCount < 3 && nextSeek < maxSeek;
+            if (canRetry && isMostlyBlack(outPath)) {
                 QFile::remove(outPath);
                 ThumbnailRequest retry = req;
-                retry.seekTime += 5;
+                retry.seekTime = nextSeek;
+                retry.retryCount = req.retryCount + 1;
                 m_queue.prepend(retry);
             } else {
                 emit thumbnailReady(req.filePath, outPath);
