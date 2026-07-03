@@ -1348,7 +1348,7 @@ Pane {
                                     paletteGroup: "CheckBoxEx"
                                     checked: controller ? controller.gpuAccel : false
                                     font.pixelSize: 11
-                                    enabled: !controller || controller.currentStep === controller.stepNone
+                                    visible: !controller || controller.currentStep === controller.stepNone
                                     onCheckedChanged: {
                                         if (controller && controller.gpuAccel !== checked)
                                             controller.gpuAccel = checked;

@@ -780,7 +780,7 @@ Pane {
                         id: stopActionCombo
                         model: ["停止", "关机"]
                         currentIndex: 0
-                        implicitWidth: 60
+                        implicitWidth: 70
                         font.pixelSize: 11
                         Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
                         onActivated: {

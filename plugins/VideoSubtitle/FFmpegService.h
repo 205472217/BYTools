@@ -19,7 +19,7 @@ public:
                             const QString &videoPath,
                             const QString &srtPath,
                             const QString &outputPath,
-                            int fontSize = 20,
+                            int fontSize = 18,
                             const QString &fontColor = "#FFFFFF",
                             const QString &borderColor = "#000000",
                             int borderWidth = 2);

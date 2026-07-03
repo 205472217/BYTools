@@ -24,7 +24,7 @@ public:
     // Write ASS subtitle file (supports custom styles)
     static bool writeAss(const QString &filePath,
                          const QList<SubtitleEntry> &entries,
-                         int fontSize = 20,
+                         int fontSize = 18,
                          const QString &fontColor = "&H00FFFFFF",
                          const QString &borderColor = "&H00000000",
                          int borderWidth = 2);

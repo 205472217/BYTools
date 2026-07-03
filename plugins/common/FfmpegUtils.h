@@ -34,7 +34,7 @@ QString detectInputCodec(const QString &ffmpegPath, const QString &videoPath);
 /// 颜色参数为 HTML 格式 #RRGGBB，内部自动转为 ASS &H00BBGGRR 格式
 QString buildSubtitleFilter(const QString &subtitlePath,
                             const QString &fontName = "Microsoft YaHei",
-                            int fontSize = 20,
+                            int fontSize = 18,
                             const QString &fontColor = "#FFFFFF",
                             const QString &borderColor = "#000000",
                             int borderWidth = 1,

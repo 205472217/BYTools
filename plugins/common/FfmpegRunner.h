@@ -21,7 +21,7 @@ public:
         bool useGpu = false;
         GpuVendor gpuVendor = GpuVendor::None;  // 可选，调用者预先检测好的
         QString fontName  = "Microsoft YaHei";
-        int     fontSize   = 20;
+        int     fontSize   = 18;
         QString fontColor  = "#FFFFFF";
         QString borderColor = "#000000";
         int     borderWidth = 2;

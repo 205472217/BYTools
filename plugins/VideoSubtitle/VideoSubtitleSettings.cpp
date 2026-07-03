@@ -366,7 +366,7 @@ void VideoSubtitleSettings::loadSettings()
     m_keepWav = s.value("keepWav", true).toBool();
     m_keepOriginalSrt = s.value("keepOriginalSrt", true).toBool();
     m_keepTranslatedSrt = s.value("keepTranslatedSrt", true).toBool();
-    m_defaultFontSize = s.value("defaultFontSize", 20).toInt();
+    m_defaultFontSize = s.value("defaultFontSize", 18).toInt();
     m_defaultFontColor = s.value("defaultFontColor", "#FFFFFF").toString();
     m_defaultBorderColor = s.value("defaultBorderColor", "#000000").toString();
     m_defaultBorderWidth = s.value("defaultBorderWidth", 2).toInt();
@@ -491,7 +491,7 @@ void VideoSubtitleSettings::resetDefaults()
     m_keepWav = true;
     m_keepOriginalSrt = true;
     m_keepTranslatedSrt = true;
-    m_defaultFontSize = 20;
+    m_defaultFontSize = 18;
     m_defaultFontColor = "#FFFFFF";
     m_defaultBorderColor = "#000000";
     m_defaultBorderWidth = 2;

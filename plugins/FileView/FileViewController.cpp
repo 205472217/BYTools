@@ -309,6 +309,12 @@ void FileViewController::scanFiles()
         it.next();
         QFileInfo fi = it.fileInfo();
 
+        static const QStringList folderCoverNames = {
+            "folder.jpg", "folder.png", "folder.jpeg", "folder.webp"
+        };
+        if (folderCoverNames.contains(fi.fileName().toLower()))
+            continue;
+
         FileListModel::FileEntry entry;
         entry.fileName = fi.fileName();
         entry.filePath = fi.absoluteFilePath();
@@ -470,11 +476,13 @@ void FileViewController::applySort()
         for (int i = 0; i < m_allEntries.size(); ++i) {
             if (m_allEntries[i].filePath == m_currentFilePath) {
                 selectFile(i);
+                startThumbnailGeneration();
                 return;
             }
         }
     }
     setCurrentModelIndex(-1);
+    startThumbnailGeneration();
 }
 
 // ── 选择文件 ──
@@ -640,7 +648,7 @@ void FileViewController::cancel()
 
 void FileViewController::startThumbnailGeneration()
 {
-    if (!m_thumbnailGenerator || m_viewWay != 0)
+    if (!m_thumbnailGenerator)
         return;
 
     m_thumbnailGenerator->cancel();

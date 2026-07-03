@@ -149,7 +149,7 @@ private:
     bool m_keepWav = true;
     bool m_keepOriginalSrt = true;
     bool m_keepTranslatedSrt = true;
-    int m_defaultFontSize = 20;
+    int m_defaultFontSize = 18;
     QString m_defaultFontColor = "#FFFFFF";
     QString m_defaultBorderColor = "#000000";
     int m_defaultBorderWidth = 2;
