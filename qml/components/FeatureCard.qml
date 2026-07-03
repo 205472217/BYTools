@@ -13,42 +13,42 @@ Item {
 
     // ── 主题支持 ──
     property string paletteGroup: ""
-    property color bgColor: "#FAFBFC"
-    property color hoverBgColor: "#FFFFFF"
-    property color borderColor: "#E5E9F0"
-    property color hoverBorderColor: "#3B82F6"
-    property color accentColor: "#C7D2E0"
-    property color hoverAccentColor: "#3B82F6"
-    property color shadowColor: "#0D1B2A"
-    property color iconGradientStart: "#6366F1"
-    property color iconGradientEnd: "#8B5CF6"
-    property color hoverIconGradientStart: "#3B82F6"
-    property color hoverIconGradientEnd: "#2563EB"
-    property color iconTextColor: "#FFFFFF"
-    property color titleColor: "#172033"
-    property color hoverTitleColor: "#1E40AF"
-    property color descriptionColor: "#627086"
-    property color arrowColor: "#C7D2E0"
-    property color hoverArrowColor: "#3B82F6"
+    property var bgColor: undefined
+    property var hoverBgColor: undefined
+    property var borderColor: undefined
+    property var hoverBorderColor: undefined
+    property var accentColor: undefined
+    property var hoverAccentColor: undefined
+    property var shadowColor: undefined
+    property var iconGradientStart: undefined
+    property var iconGradientEnd: undefined
+    property var hoverIconGradientStart: undefined
+    property var hoverIconGradientEnd: undefined
+    property var iconTextColor: undefined
+    property var titleColor: undefined
+    property var hoverTitleColor: undefined
+    property var descriptionColor: undefined
+    property var arrowColor: undefined
+    property var hoverArrowColor: undefined
 
     readonly property var _p: themeManager.palette
-    readonly property color _bgColor: paletteGroup ? (_p[paletteGroup + "_bgColor"] || bgColor) : bgColor
-    readonly property color _hoverBgColor: paletteGroup ? (_p[paletteGroup + "_hoverBgColor"] || hoverBgColor) : hoverBgColor
-    readonly property color _borderColor: paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
-    readonly property color _hoverBorderColor: paletteGroup ? (_p[paletteGroup + "_hoverBorderColor"] || hoverBorderColor) : hoverBorderColor
-    readonly property color _accentColor: paletteGroup ? (_p[paletteGroup + "_accentColor"] || accentColor) : accentColor
-    readonly property color _hoverAccentColor: paletteGroup ? (_p[paletteGroup + "_hoverAccentColor"] || hoverAccentColor) : hoverAccentColor
-    readonly property color _shadowColor: paletteGroup ? (_p[paletteGroup + "_shadowColor"] || shadowColor) : shadowColor
-    readonly property color _iconGradientStart: paletteGroup ? (_p[paletteGroup + "_iconGradientStart"] || iconGradientStart) : iconGradientStart
-    readonly property color _iconGradientEnd: paletteGroup ? (_p[paletteGroup + "_iconGradientEnd"] || iconGradientEnd) : iconGradientEnd
-    readonly property color _hoverIconGradientStart: paletteGroup ? (_p[paletteGroup + "_hoverIconGradientStart"] || hoverIconGradientStart) : hoverIconGradientStart
-    readonly property color _hoverIconGradientEnd: paletteGroup ? (_p[paletteGroup + "_hoverIconGradientEnd"] || hoverIconGradientEnd) : hoverIconGradientEnd
-    readonly property color _iconTextColor: paletteGroup ? (_p[paletteGroup + "_iconTextColor"] || iconTextColor) : iconTextColor
-    readonly property color _titleColor: paletteGroup ? (_p[paletteGroup + "_titleColor"] || titleColor) : titleColor
-    readonly property color _hoverTitleColor: paletteGroup ? (_p[paletteGroup + "_hoverTitleColor"] || hoverTitleColor) : hoverTitleColor
-    readonly property color _descriptionColor: paletteGroup ? (_p[paletteGroup + "_descriptionColor"] || descriptionColor) : descriptionColor
-    readonly property color _arrowColor: paletteGroup ? (_p[paletteGroup + "_arrowColor"] || arrowColor) : arrowColor
-    readonly property color _hoverArrowColor: paletteGroup ? (_p[paletteGroup + "_hoverArrowColor"] || hoverArrowColor) : hoverArrowColor
+    readonly property color _bgColor: root.bgColor !== undefined ? root.bgColor : (paletteGroup ? (_p[paletteGroup + "_bgColor"] || "#FAFBFC") : "#FAFBFC")
+    readonly property color _hoverBgColor: root.hoverBgColor !== undefined ? root.hoverBgColor : (paletteGroup ? (_p[paletteGroup + "_hoverBgColor"] || "#FFFFFF") : "#FFFFFF")
+    readonly property color _borderColor: root.borderColor !== undefined ? root.borderColor : (paletteGroup ? (_p[paletteGroup + "_borderColor"] || "#E5E9F0") : "#E5E9F0")
+    readonly property color _hoverBorderColor: root.hoverBorderColor !== undefined ? root.hoverBorderColor : (paletteGroup ? (_p[paletteGroup + "_hoverBorderColor"] || "#3B82F6") : "#3B82F6")
+    readonly property color _accentColor: root.accentColor !== undefined ? root.accentColor : (paletteGroup ? (_p[paletteGroup + "_accentColor"] || "#C7D2E0") : "#C7D2E0")
+    readonly property color _hoverAccentColor: root.hoverAccentColor !== undefined ? root.hoverAccentColor : (paletteGroup ? (_p[paletteGroup + "_hoverAccentColor"] || "#3B82F6") : "#3B82F6")
+    readonly property color _shadowColor: root.shadowColor !== undefined ? root.shadowColor : (paletteGroup ? (_p[paletteGroup + "_shadowColor"] || "#0D1B2A") : "#0D1B2A")
+    readonly property color _iconGradientStart: root.iconGradientStart !== undefined ? root.iconGradientStart : (paletteGroup ? (_p[paletteGroup + "_iconGradientStart"] || "#6366F1") : "#6366F1")
+    readonly property color _iconGradientEnd: root.iconGradientEnd !== undefined ? root.iconGradientEnd : (paletteGroup ? (_p[paletteGroup + "_iconGradientEnd"] || "#8B5CF6") : "#8B5CF6")
+    readonly property color _hoverIconGradientStart: root.hoverIconGradientStart !== undefined ? root.hoverIconGradientStart : (paletteGroup ? (_p[paletteGroup + "_hoverIconGradientStart"] || "#3B82F6") : "#3B82F6")
+    readonly property color _hoverIconGradientEnd: root.hoverIconGradientEnd !== undefined ? root.hoverIconGradientEnd : (paletteGroup ? (_p[paletteGroup + "_hoverIconGradientEnd"] || "#2563EB") : "#2563EB")
+    readonly property color _iconTextColor: root.iconTextColor !== undefined ? root.iconTextColor : (paletteGroup ? (_p[paletteGroup + "_iconTextColor"] || "#FFFFFF") : "#FFFFFF")
+    readonly property color _titleColor: root.titleColor !== undefined ? root.titleColor : (paletteGroup ? (_p[paletteGroup + "_titleColor"] || "#172033") : "#172033")
+    readonly property color _hoverTitleColor: root.hoverTitleColor !== undefined ? root.hoverTitleColor : (paletteGroup ? (_p[paletteGroup + "_hoverTitleColor"] || "#1E40AF") : "#1E40AF")
+    readonly property color _descriptionColor: root.descriptionColor !== undefined ? root.descriptionColor : (paletteGroup ? (_p[paletteGroup + "_descriptionColor"] || "#627086") : "#627086")
+    readonly property color _arrowColor: root.arrowColor !== undefined ? root.arrowColor : (paletteGroup ? (_p[paletteGroup + "_arrowColor"] || "#C7D2E0") : "#C7D2E0")
+    readonly property color _hoverArrowColor: root.hoverArrowColor !== undefined ? root.hoverArrowColor : (paletteGroup ? (_p[paletteGroup + "_hoverArrowColor"] || "#3B82F6") : "#3B82F6")
 
     implicitHeight: 140
 

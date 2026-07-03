@@ -7,40 +7,40 @@ ComboBox {
 
     // ── 主题支持 ──
     property string paletteGroup: ""
-    property color bgColor: "#FFFFFF"
-    property color disabledBgColor: "#F8FAFC"
-    property color textColor: "#1E293B"
-    property color disabledTextColor: "#94A3B8"
-    property color borderColor: "#BDBDBD"
-    property color hoverBorderColor: "#CBD5E1"
-    property color focusBorderColor: "#3B82F6"
-    property color focusRingColor: "#3B82F6"
-    property color arrowColor: "#64748B"
-    property color disabledArrowColor: "#CBD5E1"
-    property color popupBgColor: "#FFFFFF"
-    property color popupBorderColor: "#BDBDBD"
-    property color popupShadowColor: "#1E293B"
-    property color delegateTextColor: "#334155"
-    property color delegateHighlightTextColor: "#1E40AF"
-    property color delegateHighlightBgColor: "#EFF6FF"
+    property var bgColor: undefined
+    property var disabledBgColor: undefined
+    property var textColor: undefined
+    property var disabledTextColor: undefined
+    property var borderColor: undefined
+    property var hoverBorderColor: undefined
+    property var focusBorderColor: undefined
+    property var focusRingColor: undefined
+    property var arrowColor: undefined
+    property var disabledArrowColor: undefined
+    property var popupBgColor: undefined
+    property var popupBorderColor: undefined
+    property var popupShadowColor: undefined
+    property var delegateTextColor: undefined
+    property var delegateHighlightTextColor: undefined
+    property var delegateHighlightBgColor: undefined
 
     readonly property var _p: themeManager.palette
-    readonly property color _bgColor: paletteGroup ? (_p[paletteGroup + "_bgColor"] || bgColor) : bgColor
-    readonly property color _disabledBgColor: paletteGroup ? (_p[paletteGroup + "_disabledBgColor"] || disabledBgColor) : disabledBgColor
-    readonly property color _textColor: paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
-    readonly property color _disabledTextColor: paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || disabledTextColor) : disabledTextColor
-    readonly property color _borderColor: paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
-    readonly property color _hoverBorderColor: paletteGroup ? (_p[paletteGroup + "_hoverBorderColor"] || hoverBorderColor) : hoverBorderColor
-    readonly property color _focusBorderColor: paletteGroup ? (_p[paletteGroup + "_focusBorderColor"] || focusBorderColor) : focusBorderColor
-    readonly property color _focusRingColor: paletteGroup ? (_p[paletteGroup + "_focusRingColor"] || focusRingColor) : focusRingColor
-    readonly property color _arrowColor: paletteGroup ? (_p[paletteGroup + "_arrowColor"] || arrowColor) : arrowColor
-    readonly property color _disabledArrowColor: paletteGroup ? (_p[paletteGroup + "_disabledArrowColor"] || disabledArrowColor) : disabledArrowColor
-    readonly property color _popupBgColor: paletteGroup ? (_p[paletteGroup + "_popupBgColor"] || popupBgColor) : popupBgColor
-    readonly property color _popupBorderColor: paletteGroup ? (_p[paletteGroup + "_popupBorderColor"] || popupBorderColor) : popupBorderColor
-    readonly property color _popupShadowColor: paletteGroup ? (_p[paletteGroup + "_popupShadowColor"] || popupShadowColor) : popupShadowColor
-    readonly property color _delegateTextColor: paletteGroup ? (_p[paletteGroup + "_delegateTextColor"] || delegateTextColor) : delegateTextColor
-    readonly property color _delegateHighlightTextColor: paletteGroup ? (_p[paletteGroup + "_delegateHighlightTextColor"] || delegateHighlightTextColor) : delegateHighlightTextColor
-    readonly property color _delegateHighlightBgColor: paletteGroup ? (_p[paletteGroup + "_delegateHighlightBgColor"] || delegateHighlightBgColor) : delegateHighlightBgColor
+    readonly property color _bgColor: root.bgColor !== undefined ? root.bgColor : (paletteGroup ? (_p[paletteGroup + "_bgColor"] || "#FFFFFF") : "#FFFFFF")
+    readonly property color _disabledBgColor: root.disabledBgColor !== undefined ? root.disabledBgColor : (paletteGroup ? (_p[paletteGroup + "_disabledBgColor"] || "#F8FAFC") : "#F8FAFC")
+    readonly property color _textColor: root.textColor !== undefined ? root.textColor : (paletteGroup ? (_p[paletteGroup + "_textColor"] || "#1E293B") : "#1E293B")
+    readonly property color _disabledTextColor: root.disabledTextColor !== undefined ? root.disabledTextColor : (paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || "#94A3B8") : "#94A3B8")
+    readonly property color _borderColor: root.borderColor !== undefined ? root.borderColor : (paletteGroup ? (_p[paletteGroup + "_borderColor"] || "#BDBDBD") : "#BDBDBD")
+    readonly property color _hoverBorderColor: root.hoverBorderColor !== undefined ? root.hoverBorderColor : (paletteGroup ? (_p[paletteGroup + "_hoverBorderColor"] || "#CBD5E1") : "#CBD5E1")
+    readonly property color _focusBorderColor: root.focusBorderColor !== undefined ? root.focusBorderColor : (paletteGroup ? (_p[paletteGroup + "_focusBorderColor"] || "#3B82F6") : "#3B82F6")
+    readonly property color _focusRingColor: root.focusRingColor !== undefined ? root.focusRingColor : (paletteGroup ? (_p[paletteGroup + "_focusRingColor"] || "#3B82F6") : "#3B82F6")
+    readonly property color _arrowColor: root.arrowColor !== undefined ? root.arrowColor : (paletteGroup ? (_p[paletteGroup + "_arrowColor"] || "#64748B") : "#64748B")
+    readonly property color _disabledArrowColor: root.disabledArrowColor !== undefined ? root.disabledArrowColor : (paletteGroup ? (_p[paletteGroup + "_disabledArrowColor"] || "#CBD5E1") : "#CBD5E1")
+    readonly property color _popupBgColor: root.popupBgColor !== undefined ? root.popupBgColor : (paletteGroup ? (_p[paletteGroup + "_popupBgColor"] || "#FFFFFF") : "#FFFFFF")
+    readonly property color _popupBorderColor: root.popupBorderColor !== undefined ? root.popupBorderColor : (paletteGroup ? (_p[paletteGroup + "_popupBorderColor"] || "#BDBDBD") : "#BDBDBD")
+    readonly property color _popupShadowColor: root.popupShadowColor !== undefined ? root.popupShadowColor : (paletteGroup ? (_p[paletteGroup + "_popupShadowColor"] || "#1E293B") : "#1E293B")
+    readonly property color _delegateTextColor: root.delegateTextColor !== undefined ? root.delegateTextColor : (paletteGroup ? (_p[paletteGroup + "_delegateTextColor"] || "#334155") : "#334155")
+    readonly property color _delegateHighlightTextColor: root.delegateHighlightTextColor !== undefined ? root.delegateHighlightTextColor : (paletteGroup ? (_p[paletteGroup + "_delegateHighlightTextColor"] || "#1E40AF") : "#1E40AF")
+    readonly property color _delegateHighlightBgColor: root.delegateHighlightBgColor !== undefined ? root.delegateHighlightBgColor : (paletteGroup ? (_p[paletteGroup + "_delegateHighlightBgColor"] || "#EFF6FF") : "#EFF6FF")
 
     implicitWidth: 76
     implicitHeight: 26

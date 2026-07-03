@@ -58,6 +58,7 @@ var palette = {
     IconBtnEx_disabledColor: "#1E2028",
     IconBtnEx_disabledBorderColor: "#232630",
     IconBtnEx_textColor: "#E2E8F0",
+    IconBtnEx_hoverTextColor: "#F8FAFC",
     IconBtnEx_disabledTextColor: "#64748B",
     IconBtnEx_shadowColor: "#000000",
     IconBtnEx_deleteBgColor: "#40EF4444",
@@ -70,18 +71,12 @@ var palette = {
     ViewToggleBtn_hoverColor: "#F1F5F9",
 
     // ═════════════════════════════
-    //  类别6: 视频播放器覆盖层按钮
+    //  类别6: 视频播放器控件
     // ═════════════════════════════
-    VideoPlayerControls_normalColor: "transparent",
-    VideoPlayerControls_hoverColor: "#33FFFFFF",
-    VideoPlayerControls_pressColor: "#44FFFFFF",
-    VideoPlayerControls_borderColor: "transparent",
-    VideoPlayerControls_defaultBorderColor: "transparent",
-    VideoPlayerControls_disabledColor: "transparent",
-    VideoPlayerControls_disabledBorderColor: "transparent",
-    VideoPlayerControls_textColor: "#FFFFFF",
-    VideoPlayerControls_disabledTextColor: "#64748B",
-    VideoPlayerControls_shadowColor: "#000000",
+    MultimediaPlayer_bgColor: "#D0000000",
+    MultimediaPlayer_sliderTrackColor: "#40ffffff",
+    MultimediaPlayer_sliderProgressColor: "#FFFFFF",
+    MultimediaPlayer_sliderHandleColor: "#FFFFFF",
 
     // ═════════════════════════════
     //  类别7: 标签 (Label)

@@ -25,19 +25,19 @@ Item {
     property int seekStepMs: 5000
 
     // ── 主题支持 ──
-    property string controlsPaletteGroup: ""
-    property color controlsBgColor: "#D0000000"
-    property color controlsTextColor: "#FFFFFF"
-    property color sliderTrackColor: "#40ffffff"
-    property color sliderProgressColor: "#FFFFFF"
-    property color sliderHandleColor: "#FFFFFF"
+    property string paletteGroup: ""
+    property var controlsBgColor: undefined
+    property var controlsTextColor: undefined
+    property var sliderTrackColor: undefined
+    property var sliderProgressColor: undefined
+    property var sliderHandleColor: undefined
 
     readonly property var _p: themeManager.palette
-    readonly property color _controlsBgColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_bgColor"] || controlsBgColor) : controlsBgColor
-    readonly property color _controlsTextColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_textColor"] || controlsTextColor) : controlsTextColor
-    readonly property color _sliderTrackColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderTrackColor"] || sliderTrackColor) : sliderTrackColor
-    readonly property color _sliderProgressColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderProgressColor"] || sliderProgressColor) : sliderProgressColor
-    readonly property color _sliderHandleColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderHandleColor"] || sliderHandleColor) : sliderHandleColor
+    readonly property color _controlsBgColor: root.controlsBgColor !== undefined ? root.controlsBgColor : (paletteGroup ? (_p[paletteGroup + "_bgColor"] || "#D0000000") : "#D0000000")
+    readonly property color _controlsTextColor: root.controlsTextColor !== undefined ? root.controlsTextColor : (paletteGroup ? (_p[paletteGroup + "_textColor"] || "#FFFFFF") : "#FFFFFF")
+    readonly property color _sliderTrackColor: root.sliderTrackColor !== undefined ? root.sliderTrackColor : (paletteGroup ? (_p[paletteGroup + "_sliderTrackColor"] || "#40ffffff") : "#40ffffff")
+    readonly property color _sliderProgressColor: root.sliderProgressColor !== undefined ? root.sliderProgressColor : (paletteGroup ? (_p[paletteGroup + "_sliderProgressColor"] || "#FFFFFF") : "#FFFFFF")
+    readonly property color _sliderHandleColor: root.sliderHandleColor !== undefined ? root.sliderHandleColor : (paletteGroup ? (_p[paletteGroup + "_sliderHandleColor"] || "#FFFFFF") : "#FFFFFF")
 
     signal previousRequested
     signal nextRequested
@@ -268,7 +268,7 @@ Item {
                     implicitWidth: 28
                     iconSource: "qrc:/icons/media_previous.svg"
                     tooltip: "上一个"
-                    paletteGroup: root.controlsPaletteGroup
+                    paletteGroup: "IconBtnEx"
                     visible: root.showPreviousNext
                     onClicked: root.previousRequested()
                 }
@@ -277,7 +277,7 @@ Item {
                     implicitWidth: 28
                     iconSource: "qrc:/icons/media_seekdec.svg"
                     tooltip: "快退"
-                    paletteGroup: root.controlsPaletteGroup
+                    paletteGroup: "IconBtnEx"
                     visible: root.showSeekButtons
                     onClicked: {
                         mpvPlayer.position = Math.max(0, mpvPlayer.position - root.seekStepMs);
@@ -289,7 +289,7 @@ Item {
                     property bool isPlaying: mpvPlayer.playbackState === MpvPlayer.Playing
                     iconSource: isPlaying ? "qrc:/icons/media_pause.svg" : "qrc:/icons/media_play.svg"
                     tooltip: isPlaying ? "暂停" : "播放"
-                    paletteGroup: root.controlsPaletteGroup
+                    paletteGroup: "IconBtnEx"
                     onClicked: {
                         if (mpvPlayer.playbackState === MpvPlayer.Playing)
                             mpvPlayer.pause();
@@ -302,7 +302,7 @@ Item {
                     implicitWidth: 28
                     iconSource: "qrc:/icons/media_seekadd.svg"
                     tooltip: "快进"
-                    paletteGroup: root.controlsPaletteGroup
+                    paletteGroup: "IconBtnEx"
                     visible: root.showSeekButtons
                     onClicked: {
                         mpvPlayer.position = Math.min(mpvPlayer.duration, mpvPlayer.position + root.seekStepMs);
@@ -313,7 +313,7 @@ Item {
                     implicitWidth: 28
                     iconSource: "qrc:/icons/media_next.svg"
                     tooltip: "下一个"
-                    paletteGroup: root.controlsPaletteGroup
+                    paletteGroup: "IconBtnEx"
                     visible: root.showPreviousNext
                     onClicked: root.nextRequested()
                 }
@@ -355,7 +355,7 @@ Item {
                     property bool _isMuted: mpvPlayer.muted || root.volume < 1
                     iconSource: _isMuted ? "qrc:/icons/media_mute.svg" : "qrc:/icons/media_volume.svg"
                     tooltip: _isMuted ? "取消静音" : "静音"
-                    paletteGroup: root.controlsPaletteGroup
+                    paletteGroup: "IconBtnEx"
                     onClicked: {
                         if (mpvPlayer.muted) {
                             mpvPlayer.muted = false;

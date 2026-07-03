@@ -431,6 +431,13 @@ Pane {
                                 paletteGroup: "IconBtnEx"
                                 enabled: controller && controller.canNavigateUp
                                 showBorder: false
+                                normalColor: "transparent"
+                                hoverColor: "transparent"
+                                pressColor: "transparent"
+                                disabledColor: "transparent"
+                                borderColor: "transparent"
+                                defaultBorderColor: "transparent"
+                                shadowColor: "transparent"
                                 onClicked: controller.navigateUp()
                             }
 
@@ -921,7 +928,7 @@ Pane {
                                 if (controller) {
                                     if (root._mpvAvailable)
                                         item.mpvPath = root._mpvExePath;
-                                    item.controlsPaletteGroup = "VideoPlayerControls";
+                                    item.paletteGroup = "MultimediaPlayer";
                                     item.source = "file:///" + controller.currentFilePath;
                                     if (controller) {
                                         item.volume = controller.volume;

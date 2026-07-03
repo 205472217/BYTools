@@ -13,29 +13,31 @@ Item {
 
     // ── 主题支持 ──
     property string paletteGroup: ""
-    property color normalColor: "#FFFFFF"
-    property color hoverColor: "#EEF4FF"
-    property color pressColor: "#DCE7FA"
-    property color borderColor: "#D8DEE9"
-    property color defaultBorderColor: "#BDBDBD"
-    property color disabledColor: "#F1F5F9"
-    property color disabledBorderColor: "#E2E8F0"
-    property color textColor: "#FFFFFF"
-    property color disabledTextColor: "#94A3B8"
-    property color shadowColor: "#1E3A5F"
+    property var normalColor: undefined
+    property var hoverColor: undefined
+    property var pressColor: undefined
+    property var borderColor: undefined
+    property var defaultBorderColor: undefined
+    property var disabledColor: undefined
+    property var disabledBorderColor: undefined
+    property var textColor: undefined
+    property var hoverTextColor: undefined
+    property var disabledTextColor: undefined
+    property var shadowColor: undefined
     property bool showBorder: true
 
     readonly property var _p: themeManager.palette
-    readonly property color _normalColor: paletteGroup ? (_p[paletteGroup + "_normalColor"] || normalColor) : normalColor
-    readonly property color _hoverColor: paletteGroup ? (_p[paletteGroup + "_hoverColor"] || hoverColor) : hoverColor
-    readonly property color _pressColor: paletteGroup ? (_p[paletteGroup + "_pressColor"] || pressColor) : pressColor
-    readonly property color _borderColor: paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
-    readonly property color _defaultBorderColor: paletteGroup ? (_p[paletteGroup + "_defaultBorderColor"] || defaultBorderColor) : defaultBorderColor
-    readonly property color _disabledColor: paletteGroup ? (_p[paletteGroup + "_disabledColor"] || disabledColor) : disabledColor
-    readonly property color _disabledBorderColor: paletteGroup ? (_p[paletteGroup + "_disabledBorderColor"] || disabledBorderColor) : disabledBorderColor
-    readonly property color _textColor: paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
-    readonly property color _disabledTextColor: paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || disabledTextColor) : disabledTextColor
-    readonly property color _shadowColor: paletteGroup ? (_p[paletteGroup + "_shadowColor"] || shadowColor) : shadowColor
+    readonly property color _normalColor: root.normalColor !== undefined ? root.normalColor : (paletteGroup ? (_p[paletteGroup + "_normalColor"] || "#FFFFFF") : "#FFFFFF")
+    readonly property color _hoverColor: root.hoverColor !== undefined ? root.hoverColor : (paletteGroup ? (_p[paletteGroup + "_hoverColor"] || "#EEF4FF") : "#EEF4FF")
+    readonly property color _pressColor: root.pressColor !== undefined ? root.pressColor : (paletteGroup ? (_p[paletteGroup + "_pressColor"] || "#DCE7FA") : "#DCE7FA")
+    readonly property color _borderColor: root.borderColor !== undefined ? root.borderColor : (paletteGroup ? (_p[paletteGroup + "_borderColor"] || "#D8DEE9") : "#D8DEE9")
+    readonly property color _defaultBorderColor: root.defaultBorderColor !== undefined ? root.defaultBorderColor : (paletteGroup ? (_p[paletteGroup + "_defaultBorderColor"] || "#BDBDBD") : "#BDBDBD")
+    readonly property color _disabledColor: root.disabledColor !== undefined ? root.disabledColor : (paletteGroup ? (_p[paletteGroup + "_disabledColor"] || "#F1F5F9") : "#F1F5F9")
+    readonly property color _disabledBorderColor: root.disabledBorderColor !== undefined ? root.disabledBorderColor : (paletteGroup ? (_p[paletteGroup + "_disabledBorderColor"] || "#E2E8F0") : "#E2E8F0")
+    readonly property color _textColor: root.textColor !== undefined ? root.textColor : (paletteGroup ? (_p[paletteGroup + "_textColor"] || "#FFFFFF") : "#FFFFFF")
+    readonly property color _hoverTextColor: root.hoverTextColor !== undefined ? root.hoverTextColor : (paletteGroup ? (_p[paletteGroup + "_hoverTextColor"] || root._textColor) : root._textColor)
+    readonly property color _disabledTextColor: root.disabledTextColor !== undefined ? root.disabledTextColor : (paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || "#94A3B8") : "#94A3B8")
+    readonly property color _shadowColor: root.shadowColor !== undefined ? root.shadowColor : (paletteGroup ? (_p[paletteGroup + "_shadowColor"] || "#1E3A5F") : "#1E3A5F")
 
     implicitWidth: text.length > 0 ? 76 : 38
     implicitHeight: 26
@@ -86,7 +88,12 @@ Item {
             layer.enabled: true
             layer.samplerName: "source"
             layer.effect: ColorOverlay {
-                color: root.enabled ? root._textColor : root._disabledTextColor
+                color: {
+                    if (!root.enabled) return root._disabledTextColor
+                    if (mouseArea.pressed) return root._textColor
+                    if (mouseArea.containsMouse) return root._hoverTextColor
+                    return root._textColor
+                }
                 cached: true
             }
         }
@@ -95,7 +102,12 @@ Item {
             id: labelText
             text: root.text
             visible: root.text.length > 0
-            color: root.enabled ? root._textColor : root._disabledTextColor
+            color: {
+                if (!root.enabled) return root._disabledTextColor
+                if (mouseArea.pressed) return root._textColor
+                if (mouseArea.containsMouse) return root._hoverTextColor
+                return root._textColor
+            }
             font.pixelSize: 13
             font.bold: true
             anchors.verticalCenter: parent.verticalCenter

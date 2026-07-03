@@ -78,33 +78,33 @@ TextField {
 
     // ── 主题支持 ──
     property string paletteGroup: ""
-    property color bgColor: "#FFFFFF"
-    property color disabledBgColor: "#F8FAFC"
-    property color textColor: "#1E293B"
-    property color disabledTextColor: "#94A3B8"
-    property color phColor: "#B0BEC5"
-    property color selColor: "#3B82F6"
-    property color selTextColor: "#FFFFFF"
-    property color borderColor: "#BDBDBD"
-    property color disabledBorderColor: "#E2E8F0"
-    property color focusBorderColor: "#3B82F6"
-    property color focusRingColor: "#3B82F6"
-    property color cursorColor: "#3B82F6"
+    property var bgColor: undefined
+    property var disabledBgColor: undefined
+    property var textColor: undefined
+    property var disabledTextColor: undefined
+    property var phColor: undefined
+    property var selColor: undefined
+    property var selTextColor: undefined
+    property var borderColor: undefined
+    property var disabledBorderColor: undefined
+    property var focusBorderColor: undefined
+    property var focusRingColor: undefined
+    property var cursorColor: undefined
 
     readonly property var _p: themeManager.palette
-    readonly property color _bgColor: paletteGroup ? (_p[paletteGroup + "_bgColor"] || bgColor) : bgColor
-    readonly property color _disabledBgColor: paletteGroup ? (_p[paletteGroup + "_disabledBgColor"] || disabledBgColor) : disabledBgColor
-    readonly property color _textColor: paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
-    readonly property color _disabledTextColor: paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || disabledTextColor) : disabledTextColor
-    readonly property color _phColor: paletteGroup ? (_p[paletteGroup + "_phColor"] || phColor) : phColor
-    readonly property color _selColor: paletteGroup ? (_p[paletteGroup + "_selColor"] || selColor) : selColor
-    readonly property color _selTextColor: paletteGroup ? (_p[paletteGroup + "_selTextColor"] || selTextColor) : selTextColor
-    readonly property color _borderColor: paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
-    readonly property color _disabledBorderColor: paletteGroup ? (_p[paletteGroup + "_disabledBorderColor"] || disabledBorderColor) : disabledBorderColor
-    readonly property color _focusBorderColor: paletteGroup ? (_p[paletteGroup + "_focusBorderColor"] || focusBorderColor) : focusBorderColor
-    readonly property color _focusRingColor: paletteGroup ? (_p[paletteGroup + "_focusRingColor"] || focusRingColor) : focusRingColor
-    readonly property color _cursorColor: paletteGroup ? (_p[paletteGroup + "_cursorColor"] || cursorColor) : cursorColor
-    readonly property color _highlightBorderColor: paletteGroup ? (_p[paletteGroup + "_highlightBorderColor"] || focusBorderColor) : focusBorderColor
+    readonly property color _bgColor: root.bgColor !== undefined ? root.bgColor : (paletteGroup ? (_p[paletteGroup + "_bgColor"] || "#FFFFFF") : "#FFFFFF")
+    readonly property color _disabledBgColor: root.disabledBgColor !== undefined ? root.disabledBgColor : (paletteGroup ? (_p[paletteGroup + "_disabledBgColor"] || "#F8FAFC") : "#F8FAFC")
+    readonly property color _textColor: root.textColor !== undefined ? root.textColor : (paletteGroup ? (_p[paletteGroup + "_textColor"] || "#1E293B") : "#1E293B")
+    readonly property color _disabledTextColor: root.disabledTextColor !== undefined ? root.disabledTextColor : (paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || "#94A3B8") : "#94A3B8")
+    readonly property color _phColor: root.phColor !== undefined ? root.phColor : (paletteGroup ? (_p[paletteGroup + "_phColor"] || "#B0BEC5") : "#B0BEC5")
+    readonly property color _selColor: root.selColor !== undefined ? root.selColor : (paletteGroup ? (_p[paletteGroup + "_selColor"] || "#3B82F6") : "#3B82F6")
+    readonly property color _selTextColor: root.selTextColor !== undefined ? root.selTextColor : (paletteGroup ? (_p[paletteGroup + "_selTextColor"] || "#FFFFFF") : "#FFFFFF")
+    readonly property color _borderColor: root.borderColor !== undefined ? root.borderColor : (paletteGroup ? (_p[paletteGroup + "_borderColor"] || "#BDBDBD") : "#BDBDBD")
+    readonly property color _disabledBorderColor: root.disabledBorderColor !== undefined ? root.disabledBorderColor : (paletteGroup ? (_p[paletteGroup + "_disabledBorderColor"] || "#E2E8F0") : "#E2E8F0")
+    readonly property color _focusBorderColor: root.focusBorderColor !== undefined ? root.focusBorderColor : (paletteGroup ? (_p[paletteGroup + "_focusBorderColor"] || "#3B82F6") : "#3B82F6")
+    readonly property color _focusRingColor: root.focusRingColor !== undefined ? root.focusRingColor : (paletteGroup ? (_p[paletteGroup + "_focusRingColor"] || "#3B82F6") : "#3B82F6")
+    readonly property color _cursorColor: root.cursorColor !== undefined ? root.cursorColor : (paletteGroup ? (_p[paletteGroup + "_cursorColor"] || "#3B82F6") : "#3B82F6")
+    readonly property color _highlightBorderColor: root.focusBorderColor !== undefined ? root.focusBorderColor : (paletteGroup ? (_p[paletteGroup + "_highlightBorderColor"] || "#3B82F6") : "#3B82F6")
 
     implicitWidth: 76
     implicitHeight: 26

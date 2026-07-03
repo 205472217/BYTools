@@ -19,16 +19,16 @@ Item {
 
     // ── 主题支持 ──
     property string paletteGroup: ""
-    property color activeColor: "#26C6DA"
-    property color hoverColor: "#FFFFFF"
-    property color normalColor: "#CCCCCC"
-    property color dimColor: "#5A6470"
+    property var activeColor: undefined
+    property var hoverColor: undefined
+    property var normalColor: undefined
+    property var dimColor: undefined
 
     readonly property var _p: themeManager.palette
-    readonly property color _activeColor: paletteGroup ? (_p[paletteGroup + "_activeColor"] || activeColor) : activeColor
-    readonly property color _hoverColor: paletteGroup ? (_p[paletteGroup + "_hoverColor"] || hoverColor) : hoverColor
-    readonly property color _normalColor: paletteGroup ? (_p[paletteGroup + "_normalColor"] || normalColor) : normalColor
-    readonly property color _dimColor: paletteGroup ? (_p[paletteGroup + "_dimColor"] || dimColor) : dimColor
+    readonly property color _activeColor: vtb.activeColor !== undefined ? vtb.activeColor : (paletteGroup ? (_p[paletteGroup + "_activeColor"] || "#26C6DA") : "#26C6DA")
+    readonly property color _hoverColor: vtb.hoverColor !== undefined ? vtb.hoverColor : (paletteGroup ? (_p[paletteGroup + "_hoverColor"] || "#FFFFFF") : "#FFFFFF")
+    readonly property color _normalColor: vtb.normalColor !== undefined ? vtb.normalColor : (paletteGroup ? (_p[paletteGroup + "_normalColor"] || "#CCCCCC") : "#CCCCCC")
+    readonly property color _dimColor: vtb.dimColor !== undefined ? vtb.dimColor : (paletteGroup ? (_p[paletteGroup + "_dimColor"] || "#5A6470") : "#5A6470")
 
     /// 点击信号，外部onClicked接收
     signal clicked

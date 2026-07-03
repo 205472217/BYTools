@@ -717,7 +717,7 @@ Pane {
                             onLoaded: {
                                 if (root._mpvAvailable)
                                     item.mpvPath = root._mpvExePath;
-                                item.controlsPaletteGroup = "VideoPlayerControls";
+                                item.paletteGroup = "MultimediaPlayer";
                                 item.showPreviousNext = false;
                                 item.source = "file:///" + (controller ? controller.currentVideoPath : "");
                                 item.play();

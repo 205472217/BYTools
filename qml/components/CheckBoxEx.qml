@@ -7,10 +7,10 @@ CheckBox {
 
     // ── 主题支持 ──
     property string paletteGroup: ""
-    property color textColor: "#000000"
+    property var textColor: undefined
 
     readonly property var _p: themeManager.palette
-    readonly property color _textColor: paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
+    readonly property color _textColor: root.textColor !== undefined ? root.textColor : (paletteGroup ? (_p[paletteGroup + "_textColor"] || "#000000") : "#000000")
 
     implicitWidth: 76
     implicitHeight: 26
