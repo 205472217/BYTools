@@ -8,7 +8,7 @@ Pane {
     id: root
     property var pal: themeManager.palette
 
-    signal backRequested()
+    signal backRequested
 
     property var controller: null
     property var stackView: null
@@ -23,13 +23,7 @@ Pane {
     readonly property int typeColumnWidth: Math.max(60, (recordsListView.width - tableLeftPadding - tableRightPadding - columnGap * 4) * typeColumnRatio)
     readonly property int statusColumnWidth: Math.max(80, (recordsListView.width - tableLeftPadding - tableRightPadding - columnGap * 4) * statusColumnRatio)
     readonly property int actionColumnWidth: Math.max(40, (recordsListView.width - tableLeftPadding - tableRightPadding - columnGap * 4) * actionColumnRatio)
-    readonly property int textColumnWidth: Math.max(120, (recordsListView.width
-        - tableLeftPadding
-        - tableRightPadding
-        - typeColumnWidth
-        - statusColumnWidth
-        - actionColumnWidth
-        - columnGap * 4) / 2)
+    readonly property int textColumnWidth: Math.max(120, (recordsListView.width - tableLeftPadding - tableRightPadding - typeColumnWidth - statusColumnWidth - actionColumnWidth - columnGap * 4) / 2)
     readonly property int typeColumnX: tableLeftPadding
     readonly property int originalColumnX: typeColumnX + typeColumnWidth + columnGap
     readonly property int newColumnX: originalColumnX + textColumnWidth + columnGap
@@ -41,8 +35,7 @@ Pane {
 
     // 当前比例是否为预设值
     function isPresetRatio(r) {
-        return Math.abs(r - 0.5) < 0.001 || Math.abs(r - 1.5) < 0.001
-            || Math.abs(r - 2.0) < 0.001 || Math.abs(r - 4.0) < 0.001
+        return Math.abs(r - 0.5) < 0.001 || Math.abs(r - 1.5) < 0.001 || Math.abs(r - 2.0) < 0.001 || Math.abs(r - 4.0) < 0.001;
     }
 
     readonly property bool isSingleMode: controller ? controller.mode === 0 : false
@@ -58,7 +51,7 @@ Pane {
         title: "选择源文件夹"
         onAccepted: {
             if (controller) {
-                controller.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
+                controller.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
             }
         }
     }
@@ -68,7 +61,7 @@ Pane {
         title: "选择输出目录"
         onAccepted: {
             if (controller) {
-                controller.outputDir = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
+                controller.outputDir = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
             }
         }
     }
@@ -79,7 +72,7 @@ Pane {
         nameFilters: ["图片文件 (*.png *.jpg *.jpeg *.bmp *.webp *.tiff *.tif *.gif *.ico)", "所有文件 (*)"]
         onAccepted: {
             if (controller) {
-                controller.sourceFile = decodeURIComponent(selectedFile.toString().replace("file:///", ""))
+                controller.sourceFile = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
             }
         }
     }
@@ -89,7 +82,7 @@ Pane {
         selectedColor: controller ? controller.bgColor : pal.ImageConverterPage_colorDialog_defaultColor
         onAccepted: {
             if (controller) {
-                controller.bgColor = selectedColor.toString()
+                controller.bgColor = selectedColor.toString();
             }
         }
     }
@@ -106,8 +99,9 @@ Pane {
         dialogTitle: "确认返回"
         messageText: "当前有图片处理任务正在处理中，返回首页将中断执行，是否继续？"
         onConfirmed: {
-            if (controller) controller.reset()
-            root.backRequested()
+            if (controller)
+                controller.reset();
+            root.backRequested();
         }
     }
 
@@ -185,7 +179,7 @@ Pane {
                         font.pixelSize: 13
                         onCheckedChanged: {
                             if (checked && controller && controller.mode !== 0)
-                                controller.mode = 0
+                                controller.mode = 0;
                         }
                     }
 
@@ -198,11 +192,13 @@ Pane {
                         font.pixelSize: 13
                         onCheckedChanged: {
                             if (checked && controller && controller.mode !== 1)
-                                controller.mode = 1
+                                controller.mode = 1;
                         }
                     }
 
-                    Item { Layout.fillWidth: true }
+                    Item {
+                        Layout.fillWidth: true
+                    }
                 }
 
                 // ── 第1行：源路径 ──
@@ -221,9 +217,7 @@ Pane {
 
                     TextFieldEx {
                         Layout.fillWidth: true
-                        text: root.isSingleMode
-                            ? (controller ? controller.sourceFile : "")
-                            : (controller ? controller.rootPath : "")
+                        text: root.isSingleMode ? (controller ? controller.sourceFile : "") : (controller ? controller.rootPath : "")
                         readOnly: true
                         placeholderText: root.isSingleMode ? "点击选择文件" : "点击选择文件夹"
                         paletteGroup: "TextFieldEx"
@@ -238,7 +232,7 @@ Pane {
                         checked: controller ? controller.recursive : false
                         onCheckedChanged: {
                             if (controller && controller.recursive !== checked)
-                                controller.recursive = checked
+                                controller.recursive = checked;
                         }
                     }
 
@@ -248,9 +242,9 @@ Pane {
                         paletteGroup: "IconBtnEx"
                         onClicked: {
                             if (root.isSingleMode)
-                                sourceFileDialog.open()
+                                sourceFileDialog.open();
                             else
-                                sourceFolderDialog.open()
+                                sourceFolderDialog.open();
                         }
                     }
                 }
@@ -268,7 +262,7 @@ Pane {
                         checked: controller ? controller.convertEnabled : true
                         onCheckedChanged: {
                             if (controller && controller.convertEnabled !== checked)
-                                controller.convertEnabled = checked
+                                controller.convertEnabled = checked;
                         }
                     }
 
@@ -279,7 +273,7 @@ Pane {
                         enabled: controller ? controller.convertEnabled : false
                         onActivated: {
                             if (controller) {
-                                controller.targetFormat = currentIndex
+                                controller.targetFormat = currentIndex;
                             }
                         }
                         paletteGroup: "ComboBoxEx"
@@ -310,11 +304,12 @@ Pane {
                         stepSize: 1
                         enabled: controller ? controller.convertEnabled : false
                         Component.onCompleted: {
-                            if (controller) value = controller.quality
+                            if (controller)
+                                value = controller.quality;
                         }
                         onValueChanged: {
                             if (pressed && controller) {
-                                controller.quality = Math.round(value)
+                                controller.quality = Math.round(value);
                             }
                         }
                     }
@@ -361,7 +356,10 @@ Pane {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: { if (controller) controller.bgColor = pal.ImageConverterPage_whiteSwatch_color }
+                            onClicked: {
+                                if (controller)
+                                    controller.bgColor = pal.ImageConverterPage_whiteSwatch_color;
+                            }
                         }
                     }
 
@@ -379,7 +377,10 @@ Pane {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: { if (controller) controller.bgColor = pal.ImageConverterPage_blackSwatch_color }
+                            onClicked: {
+                                if (controller)
+                                    controller.bgColor = pal.ImageConverterPage_blackSwatch_color;
+                            }
                         }
                     }
 
@@ -405,7 +406,9 @@ Pane {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: { colorDialog.open() }
+                            onClicked: {
+                                colorDialog.open();
+                            }
                         }
                     }
                 }
@@ -423,7 +426,7 @@ Pane {
                         checked: controller ? controller.resizeEnabled : false
                         onCheckedChanged: {
                             if (controller && controller.resizeEnabled !== checked)
-                                controller.resizeEnabled = checked
+                                controller.resizeEnabled = checked;
                         }
                     }
 
@@ -437,7 +440,7 @@ Pane {
                         checked: controller ? controller.resizeMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller && controller.resizeMode !== 0)
-                                controller.resizeMode = 0
+                                controller.resizeMode = 0;
                         }
                     }
 
@@ -449,9 +452,7 @@ Pane {
                         radius: 6
                         enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 0) : false
                         color: pal.SurfaceEx_cardBg
-                        readonly property bool _active: controller && controller.resizeMode === 0
-                            && !customRatioEditing
-                            && Math.abs(controller.resizeRatio - 0.5) < 0.001
+                        readonly property bool _active: controller && controller.resizeMode === 0 && !customRatioEditing && Math.abs(controller.resizeRatio - 0.5) < 0.001
                         border.width: _active ? 2 : 1
                         border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
@@ -469,8 +470,8 @@ Pane {
                             enabled: parent.enabled
                             onClicked: {
                                 if (controller) {
-                                    controller.resizeMode = 0
-                                    controller.resizeRatio = 0.5
+                                    controller.resizeMode = 0;
+                                    controller.resizeRatio = 0.5;
                                 }
                             }
                         }
@@ -484,9 +485,7 @@ Pane {
                         radius: 6
                         enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 0) : false
                         color: pal.SurfaceEx_cardBg
-                        readonly property bool _active: controller && controller.resizeMode === 0
-                            && !customRatioEditing
-                            && Math.abs(controller.resizeRatio - 1.5) < 0.001
+                        readonly property bool _active: controller && controller.resizeMode === 0 && !customRatioEditing && Math.abs(controller.resizeRatio - 1.5) < 0.001
                         border.width: _active ? 2 : 1
                         border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
@@ -504,8 +503,8 @@ Pane {
                             enabled: parent.enabled
                             onClicked: {
                                 if (controller) {
-                                    controller.resizeMode = 0
-                                    controller.resizeRatio = 1.5
+                                    controller.resizeMode = 0;
+                                    controller.resizeRatio = 1.5;
                                 }
                             }
                         }
@@ -519,9 +518,7 @@ Pane {
                         radius: 6
                         enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 0) : false
                         color: pal.SurfaceEx_cardBg
-                        readonly property bool _active: controller && controller.resizeMode === 0
-                            && !customRatioEditing
-                            && Math.abs(controller.resizeRatio - 2.0) < 0.001
+                        readonly property bool _active: controller && controller.resizeMode === 0 && !customRatioEditing && Math.abs(controller.resizeRatio - 2.0) < 0.001
                         border.width: _active ? 2 : 1
                         border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
@@ -539,8 +536,8 @@ Pane {
                             enabled: parent.enabled
                             onClicked: {
                                 if (controller) {
-                                    controller.resizeMode = 0
-                                    controller.resizeRatio = 2.0
+                                    controller.resizeMode = 0;
+                                    controller.resizeRatio = 2.0;
                                 }
                             }
                         }
@@ -554,9 +551,7 @@ Pane {
                         radius: 6
                         enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 0) : false
                         color: pal.SurfaceEx_cardBg
-                        readonly property bool _active: controller && controller.resizeMode === 0
-                            && !customRatioEditing
-                            && Math.abs(controller.resizeRatio - 4.0) < 0.001
+                        readonly property bool _active: controller && controller.resizeMode === 0 && !customRatioEditing && Math.abs(controller.resizeRatio - 4.0) < 0.001
                         border.width: _active ? 2 : 1
                         border.color: _active ? pal.SurfaceEx_selectedBolderColor : pal.SurfaceEx_unSelectedBolderColor
 
@@ -574,8 +569,8 @@ Pane {
                             enabled: parent.enabled
                             onClicked: {
                                 if (controller) {
-                                    controller.resizeMode = 0
-                                    controller.resizeRatio = 4.0
+                                    controller.resizeMode = 0;
+                                    controller.resizeRatio = 4.0;
                                 }
                             }
                         }
@@ -590,29 +585,26 @@ Pane {
                         editType: 2
                         minNumber: 0.1
                         maxNumber: 10
-                        highlightOnValid: controller && controller.resizeMode === 0
-                            && Math.abs(controller.resizeRatio - 0.5) > 0.001
-                            && Math.abs(controller.resizeRatio - 1.5) > 0.001
-                            && Math.abs(controller.resizeRatio - 2.0) > 0.001
-                            && Math.abs(controller.resizeRatio - 4.0) > 0.001
+                        highlightOnValid: controller && controller.resizeMode === 0 && Math.abs(controller.resizeRatio - 0.5) > 0.001 && Math.abs(controller.resizeRatio - 1.5) > 0.001 && Math.abs(controller.resizeRatio - 2.0) > 0.001 && Math.abs(controller.resizeRatio - 4.0) > 0.001
                         onEditingFinished: {
-                            var t = text.trim()
+                            var t = text.trim();
                             if (t === "") {
-                                text = controller.resizeRatio.toString()
-                                return
+                                text = controller.resizeRatio.toString();
+                                return;
                             }
-                            var val = parseFloat(t)
+                            var val = parseFloat(t);
                             if (!isNaN(val)) {
-                                val = Math.max(0.1, Math.min(10, val))
-                                if (val !== parseFloat(t)) text = val.toString()
-                                controller.resizeMode = 0
-                                controller.resizeRatio = val
+                                val = Math.max(0.1, Math.min(10, val));
+                                if (val !== parseFloat(t))
+                                    text = val.toString();
+                                controller.resizeMode = 0;
+                                controller.resizeRatio = val;
                             }
                         }
                         onActiveFocusChanged: {
-                            customRatioEditing = activeFocus
+                            customRatioEditing = activeFocus;
                             if (activeFocus && controller) {
-                                controller.resizeMode = 0
+                                controller.resizeMode = 0;
                             }
                         }
                     }
@@ -620,7 +612,7 @@ Pane {
                     Connections {
                         target: controller ? controller : null
                         function onResizeRatioChanged() {
-                            customRatioEdit.text = controller.resizeRatio.toString()
+                            customRatioEdit.text = controller.resizeRatio.toString();
                         }
                     }
 
@@ -643,7 +635,7 @@ Pane {
                         checked: controller ? controller.resizeMode === 1 : true
                         onCheckedChanged: {
                             if (checked && controller && controller.resizeMode !== 1)
-                                controller.resizeMode = 1
+                                controller.resizeMode = 1;
                         }
                     }
 
@@ -658,14 +650,14 @@ Pane {
                         enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 1) : false
                         text: controller ? controller.resizeWidth.toString() : ""
                         onEditingFinished: {
-                            var val = parseInt(text)
+                            var val = parseInt(text);
                             if (!isNaN(val) && controller) {
-                                controller.resizeWidth = val
+                                controller.resizeWidth = val;
                             }
                         }
                         onActiveFocusChanged: {
                             if (activeFocus && controller && controller.resizeMode !== 1) {
-                                controller.resizeMode = 1
+                                controller.resizeMode = 1;
                             }
                         }
                     }
@@ -690,14 +682,14 @@ Pane {
                         enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 1) : false
                         text: controller ? controller.resizeHeight.toString() : ""
                         onEditingFinished: {
-                            var val = parseInt(text)
+                            var val = parseInt(text);
                             if (!isNaN(val) && controller) {
-                                controller.resizeHeight = val
+                                controller.resizeHeight = val;
                             }
                         }
                         onActiveFocusChanged: {
                             if (activeFocus && controller && controller.resizeMode !== 1) {
-                                controller.resizeMode = 1
+                                controller.resizeMode = 1;
                             }
                         }
                     }
@@ -710,7 +702,9 @@ Pane {
                         enabled: controller ? (controller.resizeEnabled && controller.resizeMode === 1) : false
                     }
 
-                    Item { Layout.fillWidth: true }
+                    Item {
+                        Layout.fillWidth: true
+                    }
                 }
 
                 // ── 第4行： 输出方式 ──
@@ -735,7 +729,7 @@ Pane {
                         checked: controller ? controller.outputMode === 0 : true
                         onCheckedChanged: {
                             if (checked && controller && controller.outputMode !== 0)
-                                controller.outputMode = 0
+                                controller.outputMode = 0;
                         }
                     }
 
@@ -747,7 +741,7 @@ Pane {
                         checked: controller ? controller.outputMode === 1 : false
                         onCheckedChanged: {
                             if (checked && controller && controller.outputMode !== 1)
-                                controller.outputMode = 1
+                                controller.outputMode = 1;
                         }
                     }
 
@@ -759,7 +753,7 @@ Pane {
                         enabled: newDirRadio.checked
                         onTextChanged: {
                             if (controller) {
-                                controller.outputDir = text
+                                controller.outputDir = text;
                             }
                         }
                         paletteGroup: "TextFieldEx"
@@ -773,7 +767,9 @@ Pane {
                         onClicked: outputFolderDialog.open()
                     }
 
-                    Item { Layout.fillWidth: true }
+                    Item {
+                        Layout.fillWidth: true
+                    }
 
                     IconButton {
                         id: execBtn
@@ -785,10 +781,10 @@ Pane {
                         onClicked: {
                             if (controller) {
                                 if (!controller.convertEnabled && !controller.resizeEnabled) {
-                                    noOptionDialog.open()
-                                    return
+                                    noOptionDialog.open();
+                                    return;
                                 }
-                                controller.executeConvert()
+                                controller.executeConvert();
                             }
                         }
                     }
@@ -817,9 +813,7 @@ Pane {
                     anchors.leftMargin: 12
                     anchors.right: parent.right
                     anchors.rightMargin: 12
-                    text: controller && controller.statusMessage.length > 0
-                        ? controller.statusMessage
-                        : "就绪"
+                    text: controller && controller.statusMessage.length > 0 ? controller.statusMessage : "就绪"
                     color: pal.LabelEx_statusText
                     font.pixelSize: 13
                     elide: Text.ElideRight
@@ -833,7 +827,7 @@ Pane {
                 paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller) {
-                        controller.restoreAllRecords()
+                        controller.restoreAllRecords();
                     }
                 }
             }
@@ -940,8 +934,7 @@ Pane {
                         id: rowDelegate
                         width: recordsListView.width
                         height: 74
-                        color: rowMouseArea.containsMouse ? pal.SurfaceEx_rowHoverBg :
-                               index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
+                        color: rowMouseArea.containsMouse ? pal.SurfaceEx_rowHoverBg : index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
 
                         Rectangle {
                             id: rowBorder
@@ -958,24 +951,14 @@ Pane {
                             y: 14
                             height: 22
                             radius: 4
-                            color: modelData.formatTag && modelData.formatTag === "PNG" ? pal.LabelEx_PNG_BgRect :
-                                   modelData.formatTag && modelData.formatTag === "JPG" ? pal.LabelEx_JPG_BgRect :
-                                   modelData.formatTag && modelData.formatTag === "BMP" ? pal.LabelEx_BMP_BgRect :
-                                   modelData.formatTag && modelData.formatTag === "WEBP" ? pal.LabelEx_WEBP_BgRect :
-                                   modelData.formatTag && modelData.formatTag === "TIFF" ? pal.LabelEx_TIFF_BgRect :
-                                   modelData.formatTag && modelData.formatTag === "GIF" ? pal.LabelEx_GIF_BgRect : pal.LabelEx_other_BgRect
+                            color: modelData.formatTag && modelData.formatTag === "PNG" ? pal.LabelEx_PNG_BgRect : modelData.formatTag && modelData.formatTag === "JPG" ? pal.LabelEx_JPG_BgRect : modelData.formatTag && modelData.formatTag === "BMP" ? pal.LabelEx_BMP_BgRect : modelData.formatTag && modelData.formatTag === "WEBP" ? pal.LabelEx_WEBP_BgRect : modelData.formatTag && modelData.formatTag === "TIFF" ? pal.LabelEx_TIFF_BgRect : modelData.formatTag && modelData.formatTag === "GIF" ? pal.LabelEx_GIF_BgRect : pal.LabelEx_other_BgRect
 
                             Label {
                                 anchors.centerIn: parent
                                 text: modelData.formatTag
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: modelData.formatTag && modelData.formatTag === "PNG" ? pal.LabelEx_PNG_Text :
-                                       modelData.formatTag && modelData.formatTag === "JPG" ? pal.LabelEx_JPG_Text :
-                                       modelData.formatTag && modelData.formatTag === "BMP" ? pal.LabelEx_BMP_Text :
-                                       modelData.formatTag && modelData.formatTag === "WEBP" ? pal.LabelEx_WEBP_Text :
-                                       modelData.formatTag && modelData.formatTag === "TIFF" ? pal.LabelEx_TIFF_Text :
-                                       modelData.formatTag && modelData.formatTag === "GIF" ? pal.LabelEx_GIF_Text : pal.LabelEx_other_Text
+                                color: modelData.formatTag && modelData.formatTag === "PNG" ? pal.LabelEx_PNG_Text : modelData.formatTag && modelData.formatTag === "JPG" ? pal.LabelEx_JPG_Text : modelData.formatTag && modelData.formatTag === "BMP" ? pal.LabelEx_BMP_Text : modelData.formatTag && modelData.formatTag === "WEBP" ? pal.LabelEx_WEBP_Text : modelData.formatTag && modelData.formatTag === "TIFF" ? pal.LabelEx_TIFF_Text : modelData.formatTag && modelData.formatTag === "GIF" ? pal.LabelEx_GIF_Text : pal.LabelEx_other_Text
                             }
                         }
 
@@ -1010,8 +993,7 @@ Pane {
                             y: 14
                             height: 22
                             radius: 4
-                            color: modelData.status === "已转换" ? pal.StatusBadgeEx_bg_success :
-                                   modelData.status === "已跳过" ? pal.StatusBadgeEx_bg_idle : pal.StatusBadgeEx_bg_error
+                            color: modelData.status === "已转换" ? pal.StatusBadgeEx_bg_success : modelData.status === "已跳过" ? pal.StatusBadgeEx_bg_idle : pal.StatusBadgeEx_bg_error
 
                             Label {
                                 id: statusTagLbl
@@ -1019,8 +1001,7 @@ Pane {
                                 text: modelData.status
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: modelData.status === "已转换" ? pal.LabelEx_statusText :
-                                       modelData.status === "已跳过" ? pal.LabelEx_infoText : pal.LabelEx_errorText
+                                color: modelData.status === "已转换" ? pal.LabelEx_statusText : modelData.status === "已跳过" ? pal.LabelEx_infoText : pal.LabelEx_errorText
                                 elide: Text.ElideRight
                             }
                         }
@@ -1046,7 +1027,7 @@ Pane {
                             paletteGroup: "IconBtnEx"
                             onClicked: {
                                 if (controller) {
-                                    controller.restoreRecord(index)
+                                    controller.restoreRecord(index);
                                 }
                             }
                         }
@@ -1084,7 +1065,4 @@ Pane {
             }
         }
     }
-
 }
-
-

@@ -33,34 +33,33 @@ Item {
     property color sliderHandleColor: "#FFFFFF"
 
     readonly property var _p: themeManager.palette
-    readonly property color _controlsBgColor:
-        controlsPaletteGroup ? (_p[controlsPaletteGroup + "_bgColor"] || controlsBgColor) : controlsBgColor
-    readonly property color _controlsTextColor:
-        controlsPaletteGroup ? (_p[controlsPaletteGroup + "_textColor"] || controlsTextColor) : controlsTextColor
-    readonly property color _sliderTrackColor:
-        controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderTrackColor"] || sliderTrackColor) : sliderTrackColor
-    readonly property color _sliderProgressColor:
-        controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderProgressColor"] || sliderProgressColor) : sliderProgressColor
-    readonly property color _sliderHandleColor:
-        controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderHandleColor"] || sliderHandleColor) : sliderHandleColor
+    readonly property color _controlsBgColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_bgColor"] || controlsBgColor) : controlsBgColor
+    readonly property color _controlsTextColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_textColor"] || controlsTextColor) : controlsTextColor
+    readonly property color _sliderTrackColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderTrackColor"] || sliderTrackColor) : sliderTrackColor
+    readonly property color _sliderProgressColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderProgressColor"] || sliderProgressColor) : sliderProgressColor
+    readonly property color _sliderHandleColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderHandleColor"] || sliderHandleColor) : sliderHandleColor
 
-    signal previousRequested()
-    signal nextRequested()
-    signal deleteRequested()
+    signal previousRequested
+    signal nextRequested
+    signal deleteRequested
 
-    function play() { mediaPlayer.play() }
-    function pause() { mediaPlayer.pause() }
-    function stop() { mediaPlayer.stop() }
-
+    function play() {
+        mediaPlayer.play();
+    }
+    function pause() {
+        mediaPlayer.pause();
+    }
+    function stop() {
+        mediaPlayer.stop();
+    }
 
     function fmtTime(ms) {
-        if (ms < 0) return "-" + fmtTime(-ms)
-        var h = Math.floor(ms / 3600000)
-        var m = Math.floor((ms % 3600000) / 60000)
-        var s = Math.floor((ms % 60000) / 1000)
-        return (h < 10 ? "0" : "") + h + ":"
-             + (m < 10 ? "0" : "") + m + ":"
-             + (s < 10 ? "0" : "") + s
+        if (ms < 0)
+            return "-" + fmtTime(-ms);
+        var h = Math.floor(ms / 3600000);
+        var m = Math.floor((ms % 3600000) / 60000);
+        var s = Math.floor((ms % 60000) / 1000);
+        return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
     }
 
     MediaPlayer {
@@ -73,19 +72,60 @@ Item {
         id: audioOut
     }
 
-    Shortcut { sequence: "Left";       enabled: root.visible && root.showSeekButtons;     onActivated: mediaPlayer.position = Math.max(0, mediaPlayer.position - root.seekStepMs) }
-    Shortcut { sequence: "Right";      enabled: root.visible && root.showSeekButtons;     onActivated: mediaPlayer.position = Math.min(mediaPlayer.duration, mediaPlayer.position + root.seekStepMs) }
-    Shortcut { sequence: "Up";         enabled: root.visible;                             onActivated: { root.volume = Math.min(100, root.volume + 5); audioOut.muted = false; volumeTip.show() } }
-    Shortcut { sequence: "Down";       enabled: root.visible;                             onActivated: { var v = Math.max(0, root.volume - 5); root.volume = v; audioOut.muted = (v < 1); volumeTip.show() } }
-    Shortcut { sequence: "Shift+Left"; enabled: root.visible && root.showPreviousNext;    onActivated: root.previousRequested() }
-    Shortcut { sequence: "Shift+Right";enabled: root.visible && root.showPreviousNext;    onActivated: root.nextRequested() }
-    Shortcut { sequence: "Delete";      enabled: root.visible;                             onActivated: root.deleteRequested() }
-    Shortcut { sequence: "Space";       enabled: root.visible;                             onActivated: {
-        if (mediaPlayer.playbackState === MediaPlayer.PlayingState)
-            mediaPlayer.pause()
-        else
-            mediaPlayer.play()
-    }}
+    Shortcut {
+        sequence: "Left"
+        enabled: root.visible && root.showSeekButtons
+        onActivated: mediaPlayer.position = Math.max(0, mediaPlayer.position - root.seekStepMs)
+    }
+    Shortcut {
+        sequence: "Right"
+        enabled: root.visible && root.showSeekButtons
+        onActivated: mediaPlayer.position = Math.min(mediaPlayer.duration, mediaPlayer.position + root.seekStepMs)
+    }
+    Shortcut {
+        sequence: "Up"
+        enabled: root.visible
+        onActivated: {
+            root.volume = Math.min(100, root.volume + 5);
+            audioOut.muted = false;
+            volumeTip.show();
+        }
+    }
+    Shortcut {
+        sequence: "Down"
+        enabled: root.visible
+        onActivated: {
+            var v = Math.max(0, root.volume - 5);
+            root.volume = v;
+            audioOut.muted = (v < 1);
+            volumeTip.show();
+        }
+    }
+    Shortcut {
+        sequence: "Shift+Left"
+        enabled: root.visible && root.showPreviousNext
+        onActivated: root.previousRequested()
+    }
+    Shortcut {
+        sequence: "Shift+Right"
+        enabled: root.visible && root.showPreviousNext
+        onActivated: root.nextRequested()
+    }
+    Shortcut {
+        sequence: "Delete"
+        enabled: root.visible
+        onActivated: root.deleteRequested()
+    }
+    Shortcut {
+        sequence: "Space"
+        enabled: root.visible
+        onActivated: {
+            if (mediaPlayer.playbackState === MediaPlayer.PlayingState)
+                mediaPlayer.pause();
+            else
+                mediaPlayer.play();
+        }
+    }
 
     VideoOutput {
         id: videoOut
@@ -135,7 +175,7 @@ Item {
                     value: mediaPlayer.position
                     enabled: mediaPlayer.duration > 0
                     onMoved: {
-                        mediaPlayer.position = value
+                        mediaPlayer.position = value;
                     }
 
                     background: Rectangle {
@@ -194,7 +234,7 @@ Item {
                     paletteGroup: root.controlsPaletteGroup
                     visible: root.showSeekButtons
                     onClicked: {
-                        mediaPlayer.position = Math.max(0, mediaPlayer.position - root.seekStepMs)
+                        mediaPlayer.position = Math.max(0, mediaPlayer.position - root.seekStepMs);
                     }
                 }
 
@@ -206,9 +246,9 @@ Item {
                     paletteGroup: root.controlsPaletteGroup
                     onClicked: {
                         if (mediaPlayer.playbackState === MediaPlayer.PlayingState)
-                            mediaPlayer.pause()
+                            mediaPlayer.pause();
                         else
-                            mediaPlayer.play()
+                            mediaPlayer.play();
                     }
                 }
 
@@ -219,7 +259,7 @@ Item {
                     paletteGroup: root.controlsPaletteGroup
                     visible: root.showSeekButtons
                     onClicked: {
-                        mediaPlayer.position = Math.min(mediaPlayer.duration, mediaPlayer.position + root.seekStepMs)
+                        mediaPlayer.position = Math.min(mediaPlayer.duration, mediaPlayer.position + root.seekStepMs);
                     }
                 }
 
@@ -232,7 +272,9 @@ Item {
                     onClicked: root.nextRequested()
                 }
 
-                Item { Layout.fillWidth: true }
+                Item {
+                    Layout.fillWidth: true
+                }
 
                 Label {
                     id: volumeTip
@@ -255,9 +297,9 @@ Item {
                         onTriggered: parent.visible = false
                     }
                     function show() {
-                        text = root.volume
-                        visible = true
-                        volumeTipTimer.restart()
+                        text = root.volume;
+                        visible = true;
+                        volumeTipTimer.restart();
                     }
                 }
 
@@ -270,13 +312,13 @@ Item {
                     paletteGroup: root.controlsPaletteGroup
                     onClicked: {
                         if (audioOut.muted) {
-                            audioOut.muted = false
+                            audioOut.muted = false;
                             if (root.volume < 1) {
-                                root.volume = 5
-                                volumeTip.show()
+                                root.volume = 5;
+                                volumeTip.show();
                             }
                         } else {
-                            audioOut.muted = true
+                            audioOut.muted = true;
                         }
                     }
                 }
@@ -289,9 +331,9 @@ Item {
                     to: 100
                     value: root.volume
                     onMoved: {
-                        root.volume = value
-                        audioOut.muted = (value < 1)
-                        volumeTip.show()
+                        root.volume = value;
+                        audioOut.muted = (value < 1);
+                        volumeTip.show();
                     }
 
                     background: Rectangle {
@@ -321,7 +363,9 @@ Item {
                     }
                 }
 
-                Item { Layout.preferredWidth: 4 }
+                Item {
+                    Layout.preferredWidth: 4
+                }
 
                 Row {
                     visible: root.showSeekButtons
@@ -357,11 +401,10 @@ Item {
                 }
             }
         }
-
     }
 
     onVisibleChanged: {
         if (!root.visible && mediaPlayer.playbackState === MediaPlayer.PlayingState)
-            mediaPlayer.pause()
+            mediaPlayer.pause();
     }
 }

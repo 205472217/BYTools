@@ -7,7 +7,7 @@ import "../components"
 Pane {
     id: root
 
-    signal backRequested()
+    signal backRequested
 
     property var controller: null
     property var stackView: null
@@ -23,13 +23,7 @@ Pane {
     readonly property int typeColumnWidth: Math.max(60, (recordsListView.width - tableLeftPadding - tableRightPadding - columnGap * 4) * typeColumnRatio)
     readonly property int statusColumnWidth: Math.max(80, (recordsListView.width - tableLeftPadding - tableRightPadding - columnGap * 4) * statusColumnRatio)
     readonly property int actionColumnWidth: Math.max(40, (recordsListView.width - tableLeftPadding - tableRightPadding - columnGap * 4) * actionColumnRatio)
-    readonly property int textColumnWidth: Math.max(120, (recordsListView.width
-        - tableLeftPadding
-        - tableRightPadding
-        - typeColumnWidth
-        - statusColumnWidth
-        - actionColumnWidth
-        - columnGap * 4) / 2)
+    readonly property int textColumnWidth: Math.max(120, (recordsListView.width - tableLeftPadding - tableRightPadding - typeColumnWidth - statusColumnWidth - actionColumnWidth - columnGap * 4) / 2)
     readonly property int typeColumnX: tableLeftPadding
     readonly property int originalColumnX: typeColumnX + typeColumnWidth + columnGap
     readonly property int newColumnX: originalColumnX + textColumnWidth + columnGap
@@ -47,7 +41,7 @@ Pane {
         title: "选择源文件夹"
         onAccepted: {
             if (controller) {
-                controller.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
+                controller.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
             }
         }
     }
@@ -57,8 +51,9 @@ Pane {
         dialogTitle: "确认返回"
         messageText: "当前有批量重命名任务正在处理中，返回首页将中断执行，是否继续？"
         onConfirmed: {
-            if (controller) controller.reset()
-            root.backRequested()
+            if (controller)
+                controller.reset();
+            root.backRequested();
         }
     }
 
@@ -71,20 +66,20 @@ Pane {
             Layout.fillWidth: true
             spacing: 12
 
-                    IconButton {
-                        id: backBtn
-                        iconSource: "qrc:/icons/global_back.svg"
-                        implicitHeight: 38
-                        tooltip: "返回"
-                        paletteGroup: "IconBtnEx"
-                        onClicked: {
-                            if (controller && controller.isProcessing) {
-                                backConfirmDialog.open();
-                            } else {
-                                root.backRequested();
-                            }
-                        }
+            IconButton {
+                id: backBtn
+                iconSource: "qrc:/icons/global_back.svg"
+                implicitHeight: 38
+                tooltip: "返回"
+                paletteGroup: "IconBtnEx"
+                onClicked: {
+                    if (controller && controller.isProcessing) {
+                        backConfirmDialog.open();
+                    } else {
+                        root.backRequested();
                     }
+                }
+            }
 
             ColumnLayout {
                 Layout.fillWidth: true
@@ -153,7 +148,7 @@ Pane {
                         checked: controller ? controller.recursive : false
                         onCheckedChanged: {
                             if (controller && controller.recursive !== checked)
-                                controller.recursive = checked
+                                controller.recursive = checked;
                         }
                     }
 
@@ -190,7 +185,7 @@ Pane {
                             checked: controller ? controller.fileType === 0 : true
                             onCheckedChanged: {
                                 if (checked && controller && controller.fileType !== 0)
-                                    controller.fileType = 0
+                                    controller.fileType = 0;
                             }
                         }
 
@@ -202,7 +197,7 @@ Pane {
                             checked: controller ? controller.fileType === 1 : false
                             onCheckedChanged: {
                                 if (checked && controller && controller.fileType !== 1)
-                                    controller.fileType = 1
+                                    controller.fileType = 1;
                             }
                         }
 
@@ -214,7 +209,7 @@ Pane {
                             checked: controller ? controller.fileType === 2 : false
                             onCheckedChanged: {
                                 if (checked && controller && controller.fileType !== 2)
-                                    controller.fileType = 2
+                                    controller.fileType = 2;
                             }
                         }
 
@@ -226,7 +221,7 @@ Pane {
                             checked: controller ? controller.fileType === 3 : false
                             onCheckedChanged: {
                                 if (checked && controller && controller.fileType !== 3)
-                                    controller.fileType = 3
+                                    controller.fileType = 3;
                             }
                         }
 
@@ -238,7 +233,7 @@ Pane {
                             checked: controller ? controller.fileType === 4 : false
                             onCheckedChanged: {
                                 if (checked && controller && controller.fileType !== 4)
-                                    controller.fileType = 4
+                                    controller.fileType = 4;
                             }
                         }
 
@@ -250,7 +245,7 @@ Pane {
                             checked: controller ? controller.fileType === 5 : false
                             onCheckedChanged: {
                                 if (checked && controller && controller.fileType !== 5)
-                                    controller.fileType = 5
+                                    controller.fileType = 5;
                             }
                         }
 
@@ -263,7 +258,7 @@ Pane {
                             paletteGroup: "TextFieldEx"
                             onTextChanged: {
                                 if (controller) {
-                                    controller.customExtension = text
+                                    controller.customExtension = text;
                                 }
                             }
                         }
@@ -299,7 +294,7 @@ Pane {
                         checked: controller ? controller.renameMode === 0 : false
                         onCheckedChanged: {
                             if (checked && controller && controller.renameMode !== 0)
-                                controller.renameMode = 0
+                                controller.renameMode = 0;
                         }
                     }
 
@@ -312,7 +307,7 @@ Pane {
                         paletteGroup: "TextFieldEx"
                         onTextChanged: {
                             if (controller) {
-                                controller.searchText = text
+                                controller.searchText = text;
                             }
                         }
                     }
@@ -332,7 +327,7 @@ Pane {
                         paletteGroup: "TextFieldEx"
                         onTextChanged: {
                             if (controller) {
-                                controller.replaceText = text
+                                controller.replaceText = text;
                             }
                         }
                     }
@@ -359,7 +354,7 @@ Pane {
                         checked: controller ? controller.renameMode === 1 : true
                         onCheckedChanged: {
                             if (checked && controller && controller.renameMode !== 1)
-                                controller.renameMode = 1
+                                controller.renameMode = 1;
                         }
                     }
 
@@ -372,7 +367,7 @@ Pane {
                         paletteGroup: "TextFieldEx"
                         onTextChanged: {
                             if (controller) {
-                                controller.baseName = text
+                                controller.baseName = text;
                             }
                         }
                     }
@@ -384,7 +379,7 @@ Pane {
                         paletteGroup: "IconBtnEx"
                         onClicked: {
                             if (controller) {
-                                controller.clearRecords()
+                                controller.clearRecords();
                             }
                         }
                     }
@@ -398,7 +393,7 @@ Pane {
                         paletteGroup: "BatchRenamePage_executeBtn"
                         onClicked: {
                             if (controller) {
-                                controller.executeRename()
+                                controller.executeRename();
                             }
                         }
                     }
@@ -427,9 +422,7 @@ Pane {
                     anchors.leftMargin: 12
                     anchors.right: parent.right
                     anchors.rightMargin: 12
-                    text: controller && controller.statusMessage.length > 0
-                        ? controller.statusMessage
-                        : "就绪"
+                    text: controller && controller.statusMessage.length > 0 ? controller.statusMessage : "就绪"
                     color: pal.LabelEx_statusText
                     font.pixelSize: 13
                     elide: Text.ElideRight
@@ -443,7 +436,7 @@ Pane {
                 paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller) {
-                        controller.restoreAllRecords()
+                        controller.restoreAllRecords();
                     }
                 }
             }
@@ -552,8 +545,7 @@ Pane {
                         id: rowDelegate
                         width: recordsListView.width
                         height: 74
-                        color: rowMouseArea.containsMouse ? pal.SurfaceEx_rowHoverBg :
-                               index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
+                        color: rowMouseArea.containsMouse ? pal.SurfaceEx_rowHoverBg : index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
 
                         // 底部分隔线
                         Rectangle {
@@ -571,20 +563,14 @@ Pane {
                             y: 14
                             height: 22
                             radius: 4
-                            color: modelData.fileType && modelData.fileType.startsWith("视频") ? pal.LabelEx_Video_BgRect :
-                                   modelData.fileType && modelData.fileType.startsWith("图片") ? pal.LabelEx_Image_BgRect :
-                                   modelData.fileType && modelData.fileType.startsWith("音频") ? pal.LabelEx_Audio_BgRect :
-                                   modelData.fileType && modelData.fileType.startsWith("文本") ? pal.LabelEx_Doc_BgRect : pal.LabelEx_Other_BgRect
+                            color: modelData.fileType && modelData.fileType.startsWith("视频") ? pal.LabelEx_Video_BgRect : modelData.fileType && modelData.fileType.startsWith("图片") ? pal.LabelEx_Image_BgRect : modelData.fileType && modelData.fileType.startsWith("音频") ? pal.LabelEx_Audio_BgRect : modelData.fileType && modelData.fileType.startsWith("文本") ? pal.LabelEx_Doc_BgRect : pal.LabelEx_Other_BgRect
 
                             Label {
                                 anchors.centerIn: parent
                                 text: modelData.fileType
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: modelData.fileType && modelData.fileType.startsWith("视频") ? pal.LabelEx_Video_Text :
-                                       modelData.fileType && modelData.fileType.startsWith("图片") ? pal.LabelEx_Image_Text :
-                                       modelData.fileType && modelData.fileType.startsWith("音频") ? pal.LabelEx_Audio_Text :
-                                       modelData.fileType && modelData.fileType.startsWith("文本") ? pal.LabelEx_Doc_Text : pal.LabelEx_Other_Text
+                                color: modelData.fileType && modelData.fileType.startsWith("视频") ? pal.LabelEx_Video_Text : modelData.fileType && modelData.fileType.startsWith("图片") ? pal.LabelEx_Image_Text : modelData.fileType && modelData.fileType.startsWith("音频") ? pal.LabelEx_Audio_Text : modelData.fileType && modelData.fileType.startsWith("文本") ? pal.LabelEx_Doc_Text : pal.LabelEx_Other_Text
                             }
                         }
 
@@ -652,7 +638,7 @@ Pane {
                             paletteGroup: "IconBtnEx"
                             onClicked: {
                                 if (controller) {
-                                    controller.restoreRecord(index)
+                                    controller.restoreRecord(index);
                                 }
                             }
                         }
@@ -690,6 +676,4 @@ Pane {
             }
         }
     }
-
 }
-

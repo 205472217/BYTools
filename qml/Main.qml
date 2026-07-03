@@ -20,14 +20,14 @@ ApplicationWindow {
     property bool _forceClosing: false
 
     // 关闭保护：有任务执行时确认是否退出
-    onClosing: function(closeEvent) {
+    onClosing: function (closeEvent) {
         if (_forceClosing) {
-            _forceClosing = false
-            return
+            _forceClosing = false;
+            return;
         }
         if (pluginManager.hasProcessingTasks()) {
-            closeEvent.accepted = false
-            confirmCloseDialog.open()
+            closeEvent.accepted = false;
+            confirmCloseDialog.open();
         }
     }
 
@@ -36,8 +36,8 @@ ApplicationWindow {
         dialogTitle: "确认退出"
         messageText: "有任务正在执行中，确定要退出吗？\n退出后任务将被中断。"
         onConfirmed: {
-            window._forceClosing = true
-            Qt.quit()
+            window._forceClosing = true;
+            Qt.quit();
         }
     }
 
@@ -48,7 +48,7 @@ ApplicationWindow {
 
         onBusyChanged: {
             if (!busy)
-                window._navGuard = false
+                window._navGuard = false;
         }
     }
 
@@ -102,28 +102,37 @@ ApplicationWindow {
     }
 
     function navigateBack() {
-        if (stackView.busy || window._navGuard) return
-        window._navGuard = true
-        stackView.pop()
-        window.currentFeatureId = ""
+        if (stackView.busy || window._navGuard)
+            return;
+        window._navGuard = true;
+        stackView.pop();
+        window.currentFeatureId = "";
     }
 
     Component {
         id: homePage
 
         HomePage {
-            onOpenFeature: function(featureId) {
-                if (window._navGuard || window.currentFeatureId === featureId || stackView.busy) return
-                window._navGuard = true
+            onOpenFeature: function (featureId) {
+                if (window._navGuard || window.currentFeatureId === featureId || stackView.busy)
+                    return;
+                window._navGuard = true;
 
-                var controller = pluginManager.getPlugin(featureId)
-                if (!controller) { window._navGuard = false; return }
+                var controller = pluginManager.getPlugin(featureId);
+                if (!controller) {
+                    window._navGuard = false;
+                    return;
+                }
 
-                window.currentFeatureId = featureId
+                window.currentFeatureId = featureId;
 
-                var qmlUrl = Qt.resolvedUrl("pages/" + pluginManager.pluginQmlUrl(featureId))
-                var page = stackView.push(qmlUrl, {controller: controller, stackView: stackView, pluginId: featureId})
-                page.backRequested.connect(navigateBack)
+                var qmlUrl = Qt.resolvedUrl("pages/" + pluginManager.pluginQmlUrl(featureId));
+                var page = stackView.push(qmlUrl, {
+                    controller: controller,
+                    stackView: stackView,
+                    pluginId: featureId
+                });
+                page.backRequested.connect(navigateBack);
             }
         }
     }

@@ -10,9 +10,9 @@ Item {
     property bool hasPrevious: false
     property bool hasNext: false
 
-    signal previousRequested()
-    signal nextRequested()
-    signal deleteRequested()
+    signal previousRequested
+    signal nextRequested
+    signal deleteRequested
 
     Shortcut {
         sequence: "Left"
@@ -64,7 +64,9 @@ Item {
         opacity: prevBtnMouse.containsMouse ? 1.0 : 0.55
 
         Behavior on opacity {
-            NumberAnimation { duration: 150 }
+            NumberAnimation {
+                duration: 150
+            }
         }
 
         Label {
@@ -98,7 +100,9 @@ Item {
         opacity: nextBtnMouse.containsMouse ? 1.0 : 0.55
 
         Behavior on opacity {
-            NumberAnimation { duration: 150 }
+            NumberAnimation {
+                duration: 150
+            }
         }
 
         Label {

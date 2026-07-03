@@ -18,12 +18,12 @@ Pane {
 
     // ── mpv 检测（启动时已解压，此处仅检查文件是否存在） ──
     property bool _mpvAvailable: {
-        if (!controller) return false
-        var dir = pluginManager.pluginDirectory(root.pluginId)
-        return dir.length > 0 && pluginManager.fileExists(dir + "/mpv/mpv.exe")
+        if (!controller)
+            return false;
+        var dir = pluginManager.pluginDirectory(root.pluginId);
+        return dir.length > 0 && pluginManager.fileExists(dir + "/mpv/mpv.exe");
     }
-    property string _mpvExePath: _mpvAvailable
-        ? pluginManager.pluginDirectory(root.pluginId) + "/mpv/mpv.exe" : ""
+    property string _mpvExePath: _mpvAvailable ? pluginManager.pluginDirectory(root.pluginId) + "/mpv/mpv.exe" : ""
 
     property int stepMs: 100
     property int maxOffsetMs: 60000 // 默认 ±1 分钟
@@ -31,62 +31,66 @@ Pane {
     property string _currentSubtitleText: ""
 
     function fmtTime(ms) {
-        if (ms < 0) return "-" + fmtTime(-ms)
-        var h = Math.floor(ms / 3600000)
-        var m = Math.floor((ms % 3600000) / 60000)
-        var s = Math.floor((ms % 60000) / 1000)
-        return (h < 10 ? "0" : "") + h + ":"
-             + (m < 10 ? "0" : "") + m + ":"
-             + (s < 10 ? "0" : "") + s
+        if (ms < 0)
+            return "-" + fmtTime(-ms);
+        var h = Math.floor(ms / 3600000);
+        var m = Math.floor((ms % 3600000) / 60000);
+        var s = Math.floor((ms % 60000) / 1000);
+        return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
     }
 
     function fmtOffset(ms) {
-        var sign = ms >= 0 ? "+" : "-"
-        var absMs = Math.abs(ms)
-        return sign + (absMs / 1000).toFixed(1) + "s"
+        var sign = ms >= 0 ? "+" : "-";
+        var absMs = Math.abs(ms);
+        return sign + (absMs / 1000).toFixed(1) + "s";
     }
 
     function _hideNativeOverlay() {
-        var p = videoDisplayLoader.item
+        var p = videoDisplayLoader.item;
         if (p && p.setNativeOverlayVisible)
-            p.setNativeOverlayVisible(false)
+            p.setNativeOverlayVisible(false);
     }
     function _showNativeOverlay() {
-        var p = videoDisplayLoader.item
+        var p = videoDisplayLoader.item;
         if (p && p.setNativeOverlayVisible)
-            p.setNativeOverlayVisible(true)
+            p.setNativeOverlayVisible(true);
     }
 
     function selectedFileUrl(url) {
-        var p = url.toString()
+        var p = url.toString();
         if (p.indexOf("file:///") === 0)
-            return p.substring(8)
+            return p.substring(8);
         if (p.indexOf("file://") === 0)
-            return p.substring(7)
-        return p
+            return p.substring(7);
+        return p;
     }
 
     function tryStartAdjust(index) {
-        if (!controller) return
+        if (!controller)
+            return;
         if (controller.isDirty) {
-            unsavedDialog.targetIndex = index
-            unsavedDialog.open()
+            unsavedDialog.targetIndex = index;
+            unsavedDialog.open();
         } else {
-            controller.startAdjust(index)
+            controller.startAdjust(index);
         }
     }
 
-    function player() { return videoDisplayLoader.item }
+    function player() {
+        return videoDisplayLoader.item;
+    }
 
     // ── Keyboard shortcuts ──
     focus: true
     Keys.onLeftPressed: {
-        var p = videoDisplayLoader.item
-        if (p) p.position = Math.max(0, p.position - controller.seekStepMs)
+        var p = videoDisplayLoader.item;
+        if (p)
+            p.position = Math.max(0, p.position - controller.seekStepMs);
     }
     Keys.onRightPressed: {
-        var p = videoDisplayLoader.item
-        if (p) p.position = Math.min(p.duration, p.position + controller.seekStepMs)
+        var p = videoDisplayLoader.item;
+        if (p)
+            p.position = Math.min(p.duration, p.position + controller.seekStepMs);
     }
 
     padding: 0
@@ -101,7 +105,8 @@ Pane {
         title: "选择视频文件"
         nameFilters: ["视频文件 (*.mp4 *.mkv *.avi *.mov *.wmv *.flv *.webm *.m4v *.ts)", "所有文件 (*)"]
         onAccepted: {
-            if (controller) controller.videoPath = selectedFileUrl(selectedFile)
+            if (controller)
+                controller.videoPath = selectedFileUrl(selectedFile);
         }
     }
 
@@ -110,7 +115,8 @@ Pane {
         title: "选择字幕文件"
         nameFilters: ["字幕文件 (*.srt *.ass *.ssa)", "所有文件 (*)"]
         onAccepted: {
-            if (controller) controller.subtitlePath = selectedFileUrl(selectedFile)
+            if (controller)
+                controller.subtitlePath = selectedFileUrl(selectedFile);
         }
     }
 
@@ -118,7 +124,8 @@ Pane {
         id: videoFolderDialog
         title: "选择视频文件夹"
         onAccepted: {
-            if (controller) controller.videoFolder = selectedFileUrl(selectedFolder)
+            if (controller)
+                controller.videoFolder = selectedFileUrl(selectedFolder);
         }
     }
 
@@ -126,7 +133,8 @@ Pane {
         id: subtitleFolderDialog
         title: "选择字幕文件夹"
         onAccepted: {
-            if (controller) controller.subtitleFolder = selectedFileUrl(selectedFolder)
+            if (controller)
+                controller.subtitleFolder = selectedFileUrl(selectedFolder);
         }
     }
 
@@ -137,9 +145,10 @@ Pane {
         onOpened: root._hideNativeOverlay()
         onClosed: root._showNativeOverlay()
         onConfirmed: {
-            if (controller) controller.reset()
-            root._hideNativeOverlay()
-            root.backRequested()
+            if (controller)
+                controller.reset();
+            root._hideNativeOverlay();
+            root.backRequested();
         }
     }
 
@@ -151,10 +160,10 @@ Pane {
         onOpened: root._hideNativeOverlay()
         onClosed: root._showNativeOverlay()
         onConfirmed: {
-            var idx = unsavedDialog.targetIndex
+            var idx = unsavedDialog.targetIndex;
             if (controller) {
-                controller.setOffsetMs(0)
-                controller.startAdjust(idx)
+                controller.setOffsetMs(0);
+                controller.startAdjust(idx);
             }
         }
     }
@@ -163,33 +172,35 @@ Pane {
     Connections {
         target: controller
         function onLogMessage(message) {
-            if (message.length === 0) return
-            root._lastLogLine = message
+            if (message.length === 0)
+                return;
+            root._lastLogLine = message;
         }
         function onExportFinished(success, message) {
-            if (message.length === 0) return
-            root._lastLogLine = message
+            if (message.length === 0)
+                return;
+            root._lastLogLine = message;
         }
         function onVideoReady(videoPath, subtitlePath) {
-            root._currentSubtitleText = ""
-            videoDisplayLoader.active = true
-            var p = videoDisplayLoader.item
+            root._currentSubtitleText = "";
+            videoDisplayLoader.active = true;
+            var p = videoDisplayLoader.item;
             if (p) {
-                p.source = "file:///" + videoPath
-                p.play()
+                p.source = "file:///" + videoPath;
+                p.play();
             }
         }
         function onCurrentVideoPathChanged() {
-            var p = videoDisplayLoader.item
+            var p = videoDisplayLoader.item;
             if (!controller || controller.currentVideoPath.length === 0) {
                 if (p) {
-                    p.stop()
-                    p.source = ""
+                    p.stop();
+                    p.source = "";
                 }
-                videoDisplayLoader.active = false
+                videoDisplayLoader.active = false;
             } else if (p) {
-                p.source = "file:///" + controller.currentVideoPath
-                p.play()
+                p.source = "file:///" + controller.currentVideoPath;
+                p.play();
             }
         }
     }
@@ -199,15 +210,15 @@ Pane {
         target: videoDisplayLoader.item
         function onVolumeChanged() {
             if (controller && videoDisplayLoader.item)
-                controller.volume = videoDisplayLoader.item.volume
+                controller.volume = videoDisplayLoader.item.volume;
         }
         function onMutedChanged() {
             if (controller && videoDisplayLoader.item)
-                controller.muted = videoDisplayLoader.item.muted
+                controller.muted = videoDisplayLoader.item.muted;
         }
         function onSeekStepMsChanged() {
             if (controller && videoDisplayLoader.item)
-                controller.seekStepMs = videoDisplayLoader.item.seekStepMs
+                controller.seekStepMs = videoDisplayLoader.item.seekStepMs;
         }
     }
 
@@ -218,8 +229,9 @@ Pane {
         repeat: true
         running: controller && player() && player().playbackState === 1
         onTriggered: {
-            if (!controller || !player()) return
-            root._currentSubtitleText = controller.getSubtitleTextAt(player().position)
+            if (!controller || !player())
+                return;
+            root._currentSubtitleText = controller.getSubtitleTextAt(player().position);
         }
     }
 
@@ -241,10 +253,10 @@ Pane {
                 paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller && controller.isProcessing) {
-                        backConfirmDialog.open()
+                        backConfirmDialog.open();
                     } else {
-                        root._hideNativeOverlay()
-                        root.backRequested()
+                        root._hideNativeOverlay();
+                        root.backRequested();
                     }
                 }
             }
@@ -300,7 +312,7 @@ Pane {
                         font.pixelSize: 13
                         onCheckedChanged: {
                             if (checked && controller && controller.mode !== 0)
-                                controller.mode = 0
+                                controller.mode = 0;
                         }
                     }
 
@@ -313,11 +325,13 @@ Pane {
                         font.pixelSize: 13
                         onCheckedChanged: {
                             if (checked && controller && controller.mode !== 1)
-                                controller.mode = 1
+                                controller.mode = 1;
                         }
                     }
 
-                    Item { Layout.fillWidth: true }
+                    Item {
+                        Layout.fillWidth: true
+                    }
                 }
 
                 // Row 2: Video Path
@@ -337,9 +351,7 @@ Pane {
                     TextFieldEx {
                         Layout.fillWidth: true
                         font.pixelSize: 11
-                        text: isSingleMode
-                            ? (controller ? controller.videoPath : "")
-                            : (controller ? controller.videoFolder : "")
+                        text: isSingleMode ? (controller ? controller.videoPath : "") : (controller ? controller.videoFolder : "")
                         readOnly: true
                         placeholderText: isSingleMode ? "选择视频文件" : "选择视频文件夹"
                         clip: true
@@ -356,7 +368,7 @@ Pane {
                         checked: controller ? controller.recursiveVideo : false
                         onCheckedChanged: {
                             if (controller && controller.recursiveVideo !== checked)
-                                controller.recursiveVideo = checked
+                                controller.recursiveVideo = checked;
                         }
                     }
 
@@ -385,9 +397,7 @@ Pane {
                     TextFieldEx {
                         Layout.fillWidth: true
                         font.pixelSize: 11
-                        text: isSingleMode
-                            ? (controller ? controller.subtitlePath : "")
-                            : (controller ? controller.subtitleFolder : "")
+                        text: isSingleMode ? (controller ? controller.subtitlePath : "") : (controller ? controller.subtitleFolder : "")
                         readOnly: true
                         placeholderText: isSingleMode ? "选择字幕文件" : "选择字幕文件夹"
                         clip: true
@@ -404,7 +414,7 @@ Pane {
                         checked: controller ? controller.recursiveSubtitle : false
                         onCheckedChanged: {
                             if (controller && controller.recursiveSubtitle !== checked)
-                                controller.recursiveSubtitle = checked
+                                controller.recursiveSubtitle = checked;
                         }
                     }
 
@@ -421,7 +431,9 @@ Pane {
                     spacing: 12
                     Layout.fillWidth: true
 
-                    Item { Layout.fillWidth: true }
+                    Item {
+                        Layout.fillWidth: true
+                    }
 
                     IconButton {
                         id: startMapBtn
@@ -430,14 +442,16 @@ Pane {
                         tooltip: isSingleMode ? "将单个文件加入列表" : "扫描文件夹并自动匹配视频与字幕文件"
                         paletteGroup: "SubtitleAdjustPage_startMapBtn"
                         enabled: {
-                            if (!controller) return false
+                            if (!controller)
+                                return false;
                             if (isSingleMode)
-                                return controller.videoPath.length > 0 && controller.subtitlePath.length > 0
+                                return controller.videoPath.length > 0 && controller.subtitlePath.length > 0;
                             else
-                                return controller.videoFolder.length > 0 && controller.subtitleFolder.length > 0
+                                return controller.videoFolder.length > 0 && controller.subtitleFolder.length > 0;
                         }
                         onClicked: {
-                            if (controller) controller.startMatch()
+                            if (controller)
+                                controller.startMatch();
                         }
                     }
                 }
@@ -471,8 +485,7 @@ Pane {
                         elide: Text.ElideRight
                     }
                 }
-}
-
+            }
         }
 
         // ═══════════════ Bottom: 3-Column Layout ═══════════════
@@ -576,9 +589,11 @@ Pane {
                                 required property int status
 
                                 color: {
-                                    if (ListView.isCurrentItem) return pal.SurfaceEx_rowSelectedBg
-                                    if (status === 1) return pal.SurfaceEx_rowMatchedBg
-                                    return index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
+                                    if (ListView.isCurrentItem)
+                                        return pal.SurfaceEx_rowSelectedBg;
+                                    if (status === 1)
+                                        return pal.SurfaceEx_rowMatchedBg;
+                                    return index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg;
                                 }
 
                                 RowLayout {
@@ -627,7 +642,7 @@ Pane {
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
                                     onClicked: {
-                                        root.tryStartAdjust(delegateRoot.index)
+                                        root.tryStartAdjust(delegateRoot.index);
                                     }
                                 }
                             }
@@ -697,23 +712,21 @@ Pane {
                             id: videoDisplayLoader
                             anchors.fill: parent
                             active: hasVideo
-                            source: root._mpvAvailable
-                                ? "../components/MpvViewer.qml"
-                                : "../components/MediaViewer.qml"
+                            source: root._mpvAvailable ? "../components/MpvViewer.qml" : "../components/MediaViewer.qml"
 
                             onLoaded: {
                                 if (root._mpvAvailable)
-                                    item.mpvPath = root._mpvExePath
-                                item.controlsPaletteGroup = "VideoPlayerControls"
-                                item.showPreviousNext = false
-                                item.source = "file:///" + (controller ? controller.currentVideoPath : "")
-                                item.play()
+                                    item.mpvPath = root._mpvExePath;
+                                item.controlsPaletteGroup = "VideoPlayerControls";
+                                item.showPreviousNext = false;
+                                item.source = "file:///" + (controller ? controller.currentVideoPath : "");
+                                item.play();
                                 if (controller) {
-                                    item.volume = controller.volume
-                                    item.muted = controller.muted
-                                    item.seekStepMs = controller.seekStepMs
+                                    item.volume = controller.volume;
+                                    item.muted = controller.muted;
+                                    item.seekStepMs = controller.seekStepMs;
                                     if (item.volume < 1)
-                                        item.muted = true
+                                        item.muted = true;
                                 }
                             }
                         }
@@ -726,8 +739,8 @@ Pane {
                             radius: 6
                             color: pal.SubtitleAdjustPage_videoOverlay_color
                             visible: {
-                                var p = videoDisplayLoader.item
-                                hasVideo && p && p.playbackState === 0
+                                var p = videoDisplayLoader.item;
+                                hasVideo && p && p.playbackState === 0;
                             }
 
                             Column {
@@ -811,7 +824,9 @@ Pane {
                             font.bold: true
                         }
 
-                        Item { Layout.fillWidth: true }
+                        Item {
+                            Layout.fillWidth: true
+                        }
 
                         Label {
                             id: maxOffsetTitle
@@ -820,24 +835,36 @@ Pane {
                             font.pixelSize: 11
                         }
 
-                            ComboBoxEx {
-                                id: maxOffsetCombo
-                                model: [
-                                    { text: "30 秒", value: 30000 },
-                                    { text: "1 分钟", value: 60000 },
-                                    { text: "5 分钟", value: 300000 },
-                                    { text: "10 分钟", value: 600000 },
-                                ]
-                                textRole: "text"
-                                valueRole: "value"
-                                currentIndex: 1
-                                font.pixelSize: 11
-                                implicitWidth: 90
-                                onActivated: {
-                                    root.maxOffsetMs = currentValue
-                                }
-                                paletteGroup: "ComboBoxEx"
+                        ComboBoxEx {
+                            id: maxOffsetCombo
+                            model: [
+                                {
+                                    text: "30 秒",
+                                    value: 30000
+                                },
+                                {
+                                    text: "1 分钟",
+                                    value: 60000
+                                },
+                                {
+                                    text: "5 分钟",
+                                    value: 300000
+                                },
+                                {
+                                    text: "10 分钟",
+                                    value: 600000
+                                },
+                            ]
+                            textRole: "text"
+                            valueRole: "value"
+                            currentIndex: 1
+                            font.pixelSize: 11
+                            implicitWidth: 90
+                            onActivated: {
+                                root.maxOffsetMs = currentValue;
                             }
+                            paletteGroup: "ComboBoxEx"
+                        }
                     }
 
                     // OffsetValue Text
@@ -874,7 +901,8 @@ Pane {
                                 stepSize: root.stepMs
                                 enabled: hasVideo
                                 onMoved: {
-                                    if (controller) controller.setOffsetMs(value)
+                                    if (controller)
+                                        controller.setOffsetMs(value);
                                 }
                             }
 
@@ -889,7 +917,9 @@ Pane {
                                     font.pixelSize: 10
                                 }
 
-                                Item { Layout.fillWidth: true }
+                                Item {
+                                    Layout.fillWidth: true
+                                }
 
                                 Label {
                                     id: sliderZeroLabel
@@ -898,7 +928,9 @@ Pane {
                                     font.pixelSize: 10
                                 }
 
-                                Item { Layout.fillWidth: true }
+                                Item {
+                                    Layout.fillWidth: true
+                                }
 
                                 Label {
                                     id: sliderMaxLabel
@@ -923,7 +955,8 @@ Pane {
                             paletteGroup: "SubtitleAdjustPage_earlyBtn"
                             enabled: hasVideo
                             onClicked: {
-                                if (controller) controller.shiftBackward(root.stepMs)
+                                if (controller)
+                                    controller.shiftBackward(root.stepMs);
                             }
                         }
 
@@ -935,7 +968,8 @@ Pane {
                             paletteGroup: "SubtitleAdjustPage_delayBtn"
                             enabled: hasVideo
                             onClicked: {
-                                if (controller) controller.shiftForward(root.stepMs)
+                                if (controller)
+                                    controller.shiftForward(root.stepMs);
                             }
                         }
                     }
@@ -959,8 +993,8 @@ Pane {
                             model: ["0.1s", "0.5s", "1s", "5s"]
                             currentIndex: 0
                             onActivated: {
-                                var steps = [100, 500, 1000, 5000]
-                                root.stepMs = steps[currentIndex]
+                                var steps = [100, 500, 1000, 5000];
+                                root.stepMs = steps[currentIndex];
                             }
                             paletteGroup: "ComboBoxEx"
                         }
@@ -976,7 +1010,7 @@ Pane {
                         checked: controller ? controller.overwriteOriginal : false
                         onCheckedChanged: {
                             if (controller && controller.overwriteOriginal !== checked)
-                                controller.overwriteOriginal = checked
+                                controller.overwriteOriginal = checked;
                         }
                     }
 
@@ -985,22 +1019,20 @@ Pane {
                         id: exportBtn
                         Layout.fillWidth: true
                         text: "导出字幕文件"
-                        tooltip: controller && controller.overwriteOriginal
-                            ? "替换原字幕文件（将覆盖原文件）"
-                            : "导出为 _adjusted.srt 文件"
+                        tooltip: controller && controller.overwriteOriginal ? "替换原字幕文件（将覆盖原文件）" : "导出为 _adjusted.srt 文件"
                         paletteGroup: "SubtitleAdjustPage_exportBtn"
                         enabled: hasVideo && controller && controller.isDirty
                         onClicked: {
-                            if (controller) controller.exportSubtitle()
+                            if (controller)
+                                controller.exportSubtitle();
                         }
                     }
 
-                    Item { Layout.fillHeight: true }
+                    Item {
+                        Layout.fillHeight: true
+                    }
                 }
             }
         }
     }
-
 }
-
-

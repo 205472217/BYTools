@@ -25,38 +25,22 @@ ComboBox {
     property color delegateHighlightBgColor: "#EFF6FF"
 
     readonly property var _p: themeManager.palette
-    readonly property color _bgColor:
-        paletteGroup ? (_p[paletteGroup + "_bgColor"] || bgColor) : bgColor
-    readonly property color _disabledBgColor:
-        paletteGroup ? (_p[paletteGroup + "_disabledBgColor"] || disabledBgColor) : disabledBgColor
-    readonly property color _textColor:
-        paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
-    readonly property color _disabledTextColor:
-        paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || disabledTextColor) : disabledTextColor
-    readonly property color _borderColor:
-        paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
-    readonly property color _hoverBorderColor:
-        paletteGroup ? (_p[paletteGroup + "_hoverBorderColor"] || hoverBorderColor) : hoverBorderColor
-    readonly property color _focusBorderColor:
-        paletteGroup ? (_p[paletteGroup + "_focusBorderColor"] || focusBorderColor) : focusBorderColor
-    readonly property color _focusRingColor:
-        paletteGroup ? (_p[paletteGroup + "_focusRingColor"] || focusRingColor) : focusRingColor
-    readonly property color _arrowColor:
-        paletteGroup ? (_p[paletteGroup + "_arrowColor"] || arrowColor) : arrowColor
-    readonly property color _disabledArrowColor:
-        paletteGroup ? (_p[paletteGroup + "_disabledArrowColor"] || disabledArrowColor) : disabledArrowColor
-    readonly property color _popupBgColor:
-        paletteGroup ? (_p[paletteGroup + "_popupBgColor"] || popupBgColor) : popupBgColor
-    readonly property color _popupBorderColor:
-        paletteGroup ? (_p[paletteGroup + "_popupBorderColor"] || popupBorderColor) : popupBorderColor
-    readonly property color _popupShadowColor:
-        paletteGroup ? (_p[paletteGroup + "_popupShadowColor"] || popupShadowColor) : popupShadowColor
-    readonly property color _delegateTextColor:
-        paletteGroup ? (_p[paletteGroup + "_delegateTextColor"] || delegateTextColor) : delegateTextColor
-    readonly property color _delegateHighlightTextColor:
-        paletteGroup ? (_p[paletteGroup + "_delegateHighlightTextColor"] || delegateHighlightTextColor) : delegateHighlightTextColor
-    readonly property color _delegateHighlightBgColor:
-        paletteGroup ? (_p[paletteGroup + "_delegateHighlightBgColor"] || delegateHighlightBgColor) : delegateHighlightBgColor
+    readonly property color _bgColor: paletteGroup ? (_p[paletteGroup + "_bgColor"] || bgColor) : bgColor
+    readonly property color _disabledBgColor: paletteGroup ? (_p[paletteGroup + "_disabledBgColor"] || disabledBgColor) : disabledBgColor
+    readonly property color _textColor: paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
+    readonly property color _disabledTextColor: paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || disabledTextColor) : disabledTextColor
+    readonly property color _borderColor: paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
+    readonly property color _hoverBorderColor: paletteGroup ? (_p[paletteGroup + "_hoverBorderColor"] || hoverBorderColor) : hoverBorderColor
+    readonly property color _focusBorderColor: paletteGroup ? (_p[paletteGroup + "_focusBorderColor"] || focusBorderColor) : focusBorderColor
+    readonly property color _focusRingColor: paletteGroup ? (_p[paletteGroup + "_focusRingColor"] || focusRingColor) : focusRingColor
+    readonly property color _arrowColor: paletteGroup ? (_p[paletteGroup + "_arrowColor"] || arrowColor) : arrowColor
+    readonly property color _disabledArrowColor: paletteGroup ? (_p[paletteGroup + "_disabledArrowColor"] || disabledArrowColor) : disabledArrowColor
+    readonly property color _popupBgColor: paletteGroup ? (_p[paletteGroup + "_popupBgColor"] || popupBgColor) : popupBgColor
+    readonly property color _popupBorderColor: paletteGroup ? (_p[paletteGroup + "_popupBorderColor"] || popupBorderColor) : popupBorderColor
+    readonly property color _popupShadowColor: paletteGroup ? (_p[paletteGroup + "_popupShadowColor"] || popupShadowColor) : popupShadowColor
+    readonly property color _delegateTextColor: paletteGroup ? (_p[paletteGroup + "_delegateTextColor"] || delegateTextColor) : delegateTextColor
+    readonly property color _delegateHighlightTextColor: paletteGroup ? (_p[paletteGroup + "_delegateHighlightTextColor"] || delegateHighlightTextColor) : delegateHighlightTextColor
+    readonly property color _delegateHighlightBgColor: paletteGroup ? (_p[paletteGroup + "_delegateHighlightBgColor"] || delegateHighlightBgColor) : delegateHighlightBgColor
 
     implicitWidth: 76
     implicitHeight: 26
@@ -66,8 +50,7 @@ ComboBox {
         radius: 6
         color: root.enabled ? root._bgColor : root._disabledBgColor
         border.width: root.pressed || root.popup.visible ? 1.5 : 1
-        border.color: root.pressed || root.popup.visible ? root._focusBorderColor :
-                      root.hovered ? root._hoverBorderColor : root._borderColor
+        border.color: root.pressed || root.popup.visible ? root._focusBorderColor : root.hovered ? root._hoverBorderColor : root._borderColor
 
         Rectangle {
             anchors.fill: parent
@@ -85,8 +68,6 @@ ComboBox {
                 opacity: 0.08
             }
         }
-
-
     }
 
     contentItem: Text {
@@ -107,27 +88,26 @@ ComboBox {
         contextType: "2d"
 
         onPaint: {
-            context.reset()
-            context.strokeStyle = root.enabled ? root._arrowColor : root._disabledArrowColor
-            context.lineWidth = 1.5
-            context.lineCap = "round"
-            context.lineJoin = "round"
-            context.beginPath()
-            context.moveTo(1, 2)
-            context.lineTo(6, 6)
-            context.lineTo(11, 2)
-            context.stroke()
+            context.reset();
+            context.strokeStyle = root.enabled ? root._arrowColor : root._disabledArrowColor;
+            context.lineWidth = 1.5;
+            context.lineCap = "round";
+            context.lineJoin = "round";
+            context.beginPath();
+            context.moveTo(1, 2);
+            context.lineTo(6, 6);
+            context.lineTo(11, 2);
+            context.stroke();
         }
 
         onRotationChanged: requestPaint()
 
         rotation: root.popup.visible ? 180 : 0
-
     }
 
-    Keys.onPressed: function(event) {
+    Keys.onPressed: function (event) {
         if (event.key === Qt.Key_Up || event.key === Qt.Key_Down)
-            event.accepted = true
+            event.accepted = true;
     }
 
     popup: Popup {
@@ -162,8 +142,6 @@ ComboBox {
 
             ScrollIndicator.vertical: ScrollIndicator {}
         }
-
-
     }
 
     delegate: ItemDelegate {

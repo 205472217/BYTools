@@ -57,9 +57,18 @@ Pane {
                     height: 1
                     gradient: Gradient {
                         orientation: Gradient.Horizontal
-                        GradientStop { position: 0.0; color: pal.SurfaceEx_divider }
-                        GradientStop { position: 0.3; color: pal.SurfaceEx_divider }
-                        GradientStop { position: 1.0; color: "transparent" }
+                        GradientStop {
+                            position: 0.0
+                            color: pal.SurfaceEx_divider
+                        }
+                        GradientStop {
+                            position: 0.3
+                            color: pal.SurfaceEx_divider
+                        }
+                        GradientStop {
+                            position: 1.0
+                            color: "transparent"
+                        }
                     }
                 }
             }
@@ -129,12 +138,14 @@ Pane {
                 }
 
                 onCurrentIndexChanged: {
-                    if (currentIndex === 0) themeManager.setTheme("Light")
-                    else themeManager.setTheme("Dark")
+                    if (currentIndex === 0)
+                        themeManager.setTheme("Light");
+                    else
+                        themeManager.setTheme("Dark");
                 }
 
                 Component.onCompleted: {
-                    currentIndex = themeManager.currentTheme === "Dark" ? 1 : 0
+                    currentIndex = themeManager.currentTheme === "Dark" ? 1 : 0;
                 }
             }
         }
@@ -158,7 +169,10 @@ Pane {
                 text: "全部插件"
                 paletteGroup: "RadioButtonEx"
                 checked: true
-                onCheckedChanged: { if (checked) root.showAll = true; }
+                onCheckedChanged: {
+                    if (checked)
+                        root.showAll = true;
+                }
             }
 
             RadioButtonEx {
@@ -166,7 +180,10 @@ Pane {
                 implicitWidth: 80
                 text: "分类显示"
                 paletteGroup: "RadioButtonEx"
-                onCheckedChanged: { if (checked) root.showAll = false; }
+                onCheckedChanged: {
+                    if (checked)
+                        root.showAll = false;
+                }
             }
         }
 

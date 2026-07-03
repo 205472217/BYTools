@@ -8,7 +8,7 @@ Pane {
     id: root
     property var pal: themeManager.palette
 
-    signal backRequested()
+    signal backRequested
 
     property var controller: null
     property var stackView: null
@@ -23,13 +23,7 @@ Pane {
     readonly property int typeColumnWidth: Math.max(60, (previewList.width - tableLeftPadding - tableRightPadding - columnGap * 4) * typeColumnRatio)
     readonly property int statusColumnWidth: Math.max(80, (previewList.width - tableLeftPadding - tableRightPadding - columnGap * 4) * statusColumnRatio)
     readonly property int actionColumnWidth: Math.max(40, (previewList.width - tableLeftPadding - tableRightPadding - columnGap * 4) * actionColumnRatio)
-    readonly property int textColumnWidth: Math.max(120, (previewList.width
-        - tableLeftPadding
-        - tableRightPadding
-        - typeColumnWidth
-        - statusColumnWidth
-        - actionColumnWidth
-        - columnGap * 4) / 2)
+    readonly property int textColumnWidth: Math.max(120, (previewList.width - tableLeftPadding - tableRightPadding - typeColumnWidth - statusColumnWidth - actionColumnWidth - columnGap * 4) / 2)
     readonly property int typeColumnX: tableLeftPadding
     readonly property int currentNameColumnX: typeColumnX + typeColumnWidth + columnGap
     readonly property int newNameColumnX: currentNameColumnX + textColumnWidth + columnGap
@@ -47,8 +41,8 @@ Pane {
         title: "选择源文件夹"
         onAccepted: {
             if (controller) {
-                controller.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""))
-                controller.clearRecords()
+                controller.rootPath = decodeURIComponent(selectedFolder.toString().replace("file:///", ""));
+                controller.clearRecords();
             }
         }
     }
@@ -58,8 +52,9 @@ Pane {
         dialogTitle: "确认返回"
         messageText: "当前有繁转简任务正在处理中，返回首页将中断执行，是否继续？"
         onConfirmed: {
-            if (controller) controller.reset()
-            root.backRequested()
+            if (controller)
+                controller.reset();
+            root.backRequested();
         }
     }
 
@@ -152,7 +147,7 @@ Pane {
                         checked: controller ? controller.recursive : false
                         onCheckedChanged: {
                             if (controller && controller.recursive !== checked)
-                                controller.recursive = checked
+                                controller.recursive = checked;
                         }
                     }
 
@@ -184,13 +179,15 @@ Pane {
                         currentIndex: controller ? controller.targetType : 2
                         onActivated: {
                             if (controller) {
-                                controller.targetType = currentIndex
+                                controller.targetType = currentIndex;
                             }
                         }
                         paletteGroup: "ComboBoxEx"
                     }
 
-                    Item { Layout.fillWidth: true }
+                    Item {
+                        Layout.fillWidth: true
+                    }
 
                     IconButton {
                         iconSource: "qrc:/icons/global_trash.svg"
@@ -199,7 +196,7 @@ Pane {
                         paletteGroup: "IconBtnEx"
                         onClicked: {
                             if (controller) {
-                                controller.clearRecords()
+                                controller.clearRecords();
                             }
                         }
                     }
@@ -213,7 +210,7 @@ Pane {
                         paletteGroup: "NameConverterPage_executeBtn"
                         onClicked: {
                             if (controller) {
-                                controller.executeRename()
+                                controller.executeRename();
                             }
                         }
                     }
@@ -242,9 +239,7 @@ Pane {
                     anchors.leftMargin: 12
                     anchors.right: parent.right
                     anchors.rightMargin: 12
-                    text: controller && controller.statusMessage.length > 0
-                        ? controller.statusMessage
-                        : "就绪"
+                    text: controller && controller.statusMessage.length > 0 ? controller.statusMessage : "就绪"
                     color: pal.LabelEx_statusText
                     font.pixelSize: 13
                     elide: Text.ElideRight
@@ -258,7 +253,7 @@ Pane {
                 paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller) {
-                        controller.restoreAllRecords()
+                        controller.restoreAllRecords();
                     }
                 }
             }
@@ -365,8 +360,7 @@ Pane {
                         id: rowDelegate
                         width: previewList.width
                         height: 74
-                        color: rowMouseArea.containsMouse ? pal.SurfaceEx_rowHoverBg :
-                               index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
+                        color: rowMouseArea.containsMouse ? pal.SurfaceEx_rowHoverBg : index % 2 === 0 ? pal.SurfaceEx_rowEvenBg : pal.SurfaceEx_rowOddBg
 
                         // 底部分隔线
                         Rectangle {
@@ -426,8 +420,7 @@ Pane {
                             y: 14
                             height: 22
                             radius: 4
-                            color: status.indexOf("失败") === 0 ? pal.StatusBadgeEx_bg_error :
-                                   status === "已还原" ? pal.StatusBadgeEx_bg_idle : pal.StatusBadgeEx_bg_success
+                            color: status.indexOf("失败") === 0 ? pal.StatusBadgeEx_bg_error : status === "已还原" ? pal.StatusBadgeEx_bg_idle : pal.StatusBadgeEx_bg_success
 
                             Label {
                                 id: statusLabel
@@ -435,8 +428,7 @@ Pane {
                                 text: status
                                 font.pixelSize: 11
                                 font.bold: true
-                                color: status.indexOf("失败") === 0 ? pal.LabelEx_errorText :
-                                       status === "已还原" ? pal.LabelEx_infoText : pal.LabelEx_statusText
+                                color: status.indexOf("失败") === 0 ? pal.LabelEx_errorText : status === "已还原" ? pal.LabelEx_infoText : pal.LabelEx_statusText
                                 elide: Text.ElideRight
                             }
                         }
@@ -462,11 +454,10 @@ Pane {
                             paletteGroup: "IconBtnEx"
                             onClicked: {
                                 if (controller) {
-                                    controller.restoreRecord(index)
-}
-
-    }
-}
+                                    controller.restoreRecord(index);
+                                }
+                            }
+                        }
 
                         MouseArea {
                             id: rowMouseArea
@@ -501,5 +492,4 @@ Pane {
             }
         }
     }
-
 }

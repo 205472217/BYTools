@@ -19,7 +19,7 @@ Pane {
     ListModel {
         id: logModel
         onCountChanged: {
-            Qt.callLater(function() {
+            Qt.callLater(function () {
                 logListView.positionViewAtEnd();
             });
         }
@@ -32,12 +32,12 @@ Pane {
         running: controller ? controller.isProcessing : false
         repeat: true
 
-        property int seconds: 0            // per-step seconds
-        property int totalSeconds: 0       // total seconds across all steps
+        property int seconds: 0 // per-step seconds
+        property int totalSeconds: 0 // total seconds across all steps
         property int elapsedIndex: -1
         property string lastStep: ""
-        property string elapsedString: "00:00:00"           // per-step display
-        property string totalElapsedString: "00:00:00"      // total display
+        property string elapsedString: "00:00:00" // per-step display
+        property string totalElapsedString: "00:00:00" // total display
         property string finalElapsedString: ""
 
         function pad(n) {
@@ -45,9 +45,7 @@ Pane {
         }
 
         function formatTime(s) {
-            return pad(Math.floor(s / 3600)) + ":"
-                 + pad(Math.floor((s % 3600) / 60)) + ":"
-                 + pad(s % 60);
+            return pad(Math.floor(s / 3600)) + ":" + pad(Math.floor((s % 3600) / 60)) + ":" + pad(s % 60);
         }
 
         function resetStep() {
@@ -56,7 +54,9 @@ Pane {
             elapsedString = "00:00:00";
             lastStep = controller ? controller.currentStepName : "";
             if (controller && controller.isProcessing && lastStep.length > 0) {
-                logModel.append({ "text": lastStep + "...(已耗时 00:00:00)" });
+                logModel.append({
+                    "text": lastStep + "...(已耗时 00:00:00)"
+                });
                 elapsedIndex = logModel.count - 1;
             }
         }
@@ -79,7 +79,8 @@ Pane {
 
             // If step changed, start fresh per-step counter, keep total
             var step = controller.currentStepName;
-            if (step.length === 0) return;  // not in a step yet
+            if (step.length === 0)
+                return; // not in a step yet
             if (step !== lastStep) {
                 resetStep();
                 return;
@@ -94,7 +95,9 @@ Pane {
             if (elapsedIndex >= 0 && elapsedIndex < logModel.count) {
                 logModel.setProperty(elapsedIndex, "text", text);
             } else {
-                logModel.append({ "text": text });
+                logModel.append({
+                    "text": text
+                });
                 elapsedIndex = logModel.count - 1;
             }
         }
@@ -103,8 +106,11 @@ Pane {
     Connections {
         target: controller
         function onLogMessage(message) {
-            if (message.length === 0) return;
-            logModel.append({ "text": message });
+            if (message.length === 0)
+                return;
+            logModel.append({
+                "text": message
+            });
         }
     }
 
@@ -112,7 +118,8 @@ Pane {
     Connections {
         target: controller
         function onIsProcessingChanged() {
-            if (!controller) return;
+            if (!controller)
+                return;
             if (controller.isProcessing) {
                 // 新任务开始 → 重置所有计时（清除上次的 totalSeconds，重新累积）
                 elapsedTimer.resetAll();
@@ -175,8 +182,9 @@ Pane {
         dialogTitle: "确认返回"
         messageText: "当前有任务正在处理中，返回首页将中断执行，是否继续？"
         onConfirmed: {
-            if (controller) controller.reset()
-            root.backRequested()
+            if (controller)
+                controller.reset();
+            root.backRequested();
         }
     }
 
@@ -226,7 +234,7 @@ Pane {
 
             Item {
                 Layout.fillWidth: true
-}
+            }
 
             IconButton {
                 iconSource: "qrc:/icons/global_settings.svg"
@@ -234,10 +242,15 @@ Pane {
                 tooltip: "设置"
                 paletteGroup: "IconBtnEx"
                 onClicked: {
-                    if (!stackView || !pluginId) return
-                    var url = Qt.resolvedUrl(pluginManager.pluginQmlUrl(pluginId, "settings"))
-                    var sp = stackView.push(url, {controller: controller})
-                    sp.backRequested.connect(function() { stackView.pop() })
+                    if (!stackView || !pluginId)
+                        return;
+                    var url = Qt.resolvedUrl(pluginManager.pluginQmlUrl(pluginId, "settings"));
+                    var sp = stackView.push(url, {
+                        controller: controller
+                    });
+                    sp.backRequested.connect(function () {
+                        stackView.pop();
+                    });
                 }
             }
         }
@@ -479,17 +492,25 @@ Pane {
                             if (!controller)
                                 return 0;
                             switch (controller.sourceLanguage) {
-                            case "auto": return 0;
-                            case "en":   return 1;
-                            case "zh":   return 2;
-                            case "ja":   return 3;
-                            case "ko":   return 4;
-                            case "ru":   return 5;
-                            default:     return 0;
+                            case "auto":
+                                return 0;
+                            case "en":
+                                return 1;
+                            case "zh":
+                                return 2;
+                            case "ja":
+                                return 3;
+                            case "ko":
+                                return 4;
+                            case "ru":
+                                return 5;
+                            default:
+                                return 0;
                             }
                         }
                         onActivated: {
-                            if (!controller) return;
+                            if (!controller)
+                                return;
                             var langs = ["auto", "en", "zh", "ja", "ko", "ru"];
                             controller.sourceLanguage = langs[currentIndex];
                         }
@@ -509,17 +530,24 @@ Pane {
                         Layout.preferredWidth: 100
                         model: ["中文", "英文", "日文", "韩文"]
                         currentIndex: {
-                            if (!controller) return 0;
+                            if (!controller)
+                                return 0;
                             switch (controller.targetLanguage) {
-                            case "zh": return 0;
-                            case "en": return 1;
-                            case "ja": return 2;
-                            case "ko": return 3;
-                            default:   return 0;
+                            case "zh":
+                                return 0;
+                            case "en":
+                                return 1;
+                            case "ja":
+                                return 2;
+                            case "ko":
+                                return 3;
+                            default:
+                                return 0;
                             }
                         }
                         onActivated: {
-                            if (!controller) return;
+                            if (!controller)
+                                return;
                             var langs = ["zh", "en", "ja", "ko"];
                             controller.targetLanguage = langs[currentIndex];
                         }
@@ -640,7 +668,7 @@ Pane {
                 anchors.leftMargin: 12
                 anchors.rightMargin: 12
                 spacing: 2
-                
+
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
@@ -648,15 +676,15 @@ Pane {
                     Label {
                         id: statusMessage
                         Layout.fillWidth: true
-                        text: controller && controller.statusMessage.length > 0
-                            ? controller.statusMessage.replace(/[\r\n]+/g, " ")
-                            : "就绪"
+                        text: controller && controller.statusMessage.length > 0 ? controller.statusMessage.replace(/[\r\n]+/g, " ") : "就绪"
                         color: pal.LabelEx_statusText
                         font.pixelSize: 13
                         elide: Text.ElideRight
                     }
 
-                    Item { Layout.fillWidth: true}
+                    Item {
+                        Layout.fillWidth: true
+                    }
 
                     Label {
                         id: totalTimeLabel
@@ -831,10 +859,14 @@ Pane {
                             }
                             color: {
                                 var c = model.text.charAt(0);
-                                if (c === '?') return pal.LabelEx_errorText;
-                                if (c === '?') return pal.LabelEx_successText;
-                                if (c === '→') return pal.LabelEx_statusText;
-                                if (c === '=') return pal.LabelEx_titleText;
+                                if (c === '?')
+                                    return pal.LabelEx_errorText;
+                                if (c === '?')
+                                    return pal.LabelEx_successText;
+                                if (c === '→')
+                                    return pal.LabelEx_statusText;
+                                if (c === '=')
+                                    return pal.LabelEx_titleText;
                                 return pal.LabelEx_valueText;
                             }
                             wrapMode: Text.Wrap
@@ -867,7 +899,4 @@ Pane {
             }
         }
     }
-
 }
-
-

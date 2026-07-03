@@ -32,44 +32,27 @@ Item {
     property color hoverArrowColor: "#3B82F6"
 
     readonly property var _p: themeManager.palette
-    readonly property color _bgColor:
-        paletteGroup ? (_p[paletteGroup + "_bgColor"] || bgColor) : bgColor
-    readonly property color _hoverBgColor:
-        paletteGroup ? (_p[paletteGroup + "_hoverBgColor"] || hoverBgColor) : hoverBgColor
-    readonly property color _borderColor:
-        paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
-    readonly property color _hoverBorderColor:
-        paletteGroup ? (_p[paletteGroup + "_hoverBorderColor"] || hoverBorderColor) : hoverBorderColor
-    readonly property color _accentColor:
-        paletteGroup ? (_p[paletteGroup + "_accentColor"] || accentColor) : accentColor
-    readonly property color _hoverAccentColor:
-        paletteGroup ? (_p[paletteGroup + "_hoverAccentColor"] || hoverAccentColor) : hoverAccentColor
-    readonly property color _shadowColor:
-        paletteGroup ? (_p[paletteGroup + "_shadowColor"] || shadowColor) : shadowColor
-    readonly property color _iconGradientStart:
-        paletteGroup ? (_p[paletteGroup + "_iconGradientStart"] || iconGradientStart) : iconGradientStart
-    readonly property color _iconGradientEnd:
-        paletteGroup ? (_p[paletteGroup + "_iconGradientEnd"] || iconGradientEnd) : iconGradientEnd
-    readonly property color _hoverIconGradientStart:
-        paletteGroup ? (_p[paletteGroup + "_hoverIconGradientStart"] || hoverIconGradientStart) : hoverIconGradientStart
-    readonly property color _hoverIconGradientEnd:
-        paletteGroup ? (_p[paletteGroup + "_hoverIconGradientEnd"] || hoverIconGradientEnd) : hoverIconGradientEnd
-    readonly property color _iconTextColor:
-        paletteGroup ? (_p[paletteGroup + "_iconTextColor"] || iconTextColor) : iconTextColor
-    readonly property color _titleColor:
-        paletteGroup ? (_p[paletteGroup + "_titleColor"] || titleColor) : titleColor
-    readonly property color _hoverTitleColor:
-        paletteGroup ? (_p[paletteGroup + "_hoverTitleColor"] || hoverTitleColor) : hoverTitleColor
-    readonly property color _descriptionColor:
-        paletteGroup ? (_p[paletteGroup + "_descriptionColor"] || descriptionColor) : descriptionColor
-    readonly property color _arrowColor:
-        paletteGroup ? (_p[paletteGroup + "_arrowColor"] || arrowColor) : arrowColor
-    readonly property color _hoverArrowColor:
-        paletteGroup ? (_p[paletteGroup + "_hoverArrowColor"] || hoverArrowColor) : hoverArrowColor
+    readonly property color _bgColor: paletteGroup ? (_p[paletteGroup + "_bgColor"] || bgColor) : bgColor
+    readonly property color _hoverBgColor: paletteGroup ? (_p[paletteGroup + "_hoverBgColor"] || hoverBgColor) : hoverBgColor
+    readonly property color _borderColor: paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
+    readonly property color _hoverBorderColor: paletteGroup ? (_p[paletteGroup + "_hoverBorderColor"] || hoverBorderColor) : hoverBorderColor
+    readonly property color _accentColor: paletteGroup ? (_p[paletteGroup + "_accentColor"] || accentColor) : accentColor
+    readonly property color _hoverAccentColor: paletteGroup ? (_p[paletteGroup + "_hoverAccentColor"] || hoverAccentColor) : hoverAccentColor
+    readonly property color _shadowColor: paletteGroup ? (_p[paletteGroup + "_shadowColor"] || shadowColor) : shadowColor
+    readonly property color _iconGradientStart: paletteGroup ? (_p[paletteGroup + "_iconGradientStart"] || iconGradientStart) : iconGradientStart
+    readonly property color _iconGradientEnd: paletteGroup ? (_p[paletteGroup + "_iconGradientEnd"] || iconGradientEnd) : iconGradientEnd
+    readonly property color _hoverIconGradientStart: paletteGroup ? (_p[paletteGroup + "_hoverIconGradientStart"] || hoverIconGradientStart) : hoverIconGradientStart
+    readonly property color _hoverIconGradientEnd: paletteGroup ? (_p[paletteGroup + "_hoverIconGradientEnd"] || hoverIconGradientEnd) : hoverIconGradientEnd
+    readonly property color _iconTextColor: paletteGroup ? (_p[paletteGroup + "_iconTextColor"] || iconTextColor) : iconTextColor
+    readonly property color _titleColor: paletteGroup ? (_p[paletteGroup + "_titleColor"] || titleColor) : titleColor
+    readonly property color _hoverTitleColor: paletteGroup ? (_p[paletteGroup + "_hoverTitleColor"] || hoverTitleColor) : hoverTitleColor
+    readonly property color _descriptionColor: paletteGroup ? (_p[paletteGroup + "_descriptionColor"] || descriptionColor) : descriptionColor
+    readonly property color _arrowColor: paletteGroup ? (_p[paletteGroup + "_arrowColor"] || arrowColor) : arrowColor
+    readonly property color _hoverArrowColor: paletteGroup ? (_p[paletteGroup + "_hoverArrowColor"] || hoverArrowColor) : hoverArrowColor
 
     implicitHeight: 140
 
-    signal clicked()
+    signal clicked
 
     Rectangle {
         id: cardBg
@@ -121,8 +104,14 @@ Item {
             Layout.preferredHeight: 50
             radius: 12
             gradient: Gradient {
-                GradientStop { position: 0.0; color: mouseArea.containsMouse ? root._hoverIconGradientStart : root._iconGradientStart }
-                GradientStop { position: 1.0; color: mouseArea.containsMouse ? root._hoverIconGradientEnd : root._iconGradientEnd }
+                GradientStop {
+                    position: 0.0
+                    color: mouseArea.containsMouse ? root._hoverIconGradientStart : root._iconGradientStart
+                }
+                GradientStop {
+                    position: 1.0
+                    color: mouseArea.containsMouse ? root._hoverIconGradientEnd : root._iconGradientEnd
+                }
             }
 
             Image {
@@ -155,7 +144,6 @@ Item {
                 font.bold: true
                 elide: Text.ElideRight
                 Layout.fillWidth: true
-
             }
 
             Label {
@@ -173,7 +161,6 @@ Item {
             font.pixelSize: 24
             color: mouseArea.containsMouse ? root._hoverArrowColor : root._arrowColor
             opacity: mouseArea.containsMouse ? 1 : 0
-
         }
     }
 

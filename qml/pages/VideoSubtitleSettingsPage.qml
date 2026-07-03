@@ -118,7 +118,6 @@ Pane {
             Item {
                 Layout.fillWidth: true
             }
-
         }
 
         // Settings card
@@ -139,7 +138,7 @@ Pane {
                 ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 
                 ColumnLayout {
-                    width: contentScrollView.availableWidth-15
+                    width: contentScrollView.availableWidth - 15
                     spacing: 12
 
                     // FFmpeg path
@@ -184,8 +183,10 @@ Pane {
                         Label {
                             id: ffmpegStatusLabel
                             text: {
-                                if (!controller) return "";
-                                if (controller.ffmpegDetecting) return "检测中...";
+                                if (!controller)
+                                    return "";
+                                if (controller.ffmpegDetecting)
+                                    return "检测中...";
                                 if (controller.ffmpegPath && controller.ffmpegPath.length > 0) {
                                     var parts = controller.ffmpegPath.replace(/\\/g, '/').split('/');
                                     var ok = controller.ffmpegStatus.indexOf("已找到") >= 0 || controller.ffmpegStatus.indexOf("已检测到") >= 0;
@@ -194,8 +195,10 @@ Pane {
                                 return "请点击下载地址进行 FFmpeg 下载";
                             }
                             color: {
-                                if (!controller) return "";
-                                if (controller.ffmpegDetecting) return pal.LabelEx_warningText;
+                                if (!controller)
+                                    return "";
+                                if (controller.ffmpegDetecting)
+                                    return pal.LabelEx_warningText;
                                 if (controller.ffmpegPath && controller.ffmpegPath.length > 0) {
                                     var ok = controller.ffmpegStatus.indexOf("已找到") >= 0 || controller.ffmpegStatus.indexOf("已检测到") >= 0;
                                     return ok ? pal.LabelEx_successText : pal.LabelEx_errorText;
@@ -271,8 +274,10 @@ Pane {
                         Label {
                             id: whisperStatusLabel
                             text: {
-                                if (!controller) return "";
-                                if (controller.whisperDetecting) return "检测中...";
+                                if (!controller)
+                                    return "";
+                                if (controller.whisperDetecting)
+                                    return "检测中...";
                                 if (controller.whisperPath && controller.whisperPath.length > 0) {
                                     var parts = controller.whisperPath.replace(/\\/g, '/').split('/');
                                     var ok = controller.whisperStatus.indexOf("已找到") >= 0 || controller.whisperStatus.indexOf("已检测到") >= 0;
@@ -281,8 +286,10 @@ Pane {
                                 return "请点击下载地址进行 Whisper 下载";
                             }
                             color: {
-                                if (!controller) return "";
-                                if (controller.whisperDetecting) return pal.LabelEx_warningText;
+                                if (!controller)
+                                    return "";
+                                if (controller.whisperDetecting)
+                                    return pal.LabelEx_warningText;
                                 if (controller.whisperPath && controller.whisperPath.length > 0) {
                                     var ok = controller.whisperStatus.indexOf("已找到") >= 0 || controller.whisperStatus.indexOf("已检测到") >= 0;
                                     return ok ? pal.LabelEx_successText : pal.LabelEx_errorText;
@@ -358,7 +365,8 @@ Pane {
                         Label {
                             id: modelStatusLabel
                             text: {
-                                if (!controller) return "";
+                                if (!controller)
+                                    return "";
                                 var path = controller.localModelPath;
                                 if (path && path.length > 0) {
                                     var parts = path.replace(/\\/g, '/').split('/');
@@ -637,7 +645,9 @@ Pane {
                                 Layout.fillWidth: true
                             }
 
-                            Item { Layout.preferredHeight: 4 }
+                            Item {
+                                Layout.preferredHeight: 4
+                            }
 
                             // 环境要求
                             RowLayout {
@@ -659,7 +669,9 @@ Pane {
                                     font.bold: true
                                 }
 
-                                Item { Layout.fillWidth: true }
+                                Item {
+                                    Layout.fillWidth: true
+                                }
 
                                 Label {
                                     id: pythonDownloadLabel
@@ -721,7 +733,9 @@ Pane {
                                         }
                                     }
 
-                                    Item { Layout.preferredWidth: 8 }
+                                    Item {
+                                        Layout.preferredWidth: 8
+                                    }
 
                                     Label {
                                         id: pipCopyLabel
@@ -746,7 +760,9 @@ Pane {
                                     }
                                 }
 
-                                Item { Layout.preferredHeight: 2 }
+                                Item {
+                                    Layout.preferredHeight: 2
+                                }
 
                                 Label {
                                     id: step2Label
@@ -784,7 +800,9 @@ Pane {
                                         }
                                     }
 
-                                    Item { Layout.preferredWidth: 8 }
+                                    Item {
+                                        Layout.preferredWidth: 8
+                                    }
 
                                     Label {
                                         id: ltCopyLabel
@@ -826,7 +844,9 @@ Pane {
                                     textFormat: Text.RichText
                                 }
 
-                                Item { Layout.fillWidth: true }
+                                Item {
+                                    Layout.fillWidth: true
+                                }
 
                                 Label {
                                     id: libreGitHubLabel
@@ -926,7 +946,8 @@ Pane {
                             model: ["白色", "蓝色", "红色"]
                             currentIndex: controller ? controller.subtitleStyle : 0
                             onActivated: {
-                                if (!controller) return;
+                                if (!controller)
+                                    return;
                                 controller.subtitleStyle = currentIndex;
                                 if (currentIndex === 0) {
                                     // 白色样式：白字黑边
@@ -1081,17 +1102,19 @@ Pane {
                             }
                         }
 
-                        Item { Layout.fillWidth: true }
+                        Item {
+                            Layout.fillWidth: true
+                        }
 
                         Label {
                             id: gpuInfoLabel
                             text: controller ? controller.gpuAccelInfo : ""
                             color: {
-                                if (!controller) return pal.LabelEx_infoText;
-                                if (controller.ffmpegDetecting) return pal.LabelEx_warningText;
-                                if (controller.gpuAccelInfo.indexOf("NVENC") >= 0
-                                    || controller.gpuAccelInfo.indexOf("QSV") >= 0
-                                    || controller.gpuAccelInfo.indexOf("AMF") >= 0)
+                                if (!controller)
+                                    return pal.LabelEx_infoText;
+                                if (controller.ffmpegDetecting)
+                                    return pal.LabelEx_warningText;
+                                if (controller.gpuAccelInfo.indexOf("NVENC") >= 0 || controller.gpuAccelInfo.indexOf("QSV") >= 0 || controller.gpuAccelInfo.indexOf("AMF") >= 0)
                                     return pal.LabelEx_successText;
                                 return pal.LabelEx_infoText;
                             }
@@ -1150,7 +1173,9 @@ Pane {
                             }
                         }
 
-                        Item { Layout.fillWidth: true }
+                        Item {
+                            Layout.fillWidth: true
+                        }
 
                         IconButton {
                             id: keepToggleBtn
@@ -1175,9 +1200,7 @@ Pane {
                         }
                     }
                 }
-
             }
-
         }
     }
 }

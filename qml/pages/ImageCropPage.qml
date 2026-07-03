@@ -97,7 +97,7 @@ Pane {
             if (controller) {
                 var ok = controller.executeCrop(controller.cropX, controller.cropY, controller.cropW, controller.cropH);
                 if (ok && controller.outputMode === 0)
-                    root.initImage()
+                    root.initImage();
             }
         }
     }
@@ -195,8 +195,9 @@ Pane {
         dialogTitle: "确认返回"
         messageText: "当前有图片裁剪任务正在处理中，返回首页将中断执行，是否继续？"
         onConfirmed: {
-            if (controller) controller.reset()
-            root.backRequested()
+            if (controller)
+                controller.reset();
+            root.backRequested();
         }
     }
 
@@ -334,9 +335,7 @@ Pane {
                     anchors.leftMargin: 12
                     anchors.right: parent.right
                     anchors.rightMargin: 12
-                    text: controller && controller.statusMessage.length > 0
-                        ? controller.statusMessage
-                        : "就绪"
+                    text: controller && controller.statusMessage.length > 0 ? controller.statusMessage : "就绪"
                     color: pal.LabelEx_statusText
                     font.pixelSize: 13
                     elide: Text.ElideRight
@@ -350,8 +349,8 @@ Pane {
                 paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller) {
-                        controller.restoreCurrentFile()
-                        root.initImage()
+                        controller.restoreCurrentFile();
+                        root.initImage();
                     }
                 }
             }
@@ -421,9 +420,7 @@ Pane {
                                 Image {
                                     id: previewImage
                                     anchors.fill: parent
-                                    source: controller && controller.currentFilePath.length > 0
-                                        ? "file:///" + controller.currentFilePath + "?v=" + controller.imageVersion
-                                        : ""
+                                    source: controller && controller.currentFilePath.length > 0 ? "file:///" + controller.currentFilePath + "?v=" + controller.imageVersion : ""
                                     fillMode: Image.PreserveAspectFit
                                     sourceSize: Qt.size(Math.max(root.dispW, 1), Math.max(root.dispH, 1))
                                     visible: root.dispW > 0 && root.dispH > 0
@@ -550,11 +547,7 @@ Pane {
                                     onPositionChanged: function (mouse) {
                                         if (dragMode === 0)
                                             return;
-                                        var result = root.controller.computeCropDrag(
-                                            dragMode, startMX, startMY, mouse.x, mouse.y,
-                                            startCropX, startCropY, startCropW, startCropH,
-                                            root.dispW, root.dispH,
-                                            root.controller.cropMode, root.srcW, root.srcH);
+                                        var result = root.controller.computeCropDrag(dragMode, startMX, startMY, mouse.x, mouse.y, startCropX, startCropY, startCropW, startCropH, root.dispW, root.dispH, root.controller.cropMode, root.srcW, root.srcH);
                                         root.cropX = result.x;
                                         root.cropY = result.y;
                                         root.cropW = result.w;
@@ -1052,7 +1045,7 @@ Pane {
                                                     color: isSelected ? pal.ImageCropPage_ratioBtnLbl_color_active : pal.ImageCropPage_ratioBtnLbl_color_normal
                                                     font.pixelSize: 11
                                                     font.bold: true
-}
+                                                }
 
                                                 MouseArea {
                                                     anchors.fill: parent
@@ -1062,8 +1055,8 @@ Pane {
                                                             controller.usePresetRatio = true;
                                                             controller.presetRatioIndex = ratioIdx;
                                                             root.initCrop();
-    }
-}
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -1437,7 +1430,4 @@ Pane {
             }
         }
     }
-
 }
-
-

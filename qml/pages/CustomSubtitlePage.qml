@@ -63,8 +63,9 @@ Pane {
         dialogTitle: "确认返回"
         messageText: "当前有任务正在处理中，返回首页将中断执行，是否继续？"
         onConfirmed: {
-            if (controller) controller.reset()
-            root.backRequested()
+            if (controller)
+                controller.reset();
+            root.backRequested();
         }
     }
 
@@ -77,9 +78,9 @@ Pane {
         messageText: "该字幕已下载，是否重新下载并覆盖？"
         onConfirmed: {
             if (browserCtrl && _redownloadIndex >= 0) {
-                browserCtrl.download(_redownloadIndex)
+                browserCtrl.download(_redownloadIndex);
             }
-            _redownloadIndex = -1
+            _redownloadIndex = -1;
         }
     }
 
@@ -88,7 +89,8 @@ Pane {
 
     // ── Unified progress value (0-1) for all steps ──
     property double _progressValue: {
-        if (!controller || !controller.isProcessing) return 0;
+        if (!controller || !controller.isProcessing)
+            return 0;
         if (controller.currentStep === controller.stepSearch)
             return browserCtrl ? browserCtrl.searchProgress / 100 : 0;
         if (controller.currentStep === controller.stepMerge)
@@ -101,17 +103,19 @@ Pane {
 
     // ── 字幕预处理同步 ──
     function _syncPreprocessors() {
-        if (!controller) return;
+        if (!controller)
+            return;
         var list = [];
         for (var i = 0; i < _preprocessModel.count; ++i) {
             if (_preprocessModel.get(i).checked)
                 list.push(_preprocessModel.get(i).key);
         }
-                controller.enabledPreprocessors = list;
+        controller.enabledPreprocessors = list;
     }
 
     function _loadPreprocessors() {
-        if (!controller) return;
+        if (!controller)
+            return;
         var stored = controller.enabledPreprocessors;
         for (var i = 0; i < _preprocessModel.count; ++i) {
             _preprocessModel.get(i).checked = stored.indexOf(_preprocessModel.get(i).key) >= 0;
@@ -120,11 +124,36 @@ Pane {
 
     ListModel {
         id: _preprocessModel
-        ListElement { key: "removeEnvSound"; label: "去除环境音"; tooltip: "移除字幕中被括号包裹的环境音字幕，如 (music)、[Applause]、（掌声）"; checked: false }
-        ListElement { key: "removeBgSound";  label: "去除背景音"; tooltip: "移除字幕中被星号包裹的音效字幕，如 *叮咚*、*门铃声*"; checked: false }
-        ListElement { key: "removeMusic";    label: "过滤歌词";   tooltip: "移除字幕中被音符标记 ♪ 包裹的音乐歌词字幕，如 ♪ Happy Birthday ♪"; checked: false }
-        ListElement { key: "dedup";          label: "去重";       tooltip: "移除字幕中相邻重复的字幕文本，连续相同内容只保留第一条"; checked: false }
-        ListElement { key: "t2s";            label: "中文繁转简"; tooltip: "将字幕中的繁体中文转换为简体中文"; checked: false }
+        ListElement {
+            key: "removeEnvSound"
+            label: "去除环境音"
+            tooltip: "移除字幕中被括号包裹的环境音字幕，如 (music)、[Applause]、（掌声）"
+            checked: false
+        }
+        ListElement {
+            key: "removeBgSound"
+            label: "去除背景音"
+            tooltip: "移除字幕中被星号包裹的音效字幕，如 *叮咚*、*门铃声*"
+            checked: false
+        }
+        ListElement {
+            key: "removeMusic"
+            label: "过滤歌词"
+            tooltip: "移除字幕中被音符标记 ♪ 包裹的音乐歌词字幕，如 ♪ Happy Birthday ♪"
+            checked: false
+        }
+        ListElement {
+            key: "dedup"
+            label: "去重"
+            tooltip: "移除字幕中相邻重复的字幕文本，连续相同内容只保留第一条"
+            checked: false
+        }
+        ListElement {
+            key: "t2s"
+            label: "中文繁转简"
+            tooltip: "将字幕中的繁体中文转换为简体中文"
+            checked: false
+        }
     }
 
     Connections {
@@ -145,7 +174,8 @@ Pane {
         target: browserCtrl
         function onSearchResultsChanged() {
             searchResultsModel.clear();
-            if (!browserCtrl) return;
+            if (!browserCtrl)
+                return;
             var results = browserCtrl.searchResults;
             for (var i = 0; i < results.length; ++i) {
                 searchResultsModel.append(results[i]);
@@ -158,9 +188,11 @@ Pane {
             downloadBusyIndicator.running = browserCtrl ? browserCtrl.downloading : false;
         }
         function onCurrentSiteChanged() {
-            if (!browserCtrl) return;
+            if (!browserCtrl)
+                return;
             var idx = siteCombo.find(browserCtrl.currentSite);
-            if (idx >= 0) siteCombo.currentIndex = idx;
+            if (idx >= 0)
+                siteCombo.currentIndex = idx;
         }
     }
 
@@ -183,9 +215,9 @@ Pane {
                 paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller && controller.isProcessing) {
-                        backConfirmDialog.open()
+                        backConfirmDialog.open();
                     } else {
-                        root.backRequested()
+                        root.backRequested();
                     }
                 }
             }
@@ -311,7 +343,7 @@ Pane {
                         paletteGroup: "IconBtnEx"
                         onClicked: videoSourceFolderDialog.open()
                     }
-}
+                }
 
                 // Row 3: 合成输出路径
                 RowLayout {
@@ -423,19 +455,13 @@ Pane {
                         id: statusMsgLabel
                         Layout.fillWidth: true
                         text: {
-                            if (!controller) return "就绪";
-                            var isBusy = controller.isProcessing
-                                || (browserCtrl && browserCtrl.downloading);
+                            if (!controller)
+                                return "就绪";
+                            var isBusy = controller.isProcessing || (browserCtrl && browserCtrl.downloading);
                             if (isBusy)
-                                return _lastLogLine.length > 0
-                                    ? _lastLogLine.replace(/[\r\n]+/g, " ")
-                                    : "";
-                            var msg = controller.statusMessage.length > 0
-                                ? controller.statusMessage
-                                : _lastLogLine;
-                            return msg.length > 0
-                                ? msg.replace(/[\r\n]+/g, " ")
-                                : "就绪";
+                                return _lastLogLine.length > 0 ? _lastLogLine.replace(/[\r\n]+/g, " ") : "";
+                            var msg = controller.statusMessage.length > 0 ? controller.statusMessage : _lastLogLine;
+                            return msg.length > 0 ? msg.replace(/[\r\n]+/g, " ") : "就绪";
                         }
                         color: pal.LabelEx_statusText
                         font.pixelSize: 13
@@ -444,9 +470,7 @@ Pane {
 
                     Label {
                         id: currentFileLabel
-                        visible: controller && controller.isProcessing
-                                 && controller.currentStep >= controller.stepMatch
-                                 && controller.currentFile.length > 0
+                        visible: controller && controller.isProcessing && controller.currentStep >= controller.stepMatch && controller.currentFile.length > 0
                         text: "[" + controller.currentFile + "]"
                         color: pal.LabelEx_statusText
                         font.pixelSize: 11
@@ -482,14 +506,13 @@ Pane {
                     Label {
                         id: progressLabel
                         text: {
-                            if (!controller) return "";
+                            if (!controller)
+                                return "";
                             if (controller.currentStep === controller.stepSearch)
                                 return browserCtrl ? browserCtrl.searchProgressMessage : "";
                             if (controller.currentStep === controller.stepMerge)
                                 return Math.round(controller.currentFileProgress * 100) + "%";
-                            return controller.totalCount > 0
-                                ? controller.processedCount + "/" + controller.totalCount
-                                : "";
+                            return controller.totalCount > 0 ? controller.processedCount + "/" + controller.totalCount : "";
                         }
                         color: pal.LabelEx_statusText
                         font.pixelSize: 11
@@ -543,7 +566,9 @@ Pane {
                                 font.bold: true
                             }
 
-                            Item { Layout.fillWidth: true }
+                            Item {
+                                Layout.fillWidth: true
+                            }
 
                             Label {
                                 id: step1Hint
@@ -594,7 +619,8 @@ Pane {
                                 Component.onCompleted: {
                                     if (browserCtrl) {
                                         var idx = find(browserCtrl.currentSite);
-                                        if (idx >= 0) currentIndex = idx;
+                                        if (idx >= 0)
+                                            currentIndex = idx;
                                     }
                                 }
                                 paletteGroup: "ComboBoxEx"
@@ -618,9 +644,10 @@ Pane {
                                 }
 
                                 Component.onCompleted: {
-                                    if (!browserCtrl) return
+                                    if (!browserCtrl)
+                                        return;
                                     var opts = browserCtrl.languageFilterOptions;
-                                    var cur  = browserCtrl.languageFilter;
+                                    var cur = browserCtrl.languageFilter;
                                     for (var i = 0; i < opts.length; i++) {
                                         if (opts[i].code === cur) {
                                             currentIndex = i;
@@ -656,7 +683,8 @@ Pane {
                                     selectByMouse: true
                                     enabled: !controller || controller.currentStep === controller.stepNone
                                     onTextChanged: {
-                                        if (browserCtrl) browserCtrl.keyword = text;
+                                        if (browserCtrl)
+                                            browserCtrl.keyword = text;
                                     }
                                     onAccepted: searchBtn.clicked()
                                 }
@@ -942,7 +970,8 @@ Pane {
                                                 textColor: pal.CustomSubtitlePage_previewBtn_textColor
                                                 enabled: browserCtrl && !browserCtrl.previewing && !browserCtrl.downloading && (!controller || controller.currentStep === controller.stepNone)
                                                 onClicked: {
-                                                    if (browserCtrl) browserCtrl.preview(index);
+                                                    if (browserCtrl)
+                                                        browserCtrl.preview(index);
                                                 }
                                             }
 
@@ -957,7 +986,8 @@ Pane {
                                                 textColor: resultItem.itemDownloaded ? pal.CustomSubtitlePage_downloadedBtn_textColor : pal.CustomSubtitlePage_downloadBtn_textColor
                                                 enabled: browserCtrl && !browserCtrl.downloading && (!controller || controller.currentStep === controller.stepNone)
                                                 onClicked: {
-                                                    if (!browserCtrl) return;
+                                                    if (!browserCtrl)
+                                                        return;
                                                     if (resultItem.itemDownloaded) {
                                                         _redownloadIndex = index;
                                                         redownloadDialog.open();
@@ -1028,7 +1058,9 @@ Pane {
                                             color: pal.LabelEx_titleText
                                         }
 
-                                        Item { Layout.fillWidth: true }
+                                        Item {
+                                            Layout.fillWidth: true
+                                        }
 
                                         IconButton {
                                             id: savePreviewBtn
@@ -1041,7 +1073,8 @@ Pane {
                                             textColor: previewPanel.previewDownloaded ? pal.CustomSubtitlePage_downloadedBtn_textColor : pal.CustomSubtitlePage_downloadBtn_textColor
                                             enabled: !browserCtrl || (!browserCtrl.downloading && !browserCtrl.previewing)
                                             onClicked: {
-                                                if (browserCtrl) browserCtrl.savePreviewToDownload();
+                                                if (browserCtrl)
+                                                    browserCtrl.savePreviewToDownload();
                                             }
                                         }
 
@@ -1050,7 +1083,8 @@ Pane {
                                             text: "关闭"
                                             paletteGroup: "IconBtnEx"
                                             onClicked: {
-                                                if (browserCtrl) browserCtrl.clearPreview();
+                                                if (browserCtrl)
+                                                    browserCtrl.clearPreview();
                                             }
                                         }
                                     }
@@ -1124,7 +1158,12 @@ Pane {
 
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors { topMargin: 2; leftMargin: 10; rightMargin: 10; bottomMargin: 10 }
+                            anchors {
+                                topMargin: 2
+                                leftMargin: 10
+                                rightMargin: 10
+                                bottomMargin: 10
+                            }
                             spacing: 5
 
                             Rectangle {
@@ -1172,46 +1211,46 @@ Pane {
                                 Layout.leftMargin: 0
                                 spacing: 5
 
-                                    ComboBoxEx {
-                                        id: preprocessCombo
-                                        Layout.fillWidth: true
-                                        font.pixelSize: 11
-                                        model: _preprocessModel
-                                        enabled: !controller || controller.currentStep === controller.stepNone
- 
-                                        delegate: ItemDelegate {
-                                            width: parent.width
-                                            contentItem: RowLayout {
-                                                spacing: 8
-                                                Label {
-                                                    text: model.checked ? "☑" : "☐"
-                                                    font.pixelSize: 14
-                                                }
-                                                Label {
-                                                    text: model.label
-                                                    font.pixelSize: 11
-                                                    Layout.fillWidth: true
-                                                }
+                                ComboBoxEx {
+                                    id: preprocessCombo
+                                    Layout.fillWidth: true
+                                    font.pixelSize: 11
+                                    model: _preprocessModel
+                                    enabled: !controller || controller.currentStep === controller.stepNone
+
+                                    delegate: ItemDelegate {
+                                        width: parent.width
+                                        contentItem: RowLayout {
+                                            spacing: 8
+                                            Label {
+                                                text: model.checked ? "☑" : "☐"
+                                                font.pixelSize: 14
                                             }
-                                            ToolTip {
-                                                text: model.tooltip
-                                                visible: parent.hovered
-                                                delay: 600
+                                            Label {
+                                                text: model.label
                                                 font.pixelSize: 11
-                                            }
-                                            onClicked: {
-                                                model.checked = !model.checked;
-                                                _syncPreprocessors();
+                                                Layout.fillWidth: true
                                             }
                                         }
-
-                                        displayText: "字幕处理"
-
-                                        Component.onCompleted: {
-                                            _loadPreprocessors();
+                                        ToolTip {
+                                            text: model.tooltip
+                                            visible: parent.hovered
+                                            delay: 600
+                                            font.pixelSize: 11
                                         }
-                                        paletteGroup: "ComboBoxEx"
+                                        onClicked: {
+                                            model.checked = !model.checked;
+                                            _syncPreprocessors();
+                                        }
                                     }
+
+                                    displayText: "字幕处理"
+
+                                    Component.onCompleted: {
+                                        _loadPreprocessors();
+                                    }
+                                    paletteGroup: "ComboBoxEx"
+                                }
 
                                 IconButton {
                                     id: step2Btn
@@ -1224,7 +1263,8 @@ Pane {
                                     textColor: controller && controller.currentStep === controller.stepMatch ? pal.CustomSubtitlePage_step3StopBtn_textColor : pal.CustomSubtitlePage_step2ExecBtn_textColor
                                     enabled: !controller || controller.currentStep === controller.stepNone || (controller.currentStep === controller.stepMatch && !controller.stopRequested)
                                     onClicked: {
-                                        if (!controller) return;
+                                        if (!controller)
+                                            return;
                                         if (controller.currentStep === controller.stepMatch)
                                             controller.cancel();
                                         else
@@ -1247,7 +1287,12 @@ Pane {
 
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors { topMargin: 2; leftMargin: 10; rightMargin: 10; bottomMargin: 10 }
+                            anchors {
+                                topMargin: 2
+                                leftMargin: 10
+                                rightMargin: 10
+                                bottomMargin: 10
+                            }
                             spacing: 5
 
                             Rectangle {
@@ -1386,7 +1431,8 @@ Pane {
                                     textColor: controller && controller.currentStep === controller.stepMerge ? pal.CustomSubtitlePage_step3StopBtn_textColor : pal.CustomSubtitlePage_step3ExecBtn_textColor
                                     enabled: !controller || controller.currentStep === controller.stepNone || controller.currentStep === controller.stepMerge
                                     onClicked: {
-                                        if (!controller) return;
+                                        if (!controller)
+                                            return;
                                         if (controller.currentStep === controller.stepMerge)
                                             controller.cancel();
                                         else
@@ -1409,7 +1455,12 @@ Pane {
 
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors { topMargin: 2; leftMargin: 10; rightMargin: 10; bottomMargin: 10 }
+                            anchors {
+                                topMargin: 2
+                                leftMargin: 10
+                                rightMargin: 10
+                                bottomMargin: 10
+                            }
                             spacing: 5
 
                             Rectangle {
@@ -1482,14 +1533,15 @@ Pane {
                                     textColor: controller && controller.currentStep === controller.stepReplace ? pal.CustomSubtitlePage_step3StopBtn_textColor : pal.CustomSubtitlePage_step4ExecBtn_textColor
                                     enabled: !controller || controller.currentStep === controller.stepNone || (controller.currentStep === controller.stepReplace && !controller.stopRequested)
                                     onClicked: {
-                                        if (!controller) return;
+                                        if (!controller)
+                                            return;
                                         if (controller.currentStep === controller.stepReplace)
                                             controller.cancel();
                                         else
                                             controller.replaceOriginalVideo();
                                     }
                                 }
-                             }
+                            }
                         }
                     }
 
@@ -1500,5 +1552,4 @@ Pane {
             }
         }
     }
-
 }

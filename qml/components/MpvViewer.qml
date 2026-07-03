@@ -33,41 +33,41 @@ Item {
     property color sliderHandleColor: "#FFFFFF"
 
     readonly property var _p: themeManager.palette
-    readonly property color _controlsBgColor:
-        controlsPaletteGroup ? (_p[controlsPaletteGroup + "_bgColor"] || controlsBgColor) : controlsBgColor
-    readonly property color _controlsTextColor:
-        controlsPaletteGroup ? (_p[controlsPaletteGroup + "_textColor"] || controlsTextColor) : controlsTextColor
-    readonly property color _sliderTrackColor:
-        controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderTrackColor"] || sliderTrackColor) : sliderTrackColor
-    readonly property color _sliderProgressColor:
-        controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderProgressColor"] || sliderProgressColor) : sliderProgressColor
-    readonly property color _sliderHandleColor:
-        controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderHandleColor"] || sliderHandleColor) : sliderHandleColor
+    readonly property color _controlsBgColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_bgColor"] || controlsBgColor) : controlsBgColor
+    readonly property color _controlsTextColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_textColor"] || controlsTextColor) : controlsTextColor
+    readonly property color _sliderTrackColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderTrackColor"] || sliderTrackColor) : sliderTrackColor
+    readonly property color _sliderProgressColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderProgressColor"] || sliderProgressColor) : sliderProgressColor
+    readonly property color _sliderHandleColor: controlsPaletteGroup ? (_p[controlsPaletteGroup + "_sliderHandleColor"] || sliderHandleColor) : sliderHandleColor
 
-    signal previousRequested()
-    signal nextRequested()
-    signal deleteRequested()
+    signal previousRequested
+    signal nextRequested
+    signal deleteRequested
 
-    function play() { mpvPlayer.play() }
-    function pause() { mpvPlayer.pause() }
-    function stop() { mpvPlayer.stop() }
-    function setNativeOverlayVisible(v) { mpvPlayer.setNativeOverlayVisible(v) }
-
+    function play() {
+        mpvPlayer.play();
+    }
+    function pause() {
+        mpvPlayer.pause();
+    }
+    function stop() {
+        mpvPlayer.stop();
+    }
+    function setNativeOverlayVisible(v) {
+        mpvPlayer.setNativeOverlayVisible(v);
+    }
 
     function fmtTime(ms) {
-        if (ms < 0) return "-" + fmtTime(-ms)
-        var h = Math.floor(ms / 3600000)
-        var m = Math.floor((ms % 3600000) / 60000)
-        var s = Math.floor((ms % 60000) / 1000)
-        return (h < 10 ? "0" : "") + h + ":"
-             + (m < 10 ? "0" : "") + m + ":"
-             + (s < 10 ? "0" : "") + s
+        if (ms < 0)
+            return "-" + fmtTime(-ms);
+        var h = Math.floor(ms / 3600000);
+        var m = Math.floor((ms % 3600000) / 60000);
+        var s = Math.floor((ms % 60000) / 1000);
+        return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
     }
 
     // ── Loading overlay ──
     property bool _hasSource: mpvPlayer.source.toString().length > 0
-    property bool _loading: _hasSource && mpvPlayer.playbackState !== MpvPlayer.Playing
-                         && mpvPlayer.playbackState !== MpvPlayer.Paused
+    property bool _loading: _hasSource && mpvPlayer.playbackState !== MpvPlayer.Playing && mpvPlayer.playbackState !== MpvPlayer.Paused
 
     MpvPlayer {
         id: mpvPlayer
@@ -125,19 +125,60 @@ Item {
         }
     }
 
-    Shortcut { sequence: "Left";       enabled: root.visible && root.showSeekButtons;     onActivated: mpvPlayer.position = Math.max(0, mpvPlayer.position - root.seekStepMs) }
-    Shortcut { sequence: "Right";      enabled: root.visible && root.showSeekButtons;     onActivated: mpvPlayer.position = Math.min(mpvPlayer.duration, mpvPlayer.position + root.seekStepMs) }
-    Shortcut { sequence: "Up";         enabled: root.visible;                             onActivated: { root.volume = Math.min(100, root.volume + 5); mpvPlayer.muted = false; volumeTip.show() } }
-    Shortcut { sequence: "Down";       enabled: root.visible;                             onActivated: { var v = Math.max(0, root.volume - 5); root.volume = v; mpvPlayer.muted = (v < 1); volumeTip.show() } }
-    Shortcut { sequence: "Shift+Left"; enabled: root.visible && root.showPreviousNext;    onActivated: root.previousRequested() }
-    Shortcut { sequence: "Shift+Right";enabled: root.visible && root.showPreviousNext;    onActivated: root.nextRequested() }
-    Shortcut { sequence: "Delete";      enabled: root.visible;                             onActivated: root.deleteRequested() }
-    Shortcut { sequence: "Space";       enabled: root.visible;                             onActivated: {
-        if (mpvPlayer.playbackState === MpvPlayer.Playing)
-            mpvPlayer.pause()
-        else
-            mpvPlayer.play()
-    }}
+    Shortcut {
+        sequence: "Left"
+        enabled: root.visible && root.showSeekButtons
+        onActivated: mpvPlayer.position = Math.max(0, mpvPlayer.position - root.seekStepMs)
+    }
+    Shortcut {
+        sequence: "Right"
+        enabled: root.visible && root.showSeekButtons
+        onActivated: mpvPlayer.position = Math.min(mpvPlayer.duration, mpvPlayer.position + root.seekStepMs)
+    }
+    Shortcut {
+        sequence: "Up"
+        enabled: root.visible
+        onActivated: {
+            root.volume = Math.min(100, root.volume + 5);
+            mpvPlayer.muted = false;
+            volumeTip.show();
+        }
+    }
+    Shortcut {
+        sequence: "Down"
+        enabled: root.visible
+        onActivated: {
+            var v = Math.max(0, root.volume - 5);
+            root.volume = v;
+            mpvPlayer.muted = (v < 1);
+            volumeTip.show();
+        }
+    }
+    Shortcut {
+        sequence: "Shift+Left"
+        enabled: root.visible && root.showPreviousNext
+        onActivated: root.previousRequested()
+    }
+    Shortcut {
+        sequence: "Shift+Right"
+        enabled: root.visible && root.showPreviousNext
+        onActivated: root.nextRequested()
+    }
+    Shortcut {
+        sequence: "Delete"
+        enabled: root.visible
+        onActivated: root.deleteRequested()
+    }
+    Shortcut {
+        sequence: "Space"
+        enabled: root.visible
+        onActivated: {
+            if (mpvPlayer.playbackState === MpvPlayer.Playing)
+                mpvPlayer.pause();
+            else
+                mpvPlayer.play();
+        }
+    }
 
     // ── Controls bar ──
     Rectangle {
@@ -180,7 +221,7 @@ Item {
                     value: mpvPlayer.position
                     enabled: mpvPlayer.duration > 0
                     onMoved: {
-                        mpvPlayer.position = value
+                        mpvPlayer.position = value;
                     }
 
                     background: Rectangle {
@@ -239,7 +280,7 @@ Item {
                     paletteGroup: root.controlsPaletteGroup
                     visible: root.showSeekButtons
                     onClicked: {
-                        mpvPlayer.position = Math.max(0, mpvPlayer.position - root.seekStepMs)
+                        mpvPlayer.position = Math.max(0, mpvPlayer.position - root.seekStepMs);
                     }
                 }
 
@@ -251,9 +292,9 @@ Item {
                     paletteGroup: root.controlsPaletteGroup
                     onClicked: {
                         if (mpvPlayer.playbackState === MpvPlayer.Playing)
-                            mpvPlayer.pause()
+                            mpvPlayer.pause();
                         else
-                            mpvPlayer.play()
+                            mpvPlayer.play();
                     }
                 }
 
@@ -264,7 +305,7 @@ Item {
                     paletteGroup: root.controlsPaletteGroup
                     visible: root.showSeekButtons
                     onClicked: {
-                        mpvPlayer.position = Math.min(mpvPlayer.duration, mpvPlayer.position + root.seekStepMs)
+                        mpvPlayer.position = Math.min(mpvPlayer.duration, mpvPlayer.position + root.seekStepMs);
                     }
                 }
 
@@ -277,7 +318,9 @@ Item {
                     onClicked: root.nextRequested()
                 }
 
-                Item { Layout.fillWidth: true }
+                Item {
+                    Layout.fillWidth: true
+                }
 
                 Label {
                     id: volumeTip
@@ -300,9 +343,9 @@ Item {
                         onTriggered: parent.visible = false
                     }
                     function show() {
-                        text = root.volume
-                        visible = true
-                        volumeTipTimer.restart()
+                        text = root.volume;
+                        visible = true;
+                        volumeTipTimer.restart();
                     }
                 }
 
@@ -315,13 +358,13 @@ Item {
                     paletteGroup: root.controlsPaletteGroup
                     onClicked: {
                         if (mpvPlayer.muted) {
-                            mpvPlayer.muted = false
+                            mpvPlayer.muted = false;
                             if (root.volume < 1) {
-                                root.volume = 5
-                                volumeTip.show()
+                                root.volume = 5;
+                                volumeTip.show();
                             }
                         } else {
-                            mpvPlayer.muted = true
+                            mpvPlayer.muted = true;
                         }
                     }
                 }
@@ -334,9 +377,9 @@ Item {
                     to: 100
                     value: root.volume
                     onMoved: {
-                        root.volume = value
-                        mpvPlayer.muted = (value < 1)
-                        volumeTip.show()
+                        root.volume = value;
+                        mpvPlayer.muted = (value < 1);
+                        volumeTip.show();
                     }
 
                     background: Rectangle {
@@ -366,7 +409,9 @@ Item {
                     }
                 }
 
-                Item { Layout.preferredWidth: 4 }
+                Item {
+                    Layout.preferredWidth: 4
+                }
 
                 Row {
                     visible: root.showSeekButtons
@@ -406,6 +451,6 @@ Item {
 
     onVisibleChanged: {
         if (!root.visible && mpvPlayer.playbackState === MpvPlayer.Playing)
-            mpvPlayer.pause()
+            mpvPlayer.pause();
     }
 }

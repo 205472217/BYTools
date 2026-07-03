@@ -10,8 +10,7 @@ CheckBox {
     property color textColor: "#000000"
 
     readonly property var _p: themeManager.palette
-    readonly property color _textColor:
-        paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
+    readonly property color _textColor: paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
 
     implicitWidth: 76
     implicitHeight: 26

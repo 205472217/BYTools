@@ -16,7 +16,7 @@ Pane {
     property bool hasFiles: controller && controller.fileCount > 0
     property bool hasSelection: controller && controller.currentFilePath.length > 0
     property string _lastLogLine: ""
-    property int _activeViewWay: 0  // 上次扫描所用的浏览方式，默认目录模式
+    property int _activeViewWay: 0 // 上次扫描所用的浏览方式，默认目录模式
     property var _typeNames: ["视频", "音频", "图片", "全部"]
     property int _contextMenuIndex: -1
     readonly property var _activeView: controller && controller.viewMode === 1 ? fileGridView : fileListView
@@ -25,17 +25,19 @@ Pane {
         id: confirmDeleteDialog
         dialogTitle: "确认删除"
         messageText: "确定要永久删除该文件吗？\n此操作不可恢复！"
+        onOpened: root._hideNativeOverlay()
+        onClosed: root._showNativeOverlay()
         onConfirmed: {
             if (!controller || controller.currentModelIndex < 0)
-                return
+                return;
             if (controller.currentModelIndex === root._contextMenuIndex) {
                 if (videoPreviewLoader.item && videoPreviewLoader.active) {
-                    videoPreviewLoader.item.stop()
-                    videoPreviewLoader.item.source = ""
+                    videoPreviewLoader.item.stop();
+                    videoPreviewLoader.item.source = "";
                 }
                 if (imagePreviewLoader.item && imagePreviewLoader.active)
-                    imagePreviewLoader.item.source = ""
-                controller.deleteFile(controller.currentModelIndex)
+                    imagePreviewLoader.item.source = "";
+                controller.deleteFile(controller.currentModelIndex);
             }
         }
     }
@@ -47,9 +49,10 @@ Pane {
         onOpened: root._hideNativeOverlay()
         onClosed: root._showNativeOverlay()
         onConfirmed: {
-            if (controller) controller.reset()
-            root._hideNativeOverlay()
-            root.backRequested()
+            if (controller)
+                controller.reset();
+            root._hideNativeOverlay();
+            root.backRequested();
         }
     }
 
@@ -301,7 +304,7 @@ Pane {
                         font.pixelSize: 13
                         onCheckedChanged: {
                             if (checked && controller && controller.viewWay !== 0) {
-                                controller.viewWay = 0
+                                controller.viewWay = 0;
                             }
                         }
                     }
@@ -314,7 +317,7 @@ Pane {
                         font.pixelSize: 13
                         onCheckedChanged: {
                             if (checked && controller && controller.viewWay !== 1) {
-                                controller.viewWay = 1
+                                controller.viewWay = 1;
                             }
                         }
                     }
@@ -427,6 +430,7 @@ Pane {
                                 tooltip: "返回上级目录"
                                 paletteGroup: "IconBtnEx"
                                 enabled: controller && controller.canNavigateUp
+                                showBorder: false
                                 onClicked: controller.navigateUp()
                             }
 
@@ -445,7 +449,7 @@ Pane {
                                 paletteGroup: "ViewToggleBtn"
                                 onClicked: {
                                     if (controller)
-                                        controller.viewMode = controller.viewMode === 0 ? 1 : 0
+                                        controller.viewMode = controller.viewMode === 0 ? 1 : 0;
                                 }
                             }
                         }
@@ -467,7 +471,9 @@ Pane {
                                 font.bold: true
                             }
 
-                            Item { Layout.fillWidth: true }
+                            Item {
+                                Layout.fillWidth: true
+                            }
 
                             ViewToggleBtn {
                                 iconType: controller && controller.viewMode === 0 ? "grid" : "list"
@@ -475,7 +481,7 @@ Pane {
                                 paletteGroup: "ViewToggleBtn"
                                 onClicked: {
                                     if (controller)
-                                        controller.viewMode = controller.viewMode === 0 ? 1 : 0
+                                        controller.viewMode = controller.viewMode === 0 ? 1 : 0;
                                 }
                             }
                         }
@@ -577,7 +583,7 @@ Pane {
                                                     default:
                                                         return pal.LabelEx_Other_BgRect;
                                                     }
-}
+                                                }
 
                                                 Label {
                                                     id: typeTagText
@@ -688,8 +694,7 @@ Pane {
                                     anchors.fill: parent
                                     anchors.margins: 4
                                     radius: 8
-                                    color: fileGridView.currentIndex === index
-                                        ? pal.SurfaceEx_rowSelectedBg : "transparent"
+                                    color: fileGridView.currentIndex === index ? pal.SurfaceEx_rowSelectedBg : "transparent"
                                     border.width: isDir ? 1.5 : 0
                                     border.color: isDir ? pal.FileViewPage_GridView_FolderBolder : "transparent"
 
@@ -715,9 +720,7 @@ Pane {
                                                     source: {
                                                         if (thumbnailPath.length > 0)
                                                             return "file:///" + thumbnailPath.replace(/\\/g, "/");
-                                                        return isDir
-                                                            ? "qrc:/icons/thumb_folder.svg"
-                                                            : "qrc:/icons/thumb_file.svg";
+                                                        return isDir ? "qrc:/icons/thumb_folder.svg" : "qrc:/icons/thumb_file.svg";
                                                     }
                                                     fillMode: isDir ? Image.PreserveAspectFit : Image.PreserveAspectCrop
                                                     sourceSize.width: 256
@@ -793,25 +796,29 @@ Pane {
                                     text: "名称"
                                     checkable: true
                                     checked: controller ? controller.sortField === 0 : false
-                                    onTriggered: if (controller) controller.sortField = 0
+                                    onTriggered: if (controller)
+                                        controller.sortField = 0
                                 }
                                 MenuItem {
                                     text: "大小"
                                     checkable: true
                                     checked: controller ? controller.sortField === 3 : false
-                                    onTriggered: if (controller) controller.sortField = 3
+                                    onTriggered: if (controller)
+                                        controller.sortField = 3
                                 }
                                 MenuItem {
                                     text: "日期"
                                     checkable: true
                                     checked: controller ? (controller.sortField === 1 || controller.sortField === 2) : false
-                                    onTriggered: if (controller) controller.sortField = 1
+                                    onTriggered: if (controller)
+                                        controller.sortField = 1
                                 }
                                 MenuItem {
                                     text: "类型"
                                     checkable: true
                                     checked: controller ? controller.sortField === 4 : false
-                                    onTriggered: if (controller) controller.sortField = 4
+                                    onTriggered: if (controller)
+                                        controller.sortField = 4
                                 }
 
                                 MenuSeparator {}
@@ -820,13 +827,15 @@ Pane {
                                     text: "递增"
                                     checkable: true
                                     checked: controller ? controller.sortAscending : true
-                                    onTriggered: if (controller) controller.sortAscending = true
+                                    onTriggered: if (controller)
+                                        controller.sortAscending = true
                                 }
                                 MenuItem {
                                     text: "递减"
                                     checkable: true
                                     checked: controller ? !controller.sortAscending : false
-                                    onTriggered: if (controller) controller.sortAscending = false
+                                    onTriggered: if (controller)
+                                        controller.sortAscending = false
                                 }
                             }
 
@@ -1206,5 +1215,4 @@ Pane {
             }
         }
     }
-
 }

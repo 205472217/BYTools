@@ -23,43 +23,32 @@ Item {
     property color textColor: "#FFFFFF"
     property color disabledTextColor: "#94A3B8"
     property color shadowColor: "#1E3A5F"
+    property bool showBorder: true
 
     readonly property var _p: themeManager.palette
-    readonly property color _normalColor:
-        paletteGroup ? (_p[paletteGroup + "_normalColor"] || normalColor) : normalColor
-    readonly property color _hoverColor:
-        paletteGroup ? (_p[paletteGroup + "_hoverColor"] || hoverColor) : hoverColor
-    readonly property color _pressColor:
-        paletteGroup ? (_p[paletteGroup + "_pressColor"] || pressColor) : pressColor
-    readonly property color _borderColor:
-        paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
-    readonly property color _defaultBorderColor:
-        paletteGroup ? (_p[paletteGroup + "_defaultBorderColor"] || defaultBorderColor) : defaultBorderColor
-    readonly property color _disabledColor:
-        paletteGroup ? (_p[paletteGroup + "_disabledColor"] || disabledColor) : disabledColor
-    readonly property color _disabledBorderColor:
-        paletteGroup ? (_p[paletteGroup + "_disabledBorderColor"] || disabledBorderColor) : disabledBorderColor
-    readonly property color _textColor:
-        paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
-    readonly property color _disabledTextColor:
-        paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || disabledTextColor) : disabledTextColor
-    readonly property color _shadowColor:
-        paletteGroup ? (_p[paletteGroup + "_shadowColor"] || shadowColor) : shadowColor
+    readonly property color _normalColor: paletteGroup ? (_p[paletteGroup + "_normalColor"] || normalColor) : normalColor
+    readonly property color _hoverColor: paletteGroup ? (_p[paletteGroup + "_hoverColor"] || hoverColor) : hoverColor
+    readonly property color _pressColor: paletteGroup ? (_p[paletteGroup + "_pressColor"] || pressColor) : pressColor
+    readonly property color _borderColor: paletteGroup ? (_p[paletteGroup + "_borderColor"] || borderColor) : borderColor
+    readonly property color _defaultBorderColor: paletteGroup ? (_p[paletteGroup + "_defaultBorderColor"] || defaultBorderColor) : defaultBorderColor
+    readonly property color _disabledColor: paletteGroup ? (_p[paletteGroup + "_disabledColor"] || disabledColor) : disabledColor
+    readonly property color _disabledBorderColor: paletteGroup ? (_p[paletteGroup + "_disabledBorderColor"] || disabledBorderColor) : disabledBorderColor
+    readonly property color _textColor: paletteGroup ? (_p[paletteGroup + "_textColor"] || textColor) : textColor
+    readonly property color _disabledTextColor: paletteGroup ? (_p[paletteGroup + "_disabledTextColor"] || disabledTextColor) : disabledTextColor
+    readonly property color _shadowColor: paletteGroup ? (_p[paletteGroup + "_shadowColor"] || shadowColor) : shadowColor
 
     implicitWidth: text.length > 0 ? 76 : 38
     implicitHeight: 26
 
-    signal clicked()
+    signal clicked
 
     Rectangle {
         id: bg
         anchors.fill: parent
         radius: 8
-        color: root.enabled ? (mouseArea.pressed ? root._pressColor :
-               mouseArea.containsMouse ? root._hoverColor : root._normalColor) : root._disabledColor
-        border.width: 1
-        border.color: root.enabled ? (mouseArea.pressed ? root._borderColor :
-                      mouseArea.containsMouse ? root._borderColor : root._defaultBorderColor) : root._disabledBorderColor
+        color: root.enabled ? (mouseArea.pressed ? root._pressColor : mouseArea.containsMouse ? root._hoverColor : root._normalColor) : root._disabledColor
+        border.width: root.showBorder ? 1 : 0
+        border.color: root.enabled ? (mouseArea.pressed ? root._borderColor : mouseArea.containsMouse ? root._borderColor : root._defaultBorderColor) : root._disabledBorderColor
 
         Rectangle {
             anchors.fill: parent
@@ -78,8 +67,6 @@ Item {
                 opacity: 0.06
             }
         }
-
-
     }
 
     Row {
@@ -87,7 +74,6 @@ Item {
         anchors.centerIn: parent
         spacing: 6
         scale: mouseArea.pressed ? 0.9 : 1.0
-
 
         Image {
             id: iconImg

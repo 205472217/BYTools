@@ -15,7 +15,7 @@ Dialog {
     width: 420
     standardButtons: Dialog.Ok | Dialog.Cancel
 
-    signal confirmed()
+    signal confirmed
 
     contentItem: Label {
         text: messageText
@@ -23,15 +23,15 @@ Dialog {
         font.pixelSize: 14
         wrapMode: Text.WordWrap
         focus: true
-        Keys.onPressed: (event) => {
+        Keys.onPressed: event => {
             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                root.accept()
-                event.accepted = true
+                root.accept();
+                event.accepted = true;
             }
         }
     }
 
     onAccepted: {
-        root.confirmed()
+        root.confirmed();
     }
 }
