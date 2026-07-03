@@ -80,6 +80,12 @@ Item {
     Shortcut { sequence: "Shift+Left"; enabled: root.visible && root.showPreviousNext;    onActivated: root.previousRequested() }
     Shortcut { sequence: "Shift+Right";enabled: root.visible && root.showPreviousNext;    onActivated: root.nextRequested() }
     Shortcut { sequence: "Delete";      enabled: root.visible;                             onActivated: root.deleteRequested() }
+    Shortcut { sequence: "Space";       enabled: root.visible;                             onActivated: {
+        if (mediaPlayer.playbackState === MediaPlayer.PlayingState)
+            mediaPlayer.pause()
+        else
+            mediaPlayer.play()
+    }}
 
     VideoOutput {
         id: videoOut
