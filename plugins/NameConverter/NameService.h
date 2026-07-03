@@ -6,7 +6,7 @@
 
 #include "OperationResult.h"
 #include "NamePreviewModel.h"
-#include "TextConverter.h"
+#include "FileRenameUtils.h"
 
 class PluginLogger;
 
@@ -27,7 +27,7 @@ public:
         FilesAndDirectories
     };
 
-    explicit NameService(const ITextConverter &converter, PluginLogger *logger = nullptr);
+    explicit NameService(PluginLogger *logger = nullptr);
 
     QList<NamePreviewItem> preview(const QString &rootPath, TargetType targetType, bool recursive = false) const;
     NameExecutionResult execute(const QString &rootPath, TargetType targetType, bool recursive = false,
@@ -39,5 +39,5 @@ private:
     NamePreviewItem makeItem(const QString &absolutePath, bool isDirectory) const;
 
     PluginLogger *m_logger = nullptr;
-    const ITextConverter &m_converter;
+
 };

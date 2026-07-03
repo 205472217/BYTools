@@ -61,8 +61,6 @@ public:
     Q_INVOKABLE void restoreAllRecords();
     Q_INVOKABLE void reset();
 
-    QString getFileType(const QString &fileName) const;
-
 signals:
     void statusMessageChanged();
     void hasRecordsChanged();
@@ -95,10 +93,7 @@ private:
     void doWork();
     void addRecord(const QString &originalPath, const QString &newPath, bool success, const QString &status);
     bool matchesFileType(const QString &fileName, int fileType, const QString &customExtension) const;
-    QString generateNewName(int index, const QString &originalName, const QString &extension,
-                            int renameMode, const QString &baseName,
-                            const QString &searchText, const QString &replaceText) const;
-    QString getFileExtension(const QString &fileName) const;
+    QString getFileType(const QString &fileName) const;
 
     mutable QMutex m_recordsMutex;
     bool m_isProcessing = false;

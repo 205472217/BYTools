@@ -20,26 +20,23 @@ Qt/QML + C++ PC 工具集合应用骨架。
 ```text
 src/
   main.cpp                     程序入口
-  app/                         应用控制器
-  core/                        核心模块（插件管理器、接口定义）
-plugins/                       插件目录
-  NameConverter/               繁简转换插件
+  core/                        核心模块（插件管理器、接口定义、主题管理、MpvPlayer）
+plugins/
+  common/                      共享静态库（配置、日志、设置持久化、FFmpeg工具、重命名工具）
+  NameConverter/               文件名繁转简插件
   BatchRename/                 批量重命名插件
   ImageConverter/              图片处理插件
   ImageCrop/                   图片裁剪插件
   VideoSubtitle/               视频字幕翻译插件
   CustomSubtitle/              自定义视频字幕插件
-  SubtitleAdjust/              调整字幕时码插件
+  SubtitleAdjust/              字幕时码调整插件
   FileView/                    文件浏览插件
 qml/
-  components/                  可复用界面组件
-  pages/                       页面
-third/
-  ffmpeg/                      可用的ffmpeg
-  model/                       模型存放目录（需手动下载）
-  whisper_amd/                 支持AMD显卡的whisper程序
-  whisper_cpu/                 官网下载的whisper程序，只支持CPU，速度较慢
+  Main.qml                     应用根窗口（StackView导航、关闭保护）
+  components/                  可复用界面组件（ConfirmDialog、IconButton、FeatureCard等）
+  pages/                       页面（HomePage + 各插件页面）
 resources/                     图标、资源文件
+third/                         第三方程序（ffmpeg、whisper、mpv）
 ```
 
 ## 打包目录结构

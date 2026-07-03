@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "../../src/core/PluginInterface.h"
 
 class ImageCropController;
@@ -16,6 +17,7 @@ public:
     static constexpr const char* PluginKey = "ImageCrop";
 
     ImageCropPlugin(QObject *parent = nullptr);
+    ~ImageCropPlugin() override;
 
     QString id() const override;
     QString name() const override;
@@ -31,7 +33,7 @@ public:
     QObject* getSettings() override;
 
 private:
-    PluginLogger *m_logger = nullptr;
-    ImageCropController *m_controller;
-    ImageCropSettings *m_settings = nullptr;
+    std::unique_ptr<PluginLogger> m_logger;
+    std::unique_ptr<ImageCropController> m_controller;
+    std::unique_ptr<ImageCropSettings> m_settings;
 };

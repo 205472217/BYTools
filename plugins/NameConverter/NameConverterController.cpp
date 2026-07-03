@@ -11,7 +11,7 @@ NameConverterController::NameConverterController(PluginLogger *logger, NameConve
     : QObject(parent)
     , m_logger(logger)
     , m_settings(settings)
-    , m_service(m_converter, logger)
+    , m_service(logger)
 {
     m_previewModel = new NamePreviewModel(this);
 

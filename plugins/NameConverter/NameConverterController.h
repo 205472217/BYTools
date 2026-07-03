@@ -6,7 +6,6 @@
 
 #include "NamePreviewModel.h"
 #include "NameService.h"
-#include "TextConverter.h"
 
 class PluginLogger;
 class NameConverterSettings;
@@ -65,7 +64,6 @@ private:
     void setIsProcessing(bool processing);
     bool m_isProcessing = false;
     QString m_statusMessage;
-    ChineseTextConverter m_converter;
     PluginLogger *m_logger = nullptr;
     NameService m_service;
     NamePreviewModel *m_previewModel = nullptr;

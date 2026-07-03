@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "../../src/core/PluginInterface.h"
 
 class CustomSubtitleController;
@@ -16,6 +17,7 @@ public:
     static constexpr const char* PluginKey = "CustomSubtitle";
 
     explicit CustomSubtitlePlugin(QObject *parent = nullptr);
+    ~CustomSubtitlePlugin() override;
 
     QString id() const override;
     QString name() const override;
@@ -31,7 +33,7 @@ public:
     QObject* getSettings() override;
 
 private:
-    PluginLogger *m_logger = nullptr;
-    CustomSubtitleController *m_controller = nullptr;
-    CustomSubtitleSettings *m_settings = nullptr;
+    std::unique_ptr<PluginLogger> m_logger;
+    std::unique_ptr<CustomSubtitleController> m_controller;
+    std::unique_ptr<CustomSubtitleSettings> m_settings;
 };

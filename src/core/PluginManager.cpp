@@ -263,6 +263,21 @@ void PluginManager::startMpvExtraction(const QString &pluginId)
             .arg(mpvZip, pluginDir + "/mpv"));
 }
 
+bool PluginManager::hasProcessingTasks() const
+{
+    for (auto it = m_plugins.constBegin(); it != m_plugins.constEnd(); ++it) {
+        if (!it->plugin)
+            continue;
+        QObject *ctrl = it->plugin->getController();
+        if (!ctrl)
+            continue;
+        QVariant processing = ctrl->property("isProcessing");
+        if (processing.isValid() && processing.toBool())
+            return true;
+    }
+    return false;
+}
+
 bool PluginManager::isMpvExtracting() const
 {
     return m_mpvExtractionCount > 0;

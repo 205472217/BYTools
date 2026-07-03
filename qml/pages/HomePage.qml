@@ -196,7 +196,7 @@ Pane {
                 rowSpacing: 18
 
                 Repeater {
-                    model: appController ? appController.features : []
+                    model: pluginManager.plugins
 
                     FeatureCard {
                         Layout.fillWidth: true
@@ -232,7 +232,7 @@ Pane {
                 }
 
                 Repeater {
-                    model: appController ? appController.pluginCategories : []
+                    model: pluginManager.pluginCategories
                     delegate: TabButton {
                         id: tabBtn
                         text: modelData
@@ -282,9 +282,9 @@ Pane {
                     rowSpacing: 18
 
                     Repeater {
-                        model: appController ? appController.features.filter(function(f) {
-                            return appController && f.category === appController.pluginCategories[tabBar.currentIndex]
-                        }) : []
+                        model: pluginManager.plugins.filter(function(f) {
+                            return f.category === pluginManager.pluginCategories[tabBar.currentIndex]
+                        })
 
                         FeatureCard {
                             Layout.fillWidth: true

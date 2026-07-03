@@ -88,36 +88,16 @@ Pane {
         }
     }
 
-    // ── Crop overflow warning dialog ─────────────────────────────────────
-    Dialog {
+    ConfirmDialog {
         id: overflowWarnDialog
-        title: "裁剪尺寸超出图片"
-        modal: true
-        anchors.centerIn: parent
-        width: 420
-        standardButtons: Dialog.Ok | Dialog.Cancel
-
         property string detailText: ""
-        contentItem: Label {
-            text: overflowWarnDialog.detailText
-            color: pal.LabelEx_statusText
-            font.pixelSize: 14
-            wrapMode: Text.WordWrap
-            focus: true
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    overflowWarnDialog.accept()
-                    event.accepted = true
-                }
-            }
-        }
-
-        onAccepted: {
+        dialogTitle: "裁剪尺寸超出图片"
+        messageText: detailText
+        onConfirmed: {
             if (controller) {
                 var ok = controller.executeCrop(controller.cropX, controller.cropY, controller.cropW, controller.cropH);
-                if (ok && controller.outputMode === 0) {
-                    root.initImage();
-                }
+                if (ok && controller.outputMode === 0)
+                    root.initImage()
             }
         }
     }
@@ -212,32 +192,13 @@ Pane {
     Keys.onRightPressed: navNext()
 
     // ── Main Layout ────────────────────────────────────────────────────
-    // ── 任务执行中返回确认对话框 ─────────────────────────────────────
-    Dialog {
+    ConfirmDialog {
         id: backConfirmDialog
-        title: "确认返回"
-        modal: true
-        anchors.centerIn: parent
-        width: 420
-        standardButtons: Dialog.Ok | Dialog.Cancel
-
-        contentItem: Label {
-            text: "当前有图片裁剪任务正在处理中，返回首页将中断执行，是否继续？"
-            color: pal.LabelEx_statusText
-            font.pixelSize: 14
-            wrapMode: Text.WordWrap
-            focus: true
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    backConfirmDialog.accept()
-                    event.accepted = true
-                }
-            }
-        }
-
-        onAccepted: {
-            if (controller) { controller.reset(); }
-            root.backRequested();
+        dialogTitle: "确认返回"
+        messageText: "当前有图片裁剪任务正在处理中，返回首页将中断执行，是否继续？"
+        onConfirmed: {
+            if (controller) controller.reset()
+            root.backRequested()
         }
     }
 

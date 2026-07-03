@@ -25,44 +25,17 @@ ApplicationWindow {
             _forceClosing = false
             return
         }
-        var ids = pluginManager.allPluginIds()
-        var anyProcessing = false
-        for (var i = 0; i < ids.length; i++) {
-            var ctrl = pluginManager.getPlugin(ids[i])
-            if (ctrl && ctrl.isProcessing) {
-                anyProcessing = true
-                break
-            }
-        }
-        if (anyProcessing) {
+        if (pluginManager.hasProcessingTasks()) {
             closeEvent.accepted = false
             confirmCloseDialog.open()
         }
     }
 
-    Dialog {
+    ConfirmDialog {
         id: confirmCloseDialog
-        title: "确认退出"
-        modal: true
-        anchors.centerIn: parent
-        width: 420
-        standardButtons: Dialog.Ok | Dialog.Cancel
-
-        contentItem: Label {
-            text: "有任务正在执行中，确定要退出吗？\n退出后任务将被中断。"
-            color: pal.LabelEx_statusText
-            font.pixelSize: 14
-            wrapMode: Text.WordWrap
-            focus: true
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    confirmCloseDialog.accept()
-                    event.accepted = true
-                }
-            }
-        }
-
-        onAccepted: {
+        dialogTitle: "确认退出"
+        messageText: "有任务正在执行中，确定要退出吗？\n退出后任务将被中断。"
+        onConfirmed: {
             window._forceClosing = true
             Qt.quit()
         }

@@ -19,8 +19,6 @@ set(PLUGIN_SOURCES
     NamePreviewModel.h
     NameService.cpp
     NameService.h
-    TextConverter.cpp
-    TextConverter.h
 )
 
 add_library(NameConverterPlugin MODULE

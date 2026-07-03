@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "../../src/core/PluginInterface.h"
 #include "SubtitleAdjustController.h"
 
@@ -16,6 +17,7 @@ public:
     static constexpr const char* PluginKey = "SubtitleAdjust";
 
     SubtitleAdjustPlugin(QObject *parent = nullptr);
+    ~SubtitleAdjustPlugin() override;
 
     QString id() const override;
     QString name() const override;
@@ -32,7 +34,7 @@ public:
     bool needsMpv() const override;
 
 private:
-    PluginLogger *m_logger = nullptr;
-    SubtitleAdjustController *m_controller = nullptr;
-    SubtitleAdjustSettings *m_settings = nullptr;
+    std::unique_ptr<PluginLogger> m_logger;
+    std::unique_ptr<SubtitleAdjustController> m_controller;
+    std::unique_ptr<SubtitleAdjustSettings> m_settings;
 };

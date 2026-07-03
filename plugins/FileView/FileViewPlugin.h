@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "../../src/core/PluginInterface.h"
 #include "FileViewController.h"
 
@@ -16,6 +17,7 @@ public:
     static constexpr const char* PluginKey = "FileView";
 
     FileViewPlugin(QObject *parent = nullptr);
+    ~FileViewPlugin() override;
 
     QString id() const override;
     QString name() const override;
@@ -32,7 +34,7 @@ public:
     bool needsMpv() const override;
 
 private:
-    PluginLogger *m_logger = nullptr;
-    FileViewController *m_controller = nullptr;
-    FileViewSettings *m_settings = nullptr;
+    std::unique_ptr<PluginLogger> m_logger;
+    std::unique_ptr<FileViewController> m_controller;
+    std::unique_ptr<FileViewSettings> m_settings;
 };

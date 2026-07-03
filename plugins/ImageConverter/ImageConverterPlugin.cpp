@@ -5,9 +5,10 @@
 
 ImageConverterPlugin::ImageConverterPlugin(QObject *parent)
     : QObject(parent)
-    , m_controller(nullptr)
 {
 }
+
+ImageConverterPlugin::~ImageConverterPlugin() = default;
 
 QString ImageConverterPlugin::id() const
 {
@@ -42,39 +43,29 @@ int ImageConverterPlugin::order() const
 void ImageConverterPlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger(PluginKey);
-    if (!m_settings) {
-        m_settings = new ImageConverterSettings(this);
-    }
-    if (!m_controller) {
-        m_controller = new ImageConverterController(m_logger, m_settings, this);
-    }
+        m_logger = std::make_unique<PluginLogger>(PluginKey);
+    if (!m_settings)
+        m_settings = std::make_unique<ImageConverterSettings>(this);
+    if (!m_controller)
+        m_controller = std::make_unique<ImageConverterController>(m_logger.get(), m_settings.get(), this);
     m_logger->info(QStringLiteral("图片处理插件已初始化"));
 }
 
 void ImageConverterPlugin::cleanup()
 {
-    if (m_controller) {
-        delete m_controller;
-        m_controller = nullptr;
-    }
-    if (m_settings) {
-        delete m_settings;
-        m_settings = nullptr;
-    }
-    delete m_logger;
-    m_logger = nullptr;
+    m_controller.reset();
+    m_settings.reset();
+    m_logger.reset();
 }
 
 QObject* ImageConverterPlugin::getController()
 {
-    if (m_controller && !m_controller->isProcessing()) {
+    if (m_controller && !m_controller->isProcessing())
         m_controller->reset();
-    }
-    return m_controller;
+    return m_controller.get();
 }
 
 QObject* ImageConverterPlugin::getSettings()
 {
-    return m_settings;
+    return m_settings.get();
 }

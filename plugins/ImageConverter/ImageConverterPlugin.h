@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "../../src/core/PluginInterface.h"
 
 class ImageConverterController;
@@ -16,6 +17,7 @@ public:
     static constexpr const char* PluginKey = "ImageConverter";
 
     ImageConverterPlugin(QObject *parent = nullptr);
+    ~ImageConverterPlugin() override;
 
     QString id() const override;
     QString name() const override;
@@ -31,7 +33,7 @@ public:
     QObject* getSettings() override;
 
 private:
-    PluginLogger *m_logger = nullptr;
-    ImageConverterController *m_controller;
-    ImageConverterSettings *m_settings = nullptr;
+    std::unique_ptr<PluginLogger> m_logger;
+    std::unique_ptr<ImageConverterController> m_controller;
+    std::unique_ptr<ImageConverterSettings> m_settings;
 };

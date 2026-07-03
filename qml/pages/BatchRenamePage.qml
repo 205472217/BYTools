@@ -16,11 +16,14 @@ Pane {
 
     readonly property int tableLeftPadding: 18
     readonly property int tableRightPadding: 20
-    readonly property int typeColumnWidth: 74
-    readonly property int statusColumnWidth: 118
-    readonly property int actionColumnWidth: 44
     readonly property int columnGap: 12
-    readonly property int textColumnWidth: Math.max(160, (recordsListView.width
+    readonly property real typeColumnRatio: 0.07
+    readonly property real statusColumnRatio: 0.11
+    readonly property real actionColumnRatio: 0.04
+    readonly property int typeColumnWidth: Math.max(60, (recordsListView.width - tableLeftPadding - tableRightPadding - columnGap * 4) * typeColumnRatio)
+    readonly property int statusColumnWidth: Math.max(80, (recordsListView.width - tableLeftPadding - tableRightPadding - columnGap * 4) * statusColumnRatio)
+    readonly property int actionColumnWidth: Math.max(40, (recordsListView.width - tableLeftPadding - tableRightPadding - columnGap * 4) * actionColumnRatio)
+    readonly property int textColumnWidth: Math.max(120, (recordsListView.width
         - tableLeftPadding
         - tableRightPadding
         - typeColumnWidth
@@ -49,32 +52,13 @@ Pane {
         }
     }
 
-    // ── 任务执行中返回确认对话框 ─────────────────────────────────────
-    Dialog {
+    ConfirmDialog {
         id: backConfirmDialog
-        title: "确认返回"
-        modal: true
-        anchors.centerIn: parent
-        width: 420
-        standardButtons: Dialog.Ok | Dialog.Cancel
-
-        contentItem: Label {
-            text: "当前有批量重命名任务正在处理中，返回首页将中断执行，是否继续？"
-            color: pal.LabelEx_statusText
-            font.pixelSize: 14
-            wrapMode: Text.WordWrap
-            focus: true
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    backConfirmDialog.accept()
-                    event.accepted = true
-                }
-            }
-        }
-
-        onAccepted: {
-            if (controller) { controller.reset(); }
-            root.backRequested();
+        dialogTitle: "确认返回"
+        messageText: "当前有批量重命名任务正在处理中，返回首页将中断执行，是否继续？"
+        onConfirmed: {
+            if (controller) controller.reset()
+            root.backRequested()
         }
     }
 

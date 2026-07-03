@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "../../src/core/PluginInterface.h"
 
 class BatchRenameController;
@@ -16,6 +17,7 @@ public:
     static constexpr const char* PluginKey = "BatchRename";
 
     BatchRenamePlugin(QObject *parent = nullptr);
+    ~BatchRenamePlugin() override;
 
     QString id() const override;
     QString name() const override;
@@ -31,7 +33,7 @@ public:
     QObject* getSettings() override;
 
 private:
-    PluginLogger *m_logger = nullptr;
-    BatchRenameController *m_controller;
-    BatchRenameSettings *m_settings = nullptr;
+    std::unique_ptr<PluginLogger> m_logger;
+    std::unique_ptr<BatchRenameController> m_controller;
+    std::unique_ptr<BatchRenameSettings> m_settings;
 };

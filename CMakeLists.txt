@@ -19,9 +19,6 @@ endif()
 
 qt_add_executable(BYTools
     src/main.cpp
-    src/app/AppController.cpp
-    src/app/AppController.h
-    src/core/FeatureInfo.h
     src/core/OperationResult.h
     src/core/PluginInterface.h
     src/core/PluginManager.h
@@ -47,6 +44,7 @@ set(BYTOOLS_QML_FILES
     qml/components/TextFieldEx.qml
     qml/components/ComboBoxEx.qml
     qml/components/CheckBoxEx.qml
+    qml/components/ConfirmDialog.qml
     qml/components/RadioButtonEx.qml
     qml/components/ViewToggleBtn.qml
     qml/components/ImageViewer.qml

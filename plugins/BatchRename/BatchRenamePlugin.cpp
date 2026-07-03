@@ -5,9 +5,10 @@
 
 BatchRenamePlugin::BatchRenamePlugin(QObject *parent)
     : QObject(parent)
-    , m_controller(nullptr)
 {
 }
+
+BatchRenamePlugin::~BatchRenamePlugin() = default;
 
 QString BatchRenamePlugin::id() const
 {
@@ -42,39 +43,29 @@ int BatchRenamePlugin::order() const
 void BatchRenamePlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger(PluginKey);
-    if (!m_settings) {
-        m_settings = new BatchRenameSettings(this);
-    }
-    if (!m_controller) {
-        m_controller = new BatchRenameController(m_logger, m_settings, this);
-    }
+        m_logger = std::make_unique<PluginLogger>(PluginKey);
+    if (!m_settings)
+        m_settings = std::make_unique<BatchRenameSettings>(this);
+    if (!m_controller)
+        m_controller = std::make_unique<BatchRenameController>(m_logger.get(), m_settings.get(), this);
     m_logger->info(QStringLiteral("批量重命名插件已初始化"));
 }
 
 void BatchRenamePlugin::cleanup()
 {
-    if (m_controller) {
-        delete m_controller;
-        m_controller = nullptr;
-    }
-    if (m_settings) {
-        delete m_settings;
-        m_settings = nullptr;
-    }
-    delete m_logger;
-    m_logger = nullptr;
+    m_controller.reset();
+    m_settings.reset();
+    m_logger.reset();
 }
 
 QObject* BatchRenamePlugin::getController()
 {
-    if (m_controller && !m_controller->isProcessing()) {
+    if (m_controller && !m_controller->isProcessing())
         m_controller->reset();
-    }
-    return m_controller;
+    return m_controller.get();
 }
 
 QObject* BatchRenamePlugin::getSettings()
 {
-    return m_settings;
+    return m_settings.get();
 }

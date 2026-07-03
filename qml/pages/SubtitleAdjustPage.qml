@@ -130,66 +130,27 @@ Pane {
         }
     }
 
-    // ── 返回确认对话框（有数据时提示）─────────────────────────────
-    Dialog {
+    ConfirmDialog {
         id: backConfirmDialog
-        title: "确认返回"
-        modal: true
-        anchors.centerIn: parent
-        width: 420
-        standardButtons: Dialog.Ok | Dialog.Cancel
-
+        dialogTitle: "确认返回"
+        messageText: "当前页面有数据，返回首页将清空当前数据，是否继续？"
         onOpened: root._hideNativeOverlay()
         onClosed: root._showNativeOverlay()
-
-        contentItem: Label {
-            text: "当前页面有数据，返回首页将清空当前数据，是否继续？"
-            color: pal.LabelEx_statusText
-            font.pixelSize: 14
-            wrapMode: Text.WordWrap
-            focus: true
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    backConfirmDialog.accept()
-                    event.accepted = true
-                }
-            }
-        }
-
-        onAccepted: {
+        onConfirmed: {
             if (controller) controller.reset()
             root._hideNativeOverlay()
             root.backRequested()
         }
     }
 
-    // ── Confirmation: unsaved changes ──
-    Dialog {
+    ConfirmDialog {
         id: unsavedDialog
-        title: "确认切换"
-        modal: true
-        anchors.centerIn: parent
-        width: 420
-        standardButtons: Dialog.Ok | Dialog.Cancel
-        
         property int targetIndex: -1
-        contentItem: Label {
-            text: "当前字幕调整尚未导出，切换将丢失进度，是否继续？"
-            color: pal.LabelEx_statusText
-            font.pixelSize: 14
-            wrapMode: Text.WordWrap
-            focus: true
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    unsavedDialog.accept()
-                    event.accepted = true
-                }
-            }
-        }
-
+        dialogTitle: "确认切换"
+        messageText: "当前字幕调整尚未导出，切换将丢失进度，是否继续？"
         onOpened: root._hideNativeOverlay()
         onClosed: root._showNativeOverlay()
-        onAccepted: {
+        onConfirmed: {
             var idx = unsavedDialog.targetIndex
             if (controller) {
                 controller.setOffsetMs(0)

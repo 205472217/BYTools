@@ -8,6 +8,8 @@ CustomSubtitlePlugin::CustomSubtitlePlugin(QObject *parent)
 {
 }
 
+CustomSubtitlePlugin::~CustomSubtitlePlugin() = default;
+
 QString CustomSubtitlePlugin::id() const
 {
     return PluginKey;
@@ -41,41 +43,31 @@ int CustomSubtitlePlugin::order() const
 void CustomSubtitlePlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger(PluginKey);
-    if (!m_settings) {
-        m_settings = new CustomSubtitleSettings(this);
-    }
-    if (!m_controller) {
-        m_controller = new CustomSubtitleController(m_logger, m_settings, this);
-    }
+        m_logger = std::make_unique<PluginLogger>(PluginKey);
+    if (!m_settings)
+        m_settings = std::make_unique<CustomSubtitleSettings>(this);
+    if (!m_controller)
+        m_controller = std::make_unique<CustomSubtitleController>(m_logger.get(), m_settings.get(), this);
     m_logger->info(QStringLiteral("自定义视频字幕插件已初始化"));
 }
 
 void CustomSubtitlePlugin::cleanup()
 {
-    if (m_controller) {
-        delete m_controller;
-        m_controller = nullptr;
-    }
-    if (m_settings) {
-        delete m_settings;
-        m_settings = nullptr;
-    }
-    delete m_logger;
-    m_logger = nullptr;
+    m_controller.reset();
+    m_settings.reset();
+    m_logger.reset();
 }
 
 QObject* CustomSubtitlePlugin::getController()
 {
     if (m_controller) {
-        if (!m_controller->isProcessing()) {
+        if (!m_controller->isProcessing())
             m_controller->reset();
-        }
     }
-    return m_controller;
+    return m_controller.get();
 }
 
 QObject* CustomSubtitlePlugin::getSettings()
 {
-    return m_settings;
+    return m_settings.get();
 }

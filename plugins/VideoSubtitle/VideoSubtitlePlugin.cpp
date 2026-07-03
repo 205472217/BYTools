@@ -5,10 +5,10 @@
 
 VideoSubtitlePlugin::VideoSubtitlePlugin(QObject *parent)
     : QObject(parent)
-    , m_controller(nullptr)
-    , m_settings(nullptr)
 {
 }
+
+VideoSubtitlePlugin::~VideoSubtitlePlugin() = default;
 
 QString VideoSubtitlePlugin::id() const
 {
@@ -43,42 +43,31 @@ int VideoSubtitlePlugin::order() const
 void VideoSubtitlePlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger(PluginKey);
-    if (!m_settings) {
-        m_settings = new VideoSubtitleSettings(m_logger, this);
-    }
-    if (!m_controller) {
-        m_controller = new VideoSubtitleController(m_logger, m_settings, this);
-    }
+        m_logger = std::make_unique<PluginLogger>(PluginKey);
+    if (!m_settings)
+        m_settings = std::make_unique<VideoSubtitleSettings>(m_logger.get(), this);
+    if (!m_controller)
+        m_controller = std::make_unique<VideoSubtitleController>(m_logger.get(), m_settings.get(), this);
     m_logger->info(QStringLiteral("视频字幕翻译插件已初始化"));
 }
 
 void VideoSubtitlePlugin::cleanup()
 {
-    if (m_controller) {
-        delete m_controller;
-        m_controller = nullptr;
-    }
-    if (m_settings) {
-        delete m_settings;
-        m_settings = nullptr;
-    }
-    delete m_logger;
-    m_logger = nullptr;
+    m_controller.reset();
+    m_settings.reset();
+    m_logger.reset();
 }
 
 QObject* VideoSubtitlePlugin::getController()
 {
     if (m_controller) {
-        // 如果任务正在执行中（用户选择了后台继续运行），不 reset 以免杀死后台进程
-        if (!m_controller->isProcessing()) {
+        if (!m_controller->isProcessing())
             m_controller->reset();
-        }
     }
-    return m_controller;
+    return m_controller.get();
 }
 
 QObject* VideoSubtitlePlugin::getSettings()
 {
-    return m_settings;
+    return m_settings.get();
 }

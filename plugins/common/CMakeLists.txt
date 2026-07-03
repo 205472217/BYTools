@@ -10,6 +10,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core)
 
 add_library(PluginCommon STATIC
     Config.h
+    FileRenameUtils.h  FileRenameUtils.cpp
     Logger.h          Logger.cpp
     SubtitleUtils.h   SubtitleUtils.cpp
     FfmpegUtils.h     FfmpegUtils.cpp

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "../../src/core/PluginInterface.h"
 #include "NameConverterController.h"
 
@@ -16,6 +17,7 @@ public:
     static constexpr const char* PluginKey = "NameConverter";
 
     NameConverterPlugin(QObject *parent = nullptr);
+    ~NameConverterPlugin() override;
 
     QString id() const override;
     QString name() const override;
@@ -31,7 +33,7 @@ public:
     QObject* getSettings() override;
 
 private:
-    PluginLogger *m_logger = nullptr;
-    NameConverterController *m_controller;
-    NameConverterSettings *m_settings = nullptr;
+    std::unique_ptr<PluginLogger> m_logger;
+    std::unique_ptr<NameConverterController> m_controller;
+    std::unique_ptr<NameConverterSettings> m_settings;
 };

@@ -7,6 +7,8 @@ FileViewPlugin::FileViewPlugin(QObject *parent)
 {
 }
 
+FileViewPlugin::~FileViewPlugin() = default;
+
 QString FileViewPlugin::id() const
 {
     return PluginKey;
@@ -40,41 +42,31 @@ int FileViewPlugin::order() const
 void FileViewPlugin::initialize()
 {
     if (!m_logger)
-        m_logger = new PluginLogger(PluginKey);
-    if (!m_settings) {
-        m_settings = new FileViewSettings(this);
-    }
-    if (!m_controller) {
-        m_controller = new FileViewController(m_logger, m_settings, this);
-    }
+        m_logger = std::make_unique<PluginLogger>(PluginKey);
+    if (!m_settings)
+        m_settings = std::make_unique<FileViewSettings>(this);
+    if (!m_controller)
+        m_controller = std::make_unique<FileViewController>(m_logger.get(), m_settings.get(), this);
     m_logger->info(QStringLiteral("文件浏览器插件已初始化"));
 }
 
 void FileViewPlugin::cleanup()
 {
-    if (m_controller) {
-        delete m_controller;
-        m_controller = nullptr;
-    }
-    if (m_settings) {
-        delete m_settings;
-        m_settings = nullptr;
-    }
-    delete m_logger;
-    m_logger = nullptr;
+    m_controller.reset();
+    m_settings.reset();
+    m_logger.reset();
 }
 
 QObject* FileViewPlugin::getController()
 {
-    if (m_controller) {
+    if (m_controller)
         m_controller->reset();
-    }
-    return m_controller;
+    return m_controller.get();
 }
 
 QObject* FileViewPlugin::getSettings()
 {
-    return m_settings;
+    return m_settings.get();
 }
 
 bool FileViewPlugin::needsMpv() const

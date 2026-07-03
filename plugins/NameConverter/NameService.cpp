@@ -1,6 +1,7 @@
 #include "NameService.h"
 #include "Config.h"
 #include "Logger.h"
+#include "FileRenameUtils.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -18,9 +19,8 @@ void replaceRecordPrefixes(QList<NamePreviewItem> &records, const QString &fromP
 
 }
 
-NameService::NameService(const ITextConverter &converter, PluginLogger *logger)
+NameService::NameService(PluginLogger *logger)
     : m_logger(logger)
-    , m_converter(converter)
 {
 }
 
@@ -80,8 +80,7 @@ NameExecutionResult NameService::execute(const QString &rootPath, TargetType tar
             continue;
         }
 
-        QDir parent(QFileInfo(item.currentPath).absolutePath());
-        if (parent.rename(QFileInfo(item.currentPath).fileName(), QFileInfo(item.newPath).fileName())) {
+        if (renameFile(item.currentPath, item.newPath)) {
             ++successCount;
             if (item.directory) {
                 replaceRecordPrefixes(records, item.currentPath, item.newPath);
@@ -137,8 +136,7 @@ OperationResult NameService::restore(const NamePreviewItem &item) const
         return OperationResult::fail(QStringLiteral("原路径已存在，无法还原：%1").arg(item.currentPath));
     }
 
-    QDir parent(QFileInfo(item.newPath).absolutePath());
-    if (parent.rename(QFileInfo(item.newPath).fileName(), QFileInfo(item.currentPath).fileName())) {
+    if (renameFile(item.newPath, item.currentPath)) {
         return OperationResult::ok(QStringLiteral("已还原：%1").arg(item.currentName));
     }
 
@@ -161,7 +159,7 @@ bool NameService::shouldInclude(bool isDirectory, TargetType targetType) const
 NamePreviewItem NameService::makeItem(const QString &absolutePath, bool isDirectory) const
 {
     const QFileInfo info(absolutePath);
-    const QString newName = m_converter.traditionalToSimplified(info.fileName());
+    const QString newName = traditionalToSimplified(info.fileName());
     const QString newPath = QDir(info.absolutePath()).absoluteFilePath(newName);
 
     return {

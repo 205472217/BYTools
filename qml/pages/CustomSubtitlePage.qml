@@ -58,31 +58,12 @@ Pane {
         }
     }
 
-    // ── 返回确认对话框（处理中时提示）─────────────────────────────
-    Dialog {
+    ConfirmDialog {
         id: backConfirmDialog
-        title: "确认返回"
-        modal: true
-        anchors.centerIn: parent
-        width: 420
-        standardButtons: Dialog.Ok | Dialog.Cancel
-
-        contentItem: Label {
-            text: "当前有任务正在处理中，返回首页将中断执行，是否继续？"
-            color: pal.LabelEx_statusText
-            font.pixelSize: 14
-            wrapMode: Text.WordWrap
-            focus: true
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    backConfirmDialog.accept()
-                    event.accepted = true
-                }
-            }
-        }
-
-        onAccepted: {
-            if (controller) { controller.reset() }
+        dialogTitle: "确认返回"
+        messageText: "当前有任务正在处理中，返回首页将中断执行，是否继续？"
+        onConfirmed: {
+            if (controller) controller.reset()
             root.backRequested()
         }
     }
@@ -90,33 +71,15 @@ Pane {
     // ── 重新下载确认对话框 ──────────────────────────────
     property int _redownloadIndex: -1
 
-    Dialog {
+    ConfirmDialog {
         id: redownloadDialog
-        title: "重新下载"
-        modal: true
-        anchors.centerIn: parent
-        width: 420
-        standardButtons: Dialog.Ok | Dialog.Cancel
-
-        contentItem: Label {
-            text: "该字幕已下载，是否重新下载并覆盖？"
-            color: pal.LabelEx_statusText
-            font.pixelSize: 14
-            wrapMode: Text.WordWrap
-            focus: true
-            Keys.onPressed: (event) => {
-                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                    redownloadDialog.accept()
-                    event.accepted = true
-                }
-            }
-        }
-
-        onAccepted: {
+        dialogTitle: "重新下载"
+        messageText: "该字幕已下载，是否重新下载并覆盖？"
+        onConfirmed: {
             if (browserCtrl && _redownloadIndex >= 0) {
-                browserCtrl.download(_redownloadIndex);
+                browserCtrl.download(_redownloadIndex)
             }
-            _redownloadIndex = -1;
+            _redownloadIndex = -1
         }
     }
 

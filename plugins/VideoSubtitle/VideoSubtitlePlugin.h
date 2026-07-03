@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <memory>
 #include "../../src/core/PluginInterface.h"
 
 class VideoSubtitleController;
@@ -16,6 +17,7 @@ public:
     static constexpr const char* PluginKey = "VideoSubtitle";
 
     VideoSubtitlePlugin(QObject *parent = nullptr);
+    ~VideoSubtitlePlugin() override;
 
     QString id() const override;
     QString name() const override;
@@ -31,7 +33,7 @@ public:
     QObject* getSettings() override;
 
 private:
-    PluginLogger *m_logger = nullptr;
-    VideoSubtitleController *m_controller;
-    VideoSubtitleSettings *m_settings;
+    std::unique_ptr<PluginLogger> m_logger;
+    std::unique_ptr<VideoSubtitleController> m_controller;
+    std::unique_ptr<VideoSubtitleSettings> m_settings;
 };

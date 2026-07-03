@@ -2,6 +2,7 @@
 #include "BatchRenamePlugin.h"
 #include "BatchRenameSettings.h"
 #include "Config.h"
+#include "FileRenameUtils.h"
 #include "Logger.h"
 #include <QDir>
 #include <QFileInfo>
@@ -203,8 +204,14 @@ void BatchRenameController::doWork()
         for (int i = 0; i < matchingFiles.size(); ++i) {
             const QFileInfo &entry = matchingFiles[i];
             QString extension = getFileExtension(entry.fileName());
-            QString nName = generateNewName(i + 1, entry.fileName(), extension,
-                                            renameMode, baseName, searchText, replaceText);
+            QString nName;
+            if (renameMode == 0) {
+                nName = entry.fileName();
+                if (!searchText.isEmpty())
+                    nName = nName.replace(searchText, replaceText);
+            } else {
+                nName = baseName + extension;
+            }
             nameGroups[nName].append(qMakePair(entry, nName));
         }
 
@@ -236,7 +243,7 @@ void BatchRenameController::doWork()
             QString newPath = currentDir.absoluteFilePath(newName);
             QString originalFileName = QFileInfo(originalPath).fileName();
 
-            if (QDir(currentDir).rename(originalFileName, newName)) {
+            if (renameFile(originalPath, newPath)) {
                 addRec(originalPath, newPath, true, QStringLiteral("已重命名"));
                 successCount++;
                 emit logMessage(QString("  [重命名] %1 → %2").arg(originalFileName, newName));
@@ -488,31 +495,3 @@ bool BatchRenameController::matchesFileType(const QString &fileName, int fileTyp
     }
 }
 
-QString BatchRenameController::generateNewName(int index, const QString &originalName, const QString &extension,
-                                                int renameMode, const QString &baseName,
-                                                const QString &searchText, const QString &replaceText) const
-{
-    if (renameMode == 0){
-        QString nameWithoutExt = originalName;
-        if (!extension.isEmpty()) {
-            nameWithoutExt = originalName.left(originalName.length() - extension.length());
-        }
-        QString newName = nameWithoutExt;
-        if (!searchText.isEmpty()) {
-            newName = newName.replace(searchText, replaceText);
-        }
-        return newName + extension;
-    }
-    else {
-        return QString("%1%2").arg(baseName).arg(extension);
-    }
-}
-
-QString BatchRenameController::getFileExtension(const QString &fileName) const
-{
-    int dotIndex = fileName.lastIndexOf('.');
-    if (dotIndex > 0 && dotIndex < fileName.length() - 1) {
-        return fileName.mid(dotIndex);
-    }
-    return QString();
-}
