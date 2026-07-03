@@ -312,10 +312,10 @@ Pane {
                         implicitWidth: 80
                         text: "替换文本"
                         paletteGroup: "RadioButtonEx"
-                        checked: controller ? controller.renameMode === 1 : false
+                        checked: controller ? controller.renameMode === 0 : false
                         onCheckedChanged: {
-                            if (checked && controller && controller.renameMode !== 1)
-                                controller.renameMode = 1
+                            if (checked && controller && controller.renameMode !== 0)
+                                controller.renameMode = 0
                         }
                     }
 
@@ -372,10 +372,10 @@ Pane {
                         implicitWidth: 80
                         text: "指定名称"
                         paletteGroup: "RadioButtonEx"
-                        checked: controller ? controller.renameMode === 0 : true
+                        checked: controller ? controller.renameMode === 1 : true
                         onCheckedChanged: {
-                            if (checked && controller && controller.renameMode !== 0)
-                                controller.renameMode = 0
+                            if (checked && controller && controller.renameMode !== 1)
+                                controller.renameMode = 1
                         }
                     }
 

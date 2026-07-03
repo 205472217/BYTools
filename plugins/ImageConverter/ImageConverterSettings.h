@@ -52,7 +52,7 @@ private:
     int m_outputMode = 0;
     QString m_outputDir;
     bool m_recursive = false;
-    bool m_convertEnabled = true;
+    bool m_convertEnabled = false;
     bool m_resizeEnabled = false;
     int m_resizeMode = 0;
     double m_resizeRatio = 0.5;

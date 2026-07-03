@@ -265,7 +265,8 @@ void VideoSubtitleSettings::setInputPath(const QString &path)
 {
     if (m_inputPath != path) {
         m_inputPath = path;
-        saveSettings();
+        if (m_inputMode != 0) // 文件模式不持久化路径
+            saveSettings();
     }
 }
 void VideoSubtitleSettings::setInputMode(int mode)

@@ -129,13 +129,13 @@ void BatchRenameController::executeRename()
         return;
     }
 
-    if (renameMode == 0 && baseName.isEmpty()) {
-        setStatusMessage(QStringLiteral("请填写指定名称"));
+    if (renameMode == 0 && searchText.isEmpty()) {
+        setStatusMessage(QStringLiteral("请填写查找文本"));
         return;
     }
 
-    if (renameMode == 1 && searchText.isEmpty()) {
-        setStatusMessage(QStringLiteral("请填写查找文本"));
+    if (renameMode == 1 && baseName.isEmpty()) {
+        setStatusMessage(QStringLiteral("请填写指定名称"));
         return;
     }
 
@@ -492,9 +492,7 @@ QString BatchRenameController::generateNewName(int index, const QString &origina
                                                 int renameMode, const QString &baseName,
                                                 const QString &searchText, const QString &replaceText) const
 {
-    if (renameMode == 0) {
-        return QString("%1%2").arg(baseName).arg(extension);
-    } else {
+    if (renameMode == 0){
         QString nameWithoutExt = originalName;
         if (!extension.isEmpty()) {
             nameWithoutExt = originalName.left(originalName.length() - extension.length());
@@ -504,6 +502,9 @@ QString BatchRenameController::generateNewName(int index, const QString &origina
             newName = newName.replace(searchText, replaceText);
         }
         return newName + extension;
+    }
+    else {
+        return QString("%1%2").arg(baseName).arg(extension);
     }
 }
 

@@ -37,14 +37,10 @@ SubBrowserController::SubBrowserController(PluginLogger *logger, QObject *parent
     initSites();  // 扫描 python/<site>/search.py 文件夹
 
     QSettings &s = pluginGroupSettings(CustomSubtitlePlugin::PluginKey);
-    s.sync();
-    QString lastSite = s.value("browserLastSite").toString();
-    if (!lastSite.isEmpty() && m_availableSites.contains(lastSite))
-        m_currentSite = lastSite;
-    else if (!m_availableSites.isEmpty())
-        m_currentSite = m_availableSites.first();
-
     m_downloadPath = s.value("customSubtitleDownloadPath").toString();
+
+    if (!m_availableSites.isEmpty())
+        m_currentSite = m_availableSites.first();
 
     if (m_logger) {
         if (m_pythonAvailable)
@@ -228,8 +224,6 @@ void SubBrowserController::setCurrentSite(const QString &site)
     if (m_currentSite != site) {
         m_currentSite = site;
         emit currentSiteChanged();
-        QSettings &s = pluginGroupSettings(CustomSubtitlePlugin::PluginKey);
-        s.setValue("browserLastSite", site);
     }
 }
 

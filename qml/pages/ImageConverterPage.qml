@@ -91,6 +91,30 @@ Pane {
         }
     }
 
+    // ── 未选择处理项提示对话框 ───────────────────────────────────
+    Dialog {
+        id: noOptionDialog
+        title: "提示"
+        modal: true
+        anchors.centerIn: parent
+        width: 420
+        standardButtons: Dialog.Ok
+
+        contentItem: Label {
+            text: "请先勾选至少一项处理方式（格式转换 / 尺寸缩放）"
+            color: pal.LabelEx_statusText
+            font.pixelSize: 14
+            wrapMode: Text.WordWrap
+            focus: true
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    noOptionDialog.accept()
+                    event.accepted = true
+                }
+            }
+        }
+    }
+
     // ── 任务执行中返回确认对话框 ─────────────────────────────────────
     Dialog {
         id: backConfirmDialog
@@ -793,6 +817,10 @@ Pane {
                         paletteGroup: "ImageConverterPage_execBtn"
                         onClicked: {
                             if (controller) {
+                                if (!controller.convertEnabled && !controller.resizeEnabled) {
+                                    noOptionDialog.open()
+                                    return
+                                }
                                 controller.executeConvert()
                             }
                         }
