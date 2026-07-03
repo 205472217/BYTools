@@ -52,14 +52,16 @@ QList<NamePreviewItem> NameService::preview(const QString &rootPath, TargetType 
     return items;
 }
 
-NameExecutionResult NameService::execute(const QString &rootPath, TargetType targetType, bool recursive) const
+NameExecutionResult NameService::execute(const QString &rootPath, TargetType targetType, bool recursive,
+                                        NameProgressCallback onItemProcessed) const
 {
     const QList<NamePreviewItem> items = preview(rootPath, targetType, recursive);
     int successCount = 0;
     QStringList failures;
     QList<NamePreviewItem> records;
 
-    for (const auto &item : items) {
+    for (int i = 0; i < items.size(); ++i) {
+        const auto &item = items[i];
         if (item.currentPath == item.newPath) {
             continue;
         }
@@ -69,6 +71,9 @@ NameExecutionResult NameService::execute(const QString &rootPath, TargetType tar
             auto record = item;
             record.status = QStringLiteral("失败：目标已存在");
             records.append(record);
+            if (onItemProcessed) {
+                onItemProcessed(i, record);
+            }
             failures.append(message);
             m_logger->warn(QString("  [失败] %1 → %2 — 目标已存在")
                 .arg(item.currentName, item.newName));
@@ -84,12 +89,18 @@ NameExecutionResult NameService::execute(const QString &rootPath, TargetType tar
             auto record = item;
             record.status = QStringLiteral("已转换");
             records.append(record);
+            if (onItemProcessed) {
+                onItemProcessed(i, record);
+            }
             m_logger->info(QString("  [转换] %1 → %2").arg(item.currentName, item.newName));
         } else {
             const QString message = QStringLiteral("%1 重命名失败").arg(item.currentPath);
             auto record = item;
             record.status = QStringLiteral("失败：重命名失败");
             records.append(record);
+            if (onItemProcessed) {
+                onItemProcessed(i, record);
+            }
             failures.append(message);
             m_logger->error(QString("  [失败] %1 → %2 — 重命名失败")
                 .arg(item.currentName, item.newName));

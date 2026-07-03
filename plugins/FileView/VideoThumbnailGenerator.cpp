@@ -1,9 +1,10 @@
 #include "VideoThumbnailGenerator.h"
+#include "GlobalConfig.h"
+#include "FileViewPlugin.h"
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QImage>
-#include <QStandardPaths>
 #include <QCryptographicHash>
 #include <QDebug>
 
@@ -126,16 +127,12 @@ bool VideoThumbnailGenerator::isMostlyBlack(const QString &imagePath)
     return blackCount > total / 2;
 }
 
-QString VideoThumbnailGenerator::cacheDir() const
-{
-    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)
-        + QStringLiteral("/fileview/thumbnails");
-}
-
 QString VideoThumbnailGenerator::cacheFilePath(
     const QString &filePath, const QDateTime &modifiedTime) const
 {
+    QString dir = GlobalConfig::cachePath() + "/" + FileViewPlugin::PluginKey + "/thumbnails";
+    QDir().mkpath(dir);
     QByteArray data = (filePath + modifiedTime.toUTC().toString(Qt::ISODate)).toUtf8();
     QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Sha256).toHex();
-    return cacheDir() + QStringLiteral("/") + QString::fromLatin1(hash) + QStringLiteral(".jpg");
+    return dir + QStringLiteral("/") + QString::fromLatin1(hash) + QStringLiteral(".jpg");
 }

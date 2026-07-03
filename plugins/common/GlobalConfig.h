@@ -19,6 +19,10 @@ public:
     Q_INVOKABLE void save();
     Q_INVOKABLE static QString detectFfmpeg();
 
+    static QString backupPath();
+    static QString cachePath();
+    static QString tempDir();
+
 signals:
     void ffmpegPathChanged();
 

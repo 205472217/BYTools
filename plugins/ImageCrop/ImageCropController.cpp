@@ -423,7 +423,7 @@ bool ImageCropController::executeCrop(int cropX, int cropY, int cropW, int cropH
         destPath = outRoot + "/" + newName;
     }
 
-    // Keep an in-memory backup before the file state changes
+    // 内存备份用于 undo 还原（不管输出模式，因为预览已切换为裁剪后状态）
     if (m_backups.size() >= MAX_BACKUPS)
         m_backups.removeLast();
     m_backups.prepend(image.copy());

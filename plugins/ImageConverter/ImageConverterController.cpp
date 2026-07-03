@@ -3,12 +3,14 @@
 #include "ImageConverterSettings.h"
 #include "Config.h"
 #include "Logger.h"
+#include "GlobalConfig.h"
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QImage>
 #include <QPainter>
 #include <QUrl>
+
 
 ImageConverterController::ImageConverterController(PluginLogger *logger, ImageConverterSettings *settings, QObject *parent)
     : QObject(parent)
@@ -29,6 +31,27 @@ ImageConverterController::~ImageConverterController()
     m_workerThread.wait(5000);
 }
 
+QString ImageConverterController::createBackup(const QString &filePath)
+{
+    QFileInfo fi(filePath);
+    if (!fi.exists() || fi.size() == 0)
+        return {};
+
+    QString dir = GlobalConfig::backupPath() + "/" + ImageConverterPlugin::PluginKey;
+    QDir().mkpath(dir);
+
+    QString name = QString::number(qHash(fi.absoluteFilePath()), 16)
+        + "_" + fi.fileName();
+    QString dest = dir + "/" + name;
+
+    if (QFile::exists(dest))
+        QFile::remove(dest);
+
+    if (QFile::copy(filePath, dest))
+        return dest;
+    return {};
+}
+
 QString ImageConverterController::statusMessage() const { return m_statusMessage; }
 QString ImageConverterController::sourceFile() const { return m_sourceFile; }
 void ImageConverterController::setSourceFile(const QString &path)
@@ -38,10 +61,15 @@ void ImageConverterController::setSourceFile(const QString &path)
         emit sourceFileChanged();
     }
 }
-bool ImageConverterController::hasRecords() const { return !m_records.isEmpty(); }
+bool ImageConverterController::hasRecords() const
+{
+    QMutexLocker locker(&m_recordsMutex);
+    return !m_records.isEmpty();
+}
 
 QVariantList ImageConverterController::records() const
 {
+    QMutexLocker locker(&m_recordsMutex);
     QVariantList result;
     for (const auto &record : m_records) {
         QVariantMap map;
@@ -51,6 +79,7 @@ QVariantList ImageConverterController::records() const
         map["newName"] = record.newName;
         map["formatTag"] = record.formatTag;
         map["success"] = record.success;
+        map["restorable"] = record.restorable;
         map["status"] = record.status;
         result.append(map);
     }
@@ -200,6 +229,8 @@ void ImageConverterController::executeConvert()
     if (recursive)
         emit logMessage("  启用了递归查找，正在遍历子目录...");
 
+    for (const auto &record : m_records)
+        if (!record.backupPath.isEmpty()) QFile::remove(record.backupPath);
     m_records.clear();
     emit recordsChanged();
     emit hasRecordsChanged();
@@ -222,40 +253,55 @@ void ImageConverterController::processSingleFile(
     QString srcExt = entry.suffix().toLower();
     QString srcExtDot = QStringLiteral(".") + srcExt;
 
+    // 同格式+无缩放+替换原文件 → 无需任何操作
+    if (doConvert && srcExtDot == targetExt && !doResize && outputMode == 0) {
+        records.append({
+            entry.absoluteFilePath(), entry.absoluteFilePath(),
+            entry.fileName(), entry.fileName(),
+            formatTagForExt(srcExt), true, QStringLiteral("已跳过")
+        });
+        skipCount++;
+        return;
+    }
+
+    // 覆盖原文件前先备份
+    QString backupPath;
+    bool backedUp = false;
+    if (outputMode == 0) {
+        backupPath = createBackup(entry.absoluteFilePath());
+        backedUp = !backupPath.isEmpty();
+        if (!backedUp)
+            emit logMessage(QString("  [警告] %1 — 备份失败，将无法还原").arg(entry.fileName()));
+    }
+
     if (doConvert && srcExtDot == targetExt && !doResize) {
-        if (outputMode == 1) {
-            if (QFile::copy(entry.absoluteFilePath(), destPath)) {
-                records.append({
-                    entry.absoluteFilePath(), destPath,
-                    entry.fileName(), QFileInfo(destPath).fileName(),
-                    formatTagForExt(srcExt), true, QStringLiteral("已复制")
-                });
-                successCount++;
-                emit logMessage(QString("  [复制] %1 → %2").arg(entry.fileName(), QFileInfo(destPath).fileName()));
-            } else if (QFileInfo::exists(destPath)) {
-                records.append({
-                    entry.absoluteFilePath(), destPath,
-                    entry.fileName(), QFileInfo(destPath).fileName(),
-                    formatTagForExt(srcExt), true, QStringLiteral("已存在")
-                });
-                successCount++;
-                emit logMessage(QString("  [跳过] %1 — 输出文件已存在").arg(entry.fileName()));
-            } else {
-                records.append({
-                    entry.absoluteFilePath(), destPath,
-                    entry.fileName(), QFileInfo(destPath).fileName(),
-                    formatTagForExt(srcExt), false, QStringLiteral("失败：复制失败")
-                });
-                failCount++;
-                emit logMessage(QString("  [失败] %1 — 复制失败").arg(entry.fileName()));
-            }
-        } else {
+        // outputMode == 1 同格式复制
+        if (QFile::copy(entry.absoluteFilePath(), destPath)) {
             records.append({
-                entry.absoluteFilePath(), entry.absoluteFilePath(),
-                entry.fileName(), entry.fileName(),
-                formatTagForExt(srcExt), true, QStringLiteral("已跳过")
+                entry.absoluteFilePath(), destPath,
+                entry.fileName(), QFileInfo(destPath).fileName(),
+                formatTagForExt(srcExt), true, QStringLiteral("已复制"), backedUp, backupPath
             });
-            skipCount++;
+            successCount++;
+            emit logMessage(QString("  [复制] %1 → %2").arg(entry.fileName(), QFileInfo(destPath).fileName()));
+        } else if (QFileInfo::exists(destPath)) {
+            if (!backupPath.isEmpty()) QFile::remove(backupPath);
+            records.append({
+                entry.absoluteFilePath(), destPath,
+                entry.fileName(), QFileInfo(destPath).fileName(),
+                formatTagForExt(srcExt), true, QStringLiteral("已存在")
+            });
+            successCount++;
+            emit logMessage(QString("  [跳过] %1 — 输出文件已存在").arg(entry.fileName()));
+        } else {
+            if (!backupPath.isEmpty()) QFile::remove(backupPath);
+            records.append({
+                entry.absoluteFilePath(), destPath,
+                entry.fileName(), QFileInfo(destPath).fileName(),
+                formatTagForExt(srcExt), false, QStringLiteral("失败：复制失败")
+            });
+            failCount++;
+            emit logMessage(QString("  [失败] %1 — 复制失败").arg(entry.fileName()));
         }
         return;
     }
@@ -265,6 +311,7 @@ void ImageConverterController::processSingleFile(
         image = QImage(entry.absoluteFilePath());
 
     if (image.isNull()) {
+        if (!backupPath.isEmpty()) QFile::remove(backupPath);
         records.append({
             entry.absoluteFilePath(), destPath,
             entry.fileName(), QFileInfo(destPath).fileName(),
@@ -299,11 +346,12 @@ void ImageConverterController::processSingleFile(
         records.append({
             entry.absoluteFilePath(), destPath,
             entry.fileName(), QFileInfo(destPath).fileName(),
-            formatTagForExt(srcExt), true, QStringLiteral("已处理")
+            formatTagForExt(srcExt), true, QStringLiteral("已处理"), backedUp, backupPath
         });
         successCount++;
         emit logMessage(QString("  [处理] %1 → %2").arg(entry.fileName(), QFileInfo(destPath).fileName()));
     } else {
+        if (!backupPath.isEmpty()) QFile::remove(backupPath);
         records.append({
             entry.absoluteFilePath(), destPath,
             entry.fileName(), QFileInfo(destPath).fileName(),
@@ -367,6 +415,20 @@ void ImageConverterController::doWork()
             resizeWidth, resizeHeight, bgColor,
             targetExt, targetFmt, outputMode,
             successCount, failCount, skipCount, records);
+
+        // 逐条追加到 m_records，让 QML 能实时看到每条记录
+        if (!records.isEmpty()) {
+            ConvertRecord rec = records.last();
+            records.clear();
+            {
+                QMutexLocker locker(&m_recordsMutex);
+                m_records.append(rec);
+            }
+            QMetaObject::invokeMethod(this, [this]() {
+                emit recordsChanged();
+                emit hasRecordsChanged();
+            }, Qt::QueuedConnection);
+        }
     };
 
     if (isSingle) {
@@ -396,7 +458,6 @@ void ImageConverterController::doWork()
         procDir(rootPath, QString());
     }
 
-    m_records = records;
     m_workerThread.quit();
     QMetaObject::invokeMethod(this, [this, successCount, failCount, skipCount]() {
         QStringList parts;
@@ -411,14 +472,14 @@ void ImageConverterController::doWork()
             setStatusMessage(parts.join("，"));
             m_logger->info(QString("处理完成: %1").arg(parts.join(", ")));
         }
-        emit recordsChanged();
-        emit hasRecordsChanged();
         setIsProcessing(false);
     }, Qt::QueuedConnection);
 }
 
 void ImageConverterController::clearRecords()
 {
+    for (const auto &record : m_records)
+        if (!record.backupPath.isEmpty()) QFile::remove(record.backupPath);
     m_records.clear();
     emit recordsChanged();
     emit hasRecordsChanged();
@@ -431,46 +492,46 @@ void ImageConverterController::restoreRecord(int index)
         return;
 
     ConvertRecord &record = m_records[index];
-    if (!record.success)
+    if (!record.success || !record.restorable)
         return;
 
-    if (!QFileInfo::exists(record.newPath)) {
-        record.status = QStringLiteral("失败：文件不存在");
+    if (record.backupPath.isEmpty() || !QFileInfo::exists(record.backupPath)) {
+        record.status = QStringLiteral("失败：备份文件不存在");
         record.success = false;
-        setStatusMessage(QStringLiteral("还原失败：文件不存在"));
-        m_logger->warn(QString("还原失败: %1 — 文件不存在").arg(record.newPath));
+        record.restorable = false;
+        setStatusMessage(QStringLiteral("还原失败：备份文件不存在"));
+        m_logger->warn(QString("还原失败: %1 — 备份文件不存在").arg(record.originalName));
         emit recordsChanged();
         return;
     }
 
-    if (QFileInfo::exists(record.originalPath)) {
-        // Original still exists (outputMode 1): remove the converted copy
-        if (QFile::remove(record.newPath)) {
-            record.status = QStringLiteral("已还原");
-            record.success = false;
-            setStatusMessage(QStringLiteral("已还原：%1").arg(record.originalName));
-            m_logger->info(QString("已还原: %1").arg(record.originalName));
-        } else {
-            record.status = QStringLiteral("失败：删除失败");
-            record.success = false;
-            setStatusMessage(QStringLiteral("还原失败：%1").arg(record.newName));
-            m_logger->error(QString("还原失败: %1 — 删除失败").arg(record.newName));
-        }
+    // 1. 先确保目标目录存在
+    QFileInfo origFi(record.originalPath);
+    QDir().mkpath(origFi.absolutePath());
+
+    // 2. 如果输出文件与源文件不同，删除输出文件
+    if (record.newPath != record.originalPath)
+        QFile::remove(record.newPath);
+
+    // 3. 删除当前源文件（可能是已转换的版本）
+    QFile::remove(record.originalPath);
+
+    // 4. 从备份还原
+    if (QFile::copy(record.backupPath, record.originalPath)) {
+        // 5. 删除备份
+        QFile::remove(record.backupPath);
+        record.backupPath.clear();
+        record.status = QStringLiteral("已还原");
+        record.success = false;
+        record.restorable = false;
+        setStatusMessage(QStringLiteral("已还原：%1").arg(record.originalName));
+        m_logger->info(QString("已还原: %1").arg(record.originalName));
     } else {
-        // Original was deleted (outputMode 0): rename converted file back to original name
-        QDir parentDir = QFileInfo(record.newPath).absoluteDir();
-        if (parentDir.rename(QFileInfo(record.newPath).fileName(),
-                             QFileInfo(record.originalPath).fileName())) {
-            record.status = QStringLiteral("已还原");
-            record.success = false;
-            setStatusMessage(QStringLiteral("已还原：%1").arg(record.originalName));
-            m_logger->info(QString("已还原: %1 → %2").arg(record.newName, record.originalName));
-        } else {
-            record.status = QStringLiteral("失败：还原失败");
-            record.success = false;
-            setStatusMessage(QStringLiteral("还原失败：%1").arg(record.newName));
-            m_logger->error(QString("还原失败: %1").arg(record.newName));
-        }
+        record.status = QStringLiteral("失败：还原失败");
+        record.success = false;
+        record.restorable = false;
+        setStatusMessage(QStringLiteral("还原失败：%1").arg(record.originalName));
+        m_logger->error(QString("还原失败: %1 — 备份复制失败").arg(record.originalName));
     }
 
     emit recordsChanged();
@@ -484,28 +545,27 @@ void ImageConverterController::restoreAllRecords()
 
     for (int i = 0; i < m_records.size(); ++i) {
         ConvertRecord &record = m_records[i];
-        if (!record.success)
+        if (!record.success || !record.restorable)
             continue;
 
-        if (!QFileInfo::exists(record.newPath)) {
-            record.status = QStringLiteral("失败：文件不存在");
+        if (record.backupPath.isEmpty() || !QFileInfo::exists(record.backupPath)) {
+            record.status = QStringLiteral("失败：备份文件不存在");
             record.success = false;
             failCount++;
             continue;
         }
 
-        bool ok = false;
-        if (QFileInfo::exists(record.originalPath)) {
-            // Original exists → delete converted copy
-            ok = QFile::remove(record.newPath);
-        } else {
-            // Original gone → rename converted file back
-            QDir parentDir = QFileInfo(record.newPath).absoluteDir();
-            ok = parentDir.rename(QFileInfo(record.newPath).fileName(),
-                                  QFileInfo(record.originalPath).fileName());
-        }
+        QFileInfo origFi(record.originalPath);
+        QDir().mkpath(origFi.absolutePath());
 
-        if (ok) {
+        if (record.newPath != record.originalPath)
+            QFile::remove(record.newPath);
+
+        QFile::remove(record.originalPath);
+
+        if (QFile::copy(record.backupPath, record.originalPath)) {
+            QFile::remove(record.backupPath);
+            record.backupPath.clear();
             record.status = QStringLiteral("已还原");
             record.success = false;
             successCount++;
@@ -561,6 +621,8 @@ void ImageConverterController::setIsProcessing(bool processing)
 void ImageConverterController::reset()
 {
     cancel();
+    for (const auto &record : m_records)
+        if (!record.backupPath.isEmpty()) QFile::remove(record.backupPath);
     m_records.clear();
     setStatusMessage(QString());
 

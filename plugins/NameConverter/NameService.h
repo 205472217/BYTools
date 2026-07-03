@@ -2,6 +2,7 @@
 
 #include <QList>
 #include <QString>
+#include <functional>
 
 #include "OperationResult.h"
 #include "NamePreviewModel.h"
@@ -15,6 +16,8 @@ struct NameExecutionResult
     QList<NamePreviewItem> records;
 };
 
+using NameProgressCallback = std::function<void(int index, const NamePreviewItem&)>;
+
 class NameService
 {
 public:
@@ -27,7 +30,8 @@ public:
     explicit NameService(const ITextConverter &converter, PluginLogger *logger = nullptr);
 
     QList<NamePreviewItem> preview(const QString &rootPath, TargetType targetType, bool recursive = false) const;
-    NameExecutionResult execute(const QString &rootPath, TargetType targetType, bool recursive = false) const;
+    NameExecutionResult execute(const QString &rootPath, TargetType targetType, bool recursive = false,
+                                NameProgressCallback onItemProcessed = nullptr) const;
     OperationResult restore(const NamePreviewItem &item) const;
 
 private:

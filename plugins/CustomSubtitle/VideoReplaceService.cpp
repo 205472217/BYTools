@@ -1,6 +1,8 @@
 #include "VideoReplaceService.h"
 #include "Config.h"
 #include "Logger.h"
+#include "GlobalConfig.h"
+#include "CustomSubtitlePlugin.h"
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
@@ -9,7 +11,6 @@
 #include <QFile>
 #include <QAtomicInt>
 #include <QCoreApplication>
-#include <QStandardPaths>
 #include <QUuid>
 #include "SubtitleUtils.h"
 
@@ -248,9 +249,7 @@ void VideoReplaceService::doWork()
         // === 替换逻辑：先备份到系统临时目录，替换成功后再删除 ===
         QString tempBackupPath;
         {
-            QString tempDir = QDir::cleanPath(
-                QStandardPaths::writableLocation(QStandardPaths::TempLocation))
-                + "/BYTools_replace_backup";
+            QString tempDir = GlobalConfig::tempDir() + "/" + CustomSubtitlePlugin::PluginKey + "/replace_backup";
             QDir().mkpath(tempDir);
             tempBackupPath = tempDir + "/" + QUuid::createUuid().toString(QUuid::WithoutBraces)
                              + "_" + origFi.fileName();

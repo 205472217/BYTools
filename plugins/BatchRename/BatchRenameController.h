@@ -5,6 +5,7 @@
 #include <QVariantList>
 #include <QDir>
 #include <QThread>
+#include <QMutex>
 
 class PluginLogger;
 class BatchRenameSettings;
@@ -99,6 +100,7 @@ private:
                             const QString &searchText, const QString &replaceText) const;
     QString getFileExtension(const QString &fileName) const;
 
+    mutable QMutex m_recordsMutex;
     bool m_isProcessing = false;
     QString m_statusMessage;
     QList<RenameRecord> m_records;

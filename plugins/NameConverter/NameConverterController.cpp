@@ -145,17 +145,32 @@ void NameConverterController::executeRename()
     if (rec)
         emit logMessage("  启用了递归查找，正在遍历子目录...");
 
+    // Ensure model is populated from preview before execution starts
+    if (m_previewModel->rowCount() == 0) {
+        auto items = m_service.preview(root, currentTargetType(), rec);
+        m_previewModel->setItems(items);
+        emit hasRecordsChanged();
+    }
+
     setIsProcessing(true);
 
     disconnect(&m_workerThread, &QThread::started, nullptr, nullptr);
     connect(&m_workerThread, &QThread::started, this, [this]() {
         const QString root = m_settings->rootPath();
         const bool rec = m_settings->recursive();
-        auto execution = m_service.execute(root, currentTargetType(), rec);
+        auto execution = m_service.execute(root, currentTargetType(), rec,
+            [this](int index, const NamePreviewItem &item) {
+                QMetaObject::invokeMethod(m_previewModel, [this, index, item]() {
+                    if (index < m_previewModel->rowCount()) {
+                        m_previewModel->updateStatus(index, item.status);
+                        if (item.directory && item.status == QStringLiteral("已转换")) {
+                            m_previewModel->replacePathPrefix(item.currentPath, item.newPath);
+                        }
+                    }
+                }, Qt::QueuedConnection);
+            });
         m_workerThread.quit();
         QMetaObject::invokeMethod(this, [this, execution]() {
-            m_previewModel->setItems(execution.records);
-            emit hasRecordsChanged();
             setStatusMessage(execution.result.message);
             m_logger->info("繁转简完成: " + execution.result.message);
             setIsProcessing(false);

@@ -67,3 +67,19 @@ QString GlobalConfig::detectFfmpeg()
 
     return {};
 }
+
+QString GlobalConfig::backupPath()
+{
+    return QDir::cleanPath(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
+        + QStringLiteral("/BYTools/backup");
+}
+QString GlobalConfig::cachePath()
+{
+    return QDir::cleanPath(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
+        + QStringLiteral("/BYTools/cache");
+}
+QString GlobalConfig::tempDir()
+{
+    return QDir::cleanPath(QStandardPaths::writableLocation(QStandardPaths::TempLocation))
+        + QStringLiteral("/BYTools/temp");
+}

@@ -91,11 +91,13 @@ QString BatchRenameController::statusMessage() const
 
 bool BatchRenameController::hasRecords() const
 {
+    QMutexLocker locker(&m_recordsMutex);
     return !m_records.isEmpty();
 }
 
 QVariantList BatchRenameController::records() const
 {
+    QMutexLocker locker(&m_recordsMutex);
     QVariantList result;
     for (const auto &record : m_records) {
         QVariantMap map;
@@ -164,9 +166,8 @@ void BatchRenameController::doWork()
     QString replaceText = m_settings->replaceText();
 
     int successCount = 0, failCount = 0;
-    QList<RenameRecord> records;
 
-    auto addRec = [&](const QString &orig, const QString &newP, bool ok, const QString &st) {
+    auto addRec = [this](const QString &orig, const QString &newP, bool ok, const QString &st) {
         RenameRecord rec;
         rec.originalPath = orig;
         rec.newPath = newP;
@@ -175,7 +176,14 @@ void BatchRenameController::doWork()
         rec.fileType = getFileType(rec.originalName);
         rec.success = ok;
         rec.status = st;
-        records.append(rec);
+        {
+            QMutexLocker locker(&m_recordsMutex);
+            m_records.append(rec);
+        }
+        QMetaObject::invokeMethod(this, [this]() {
+            emit recordsChanged();
+            emit hasRecordsChanged();
+        }, Qt::QueuedConnection);
     };
 
     std::function<void(const QString &)> procDir;
@@ -249,7 +257,6 @@ void BatchRenameController::doWork()
 
     procDir(rootPath);
 
-    m_records = records;
     m_workerThread.quit();
     QMetaObject::invokeMethod(this, [this, successCount, failCount]() {
         if (successCount == 0 && failCount == 0) {
@@ -262,8 +269,6 @@ void BatchRenameController::doWork()
             setStatusMessage(QStringLiteral("成功 %1 个，失败 %2 个").arg(successCount).arg(failCount));
             m_logger->info(QString("重命名完成: 成功 %1 个，失败 %2 个").arg(successCount).arg(failCount));
         }
-        emit recordsChanged();
-        emit hasRecordsChanged();
         setIsProcessing(false);
     }, Qt::QueuedConnection);
 }

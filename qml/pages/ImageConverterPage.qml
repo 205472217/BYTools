@@ -834,7 +834,7 @@ Pane {
             IconButton {
                 iconSource: "qrc:/icons/undo.svg"
                 tooltip: "批量还原"
-                visible: controller ? controller.hasRecords : false
+                visible: controller ? (controller.hasRecords && controller.outputMode === 0) : false
                 paletteGroup: "IconBtnEx"
                 onClicked: {
                     if (controller) {
@@ -1046,8 +1046,8 @@ Pane {
                             width: root.actionColumnWidth
                             anchors.verticalCenter: parent.verticalCenter
                             iconSource: "qrc:/icons/undo.svg"
-                            tooltip: modelData.success ? "还原" : "失败项无法还原"
-                            enabled: modelData.success
+                            tooltip: modelData.restorable ? "还原" : "该项无法还原"
+                            enabled: modelData.success && modelData.restorable
                             paletteGroup: "IconBtnEx"
                             onClicked: {
                                 if (controller) {

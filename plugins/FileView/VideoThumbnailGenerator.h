@@ -30,7 +30,6 @@ signals:
 private:
     void processNext();
     static bool isMostlyBlack(const QString &imagePath);
-    QString cacheDir() const;
     QString cacheFilePath(const QString &filePath, const QDateTime &modifiedTime) const;
 
     QString m_ffmpegPath;

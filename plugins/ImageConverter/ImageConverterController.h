@@ -5,6 +5,7 @@
 #include <QVariantList>
 #include <QDir>
 #include <QThread>
+#include <QMutex>
 
 class PluginLogger;
 class ImageConverterSettings;
@@ -117,6 +118,8 @@ private:
         QString formatTag;
         bool success;
         QString status;
+        bool restorable = false;
+        QString backupPath;
     };
 
     void doWork();
@@ -133,10 +136,12 @@ private:
     void setIsProcessing(bool processing);
 
     bool isImageFile(const QString &fileName) const;
+    static QString createBackup(const QString &filePath);
     static QString formatExtension(int formatIndex);
     static QByteArray formatForQImage(int formatIndex);
     static QString formatTagForExt(const QString &ext);
 
+    mutable QMutex m_recordsMutex;
     bool m_isProcessing = false;
     QString m_statusMessage;
     QString m_sourceFile;

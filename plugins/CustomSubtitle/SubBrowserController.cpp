@@ -2,6 +2,7 @@
 #include "CustomSubtitlePlugin.h"
 #include "Logger.h"
 #include "SettingsHelper.h"
+#include "GlobalConfig.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -27,8 +28,7 @@ SubBrowserController::SubBrowserController(PluginLogger *logger, QObject *parent
     m_scriptsDir  = findScriptsDir();
     m_pythonAvailable = !m_pythonPath.isEmpty() && !m_scriptsDir.isEmpty();
 
-    m_cacheDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
-                 + "/CustomSubtitleCache";
+    m_cacheDir = GlobalConfig::tempDir() + "/" + CustomSubtitlePlugin::PluginKey + "/cache";
     QDir().mkpath(m_cacheDir);
 
     if (m_pythonAvailable)
