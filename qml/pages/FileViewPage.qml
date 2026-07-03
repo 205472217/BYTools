@@ -26,7 +26,7 @@ Pane {
         title: "确认删除"
         modal: true
         anchors.centerIn: parent
-        width: 400
+        width: 420
         standardButtons: Dialog.Ok | Dialog.Cancel
 
         contentItem: Label {
@@ -64,12 +64,9 @@ Pane {
         title: "确认返回"
         modal: true
         anchors.centerIn: parent
-        width: 400
+        width: 420
         standardButtons: Dialog.Ok | Dialog.Cancel
         
-        onOpened: root._hideNativeOverlay()
-        onClosed: root._showNativeOverlay()
-
         contentItem: Label {
             text: "当前有视频正在播放，返回首页将中断播放，是否继续？"
             color: pal.LabelEx_statusText
@@ -84,6 +81,8 @@ Pane {
             }
         }
 
+        onOpened: root._hideNativeOverlay()
+        onClosed: root._showNativeOverlay()
         onAccepted: {
             if (controller) { controller.reset() }
             root._hideNativeOverlay()

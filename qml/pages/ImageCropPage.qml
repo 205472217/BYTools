@@ -94,19 +94,22 @@ Pane {
         title: "裁剪尺寸超出图片"
         modal: true
         anchors.centerIn: parent
-        width: 400
+        width: 420
         standardButtons: Dialog.Ok | Dialog.Cancel
 
         property string detailText: ""
-
         contentItem: Label {
-            id: overflowMsg
             text: overflowWarnDialog.detailText
-            wrapMode: Text.WordWrap
             color: pal.LabelEx_statusText
-            font.pixelSize: 13
-            lineHeight: 1.4
-            padding: 16
+            font.pixelSize: 14
+            wrapMode: Text.WordWrap
+            focus: true
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    overflowWarnDialog.accept()
+                    event.accepted = true
+                }
+            }
         }
 
         onAccepted: {
@@ -215,7 +218,7 @@ Pane {
         title: "确认返回"
         modal: true
         anchors.centerIn: parent
-        width: 400
+        width: 420
         standardButtons: Dialog.Ok | Dialog.Cancel
 
         contentItem: Label {

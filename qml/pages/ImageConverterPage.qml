@@ -97,7 +97,7 @@ Pane {
         title: "确认返回"
         modal: true
         anchors.centerIn: parent
-        width: 400
+        width: 420
         standardButtons: Dialog.Ok | Dialog.Cancel
 
         contentItem: Label {

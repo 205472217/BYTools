@@ -17,9 +17,14 @@ ApplicationWindow {
 
     property string currentFeatureId: ""
     property bool _navGuard: false
+    property bool _forceClosing: false
 
     // 关闭保护：有任务执行时确认是否退出
     onClosing: function(closeEvent) {
+        if (_forceClosing) {
+            _forceClosing = false
+            return
+        }
         var ids = pluginManager.allPluginIds()
         var anyProcessing = false
         for (var i = 0; i < ids.length; i++) {
@@ -38,21 +43,29 @@ ApplicationWindow {
     Dialog {
         id: confirmCloseDialog
         title: "确认退出"
-        standardButtons: Dialog.Yes | Dialog.No
-        
-        closePolicy: Popup.CloseOnEscape
-        x: Math.round((window.width - width) / 2)
-        y: Math.round((window.height - height) / 2)
         modal: true
+        anchors.centerIn: parent
+        width: 420
+        standardButtons: Dialog.Ok | Dialog.Cancel
 
-        Label {
+        contentItem: Label {
             text: "有任务正在执行中，确定要退出吗？\n退出后任务将被中断。"
+            color: pal.LabelEx_statusText
+            font.pixelSize: 14
             wrapMode: Text.WordWrap
-            width: 320
-            lineHeight: 1.5
+            focus: true
+            Keys.onPressed: (event) => {
+                if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                    confirmCloseDialog.accept()
+                    event.accepted = true
+                }
+            }
         }
 
-        onAccepted: Qt.quit()
+        onAccepted: {
+            window._forceClosing = true
+            Qt.quit()
+        }
     }
 
     StackView {

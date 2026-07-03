@@ -95,7 +95,7 @@ Pane {
         title: "重新下载"
         modal: true
         anchors.centerIn: parent
-        width: 400
+        width: 420
         standardButtons: Dialog.Ok | Dialog.Cancel
 
         contentItem: Label {

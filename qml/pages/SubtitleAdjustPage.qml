@@ -172,11 +172,7 @@ Pane {
         width: 420
         standardButtons: Dialog.Ok | Dialog.Cancel
         
-        onOpened: root._hideNativeOverlay()
-        onClosed: root._showNativeOverlay()
-
         property int targetIndex: -1
-
         contentItem: Label {
             text: "当前字幕调整尚未导出，切换将丢失进度，是否继续？"
             color: pal.LabelEx_statusText
@@ -191,6 +187,8 @@ Pane {
             }
         }
 
+        onOpened: root._hideNativeOverlay()
+        onClosed: root._showNativeOverlay()
         onAccepted: {
             var idx = unsavedDialog.targetIndex
             if (controller) {
