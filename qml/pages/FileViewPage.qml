@@ -799,6 +799,8 @@ Pane {
 
                         Menu {
                             id: contentMenu
+                            onOpened: root._hideNativeOverlay()
+                            onClosed: root._showNativeOverlay()
 
                             MenuItem {
                                 text: "定位到当前文件"
