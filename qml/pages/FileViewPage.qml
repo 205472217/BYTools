@@ -40,8 +40,6 @@ Pane {
         id: confirmDeleteDialog
         dialogTitle: "确认删除"
         messageText: "确定要永久删除该文件吗？\n此操作不可恢复！"
-        onOpened: root._hideNativeOverlay()
-        onClosed: root._showNativeOverlay()
         onConfirmed: {
             if (!controller || controller.currentModelIndex < 0)
                 return;
@@ -61,12 +59,9 @@ Pane {
         id: backConfirmDialog
         dialogTitle: "确认返回"
         messageText: "当前有视频正在播放，返回首页将中断播放，是否继续？"
-        onOpened: root._hideNativeOverlay()
-        onClosed: root._showNativeOverlay()
         onConfirmed: {
             if (controller)
                 controller.reset();
-            root._hideNativeOverlay();
             root.backRequested();
         }
     }
@@ -102,12 +97,6 @@ Pane {
         if (p && p.setNativeOverlayVisible)
             p.setNativeOverlayVisible(false);
     }
-    function _showNativeOverlay() {
-        var p = videoPreviewLoader.item;
-        if (p && p.setNativeOverlayVisible)
-            p.setNativeOverlayVisible(true);
-    }
-
     function selectedFileUrl(url) {
         var p = url.toString();
         if (p.indexOf("file:///") === 0)
@@ -800,7 +789,6 @@ Pane {
                         Menu {
                             id: contentMenu
                             onOpened: root._hideNativeOverlay()
-                            onClosed: root._showNativeOverlay()
 
                             MenuItem {
                                 text: "定位到当前文件"

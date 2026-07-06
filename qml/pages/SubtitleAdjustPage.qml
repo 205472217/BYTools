@@ -50,12 +50,6 @@ Pane {
         if (p && p.setNativeOverlayVisible)
             p.setNativeOverlayVisible(false);
     }
-    function _showNativeOverlay() {
-        var p = videoDisplayLoader.item;
-        if (p && p.setNativeOverlayVisible)
-            p.setNativeOverlayVisible(true);
-    }
-
     function selectedFileUrl(url) {
         var p = url.toString();
         if (p.indexOf("file:///") === 0)
@@ -142,8 +136,6 @@ Pane {
         id: backConfirmDialog
         dialogTitle: "确认返回"
         messageText: "当前页面有数据，返回首页将清空当前数据，是否继续？"
-        onOpened: root._hideNativeOverlay()
-        onClosed: root._showNativeOverlay()
         onConfirmed: {
             if (controller)
                 controller.reset();
@@ -157,8 +149,6 @@ Pane {
         property int targetIndex: -1
         dialogTitle: "确认切换"
         messageText: "当前字幕调整尚未导出，切换将丢失进度，是否继续？"
-        onOpened: root._hideNativeOverlay()
-        onClosed: root._showNativeOverlay()
         onConfirmed: {
             var idx = unsavedDialog.targetIndex;
             if (controller) {
