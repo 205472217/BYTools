@@ -103,7 +103,7 @@ void VideoThumbnailGenerator::processNext()
             && QFileInfo::exists(outPath)) {
             int nextSeek = req.seekTime + 5;
             bool canRetry = req.retryCount < 5 && nextSeek <= maxSeek;
-            if (canRetry && isMostlyBlack(outPath)) {
+            if (canRetry && !isKeyframeValid(outPath)) {
                 QFile::remove(outPath);
                 ThumbnailRequest retry = req;
                 retry.seekTime = nextSeek;
@@ -127,26 +127,34 @@ void VideoThumbnailGenerator::processNext()
     });
 }
 
-bool VideoThumbnailGenerator::isMostlyBlack(const QString &imagePath)
+bool VideoThumbnailGenerator::isKeyframeValid(const QString &imagePath)
 {
     QImage img(imagePath);
     if (img.isNull())
-        return true;
+        return false;
 
     img = img.scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
-    int blackCount = 0;
-    int total = img.width() * img.height();
+    double sum = 0.0, sumSq = 0.0;
+    int count = 0;
 
-    for (int y = 0; y < img.height(); ++y) {
-        for (int x = 0; x < img.width(); ++x) {
+    for (int y = 0; y < img.height(); y += 2) {
+        for (int x = 0; x < img.width(); x += 2) {
             QRgb pixel = img.pixel(x, y);
-            if (qRed(pixel) < 30 && qGreen(pixel) < 30 && qBlue(pixel) < 30)
-                ++blackCount;
+            double luma = 0.299 * qRed(pixel)
+                        + 0.587 * qGreen(pixel)
+                        + 0.114 * qBlue(pixel);
+            sum += luma;
+            sumSq += luma * luma;
+            ++count;
         }
     }
 
-    return blackCount > total / 2;
+    double mean = sum / count;
+    double variance = sumSq / count - mean * mean;
+    double stddev = qSqrt(qMax(0.0, variance));
+
+    return stddev >= 30.0;
 }
 
 QString VideoThumbnailGenerator::cacheFilePath(
