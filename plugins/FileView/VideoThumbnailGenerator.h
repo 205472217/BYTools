@@ -30,7 +30,7 @@ signals:
 
 private:
     void processNext();
-    static bool isMostlyBlack(const QString &imagePath);
+    static bool isKeyframeValid(const QString &imagePath);
     QString cacheFilePath(const QString &filePath, const QDateTime &modifiedTime) const;
 
     QString m_ffmpegPath;
