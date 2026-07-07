@@ -826,37 +826,37 @@ Pane {
                                         {
                                             text: "名称",
                                             checkable: true,
-                                            checked: controller ? controller.sortField === 0 : false,
+                                            checked: controller ? controller.sortField === controller.sortName : false,
                                             onTriggered: function() {
                                                 if (controller)
-                                                    controller.sortField = 0;
+                                                    controller.sortField = controller.sortName;
                                             }
                                         },
                                         {
                                             text: "大小",
                                             checkable: true,
-                                            checked: controller ? controller.sortField === 3 : false,
-                                            onTriggered: function() {
-                                                if (controller)
-                                                    controller.sortField = 3;
-                                            }
-                                        },
-                                        {
-                                            text: "日期",
-                                            checkable: true,
-                                            checked: controller ? (controller.sortField === 1 || controller.sortField === 2) : false,
+                                            checked: controller ? controller.sortField === 1 : false,
                                             onTriggered: function() {
                                                 if (controller)
                                                     controller.sortField = 1;
                                             }
                                         },
                                         {
-                                            text: "类型",
+                                            text: "日期",
                                             checkable: true,
-                                            checked: controller ? controller.sortField === 4 : false,
+                                            checked: controller ? (controller.sortField === 2) : false,
                                             onTriggered: function() {
                                                 if (controller)
-                                                    controller.sortField = 4;
+                                                    controller.sortField = 2;
+                                            }
+                                        },
+                                        {
+                                            text: "类型",
+                                            checkable: true,
+                                            checked: controller ? controller.sortField === 3 : false,
+                                            onTriggered: function() {
+                                                if (controller)
+                                                    controller.sortField = 3;
                                             }
                                         },
                                         { type: "separator" },

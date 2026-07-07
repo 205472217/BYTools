@@ -39,7 +39,7 @@ public:
     enum FileType { Video = 0, Audio, Image, All };
     Q_ENUM(FileType)
 
-    enum SortField { SortName = 0, SortModified, SortCreated, SortSize, SortType };
+    enum SortField { SortName = 0, SortSize,SortModified, SortType };
     Q_ENUM(SortField)
 
     explicit FileViewController(PluginLogger *logger, FileViewSettings *settings, QObject *parent = nullptr);

@@ -13,7 +13,6 @@ Window {
     property var items: []
     property Window transientParent: null
     property int submenuParentIndex: -1
-    property int submenuDelay: 100 // 子菜单延迟显示时间(ms)
     
     signal itemTriggered(int index, string action)
     signal closed
@@ -30,18 +29,10 @@ Window {
     }
 
     // 子菜单实例
+    property var activeParent: null
     property var activeSubmenu: null
     property int hoveredSubmenuIndex: -1
     property var hoveredSubmenuData: null
-    property Timer submenuOpenTimer: Timer {
-        interval: root.submenuDelay
-        repeat: false
-        onTriggered: {
-            if (hoveredSubmenuIndex >= 0 && hoveredSubmenuData) {
-                showSubmenu(hoveredSubmenuIndex, hoveredSubmenuData)
-            }
-        }
-    }
 
     function popup(posX, posY) {
         if (root.transientParent)
@@ -53,20 +44,6 @@ Window {
         show()
         raise()
         requestActivate()
-    }
-
-    function closeMenu() {
-        closeAllSubmenus()
-        hide()
-    }
-
-    function closeAllSubmenus() {
-        if (activeSubmenu) {
-            var sub = activeSubmenu
-            activeSubmenu = null
-            sub.closeMenu()
-            sub.destroy()
-        }
     }
 
     function showSubmenu(index, itemData) {
@@ -85,7 +62,7 @@ Window {
         }
 
         // 计算子菜单位置
-        var itemY = 8 + index * 32 // 8是顶部边距，32是每个菜单项高度
+        var itemY = 4 + Math.max(index-1, 0) * 32 // 4是顶部边距，32是每个菜单项高度
         var subX = root.x + root.width - 2
         var subY = root.y + itemY
 
@@ -105,13 +82,14 @@ Window {
             var submenu = component.createObject(root, {
                 items: itemData.submenu,
                 transientParent: root,
-                submenuParentIndex: index
+                submenuParentIndex: index,
+                activeParent: root
             })
             
             if (submenu) {
                 submenu.itemTriggered.connect(function(idx, action) {
                     root.itemTriggered(idx, action)
-                    closeAllSubmenus()
+                    closeRootMenu()
                 })
                 
                 submenu.closed.connect(function() {
@@ -130,25 +108,65 @@ Window {
         }
     }
 
+    function closeMenu() {
+        closeSubmenu()
+        hide()
+    }
+
+    function closeSubmenu() {
+        if (activeSubmenu) {
+            var sub = activeSubmenu
+            activeSubmenu = null
+            sub.closeMenu()
+            sub.destroy()
+        }
+    }
+
+    function closeRootMenu() {
+        var top = root
+        while (top.activeParent) {
+            top = top.activeParent
+        }
+
+        function closeDescendants(n) {
+            if (n.activeSubmenu) {
+                var child = n.activeSubmenu
+                n.activeSubmenu = null
+                closeDescendants(child)
+                child.closeMenu()
+                child.destroy()
+            }
+        }
+
+        closeDescendants(top)
+        top.closeMenu()
+    }
+
     onVisibleChanged: {
         if (!visible) {
-            closeAllSubmenus()
-            closed()
+            closeRootMenu()
         }
     }
 
+    // 菜单窗口失去焦点
     onActiveChanged: {
         if (!active && (!activeSubmenu || !activeSubmenu.active)) {
-            closeAllSubmenus()
-            hide()
+            closeRootMenu()
         }
     }
 
-    // 点击外部关闭菜单
+    // 菜单窗口之外的区域获取焦点
     onActiveFocusItemChanged: {
-        if (!activeFocusItem && active && !activeSubmenu) {
-            closeMenu()
+        if (!activeFocusItem && active) {
+            if (!activeSubmenu) {
+                closeRootMenu()
+            }
         }
+    }
+
+    // 组件销毁时关闭所有子菜单
+    Component.onDestruction: {
+        closeSubmenu()
     }
 
     Item {
@@ -156,22 +174,7 @@ Window {
         focus: true
         Keys.onPressed: event => {
             if (event.key === Qt.Key_Escape) {
-                if (activeSubmenu) {
-                    closeAllSubmenus()
-                } else {
-                    root.closeMenu()
-                }
-                event.accepted = true
-            }
-            if (event.key === Qt.Key_Right && activeSubmenu) {
-                // 右箭头聚焦到子菜单
-                if (activeSubmenu) {
-                    activeSubmenu.requestActivate()
-                    event.accepted = true
-                }
-            }
-            if (event.key === Qt.Key_Left) {
-                closeAllSubmenus()
+                root.closeRootMenu()
                 event.accepted = true
             }
         }
@@ -264,29 +267,26 @@ Window {
                         root.hoveredSubmenuIndex = index
                         root.hoveredSubmenuData = modelData
                         if (hasSubmenu) {
-                            root.submenuOpenTimer.restart()
+                            root.showSubmenu(index, modelData)
                         } else {
-                            root.submenuOpenTimer.stop()
-                            if (root.activeSubmenu) {
-                                root.closeAllSubmenus()
-                            }
+                            // 仅关闭子菜单，不影响父菜单
+                            root.closeSubmenu()
                         }
                     }
 
                     onExited: {
-                        root.submenuOpenTimer.stop()
                     }
 
                     onClicked: {
                         if (hasSubmenu) {
                             if (root.activeSubmenu && root.activeSubmenu.submenuParentIndex === index) {
-                                root.closeAllSubmenus()
+                                root.closeSubmenu()
                             } else {
                                 root.showSubmenu(index, modelData)
                             }
                         } else {
                             root.itemTriggered(index, modelData.action || "")
-                            root.closeMenu()
+                            root.closeRootMenu()
                         }
                     }
                 }
@@ -300,10 +300,5 @@ Window {
         border.width: 1
         border.color: "#C0C0C0"
         z: -1
-    }
-
-    // 清理资源
-    Component.onDestruction: {
-        closeAllSubmenus()
     }
 }

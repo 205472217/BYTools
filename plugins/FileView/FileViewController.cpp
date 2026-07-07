@@ -451,10 +451,6 @@ void FileViewController::applySort()
             if (a.modifiedTime < b.modifiedTime) cmp = -1;
             else if (a.modifiedTime > b.modifiedTime) cmp = 1;
             break;
-        case SortCreated:
-            if (a.createdTime < b.createdTime) cmp = -1;
-            else if (a.createdTime > b.createdTime) cmp = 1;
-            break;
         case SortSize:
             if (a.fileSize < b.fileSize) cmp = -1;
             else if (a.fileSize > b.fileSize) cmp = 1;
