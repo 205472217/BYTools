@@ -673,7 +673,8 @@ Pane {
                                     onClicked: function (mouse) {
                                         if (mouse.button === Qt.RightButton) {
                                             root._contextMenuIndex = fileDelegate.index;
-                                            contentMenu.popup();
+                                            var pos = rowMouse.mapToGlobal(Qt.point(mouse.x, mouse.y));
+                                            contentMenu.popup(pos.x, pos.y);
                                         } else if (fileDelegate.isDir) {
                                             if (controller)
                                                 controller.navigateToDir(fileDelegate.filePath);
@@ -768,6 +769,7 @@ Pane {
                                 }
 
                                 MouseArea {
+                                    id: cellMouse
                                     anchors.fill: parent
                                     cursorShape: Qt.PointingHandCursor
                                     hoverEnabled: true
@@ -775,7 +777,8 @@ Pane {
                                     onClicked: function (mouse) {
                                         if (mouse.button === Qt.RightButton) {
                                             root._contextMenuIndex = index;
-                                            contentMenu.popup();
+                                            var pos = cellMouse.mapToGlobal(Qt.point(mouse.x, mouse.y));
+                                            contentMenu.popup(pos.x, pos.y);
                                         } else if (isDir) {
                                             controller.navigateToDir(filePath);
                                         } else {
@@ -786,92 +789,114 @@ Pane {
                             }
                         }
 
-                        Menu {
+                        MenuEx {
                             id: contentMenu
-                            onOpened: root._hideNativeOverlay()
-
-                            MenuItem {
-                                text: "定位到当前文件"
-                                icon.source: "qrc:/icons/to_current.svg"
-                                onTriggered: {
-                                    var idx = root._activeView.currentIndex;
-                                    if (idx >= 0)
-                                        root._activeView.positionViewAtIndex(idx, ListView.Contain);
+                            items: [
+                                {
+                                    text: "定位到当前文件",
+                                    icon: "qrc:/icons/to_current.svg",
+                                    action: "locate_current",
+                                    onTriggered: function() {
+                                        var idx = root._activeView.currentIndex;
+                                        if (idx >= 0)
+                                            root._activeView.positionViewAtIndex(idx, ListView.Contain);
+                                    }
+                                },
+                                {
+                                    text: "定位到顶部",
+                                    icon: "qrc:/icons/to_top.svg",
+                                    action: "locate_top",
+                                    onTriggered: function() {
+                                        root._activeView.positionViewAtBeginning();
+                                    }
+                                },
+                                {
+                                    text: "定位到底部",
+                                    icon: "qrc:/icons/to_bottom.svg",
+                                    action: "locate_bottom",
+                                    onTriggered: function() {
+                                        root._activeView.positionViewAtEnd();
+                                    }
+                                },
+                                { type: "separator" },
+                                {
+                                    text: "排序方式",
+                                    icon: "qrc:/icons/global_empty.svg",
+                                    submenu: [
+                                        {
+                                            text: "名称",
+                                            checkable: true,
+                                            checked: controller ? controller.sortField === 0 : false,
+                                            onTriggered: function() {
+                                                if (controller)
+                                                    controller.sortField = 0;
+                                            }
+                                        },
+                                        {
+                                            text: "大小",
+                                            checkable: true,
+                                            checked: controller ? controller.sortField === 3 : false,
+                                            onTriggered: function() {
+                                                if (controller)
+                                                    controller.sortField = 3;
+                                            }
+                                        },
+                                        {
+                                            text: "日期",
+                                            checkable: true,
+                                            checked: controller ? (controller.sortField === 1 || controller.sortField === 2) : false,
+                                            onTriggered: function() {
+                                                if (controller)
+                                                    controller.sortField = 1;
+                                            }
+                                        },
+                                        {
+                                            text: "类型",
+                                            checkable: true,
+                                            checked: controller ? controller.sortField === 4 : false,
+                                            onTriggered: function() {
+                                                if (controller)
+                                                    controller.sortField = 4;
+                                            }
+                                        },
+                                        { type: "separator" },
+                                        {
+                                            text: "递增",
+                                            checkable: true,
+                                            checked: controller ? controller.sortAscending : true,
+                                            onTriggered: function() {
+                                                if (controller)
+                                                    controller.sortAscending = true;
+                                            }
+                                        },
+                                        {
+                                            text: "递减",
+                                            checkable: true,
+                                            checked: controller ? !controller.sortAscending : false,
+                                            onTriggered: function() {
+                                                if (controller)
+                                                    controller.sortAscending = false;
+                                            }
+                                        }
+                                    ]
+                                },
+                                { type: "separator" },
+                                {
+                                    text: "删除",
+                                    icon: "qrc:/icons/global_trash.svg",
+                                    enabled: controller && controller.currentModelIndex >= 0 && root._contextMenuIndex === controller.currentModelIndex,
+                                    action: "delete",
+                                    onTriggered: function() {
+                                        confirmDeleteDialog.open();
+                                    }
                                 }
-                            }
-                            MenuItem {
-                                text: "定位到顶部"
-                                icon.source: "qrc:/icons/to_top.svg"
-                                onTriggered: root._activeView.positionViewAtBeginning()
-                            }
-                            MenuItem {
-                                text: "定位到底部"
-                                icon.source: "qrc:/icons/to_bottom.svg"
-                                onTriggered: root._activeView.positionViewAtEnd()
-                            }
+                            ]
 
-                            MenuSeparator {}
-
-                            Menu {
-                                title: "排序方式"
-                                icon.source: "qrc:/icons/global_empty.svg"
-                                icon.width: 16
-                                icon.height: 16
-
-                                MenuItem {
-                                    text: "名称"
-                                    checkable: true
-                                    checked: controller ? controller.sortField === 0 : false
-                                    onTriggered: if (controller)
-                                        controller.sortField = 0
+                            onItemTriggered: function(index, action) {
+                                var item = items[index];
+                                if (item && item.onTriggered) {
+                                    item.onTriggered();
                                 }
-                                MenuItem {
-                                    text: "大小"
-                                    checkable: true
-                                    checked: controller ? controller.sortField === 3 : false
-                                    onTriggered: if (controller)
-                                        controller.sortField = 3
-                                }
-                                MenuItem {
-                                    text: "日期"
-                                    checkable: true
-                                    checked: controller ? (controller.sortField === 1 || controller.sortField === 2) : false
-                                    onTriggered: if (controller)
-                                        controller.sortField = 1
-                                }
-                                MenuItem {
-                                    text: "类型"
-                                    checkable: true
-                                    checked: controller ? controller.sortField === 4 : false
-                                    onTriggered: if (controller)
-                                        controller.sortField = 4
-                                }
-
-                                MenuSeparator {}
-
-                                MenuItem {
-                                    text: "递增"
-                                    checkable: true
-                                    checked: controller ? controller.sortAscending : true
-                                    onTriggered: if (controller)
-                                        controller.sortAscending = true
-                                }
-                                MenuItem {
-                                    text: "递减"
-                                    checkable: true
-                                    checked: controller ? !controller.sortAscending : false
-                                    onTriggered: if (controller)
-                                        controller.sortAscending = false
-                                }
-                            }
-
-                            MenuSeparator {}
-
-                            MenuItem {
-                                text: "删除"
-                                icon.source: "qrc:/icons/global_trash.svg"
-                                enabled: controller && controller.currentModelIndex >= 0 && root._contextMenuIndex === controller.currentModelIndex
-                                onTriggered: confirmDeleteDialog.open()
                             }
                         }
 

@@ -45,6 +45,7 @@ set(BYTOOLS_QML_FILES
     qml/components/ComboBoxEx.qml
     qml/components/CheckBoxEx.qml
     qml/components/ConfirmDialog.qml
+    qml/components/MenuEx.qml
     qml/components/RadioButtonEx.qml
     qml/components/ViewToggleBtn.qml
     qml/components/ImageViewer.qml
