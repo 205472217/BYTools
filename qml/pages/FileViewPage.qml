@@ -826,10 +826,10 @@ Pane {
                                         {
                                             text: "名称",
                                             checkable: true,
-                                            checked: controller ? controller.sortField === controller.sortName : false,
+                                            checked: controller ? controller.sortField === 0 : false,
                                             onTriggered: function() {
                                                 if (controller)
-                                                    controller.sortField = controller.sortName;
+                                                    controller.sortField = 0;
                                             }
                                         },
                                         {

@@ -282,6 +282,8 @@ void MpvPlayer::startMpv()
     args << QStringLiteral("--cursor-autohide=no");
     args << QStringLiteral("--keepaspect=yes");
     args << QStringLiteral("--volume=%1").arg(static_cast<int>(linearizeMpvVolume(m_volume)));
+    if (m_muted)
+        args << QStringLiteral("--mute=yes");
     args << QStringLiteral("--pause");
     args << QStringLiteral("--no-terminal");
     args << QStringLiteral("--quiet");
@@ -345,7 +347,25 @@ void MpvPlayer::connectIpc()
     connect(m_ipcSocket, &QLocalSocket::readyRead, this, &MpvPlayer::handleIpcData);
     connect(m_ipcSocket, &QLocalSocket::connected, this, [this]() {
         observeProperties();
-        // State will be determined by the pause property observation
+
+        // Re-apply volume and mute in case they were set before IPC was ready
+        QJsonObject volCmd;
+        QJsonArray volArgs;
+        volArgs.append(QStringLiteral("set_property"));
+        volArgs.append(QStringLiteral("volume"));
+        volArgs.append(linearizeMpvVolume(m_volume));
+        volCmd[QStringLiteral("command")] = volArgs;
+        sendIpcCommand(QJsonDocument(volCmd).toJson(QJsonDocument::Compact));
+
+        if (m_muted) {
+            QJsonObject muteCmd;
+            QJsonArray muteArgs;
+            muteArgs.append(QStringLiteral("set_property"));
+            muteArgs.append(QStringLiteral("mute"));
+            muteArgs.append(QJsonValue(true));
+            muteCmd[QStringLiteral("command")] = muteArgs;
+            sendIpcCommand(QJsonDocument(muteCmd).toJson(QJsonDocument::Compact));
+        }
     });
     connect(m_ipcSocket, &QLocalSocket::errorOccurred, this, [this](QLocalSocket::LocalSocketError err) {
         if (err != QLocalSocket::PeerClosedError) {

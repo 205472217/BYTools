@@ -270,7 +270,11 @@ Window {
                                 root.showSubmenu(index, modelData)
                             }
                         } else {
-                            root.itemTriggered(index, modelData.action || "")
+                            if (typeof modelData.onTriggered === "function") {
+                                modelData.onTriggered()
+                            } else {
+                                root.itemTriggered(index, modelData.action || "")
+                            }
                             root.closeRootMenu()
                         }
                     }
