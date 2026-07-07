@@ -142,25 +142,10 @@ Window {
         top.closeMenu()
     }
 
-    onVisibleChanged: {
-        if (!visible) {
-            closeRootMenu()
-        }
-    }
-
     // 菜单窗口失去焦点
     onActiveChanged: {
         if (!active && (!activeSubmenu || !activeSubmenu.active)) {
             closeRootMenu()
-        }
-    }
-
-    // 菜单窗口之外的区域获取焦点
-    onActiveFocusItemChanged: {
-        if (!activeFocusItem && active) {
-            if (!activeSubmenu) {
-                closeRootMenu()
-            }
         }
     }
 
