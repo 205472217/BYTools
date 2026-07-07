@@ -91,7 +91,6 @@ Pane {
         id: noOptionDialog
         dialogTitle: "提示"
         messageText: "请先勾选至少一项处理方式（格式转换 / 尺寸缩放）"
-        standardButtons: Dialog.Ok
     }
 
     ConfirmDialog {

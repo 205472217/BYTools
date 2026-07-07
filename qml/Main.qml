@@ -132,7 +132,8 @@ ApplicationWindow {
                     stackView: stackView,
                     pluginId: featureId
                 });
-                page.backRequested.connect(navigateBack);
+                if (page)
+                    page.backRequested.connect(navigateBack);
             }
         }
     }
