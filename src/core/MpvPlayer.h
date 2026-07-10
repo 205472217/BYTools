@@ -16,6 +16,7 @@ class MpvPlayer : public QQuickItem
     Q_PROPERTY(PlaybackState playbackState READ playbackState NOTIFY playbackStateChanged)
     Q_PROPERTY(qreal volume READ volume WRITE setVolume NOTIFY volumeChanged)
     Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
+    Q_PROPERTY(qreal speed READ speed WRITE setSpeed NOTIFY speedChanged)
     Q_PROPERTY(bool available READ isAvailable NOTIFY availableChanged)
     Q_PROPERTY(QString mpvPath READ mpvPath WRITE setMpvPath NOTIFY mpvPathChanged)
 
@@ -40,6 +41,8 @@ public:
     void setPosition(qint64 pos);
     void setVolume(qreal vol);
     void setMuted(bool muted);
+    qreal speed() const { return m_speed; }
+    void setSpeed(qreal speed);
     void setMpvPath(const QString &path);
 
     Q_INVOKABLE void play();
@@ -55,6 +58,7 @@ signals:
     void playbackStateChanged();
     void volumeChanged();
     void mutedChanged();
+    void speedChanged();
     void availableChanged();
     void mpvPathChanged();
     void errorOccurred(const QString &error);
@@ -93,6 +97,7 @@ private:
     PlaybackState m_playbackState = Stopped;
     qreal m_volume = 100;
     bool m_muted = false;
+    qreal m_speed = 1.0;
     bool m_available = false;
     QString m_mpvPath;
 };

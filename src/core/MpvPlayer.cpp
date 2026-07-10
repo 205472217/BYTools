@@ -82,6 +82,24 @@ void MpvPlayer::setVolume(qreal vol)
     }
 }
 
+void MpvPlayer::setSpeed(qreal speed)
+{
+    speed = qBound<qreal>(0.1, speed, 10.0);
+    if (qFuzzyCompare(m_speed, speed))
+        return;
+    m_speed = speed;
+    emit speedChanged();
+    if (m_ipcSocket && m_ipcSocket->state() == QLocalSocket::ConnectedState) {
+        QJsonObject cmd;
+        QJsonArray args;
+        args.append(QStringLiteral("set_property"));
+        args.append(QStringLiteral("speed"));
+        args.append(speed);
+        cmd[QStringLiteral("command")] = args;
+        sendIpcCommand(QJsonDocument(cmd).toJson(QJsonDocument::Compact));
+    }
+}
+
 void MpvPlayer::setMuted(bool muted)
 {
     if (m_muted == muted)
@@ -366,6 +384,15 @@ void MpvPlayer::connectIpc()
             muteCmd[QStringLiteral("command")] = muteArgs;
             sendIpcCommand(QJsonDocument(muteCmd).toJson(QJsonDocument::Compact));
         }
+
+        // Re-apply speed
+        QJsonObject speedCmd;
+        QJsonArray speedArgs;
+        speedArgs.append(QStringLiteral("set_property"));
+        speedArgs.append(QStringLiteral("speed"));
+        speedArgs.append(m_speed);
+        speedCmd[QStringLiteral("command")] = speedArgs;
+        sendIpcCommand(QJsonDocument(speedCmd).toJson(QJsonDocument::Compact));
     });
     connect(m_ipcSocket, &QLocalSocket::errorOccurred, this, [this](QLocalSocket::LocalSocketError err) {
         if (err != QLocalSocket::PeerClosedError) {

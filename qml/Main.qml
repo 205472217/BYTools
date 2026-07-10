@@ -7,10 +7,10 @@ ApplicationWindow {
 
     property var pal: themeManager.palette
 
-    width: 1120
-    height: 720
-    minimumWidth: 1120
-    minimumHeight: 720
+    width: 1280
+    height: 780
+    minimumWidth: 1280
+    minimumHeight: 780
     visible: true
     title: "BYTools"
     color: pal.SurfaceEx_pageBg

@@ -19,6 +19,9 @@ Item {
     property int volume: 100
     onVolumeChanged: audioOut.volume = volume / 100.0
 
+    property real speed: 1.0
+    onSpeedChanged: mediaPlayer.playbackRate = speed
+
     property bool showControls: true
     property bool showPreviousNext: true
     property bool showSeekButtons: true
@@ -42,6 +45,7 @@ Item {
     signal previousRequested
     signal nextRequested
     signal deleteRequested
+    signal speedSelected(real speed)
 
     function play() {
         mediaPlayer.play();
@@ -397,6 +401,105 @@ Item {
                                 onClicked: root.seekStepMs = modelData * 1000
                             }
                         }
+                    }
+                }
+
+                // ── 倍速调节 ──
+                Row {
+                    height: 22
+                    Layout.alignment: Qt.AlignVCenter
+                    spacing: 2
+
+                    Item {
+                        width: 18
+                        height: parent.height
+
+                        Label {
+                            anchors.centerIn: parent
+                            text: "◀"
+                            color: decMouse.containsMouse ? "#FFFFFF" : root._controlsTextColor
+                            font.pixelSize: 18
+                            font.bold: true
+                        }
+
+                        MouseArea {
+                            id: decMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: {
+                                var s = root.speed;
+                                if (s <= 1.0)
+                                    s = Math.max(0.1, Math.round((s - 0.1) * 10) / 10);
+                                else
+                                    s = Math.max(1.0, s - 1);
+                                root.speed = s;
+                                root.speedSelected(s);
+                            }
+                        }
+
+                        ToolTip.visible: decMouse.containsMouse
+                        ToolTip.delay: 500
+                        ToolTip.text: "减速"
+                    }
+
+                    Item {
+                        width: 30
+                        height: parent.height
+
+                        Label {
+                            anchors.centerIn: parent
+                            text: root.speed.toFixed(1) + "x"
+                            color: root._controlsTextColor
+                            font.pixelSize: 10
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                        }
+
+                        MouseArea {
+                            id: speedResetArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onDoubleClicked: {
+                                root.speed = 1.0;
+                                root.speedSelected(1.0);
+                            }
+                        }
+
+                        ToolTip.visible: speedResetArea.containsMouse
+                        ToolTip.delay: 500
+                        ToolTip.text: "双击还原为1.0x"
+                    }
+
+                    Item {
+                        width: 18
+                        height: parent.height
+
+                        Label {
+                            anchors.centerIn: parent
+                            text: "▶"
+                            color: incMouse.containsMouse ? "#FFFFFF" : root._controlsTextColor
+                            font.pixelSize: 18
+                            font.bold: true
+                        }
+
+                        MouseArea {
+                            id: incMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onClicked: {
+                                var s = root.speed;
+                                if (s < 1.0)
+                                    s = Math.min(1.0, Math.round((s + 0.1) * 10) / 10);
+                                else
+                                    s = Math.min(5.0, s + 1);
+                                root.speed = s;
+                                root.speedSelected(s);
+                            }
+                        }
+
+                        ToolTip.visible: incMouse.containsMouse
+                        ToolTip.delay: 500
+                        ToolTip.text: "加速"
                     }
                 }
             }
