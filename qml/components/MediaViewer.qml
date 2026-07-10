@@ -138,6 +138,17 @@ Item {
         fillMode: VideoOutput.PreserveAspectFit
     }
 
+    MouseArea {
+        anchors.fill: videoOut
+        enabled: mediaPlayer.source != ""
+        onClicked: {
+            if (mediaPlayer.playbackState === MediaPlayer.PlayingState)
+                mediaPlayer.pause();
+            else
+                mediaPlayer.play();
+        }
+    }
+
     // ── Controls bar ──
     Rectangle {
         id: controlBar

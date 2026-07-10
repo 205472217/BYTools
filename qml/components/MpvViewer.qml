@@ -81,6 +81,20 @@ Item {
         anchors.bottom: showControls ? controlBar.top : parent.bottom
     }
 
+    MouseArea {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: showControls ? controlBar.top : parent.bottom
+        enabled: mpvPlayer.source != ""
+        onClicked: {
+            if (mpvPlayer.playbackState === MpvPlayer.Playing)
+                mpvPlayer.pause();
+            else
+                mpvPlayer.play();
+        }
+    }
+
     Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
