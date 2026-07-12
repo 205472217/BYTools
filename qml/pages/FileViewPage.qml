@@ -757,11 +757,13 @@ Pane {
 
                                         Label {
                                             Layout.fillWidth: true
+                                            Layout.preferredHeight: 32
                                             text: fileName
                                             color: pal.LabelEx_valueText
                                             font.pixelSize: 11
                                             elide: Text.ElideRight
                                             horizontalAlignment: Text.AlignHCenter
+                                            verticalAlignment: Text.AlignTop
                                             maximumLineCount: 2
                                             wrapMode: Text.WordWrap
                                         }
