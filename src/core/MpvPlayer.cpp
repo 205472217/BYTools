@@ -489,14 +489,22 @@ void MpvPlayer::handleIpcData()
                     m_pendingPlay = false;
                     m_pendingPause = false;
                 } else if (name == QStringLiteral("eof-reached")) {
-                    m_playbackState = Stopped;
-                    m_position = m_duration > 0 ? m_duration : 0;
-                    emit playbackStateChanged();
-                    emit positionChanged();
+                    if (obj[QStringLiteral("data")].toString() == QStringLiteral("yes")) {
+                        m_playbackState = Stopped;
+                        m_position = m_duration > 0 ? m_duration : 0;
+                        emit playbackStateChanged();
+                        emit positionChanged();
+                    }
                 }
             } else if (event == QStringLiteral("end-file")) {
                 m_playbackState = Stopped;
+                m_position = m_duration > 0 ? m_duration : 0;
                 emit playbackStateChanged();
+                emit positionChanged();
+                paintWindowBlack();
+                QString reason = obj[QStringLiteral("reason")].toString();
+                if (reason == QStringLiteral("eof"))
+                    emit finished();
             }
         }
 

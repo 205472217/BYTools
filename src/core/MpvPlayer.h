@@ -62,6 +62,7 @@ signals:
     void availableChanged();
     void mpvPathChanged();
     void errorOccurred(const QString &error);
+    void finished();
 
 protected:
     void itemChange(ItemChange change, const ItemChangeData &data) override;

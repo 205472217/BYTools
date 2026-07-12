@@ -26,6 +26,7 @@ Item {
     property bool showPreviousNext: true
     property bool showSeekButtons: true
     property int seekStepMs: 5000
+    property bool autoNext: true
 
     // ── 主题支持 ──
     property string paletteGroup: ""
@@ -287,6 +288,34 @@ Item {
                     onClicked: root.nextRequested()
                 }
 
+                Rectangle {
+                    implicitWidth: 24
+                    implicitHeight: 24
+                    radius: 4
+                    color: "transparent"
+                    border.width: root.autoNext ? 1 : 0
+                    border.color: root._controlsTextColor
+                    visible: root.showPreviousNext
+                    ToolTip.visible: autoNextMouse.containsMouse
+                    ToolTip.delay: 500
+                    ToolTip.text: root.autoNext ? "自动播放下一个：开" : "自动播放下一个：关"
+
+                    Label {
+                        anchors.centerIn: parent
+                        text: "A"
+                        color: root.autoNext ? root._controlsTextColor : "#80FFFFFF"
+                        font.pixelSize: 13
+                        font.bold: root.autoNext
+                    }
+
+                    MouseArea {
+                        id: autoNextMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: root.autoNext = !root.autoNext
+                    }
+                }
+
                 Item {
                     Layout.fillWidth: true
                 }
@@ -520,5 +549,10 @@ Item {
     onVisibleChanged: {
         if (!root.visible && mediaPlayer.playbackState === MediaPlayer.PlayingState)
             mediaPlayer.pause();
+    }
+
+    onMediaStatusChanged: {
+        if (root.autoNext && mediaPlayer.mediaStatus === MediaPlayer.EndOfMedia)
+            root.nextRequested();
     }
 }
