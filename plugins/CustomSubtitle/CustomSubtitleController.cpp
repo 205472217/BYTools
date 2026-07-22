@@ -106,6 +106,7 @@ QString CustomSubtitleController::videoSourcePath() const { return m_settings->v
 bool CustomSubtitleController::recursive() const { return m_settings->recursive(); }
 QString CustomSubtitleController::mergedOutputPath() const { return m_settings->mergedOutputPath(); }
 bool CustomSubtitleController::gpuAccel() const { return m_settings->gpuAccel(); }
+int CustomSubtitleController::quality() const { return m_settings->quality(); }
 bool CustomSubtitleController::removeSrtAfterReplace() const { return m_removeSrtAfterReplace; }
 bool CustomSubtitleController::weakMatch() const { return m_settings->weakMatch(); }
 QString CustomSubtitleController::statusMessage() const { return m_statusMessage; }
@@ -167,6 +168,14 @@ void CustomSubtitleController::setGpuAccel(bool enable)
     if (m_settings->gpuAccel() != enable) {
         m_settings->setGpuAccel(enable);
         emit gpuAccelChanged();
+    }
+}
+
+void CustomSubtitleController::setQuality(int quality)
+{
+    if (m_settings->quality() != quality) {
+        m_settings->setQuality(quality);
+        emit qualityChanged();
     }
 }
 
@@ -252,7 +261,7 @@ void CustomSubtitleController::mergeSubtitleToVideo()
         .arg(m_settings->videoSourcePath(), m_settings->mergedOutputPath()).arg(m_settings->gpuAccel()));
 
     m_mergeService->startMerge(ffmpeg, m_settings->videoSourcePath(), m_settings->mergedOutputPath(),
-                                m_settings->recursive(), m_settings->gpuAccel());
+                                m_settings->recursive(), m_settings->gpuAccel(), m_settings->quality());
 }
 
 void CustomSubtitleController::replaceOriginalVideo()

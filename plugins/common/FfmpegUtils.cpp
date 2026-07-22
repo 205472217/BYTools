@@ -159,7 +159,8 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
                               const QString &outputPath,
                               const QString &inputCodec,
                               qint64 bitrate,
-                              qint64 fps)
+                              qint64 fps,
+                              int quality)
 {
     QStringList args;
     if (vendor == GpuVendor::None)
@@ -169,9 +170,11 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
     if (encoder.isEmpty())
         return args;
 
-    // 根据源码率和帧率计算合适的 QP 
+    // 根据源码率和帧率计算合适的 QP（quality==0 时走动态逻辑）
     int qp = 23;
-    if (bitrate > 0 && fps > 0) {
+    if (quality > 0) {
+        qp = quality;
+    } else if (bitrate > 0 && fps > 0) {
         qint64 normBitrate = bitrate * 30 / fps;        // 归一化到 30fps
         double ratio = static_cast<double>(normBitrate) / 3000000.0;
         ratio = qBound(0.1, ratio, 2.0);                // 限幅避免极端值

@@ -56,7 +56,7 @@ void FfmpegRunner::burnSubtitles(const BurnConfig &config)
                                               config.fontSize, config.fontColor,
                                               config.borderColor, config.borderWidth);
         args = buildGpuAccelArgs(vendor, config.videoPath, filter,
-                                  config.outputPath, codec, srcBitrate, fps);
+                                  config.outputPath, codec, srcBitrate, fps, config.quality);
     }
 
     if (args.isEmpty()) {

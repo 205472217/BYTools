@@ -82,6 +82,7 @@ public:
     Q_INVOKABLE bool isDownloaded(int index) const;
     Q_INVOKABLE void openDownloadFolder();
     Q_INVOKABLE void checkDependencies();
+    Q_INVOKABLE QString validateAndSetPythonPath(const QString &path);
 
 signals:
     void availableSitesChanged();

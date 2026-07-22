@@ -38,6 +38,7 @@ class CustomSubtitleController : public QObject
     Q_PROPERTY(QString mergedOutputPath READ mergedOutputPath WRITE setMergedOutputPath NOTIFY mergedOutputPathChanged)
     Q_PROPERTY(QString ffmpegPath READ ffmpegPath WRITE setFfmpegPath NOTIFY ffmpegPathChanged)
     Q_PROPERTY(bool gpuAccel READ gpuAccel WRITE setGpuAccel NOTIFY gpuAccelChanged)
+    Q_PROPERTY(int quality READ quality WRITE setQuality NOTIFY qualityChanged)
     Q_PROPERTY(bool removeSrtAfterReplace READ removeSrtAfterReplace WRITE setRemoveSrtAfterReplace NOTIFY removeSrtAfterReplaceChanged)
     Q_PROPERTY(bool weakMatch READ weakMatch WRITE setWeakMatch NOTIFY weakMatchChanged)
     Q_PROPERTY(QStringList enabledPreprocessors READ enabledPreprocessors WRITE setEnabledPreprocessors NOTIFY enabledPreprocessorsChanged)
@@ -60,6 +61,7 @@ public:
     bool recursive() const;
     QString mergedOutputPath() const;
     bool gpuAccel() const;
+    int quality() const;
     bool removeSrtAfterReplace() const;
     bool weakMatch() const;
     QStringList enabledPreprocessors() const;
@@ -88,6 +90,7 @@ public:
     void setMergedOutputPath(const QString &path);
     void setFfmpegPath(const QString &path);
     void setGpuAccel(bool enable);
+    void setQuality(int quality);
     void setRemoveSrtAfterReplace(bool remove);
     void setWeakMatch(bool weak);
     void setEnabledPreprocessors(const QStringList &ops);
@@ -110,6 +113,7 @@ signals:
     void mergedOutputPathChanged();
     void ffmpegPathChanged();
     void gpuAccelChanged();
+    void qualityChanged();
     void removeSrtAfterReplaceChanged();
     void weakMatchChanged();
     void enabledPreprocessorsChanged();

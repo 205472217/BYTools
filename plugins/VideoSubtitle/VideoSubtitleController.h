@@ -87,6 +87,7 @@ class VideoSubtitleController : public QObject
 
     // === GPU & output ===
     Q_PROPERTY(bool useGpuAccel READ useGpuAccel WRITE setUseGpuAccel NOTIFY useGpuAccelChanged)
+    Q_PROPERTY(int quality READ quality WRITE setQuality NOTIFY qualityChanged)
     Q_PROPERTY(QString gpuAccelInfo READ gpuAccelInfo NOTIFY gpuAccelInfoChanged)
 
 public:
@@ -154,6 +155,7 @@ public:
 
     // === GPU & output getters ===
     bool useGpuAccel() const;
+    int quality() const;
     QString gpuAccelInfo() const;
 
     // Setters
@@ -205,6 +207,7 @@ public:
 
     // === GPU & output setters ===
     void setUseGpuAccel(bool enable);
+    void setQuality(int quality);
 
     Q_INVOKABLE void execute();
     Q_INVOKABLE void cancel();
@@ -282,6 +285,7 @@ signals:
 
     // === GPU & output signals ===
     void useGpuAccelChanged();
+    void qualityChanged();
     void gpuAccelInfoChanged();
 
 private slots:

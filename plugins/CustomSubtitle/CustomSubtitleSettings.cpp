@@ -15,6 +15,7 @@ bool CustomSubtitleSettings::recursive() const { return m_recursive; }
 QString CustomSubtitleSettings::mergedOutputPath() const { return m_mergedOutputPath; }
 QString CustomSubtitleSettings::ffmpegPath() const { return m_ffmpegPath; }
 bool CustomSubtitleSettings::gpuAccel() const { return m_gpuAccel; }
+int CustomSubtitleSettings::quality() const { return m_quality; }
 bool CustomSubtitleSettings::weakMatch() const { return m_weakMatch; }
 QStringList CustomSubtitleSettings::enabledPreprocessors() const { return m_enabledPreprocessors; }
 
@@ -60,6 +61,13 @@ void CustomSubtitleSettings::setGpuAccel(bool enable)
         saveSettings();
     }
 }
+void CustomSubtitleSettings::setQuality(int quality)
+{
+    if (m_quality != quality) {
+        m_quality = quality;
+        saveSettings();
+    }
+}
 void CustomSubtitleSettings::setWeakMatch(bool weak)
 {
     if (m_weakMatch != weak) {
@@ -84,6 +92,7 @@ void CustomSubtitleSettings::loadSettings()
     m_mergedOutputPath = s.value("customMergedOutputPath").toString();
     m_ffmpegPath = s.value("customFfmpegPath").toString();
     m_gpuAccel = s.value("customGpuAccel", false).toBool();
+    m_quality = s.value("customQuality", 0).toInt();
     m_weakMatch = s.value("customWeakMatch", false).toBool();
     m_enabledPreprocessors = s.value("customPreprocessors").toStringList();
 }
@@ -96,6 +105,7 @@ void CustomSubtitleSettings::saveSettings()
     s.setValue("customMergedOutputPath", m_mergedOutputPath);
     s.setValue("customFfmpegPath", m_ffmpegPath);
     s.setValue("customGpuAccel", m_gpuAccel);
+    s.setValue("customQuality", m_quality);
     s.setValue("customWeakMatch", m_weakMatch);
     s.setValue("customPreprocessors", m_enabledPreprocessors);
     s.sync();

@@ -20,7 +20,8 @@ public:
                     const QString &videoDir,
                     const QString &outputDir,
                     bool recursive,
-                    bool useGpu);
+                    bool useGpu,
+                    int quality = 0);
 
     void cancel();
     void requestStopAfterCount(int count);
@@ -61,6 +62,7 @@ private:
     int m_successCount = 0;
     int m_failCount = 0;
     bool m_checkUseGpu = false;
+    int m_quality = 0;
 
     QThread m_workerThread;
     bool m_workerRunning = false;

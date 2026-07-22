@@ -116,20 +116,12 @@ QString SubBrowserController::findPython() const
         }
     }
 
-    // 3) 兜底：直接尝试 Python 3.10~3.13 的常见路径
+    // 3) 兜底：直接尝试 Python 常见路径
     QStringList fallbacks = {
-        localAppData + "/Python313/python.exe",
-        localAppData + "/Python312/python.exe",
-        localAppData + "/Python311/python.exe",
-        localAppData + "/Python310/python.exe",
-        "C:/Python313/python.exe",
-        "C:/Python312/python.exe",
-        "C:/Python311/python.exe",
-        "C:/Python310/python.exe",
-        "C:/Python/Python313/python.exe",
-        "C:/Python/Python312/python.exe",
-        "C:/Python/Python311/python.exe",
-        "C:/Python/Python310/python.exe",
+        "C:/Python/python.exe",
+        localAppData + "/Python/python.exe",
+        "C:/Program Files/Python/python.exe",
+        "C:/Program Files (x86)/Python/python.exe",
     };
     for (const QString &exe : fallbacks) {
         if (!QFile::exists(exe)) continue;
@@ -178,6 +170,34 @@ void SubBrowserController::checkDependencies()
     proc.start(m_pythonPath, {"-c", "import lxml"});
     m_dependenciesMet = proc.waitForFinished(10000) && proc.exitCode() == 0;
     emit dependenciesMetChanged();
+}
+
+QString SubBrowserController::validateAndSetPythonPath(const QString &path)
+{
+    if (path.isEmpty())
+        return QStringLiteral("路径为空");
+
+    if (!QFile::exists(path))
+        return QStringLiteral("文件不存在: ") + path;
+
+    QProcess proc;
+    proc.start(path, {"--version"});
+    if (!proc.waitForFinished(5000) || proc.exitCode() != 0) {
+        QString err = QString::fromLocal8Bit(proc.readAllStandardError()).trimmed();
+        return err.isEmpty() ? QStringLiteral("Python 验证失败，请检查路径") : err;
+    }
+
+    m_pythonPath = path;
+    m_pythonAvailable = true;
+    emit pythonAvailableChanged();
+
+    m_scriptsDir = findScriptsDir();
+    checkDependencies();
+
+    if (m_logger)
+        m_logger->info(QStringLiteral("SubBrowser: 用户指定 Python=%1").arg(path));
+
+    return {};
 }
 
 // ══════════════════════════════════════════════════════════

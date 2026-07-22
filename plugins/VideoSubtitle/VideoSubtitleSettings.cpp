@@ -86,6 +86,7 @@ QString VideoSubtitleSettings::defaultFontColor() const { return m_defaultFontCo
 QString VideoSubtitleSettings::defaultBorderColor() const { return m_defaultBorderColor; }
 int VideoSubtitleSettings::defaultBorderWidth() const { return m_defaultBorderWidth; }
 bool VideoSubtitleSettings::useGpuAccel() const { return m_useGpuAccel; }
+int VideoSubtitleSettings::quality() const { return m_quality; }
 QString VideoSubtitleSettings::gpuAccelInfo() const { return m_gpuAccelInfo; }
 
 // ── 主页面 getter ──
@@ -252,6 +253,13 @@ void VideoSubtitleSettings::setUseGpuAccel(bool enable)
         saveSettings();
     }
 }
+void VideoSubtitleSettings::setQuality(int quality)
+{
+    if (m_quality != quality) {
+        m_quality = quality;
+        saveSettings();
+    }
+}
 void VideoSubtitleSettings::setLibreTranslateUrl(const QString &url)
 {
     if (m_libreTranslateUrl != url) {
@@ -371,6 +379,7 @@ void VideoSubtitleSettings::loadSettings()
     m_defaultBorderColor = s.value("defaultBorderColor", "#000000").toString();
     m_defaultBorderWidth = s.value("defaultBorderWidth", 2).toInt();
     m_useGpuAccel = s.value("useGpuAccel", false).toBool();
+    m_quality = s.value("videoQuality", 0).toInt();
     m_libreTranslateUrl = s.value("libreTranslateUrl", "http://localhost:5000").toString();
     m_inputPath = s.value("inputPath").toString();
     m_inputMode = s.value("inputMode", 0).toInt();
@@ -457,6 +466,7 @@ void VideoSubtitleSettings::saveSettings()
     s.setValue("defaultBorderColor", m_defaultBorderColor);
     s.setValue("defaultBorderWidth", m_defaultBorderWidth);
     s.setValue("useGpuAccel", m_useGpuAccel);
+    s.setValue("videoQuality", m_quality);
     s.setValue("libreTranslateUrl", m_libreTranslateUrl);
     s.setValue("inputPath", m_inputPath);
     s.setValue("inputMode", m_inputMode);
@@ -496,6 +506,7 @@ void VideoSubtitleSettings::resetDefaults()
     m_defaultBorderColor = "#000000";
     m_defaultBorderWidth = 2;
     m_useGpuAccel = false;
+    m_quality = 0;
     m_gpuAccelInfo = "GPU 加速: 需先配置 FFmpeg";
     m_libreTranslateUrl = "http://localhost:5000";
     m_libreTranslateStatus.clear();
@@ -736,6 +747,7 @@ void VideoSubtitleSettings::onToolsDetectionFinished()
     m_ffmpegStatus = result.ffmpegStatus;
     m_gpuAccelInfo = result.gpuAccelInfo;
 
+    emit detectionFinished();
 }
 ToolsDetectResult VideoSubtitleSettings::runToolsDetection(const QString &ffmpegPath, PluginLogger *logger)
 {
