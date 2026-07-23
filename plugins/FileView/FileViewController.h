@@ -4,12 +4,13 @@
 #include <QString>
 #include <QList>
 #include <QThread>
+#include <QTimer>
 #include <QVariantMap>
 #include "FileListModel.h"
+#include "VideoThumbnailGenerator.h"
 
 class PluginLogger;
 class FileViewSettings;
-class VideoThumbnailGenerator;
 
 class FileViewController : public QObject
 {
@@ -126,6 +127,8 @@ private:
     PluginLogger *m_logger = nullptr;
     FileViewSettings *m_settings = nullptr;
     VideoThumbnailGenerator *m_thumbnailGenerator = nullptr;
+    QTimer *m_thumbnailDelayTimer = nullptr;
+    QList<VideoThumbnailGenerator::ThumbnailRequest> m_pendingThumbnailRequests;
 
     QThread m_workerThread;
     bool m_workerRunning = false;

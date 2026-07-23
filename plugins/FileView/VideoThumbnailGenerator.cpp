@@ -45,7 +45,6 @@ void VideoThumbnailGenerator::cancel()
 {
     if (m_process) {
         m_process->kill();
-        m_process->waitForFinished(500);
         m_process->deleteLater();
         m_process = nullptr;
     }
