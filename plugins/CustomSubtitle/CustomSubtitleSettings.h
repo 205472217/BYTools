@@ -17,6 +17,7 @@ public:
     QString mergedOutputPath() const;
     QString ffmpegPath() const;
     bool gpuAccel() const;
+    int quality() const;
     bool weakMatch() const;
     QStringList enabledPreprocessors() const;
 
@@ -26,6 +27,7 @@ public:
     void setMergedOutputPath(const QString &path);
     void setFfmpegPath(const QString &path);
     void setGpuAccel(bool enable);
+    void setQuality(int quality);
     void setWeakMatch(bool weak);
     void setEnabledPreprocessors(const QStringList &ops);
 
@@ -40,6 +42,7 @@ private:
     QString m_mergedOutputPath;
     QString m_ffmpegPath;
     bool m_gpuAccel = false;
+    int m_quality = 0;
     bool m_weakMatch = false;
     QStringList m_enabledPreprocessors;
 };

@@ -36,6 +36,13 @@ VideoSubtitleController::VideoSubtitleController(PluginLogger *logger, VideoSubt
     // It is dynamically connected to onAudioExtracted or onBurnFinished
     // depending on the current step (see processSingleFile / onTranslateFinished).
 
+    // 检测完成时转发信号到 QML
+    connect(m_settings, &VideoSubtitleSettings::detectionFinished, this, [this]() {
+        emit ffmpegDetectingChanged();
+        emit ffmpegStatusChanged();
+        emit gpuAccelInfoChanged();
+    });
+
     // 确保 Settings 从 INI 加载
     m_settings->loadSettings();
 
@@ -312,7 +319,8 @@ void VideoSubtitleController::execute()
         {
             bool useGpu = m_settings->useGpuAccel();
             m_ffmpegService->setUseHardwareAccel(useGpu);
-            m_logger->info(QString("FFmpeg GPU 加速: %1").arg(useGpu ? "开启" : "关闭"));
+            m_ffmpegService->setQuality(m_settings->quality());
+            m_logger->info(QString("FFmpeg GPU 加速: %1, 质量: %2").arg(useGpu ? "开启" : "关闭").arg(m_settings->quality()));
         }
 
         processNextFile();
@@ -324,7 +332,8 @@ void VideoSubtitleController::execute()
         {
             bool useGpu = m_settings->useGpuAccel();
             m_ffmpegService->setUseHardwareAccel(useGpu);
-            m_logger->info(QString("FFmpeg GPU 加速: %1").arg(useGpu ? "开启" : "关闭"));
+            m_ffmpegService->setQuality(m_settings->quality());
+            m_logger->info(QString("FFmpeg GPU 加速: %1, 质量: %2").arg(useGpu ? "开启" : "关闭").arg(m_settings->quality()));
         }
 
         emit logMessage("正在递归查找视频文件...");
@@ -1041,6 +1050,9 @@ void VideoSubtitleController::setFfmpegPath(const QString &path) {
     if (m_settings->ffmpegPath() != path) {
         m_settings->setFfmpegPath(path);
         emit ffmpegPathChanged();
+        emit ffmpegDetectingChanged();
+        emit ffmpegStatusChanged();
+        emit gpuAccelInfoChanged();
     }
 }
 
@@ -1182,6 +1194,13 @@ void VideoSubtitleController::setUseGpuAccel(bool enable) {
     if (m_settings->useGpuAccel() != enable) {
         m_settings->setUseGpuAccel(enable);
         emit useGpuAccelChanged();
+    }
+}
+int VideoSubtitleController::quality() const { return m_settings->quality(); }
+void VideoSubtitleController::setQuality(int quality) {
+    if (m_settings->quality() != quality) {
+        m_settings->setQuality(quality);
+        emit qualityChanged();
     }
 }
 

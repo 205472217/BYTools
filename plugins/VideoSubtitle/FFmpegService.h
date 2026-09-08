@@ -25,6 +25,7 @@ public:
                             int borderWidth = 2);
 
     void setUseHardwareAccel(bool enable);
+    void setQuality(int quality);
     void cancel();
 
     static QString hardwareAccelName(const QString &ffmpegPath);
@@ -43,4 +44,5 @@ private:
     QString m_outputPath;
     bool m_isExtracting = false;
     bool m_checkUseGpu = false;
+    int m_quality = 0;
 };

@@ -17,6 +17,10 @@ void FFmpegService::setUseHardwareAccel(bool enable)
 {
     m_checkUseGpu = enable;
 }
+void FFmpegService::setQuality(int quality)
+{
+    m_quality = quality;
+}
 
 QString FFmpegService::hardwareAccelName(const QString &ffmpegPath)
 {
@@ -64,6 +68,7 @@ void FFmpegService::startBurnSubtitles(const QString &ffmpegPath,
     cfg.subtitlePath = srtPath;
     cfg.outputPath   = outputPath;
     cfg.useGpu       = m_checkUseGpu;
+    cfg.quality      = m_quality;
     cfg.fontName     = "Microsoft YaHei";
     cfg.fontSize     = fontSize;
     cfg.fontColor    = fontColor;

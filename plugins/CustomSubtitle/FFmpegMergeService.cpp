@@ -37,7 +37,8 @@ void FFmpegMergeService::startMerge(const QString &ffmpegPath,
                                      const QString &videoDir,
                                      const QString &outputDir,
                                      bool recursive,
-                                     bool useGpu)
+                                     bool useGpu,
+                                     int quality)
 {
     if (m_runner->isRunning()) {
         emit logMessage("✗ 已有合成任务正在执行，请等待完成");
@@ -62,6 +63,7 @@ void FFmpegMergeService::startMerge(const QString &ffmpegPath,
     m_failCount = 0;
     m_pendingFiles.clear();
     m_checkUseGpu = useGpu;
+    m_quality = quality;
 
     QDir outDir(outputDir);
     if (!outDir.exists()) {
@@ -255,6 +257,7 @@ void FFmpegMergeService::processNextFile()
     cfg.subtitlePath  = vf.subtitlePath;
     cfg.outputPath    = vf.outputPath;
     cfg.useGpu        = m_checkUseGpu;
+    cfg.quality       = m_quality;
     cfg.gpuVendor     = GpuVendor::None; // 每次重新检测，避免跨文件 GPU 状态变化
 
     m_runner->burnSubtitles(cfg);

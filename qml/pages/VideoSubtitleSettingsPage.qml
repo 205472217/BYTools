@@ -1102,6 +1102,29 @@ Pane {
                             }
                         }
 
+                        ComboBoxEx {
+                            id: qualityCombo
+                            model: ["自动", "高质量 (23)", "超高质量 (20)", "顶级质量 (18)"]
+                            implicitWidth: 110
+                            font.pixelSize: 12
+                            paletteGroup: "ComboBoxEx"
+                            visible: gpuCheckBox.visible
+                            enabled: gpuCheckBox.checked && gpuCheckBox.enabled
+                            currentIndex: {
+                                if (!controller) return 0
+                                var q = controller.quality
+                                if (q >= 23) return 1
+                                if (q >= 20) return 2
+                                if (q >= 18) return 3
+                                return 0
+                            }
+                            onActivated: {
+                                var values = [0, 23, 20, 18]
+                                if (controller)
+                                    controller.quality = values[currentIndex]
+                            }
+                        }
+
                         Item {
                             Layout.fillWidth: true
                         }

@@ -48,6 +48,7 @@ public:
     QString defaultBorderColor() const;
     int defaultBorderWidth() const;
     bool useGpuAccel() const;
+    int quality() const;
     QString gpuAccelInfo() const;
     bool ffmpegDetecting() const { return m_ffmpegDetecting; }
     bool whisperDetecting() const { return m_whisperDetecting; }
@@ -86,6 +87,7 @@ public:
     void setDefaultBorderColor(const QString &color);
     void setDefaultBorderWidth(int width);
     void setUseGpuAccel(bool enable);
+    void setQuality(int quality);
     void setLibreTranslateUrl(const QString &url);
 
     // ── 主页面 setter ──
@@ -114,6 +116,9 @@ public:
     Q_INVOKABLE QString modelFileName(int modelIndex) const;
     Q_INVOKABLE qint64 modelFileSize(int modelIndex) const;
     QString whisperModelPath() const;
+
+signals:
+    void detectionFinished();
 
 private:
     void startAsyncDetection();
@@ -154,6 +159,7 @@ private:
     QString m_defaultBorderColor = "#000000";
     int m_defaultBorderWidth = 2;
     bool m_useGpuAccel = false;
+    int m_quality = 0;
     QString m_gpuAccelInfo;
     QString m_libreTranslateUrl;
     QString m_libreTranslateStatus;

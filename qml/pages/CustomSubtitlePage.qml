@@ -58,6 +58,18 @@ Pane {
         }
     }
 
+    FileDialog {
+        id: pythonFileDialog
+        title: "选择 python.exe"
+        nameFilters: ["Python (python.exe)", "All Files (*)"]
+        onAccepted: {
+            if (!browserCtrl) return
+            var path = decodeURIComponent(selectedFile.toString().replace("file:///", ""));
+            var err = browserCtrl.validateAndSetPythonPath(path);
+            pythonErrorText.text = err || "";
+        }
+    }
+
     ConfirmDialog {
         id: backConfirmDialog
         dialogTitle: "确认返回"
@@ -796,6 +808,37 @@ Pane {
                                                 width: 320
                                                 wrapMode: Text.WordWrap
                                             }
+
+                                            Button {
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: "指定 Python 路径"
+                                                onClicked: pythonFileDialog.open()
+                                                background: Rectangle {
+                                                    radius: 4
+                                                    color: parent.hovered ? pal.CustomSubtitlePage_installBtnBg_color_hover : pal.CustomSubtitlePage_installBtnBg_color_normal
+                                                    border.color: pal.CustomSubtitlePage_installBtnBg_borderColor
+                                                    border.width: 1
+                                                }
+                                                contentItem: Text {
+                                                    text: parent.text
+                                                    color: pal.CustomSubtitlePage_installBtnText_color
+                                                    font.pixelSize: 12
+                                                    horizontalAlignment: Text.AlignHCenter
+                                                    verticalAlignment: Text.AlignVCenter
+                                                }
+                                            }
+
+                                            Label {
+                                                id: pythonErrorText
+                                                anchors.horizontalCenter: parent.horizontalCenter
+                                                text: ""
+                                                color: pal.LabelEx_warningText
+                                                font.pixelSize: 11
+                                                visible: text.length > 0
+                                                horizontalAlignment: Text.AlignHCenter
+                                                width: 320
+                                                wrapMode: Text.WordWrap
+                                            }
                                         }
 
                                         Column {
@@ -1343,7 +1386,6 @@ Pane {
                                 // 空闲状态：执行按钮
                                 CheckBoxEx {
                                     id: gpuCheckBox
-                                    Layout.fillWidth: true
                                     text: "GPU加速"
                                     paletteGroup: "CheckBoxEx"
                                     checked: controller ? controller.gpuAccel : false
@@ -1352,6 +1394,29 @@ Pane {
                                     onCheckedChanged: {
                                         if (controller && controller.gpuAccel !== checked)
                                             controller.gpuAccel = checked;
+                                    }
+                                }
+
+                                ComboBoxEx {
+                                    id: qualityCombo
+                                    model: ["自动", "高质量 (23)", "超高质量 (20)", "顶级质量 (18)"]
+                                    implicitWidth: 110
+                                    font.pixelSize: 11
+                                    paletteGroup: "ComboBoxEx"
+                                    visible: gpuCheckBox.visible
+                                    enabled: gpuCheckBox.checked
+                                    currentIndex: {
+                                        if (!controller) return 0
+                                        var q = controller.quality
+                                        if (q >= 23) return 1
+                                        if (q >= 20) return 2
+                                        if (q >= 18) return 3
+                                        return 0
+                                    }
+                                    onActivated: {
+                                        var values = [0, 23, 20, 18]
+                                        if (controller)
+                                            controller.quality = values[currentIndex]
                                     }
                                 }
 
@@ -1418,6 +1483,10 @@ Pane {
                                         }
                                         paletteGroup: "ComboBoxEx"
                                     }
+                                }
+
+                                Item {
+                                    Layout.fillWidth: true
                                 }
 
                                 IconButton {

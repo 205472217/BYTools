@@ -77,4 +77,5 @@ QStringList buildGpuAccelArgs(GpuVendor vendor,
                               const QString &outputPath,
                               const QString &inputCodec,
                               qint64 bitrate = 0,
-                              qint64 fps = 0);
+                              qint64 fps = 0,
+                              int quality = 0);

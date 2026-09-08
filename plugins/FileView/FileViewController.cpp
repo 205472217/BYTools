@@ -47,6 +47,11 @@ FileViewController::FileViewController(PluginLogger *logger, FileViewSettings *s
                 this, &FileViewController::onThumbnailReady);
     }
 
+    m_thumbnailDelayTimer = new QTimer(this);
+    m_thumbnailDelayTimer->setSingleShot(true);
+    m_thumbnailDelayTimer->setInterval(1000);
+    connect(m_thumbnailDelayTimer, &QTimer::timeout, this, &FileViewController::startThumbnailGeneration);
+
     // 从持久化设置同步缓存成员
     m_viewWay = m_settings->viewWay();
     m_viewMode = m_settings->viewMode();
@@ -240,6 +245,8 @@ void FileViewController::startScan()
         return;
     }
 
+    m_thumbnailDelayTimer->stop();
+    m_pendingThumbnailRequests.clear();
     m_allEntries.clear();
     m_fileListModel->clear();
     setCurrentFilePath(QString());
@@ -297,6 +304,7 @@ void FileViewController::scanFiles()
     QStringList exts = extensionsForType(m_fileType);
 
     QList<FileListModel::FileEntry> entries;
+    QList<VideoThumbnailGenerator::ThumbnailRequest> videoRequests;
 
     QDirIterator::IteratorFlags flags = QDirIterator::NoIteratorFlags;
     if (m_recursive)
@@ -326,14 +334,17 @@ void FileViewController::scanFiles()
             ? categoryForExtension(QStringLiteral(".") + entry.fileType)
             : m_fileType;
         entries.append(entry);
+
+        if (entry.typeCategory == 0)
+            videoRequests.append({entry.filePath, entry.modifiedTime});
     }
 
     m_workerThread.quit();
 
-    QMetaObject::invokeMethod(this, [this, entries]() {
+    QMetaObject::invokeMethod(this, [this, entries, videoRequests]() {
+        m_pendingThumbnailRequests = videoRequests;
         m_allEntries = entries;
         applySort();
-        startThumbnailGeneration();
 
         QString msg = QStringLiteral("✓ 扫描完成: 共找到 %1 个文件")
             .arg(entries.size());
@@ -350,6 +361,7 @@ void FileViewController::scanDirectorys()
     QStringList exts = extensionsForType(m_fileType);
 
     QList<FileListModel::FileEntry> entries;
+    QList<VideoThumbnailGenerator::ThumbnailRequest> videoRequests;
 
     QDir dir(m_currentPath);
 
@@ -411,14 +423,17 @@ void FileViewController::scanDirectorys()
             entry.thumbnailPath = fi.absoluteFilePath();
 
         entries.append(entry);
+
+        if (entry.typeCategory == 0)
+            videoRequests.append({entry.filePath, entry.modifiedTime});
     }
 
     m_workerThread.quit();
 
-    QMetaObject::invokeMethod(this, [this, entries]() {
+    QMetaObject::invokeMethod(this, [this, entries, videoRequests]() {
+        m_pendingThumbnailRequests = videoRequests;
         m_allEntries = entries;
         applySort();
-        startThumbnailGeneration();
 
         QString msg = QStringLiteral("✓ 扫描完成: 共 %1 项").arg(entries.size());
         m_logger->info(msg);
@@ -467,18 +482,18 @@ void FileViewController::applySort()
     m_fileListModel->setFiles(m_allEntries);
     emit fileCountChanged();
 
+    m_thumbnailDelayTimer->start();
+
     // 排序后恢复当前选中项
     if (!m_currentFilePath.isEmpty()) {
         for (int i = 0; i < m_allEntries.size(); ++i) {
             if (m_allEntries[i].filePath == m_currentFilePath) {
                 selectFile(i);
-                startThumbnailGeneration();
                 return;
             }
         }
     }
     setCurrentModelIndex(-1);
-    startThumbnailGeneration();
 }
 
 // ── 选择文件 ──
@@ -566,6 +581,8 @@ void FileViewController::navigateToDir(const QString &path)
     if (m_workerRunning)
         cancel();
 
+    m_thumbnailDelayTimer->stop();
+    m_pendingThumbnailRequests.clear();
     setCurrentPath(path);
 
     m_allEntries.clear();
@@ -644,20 +661,11 @@ void FileViewController::cancel()
 
 void FileViewController::startThumbnailGeneration()
 {
-    if (!m_thumbnailGenerator)
+    if (!m_thumbnailGenerator || m_pendingThumbnailRequests.isEmpty())
         return;
 
     m_thumbnailGenerator->cancel();
-
-    QList<VideoThumbnailGenerator::ThumbnailRequest> requests;
-    for (int i = 0; i < m_allEntries.size(); ++i) {
-        const auto &entry = m_allEntries[i];
-        if (entry.typeCategory == 0 && !entry.isDir && entry.thumbnailPath.isEmpty())
-            requests.append({entry.filePath, entry.modifiedTime});
-    }
-
-    if (!requests.isEmpty())
-        m_thumbnailGenerator->requestThumbnails(requests);
+    m_thumbnailGenerator->requestThumbnails(m_pendingThumbnailRequests);
 }
 
 void FileViewController::onThumbnailReady(const QString &filePath, const QString &thumbnailPath)
@@ -676,6 +684,8 @@ void FileViewController::onThumbnailReady(const QString &filePath, const QString
 void FileViewController::reset()
 {
     cancel();
+    m_thumbnailDelayTimer->stop();
+    m_pendingThumbnailRequests.clear();
     m_allEntries.clear();
     m_fileListModel->clear();
     setCurrentFilePath(QString());

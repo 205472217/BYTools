@@ -26,6 +26,7 @@ public:
         QString borderColor = "#000000";
         int     borderWidth = 2;
         int     threadCount = 0;  // 0=自动(85%), >0=指定线程数
+        int     quality = 0;      // 0=自动, 18/23/26=固定QP(GPU)
     };
 
     struct ExtractAudioConfig {
