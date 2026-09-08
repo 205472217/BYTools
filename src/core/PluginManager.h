@@ -28,7 +28,6 @@ public:
     Q_INVOKABLE QObject* getPluginSettings(const QString &id);
     Q_INVOKABLE QString pluginDirectory(const QString &id) const;
     Q_INVOKABLE bool fileExists(const QString &filePath) const;
-    Q_INVOKABLE bool extractMpvZip(const QString &pluginId);
     Q_INVOKABLE void startMpvExtraction(const QString &pluginId);
     Q_INVOKABLE QStringList allPluginIds() const;
     Q_INVOKABLE QString pluginQmlUrl(const QString &id, const QString &pageType = "page") const;
