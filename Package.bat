@@ -31,6 +31,11 @@ if exist "third\model" (
     xcopy /E /I "third\model" "%OUT_DIR%\third\model"
 )
 
+::==========================Unzip mpv.zip===============================
+if exist "third\mpv\mpv.zip" (
+    powershell -command "Expand-Archive -Path 'third\mpv\mpv.zip' -DestinationPath 'third\mpv' -Force"
+)
+
 ::==========================plugins===============================
 :: Copy BatchRename plugin
 mkdir "%PLUGIN_OUT%\BatchRename"
@@ -62,15 +67,21 @@ if exist "plugins\CustomSubtitle\python" (
 :: Copy adjustsubtitle plugin
 mkdir "%PLUGIN_OUT%\SubtitleAdjust"
 copy "build\plugins\SubtitleAdjust\libSubtitleAdjust.dll" "%PLUGIN_OUT%\SubtitleAdjust"
-if exist "third\mpv" (
-    xcopy /E /I "third\mpv" "%PLUGIN_OUT%\SubtitleAdjust\mpv"
+if exist "third\mpv\*.exe" (
+    for %%F in ("third\mpv\*.exe") do copy "%%F" "%PLUGIN_OUT%\SubtitleAdjust\"
+)
+if exist "third\mpv\*.dll" (
+    for %%F in ("third\mpv\*.dll") do copy "%%F" "%PLUGIN_OUT%\SubtitleAdjust\"
 )
 
 :: Copy FileView plugin
 mkdir "%PLUGIN_OUT%\FileView"
 copy "build\plugins\FileView\libFileView.dll" "%PLUGIN_OUT%\FileView"
-if exist "third\mpv" (
-    xcopy /E /I "third\mpv" "%PLUGIN_OUT%\FileView\mpv"
+if exist "third\mpv\*.exe" (
+    for %%F in ("third\mpv\*.exe") do copy "%%F" "%PLUGIN_OUT%\FileView\"
+)
+if exist "third\mpv\*.dll" (
+    for %%F in ("third\mpv\*.dll") do copy "%%F" "%PLUGIN_OUT%\FileView\"
 )
 ::==========================plugins===============================
 
