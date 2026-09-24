@@ -82,6 +82,7 @@ public:
     Q_INVOKABLE void reset();
     Q_INVOKABLE bool deleteFile(int index);
     Q_INVOKABLE void navigateToDir(const QString &path);
+    Q_INVOKABLE void openCurrentFileFolder();
     Q_INVOKABLE void navigateUp();
     Q_INVOKABLE int prevFileInCategory(int currentIndex) const;
     Q_INVOKABLE int nextFileInCategory(int currentIndex) const;

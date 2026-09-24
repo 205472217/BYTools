@@ -1272,10 +1272,37 @@ Pane {
                                 Layout.fillWidth: true
                                 spacing: 2
 
-                                Label {
-                                    text: "完整路径"
-                                    color: pal.LabelEx_labelText
-                                    font.pixelSize: 11
+                                RowLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 4
+
+                                    Label {
+                                        Layout.fillWidth: true
+                                        text: "完整路径"
+                                        color: pal.LabelEx_labelText
+                                        font.pixelSize: 11
+                                    }
+
+                                    IconButton {
+                                        implicitWidth: 24
+                                        implicitHeight: 24
+                                        iconSource: "qrc:/icons/global_folder.svg"
+                                        tooltip: "打开所在文件夹"
+                                        paletteGroup: "IconBtnEx"
+                                        enabled: hasSelection
+                                        showBorder: false
+                                        normalColor: "transparent"
+                                        hoverColor: "transparent"
+                                        pressColor: "transparent"
+                                        disabledColor: "transparent"
+                                        borderColor: "transparent"
+                                        defaultBorderColor: "transparent"
+                                        shadowColor: "transparent"
+                                        onClicked: {
+                                            if (controller)
+                                                controller.openCurrentFileFolder();
+                                        }
+                                    }
                                 }
                                 Label {
                                     Layout.fillWidth: true

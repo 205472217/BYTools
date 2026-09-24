@@ -11,6 +11,8 @@
 #include <QImage>
 #include <QCollator>
 #include <QDateTime>
+#include <QDesktopServices>
+#include <QUrl>
 #include <algorithm>
 #include <functional>
 
@@ -592,6 +594,16 @@ void FileViewController::navigateToDir(const QString &path)
 
     emit logMessage(QStringLiteral("正在扫描文件夹..."));
     triggerScan();
+}
+
+void FileViewController::openCurrentFileFolder()
+{
+    if (m_currentFilePath.isEmpty())
+        return;
+
+    const QFileInfo fileInfo(m_currentFilePath);
+    if (fileInfo.exists() && fileInfo.isFile())
+        QDesktopServices::openUrl(QUrl::fromLocalFile(fileInfo.absolutePath()));
 }
 
 void FileViewController::navigateUp()
