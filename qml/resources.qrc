@@ -23,6 +23,10 @@
         <file>icons/media_previous.svg</file>
         <file>icons/media_seekadd.svg</file>
         <file>icons/media_seekdec.svg</file>
+        <file>icons/media_screen_full.svg</file>
+        <file>icons/media_screen_restore.svg</file>
+        <file>icons/media_speed_down.svg</file>
+        <file>icons/media_speed_up.svg</file>
         <file>icons/media_stop.svg</file>
         <file>icons/media_volume.svg</file>
         <file>icons/thumb_file.svg</file>

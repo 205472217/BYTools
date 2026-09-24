@@ -27,6 +27,7 @@ Item {
     property bool showSeekButtons: true
     property int seekStepMs: 5000
     property bool autoNext: true
+    property bool fullscreen: false
 
     // ── 主题支持 ──
     property string paletteGroup: ""
@@ -82,17 +83,28 @@ Item {
         anchors.bottom: showControls ? controlBar.top : parent.bottom
     }
 
+    Timer {
+        id: videoClickTimer
+        interval: 300
+        repeat: false
+        onTriggered: {
+            if (mpvPlayer.playbackState === MpvPlayer.Playing)
+                mpvPlayer.pause();
+            else
+                mpvPlayer.play();
+        }
+    }
+
     MouseArea {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: showControls ? controlBar.top : parent.bottom
         enabled: mpvPlayer.source != ""
-        onClicked: {
-            if (mpvPlayer.playbackState === MpvPlayer.Playing)
-                mpvPlayer.pause();
-            else
-                mpvPlayer.play();
+        onClicked: videoClickTimer.restart()
+        onDoubleClicked: {
+            videoClickTimer.stop();
+            root.fullscreen = !root.fullscreen;
         }
     }
 
@@ -499,36 +511,20 @@ Item {
                     Layout.alignment: Qt.AlignVCenter
                     spacing: 2
 
-                    Item {
-                        width: 18
-                        height: parent.height
-
-                        Label {
-                            anchors.centerIn: parent
-                            text: "◀"
-                            color: decMouse.containsMouse ? "#FFFFFF" : root._controlsTextColor
-                            font.pixelSize: 18
-                            font.bold: true
+                    IconButton {
+                        implicitWidth: 28
+                        iconSource: "qrc:/icons/media_speed_down.svg"
+                        tooltip: "减速"
+                        paletteGroup: "IconBtnEx"
+                        onClicked: {
+                            var s = root.speed;
+                            if (s <= 1.0)
+                                s = Math.max(0.1, Math.round((s - 0.1) * 10) / 10);
+                            else
+                                s = Math.max(1.0, s - 1);
+                            root.speed = s;
+                            root.speedSelected(s);
                         }
-
-                        MouseArea {
-                            id: decMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            onClicked: {
-                                var s = root.speed;
-                                if (s <= 1.0)
-                                    s = Math.max(0.1, Math.round((s - 0.1) * 10) / 10);
-                                else
-                                    s = Math.max(1.0, s - 1);
-                                root.speed = s;
-                                root.speedSelected(s);
-                            }
-                        }
-
-                        ToolTip.visible: decMouse.containsMouse
-                        ToolTip.delay: 500
-                        ToolTip.text: "减速"
                     }
 
                     Item {
@@ -559,37 +555,29 @@ Item {
                         ToolTip.text: "双击还原为1.0x"
                     }
 
-                    Item {
-                        width: 18
-                        height: parent.height
-
-                        Label {
-                            anchors.centerIn: parent
-                            text: "▶"
-                            color: incMouse.containsMouse ? "#FFFFFF" : root._controlsTextColor
-                            font.pixelSize: 18
-                            font.bold: true
+                    IconButton {
+                        implicitWidth: 28
+                        iconSource: "qrc:/icons/media_speed_up.svg"
+                        tooltip: "加速"
+                        paletteGroup: "IconBtnEx"
+                        onClicked: {
+                            var s = root.speed;
+                            if (s < 1.0)
+                                s = Math.min(1.0, Math.round((s + 0.1) * 10) / 10);
+                            else
+                                s = Math.min(5.0, s + 1);
+                            root.speed = s;
+                            root.speedSelected(s);
                         }
-
-                        MouseArea {
-                            id: incMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            onClicked: {
-                                var s = root.speed;
-                                if (s < 1.0)
-                                    s = Math.min(1.0, Math.round((s + 0.1) * 10) / 10);
-                                else
-                                    s = Math.min(5.0, s + 1);
-                                root.speed = s;
-                                root.speedSelected(s);
-                            }
-                        }
-
-                        ToolTip.visible: incMouse.containsMouse
-                        ToolTip.delay: 500
-                        ToolTip.text: "加速"
                     }
+                }
+
+                IconButton {
+                    implicitWidth: 28
+                    iconSource: root.fullscreen ? "qrc:/icons/media_screen_restore.svg" : "qrc:/icons/media_screen_full.svg"
+                    tooltip: root.fullscreen ? "退出全屏" : "全屏"
+                    paletteGroup: "IconBtnEx"
+                    onClicked: root.fullscreen = !root.fullscreen
                 }
             }
         }

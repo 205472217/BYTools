@@ -93,9 +93,34 @@ Pane {
     }
 
     function _hideNativeOverlay() {
+        _exitVideoFullscreen();
         var p = videoPreviewLoader.item;
         if (p && p.setNativeOverlayVisible)
             p.setNativeOverlayVisible(false);
+    }
+
+    function _setVideoFullscreen(fullscreen) {
+        if (!fullscreen || !videoPreviewLoader.item) {
+            videoFullscreenOverlay.visible = false;
+            videoPreviewLoader.parent = previewArea;
+            videoPreviewLoader.anchors.fill = previewArea;
+            videoPreviewLoader.z = 0;
+            return;
+        }
+
+        videoPreviewLoader.parent = videoFullscreenOverlay;
+        videoPreviewLoader.anchors.fill = videoFullscreenOverlay;
+        videoPreviewLoader.z = 1;
+        videoFullscreenOverlay.visible = true;
+        videoFullscreenOverlay.forceActiveFocus();
+    }
+
+    function _exitVideoFullscreen() {
+        var p = videoPreviewLoader.item;
+        if (p)
+            p.fullscreen = false;
+        else
+            _setVideoFullscreen(false);
     }
     function selectedFileUrl(url) {
         var p = url.toString();
@@ -970,6 +995,11 @@ Pane {
                             active: hasSelection && controller && (controller.currentFileInfo.typeCategory === 0 || controller.currentFileInfo.typeCategory === 1)
                             source: root._mpvAvailable ? "../components/MpvViewer.qml" : "../components/MediaViewer.qml"
 
+                            onActiveChanged: {
+                                if (!active)
+                                    root._setVideoFullscreen(false);
+                            }
+
                             onLoaded: {
                                 if (controller) {
                                     if (root._mpvAvailable)
@@ -1023,6 +1053,9 @@ Pane {
 
                             Connections {
                                 target: videoPreviewLoader.item
+                                function onFullscreenChanged() {
+                                    root._setVideoFullscreen(videoPreviewLoader.item.fullscreen);
+                                }
                                 function onVolumeChanged() {
                                     if (controller && videoPreviewLoader.item)
                                         controller.volume = videoPreviewLoader.item.volume;
@@ -1299,6 +1332,33 @@ Pane {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    // ── Fullscreen video preview ──
+    Rectangle {
+        id: videoFullscreenOverlay
+        anchors.fill: parent
+        color: "#000000"
+        visible: false
+        focus: visible
+        z: 1000
+
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.AllButtons
+            preventStealing: true
+            propagateComposedEvents: false
+            onPressed: function (mouse) {
+                mouse.accepted = true;
+            }
+        }
+
+        Keys.onPressed: function (event) {
+            if (event.key === Qt.Key_Escape) {
+                root._exitVideoFullscreen();
+                event.accepted = true;
             }
         }
     }
